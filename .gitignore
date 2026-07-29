@@ -27,3 +27,37 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Laravel runtime files
+/bootstrap/cache/*.php
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+/storage/logs/*
+
+# User uploads
+/storage/app/private/*
+/storage/app/public/*
+
+# Frontend dependencies and generated assets
+/node_modules/
+/public/build/
+/public/hot
+
+# Laravel runtime files
+/bootstrap/cache/*.php
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+/storage/logs/*
+
+# User uploads
+/storage/app/private/*
+/storage/app/public/*
+
+# Frontend dependencies and generated assets
+/node_modules/
+/public/build/
+/public/hot
