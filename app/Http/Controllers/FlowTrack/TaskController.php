@@ -7,9 +7,9 @@ use App\Http\Requests\FlowTrack\UpdateTaskRequest;
 use App\Http\Requests\FlowTrack\StoreTaskRequest;
 use App\Modules\OrderFlow\Application\Actions\UpdateTaskAction;
 use App\Modules\OrderFlow\Application\Actions\CreateTaskAction;
-use App\Modules\OrderFlow\Business\Services\AccessResolver;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
 use App\Modules\OrderFlow\Business\Services\ProgressCalculator;
+use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Repositories\TaskRepository;
@@ -41,19 +41,24 @@ class TaskController extends Controller
         return back()->with('success', 'Task created successfully.');
     }
 
-    public function show(Request $request, FlowTask $task, TaskRepository $tasks): JsonResponse
-    {
-        return response()->json($tasks->findVisible($request->user(), $task->id));
-    }
-
-    public function update(UpdateTaskRequest $request, FlowTask $task, TaskRepository $tasks, AccessResolver $access, FlowAuthorizationService $authorization, UpdateTaskAction $action): RedirectResponse
+    public function show(Request $request, FlowTask $task, TaskRepository $tasks, FlowAuthorizationService $authorization): JsonResponse
     {
         $visibleTask = $tasks->findVisible($request->user(), $task->id);
-        abort_unless($access->canManageTasks($request->user(), $visibleTask->job) || $visibleTask->assignee_id === $request->user()->id, 403);
+        $visibleTask->setAttribute('can_update', $authorization->canUpdateTask($request->user(), $visibleTask));
+        $visibleTask->setAttribute('can_assign', $authorization->canAssignExistingTask($request->user(), $visibleTask));
+        $visibleTask->setAttribute('can_delete', $authorization->canDeleteTask($request->user(), $visibleTask));
+
+        return response()->json($visibleTask);
+    }
+
+    public function update(UpdateTaskRequest $request, FlowTask $task, TaskRepository $tasks, FlowAuthorizationService $authorization, UpdateTaskAction $action): RedirectResponse
+    {
+        $visibleTask = $tasks->findVisible($request->user(), $task->id);
+        abort_unless($authorization->canUpdateTask($request->user(), $visibleTask), 403);
 
         $data = $request->validated();
         if (array_key_exists('assignee_id', $data) && (int) ($data['assignee_id'] ?? 0) !== (int) ($visibleTask->assignee_id ?? 0)) {
-            abort_unless($authorization->allows($request->user(), 'tasks', 'assign', $visibleTask), 403);
+            abort_unless($authorization->canAssignExistingTask($request->user(), $visibleTask), 403);
         }
 
         try {
@@ -64,13 +69,19 @@ class TaskController extends Controller
 
         return back()->with('success', 'Task update saved.');
     }
-    public function destroy(Request $request, FlowTask $task, TaskRepository $tasks, FlowAuthorizationService $authorization, ProgressCalculator $progressCalculator): RedirectResponse
+    public function destroy(Request $request, FlowTask $task, TaskRepository $tasks, FlowAuthorizationService $authorization, ProgressCalculator $progressCalculator, WorkflowAutomationService $automation): RedirectResponse
     {
         $visibleTask = $tasks->findVisible($request->user(), $task->id);
-        abort_unless($authorization->allows($request->user(), 'tasks', 'delete', $visibleTask), 403);
+        abort_unless($authorization->canDeleteTask($request->user(), $visibleTask), 403);
+        if ($visibleTask->packItem?->is_required) {
+            throw ValidationException::withMessages([
+                'task' => 'Required Task Pack tasks cannot be deleted. Mark the task Completed or change the Task Pack configuration.',
+            ]);
+        }
         $job = $visibleTask->job;
         $visibleTask->delete();
         $progressCalculator->recalculateJob($job);
+        $automation->synchronize($job, $request->user(), 'task_deletion');
 
         return back()->with('success', 'Task deleted successfully.');
     }

@@ -7,6 +7,7 @@ use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\ActivityLogger;
 use App\Modules\OrderFlow\Business\Services\IdentifierGenerator;
 use App\Modules\OrderFlow\Business\Services\ProgressCalculator;
+use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
 use App\Modules\OrderFlow\Data\Models\MasterRecord;
@@ -22,6 +23,7 @@ class CreateTaskAction
         private readonly IdentifierGenerator $identifiers,
         private readonly ActivityLogger $activityLogger,
         private readonly ProgressCalculator $progressCalculator,
+        private readonly WorkflowAutomationService $automation,
     ) {}
 
     public function execute(FlowJob $job, array $data, User $actor): FlowTask
@@ -38,8 +40,27 @@ class CreateTaskAction
             $status = MasterRecord::query()
                 ->where('workspace_id', $job->workspace_id)
                 ->where('type', MasterDataType::TaskStatus->value)
-                ->where('code', 'READY')
-                ->firstOrFail();
+                ->where('status', 'active')
+                ->where(function ($query) {
+                    $query->whereIn('code', ['READY', 'NS', 'NEW'])
+                        ->orWhereIn('name', ['Ready', 'Not Started', 'New']);
+                })
+                ->orderByRaw("case
+                    when upper(code) = 'READY' or upper(name) = 'READY' then 1
+                    when upper(code) = 'NS' or upper(name) = 'NOT STARTED' then 2
+                    else 3 end")
+                ->first()
+                ?? MasterRecord::query()
+                    ->where('workspace_id', $job->workspace_id)
+                    ->where('type', MasterDataType::TaskStatus->value)
+                    ->where('status', 'active')
+                    ->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->first();
+
+            if (! $status) {
+                throw new DomainException('Configure at least one active Task Status before creating tasks.');
+            }
 
             if (! empty($data['attention_required']) && blank($data['blocker_reason'] ?? null)) {
                 throw new DomainException('Add an attention or blocker reason when the task requires attention.');
@@ -79,6 +100,7 @@ class CreateTaskAction
             );
 
             $this->progressCalculator->recalculateJob($job);
+            $this->automation->synchronize($job, $actor, 'task_creation');
 
             if ($assignee && $assignee->id !== $actor->id) {
                 $assignee->notify(new FlowTrackAlert([

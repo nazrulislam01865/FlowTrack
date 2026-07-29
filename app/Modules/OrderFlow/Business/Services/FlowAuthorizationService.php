@@ -102,15 +102,74 @@ class FlowAuthorizationService
             return $query->whereRaw('1 = 0');
         }
 
-        $query->whereHas('job', fn (Builder $job) => $this->applyJobVisibility($job, $user, 'tasks'));
+        $query->whereHas('job', fn (Builder $job) => $job
+            ->where('workspace_id', $user->currentWorkspaceId()));
 
-        if ($this->scope($user, 'tasks') === 'own_records') {
-            $query->where(fn (Builder $task) => $task
-                ->where('assignee_id', $user->id)
-                ->orWhere('created_by', $user->id));
+        // The Task Board and My Work are assignment driven. Administrators can
+        // see every workspace Task; every other user sees only Tasks explicitly
+        // assigned to them, regardless of a broader role record scope.
+        if (! $this->isAdministrator($user)) {
+            $query->where('assignee_id', $user->id);
         }
 
         return $query;
+    }
+
+    public function applyTaskBoardVisibility(Builder $query, User $user): Builder
+    {
+        return $this->applyTaskVisibility($query, $user);
+    }
+
+    public function applyJobBoardVisibility(Builder $query, User $user): Builder
+    {
+        $query->where('workspace_id', $user->currentWorkspaceId());
+
+        if (! $this->allows($user, 'jobs', 'view')) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($this->isAdministrator($user)) {
+            return $query;
+        }
+
+        // Non-administrators only see Jobs connected to their own assignment
+        // on the phase board. This includes ownership, coordination, explicit
+        // Job membership, or at least one Task assigned to the user.
+        return $query->where(fn (Builder $builder) => $this->assignedJobConditions($builder, $user));
+    }
+
+    public function canViewTask(User $user, FlowTask $task): bool
+    {
+        if ($this->isAdministrator($user)) {
+            return $task->job?->workspace_id === $user->currentWorkspaceId();
+        }
+
+        return $this->allows($user, 'tasks', 'view')
+            && $task->job?->workspace_id === $user->currentWorkspaceId()
+            && (int) $task->assignee_id === (int) $user->id;
+    }
+
+    public function canUpdateTask(User $user, FlowTask $task): bool
+    {
+        if ($this->isAdministrator($user)) {
+            return $task->job?->workspace_id === $user->currentWorkspaceId();
+        }
+
+        return (int) $task->assignee_id === (int) $user->id
+            && ($this->allows($user, 'tasks', 'edit_own', $task)
+                || $this->allows($user, 'tasks', 'edit_all', $task));
+    }
+
+    public function canAssignExistingTask(User $user, FlowTask $task): bool
+    {
+        return $this->isAdministrator($user)
+            && $task->job?->workspace_id === $user->currentWorkspaceId();
+    }
+
+    public function canDeleteTask(User $user, FlowTask $task): bool
+    {
+        return $this->isAdministrator($user)
+            && $task->job?->workspace_id === $user->currentWorkspaceId();
     }
 
     public function applyDocumentVisibility(Builder $query, User $user): Builder
@@ -166,19 +225,17 @@ class FlowAuthorizationService
 
     private function recordWithinScope(User $user, Model $record, string $scope): bool
     {
+        // A non-administrator never gains access to another person's Task from
+        // an all-records, client, department, creator, or Job-level scope.
+        if ($record instanceof FlowTask) {
+            return (int) $record->assignee_id === (int) $user->id;
+        }
+
         if ($scope === 'all_records') {
             return true;
         }
         if ($scope === 'none') {
             return false;
-        }
-
-        if ($record instanceof FlowTask) {
-            if ($scope === 'own_records') {
-                return $record->assignee_id === $user->id || $record->created_by === $user->id;
-            }
-
-            return $this->recordWithinScope($user, $record->job, $scope);
         }
 
         if ($record instanceof FlowDocument) {

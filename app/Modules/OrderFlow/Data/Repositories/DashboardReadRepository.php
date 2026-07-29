@@ -34,7 +34,11 @@ class DashboardReadRepository
             'activeJobs' => (clone $jobs)->where('status', '!=', 'completed')->count(),
             'needsAttention' => (clone $jobs)->whereIn('health', ['needs_attention', 'at_risk', 'delayed', 'blocked'])->count(),
             'overdueTasks' => (clone $tasks)->whereDate('due_date', '<', today())->whereNull('completed_at')->count(),
-            'pendingApprovals' => (clone $tasks)->whereHas('status', fn (Builder $status) => $status->whereIn('code', ['WC', 'WIA']))->count(),
+            'blockedTasks' => (clone $tasks)->where(function (Builder $query) {
+                $query->where('attention_required', true)
+                    ->orWhereNotNull('blocker_reason')
+                    ->orWhereHas('status', fn (Builder $status) => $status->where('code', 'BLK'));
+            })->whereNull('completed_at')->count(),
             'shippingNow' => (clone $jobs)->whereHas('currentPhase', fn (Builder $phase) => $phase->where('short_name', 'Shipment'))->count(),
             'outstanding' => $canViewFinancials
                 ? Client::query()->whereIn('id', (clone $financialJobs)->select('client_id'))->sum('outstanding_balance')

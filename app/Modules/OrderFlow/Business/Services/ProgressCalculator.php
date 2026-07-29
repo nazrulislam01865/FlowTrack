@@ -9,25 +9,38 @@ use App\Modules\OrderFlow\Data\Models\MasterRecord;
 class ProgressCalculator
 {
     /**
-     * Task progress is derived from the selected workflow status.
-     * This keeps cards, drawers, boards, reports and job progress consistent.
+     * Task progress is derived from the configured status code or name.
+     * Supporting the name as a fallback keeps dynamically-created master
+     * statuses working even when their immutable code is auto-generated.
      */
     public function forTaskStatus(MasterRecord|string|null $status): int
     {
-        $code = $status instanceof MasterRecord ? $status->code : (string) $status;
+        $values = $status instanceof MasterRecord
+            ? [$status->code, $status->name]
+            : [(string) $status];
 
-        return match (strtoupper($code)) {
-            'NS', 'NOT STARTED', 'DRAFT' => 0,
-            'READY' => 10,
-            'REV', 'REVISION REQUIRED' => 35,
-            'IP', 'IN PROGRESS' => 50,
-            'BLK', 'BLOCKED', 'HOLD', 'ON HOLD' => 50,
-            'WC', 'WAITING FOR CLIENT',
-            'WS', 'WAITING FOR SUPPLIER',
-            'WIA', 'WAITING FOR INTERNAL APPROVAL' => 65,
-            'CMP', 'COMPLETED' => 100,
-            default => 0,
-        };
+        foreach ($values as $value) {
+            $key = strtoupper(trim((string) $value));
+            $progress = match ($key) {
+                'NS', 'NOT STARTED', 'NEW', 'DRAFT' => 0,
+                'READY' => 10,
+                'REV', 'REVISION REQUIRED' => 35,
+                'IP', 'IN PROGRESS' => 50,
+                'BLK', 'BLOCKED', 'ATTN', 'ATTENTION', 'HOLD', 'ON HOLD' => 50,
+                'WC', 'WAITING FOR CLIENT',
+                'WS', 'WAITING FOR SUPPLIER',
+                'WIA', 'WAITING FOR INTERNAL APPROVAL',
+                'WAITING FOR INTERNAL REVIEW' => 65,
+                'CMP', 'COMPLETED', 'COMPLETE', 'DONE' => 100,
+                default => null,
+            };
+
+            if ($progress !== null) {
+                return $progress;
+            }
+        }
+
+        return 0;
     }
 
     public function recalculateJob(FlowJob $job): int
@@ -39,12 +52,12 @@ class ProgressCalculator
 
         if ($job->status === 'draft') {
             $progress = 0;
-        } elseif ($job->status === 'completed' || $job->currentPhase?->short_name === 'Completed') {
+        } elseif ($job->status === 'completed' || strtolower((string) $job->currentPhase?->short_name) === 'completed') {
             $progress = 100;
         } else {
             $phases = $job->workflow?->phases ?? collect();
             $phaseCount = max(1, $phases->count());
-            $currentIndex = max(0, $phases->search(fn ($phase) => $phase->id === $job->current_phase_id));
+            $currentIndex = max(0, $phases->search(fn ($phase) => (int) $phase->id === (int) $job->current_phase_id));
             $phaseSpan = 100 / max(1, $phaseCount - 1);
             $base = $currentIndex * $phaseSpan;
 

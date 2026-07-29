@@ -22,5 +22,6 @@ final readonly class CreateJobData
         public ?string $startReason,
         public array $memberIds = [],
         public bool $draft = false,
+        public array $productItems = [],
     ) {}
 }

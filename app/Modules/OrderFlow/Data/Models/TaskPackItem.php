@@ -40,4 +40,9 @@ class TaskPackItem extends Model
     {
         return $this->belongsTo(MasterRecord::class, 'priority_id');
     }
+
+    public function documentCategory(): BelongsTo
+    {
+        return $this->belongsTo(MasterRecord::class, 'document_category_id');
+    }
 }

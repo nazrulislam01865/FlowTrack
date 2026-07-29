@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { router, useForm } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import FlowBadge from './FlowBadge.vue';
 import FlowDrawer from './FlowDrawer.vue';
 import { dueClass, formatDate, initials, records } from '@/lib/flowtrack';
@@ -9,6 +9,8 @@ const props = defineProps<{ open: boolean; taskId: number | null; options: any }
 const emit = defineEmits<{ close: [] }>();
 const task = ref<any>(null);
 const loading = ref(false);
+const canUpdate = computed(() => Boolean(task.value?.can_update));
+const canAssign = computed(() => Boolean(task.value?.can_assign));
 const form = useForm({
     task_status_id: null as number | null,
     assignee_id: null as number | null,
@@ -43,14 +45,19 @@ watch(
 );
 
 
+function statusMatches(status: any, values: string[]): boolean {
+    const allowed = values.map((value) => value.trim().toUpperCase());
+    return allowed.includes(String(status?.code || '').trim().toUpperCase())
+        || allowed.includes(String(status?.name || '').trim().toUpperCase());
+}
+
 function progressForStatus(statusId: number | null): number {
-    const status = records(props.options, 'task_status').find((item: any) => item.id === statusId);
-    const code = String(status?.code || status?.name || '').toUpperCase();
-    if (['CMP', 'COMPLETED'].includes(code)) return 100;
-    if (['WC', 'WAITING FOR CLIENT', 'WS', 'WAITING FOR SUPPLIER', 'WIA', 'WAITING FOR INTERNAL APPROVAL'].includes(code)) return 65;
-    if (['IP', 'IN PROGRESS', 'BLK', 'BLOCKED', 'HOLD', 'ON HOLD'].includes(code)) return 50;
-    if (['REV', 'REVISION REQUIRED'].includes(code)) return 35;
-    if (code === 'READY') return 10;
+    const status = records(props.options, 'task_status').find((item: any) => Number(item.id) === Number(statusId));
+    if (statusMatches(status, ['CMP', 'COMPLETED', 'COMPLETE', 'DONE'])) return 100;
+    if (statusMatches(status, ['WC', 'WAITING FOR CLIENT', 'WS', 'WAITING FOR SUPPLIER', 'WIA', 'WAITING FOR INTERNAL APPROVAL', 'WAITING FOR INTERNAL REVIEW'])) return 65;
+    if (statusMatches(status, ['IP', 'IN PROGRESS', 'BLK', 'BLOCKED', 'ATTN', 'ATTENTION', 'HOLD', 'ON HOLD'])) return 50;
+    if (statusMatches(status, ['REV', 'REVISION REQUIRED'])) return 35;
+    if (statusMatches(status, ['READY'])) return 10;
     return 0;
 }
 
@@ -92,18 +99,18 @@ function save() {
                 </div>
                 <div v-if="task.start_rule" class="ft-source-note"><b>Start rule:</b> {{ task.start_rule }}</div>
                 <div class="ft-form-grid" style="margin-top: 18px">
-                    <div class="ft-field"><label>Status</label><select v-model="form.task_status_id"><option v-for="status in records(options, 'task_status')" :key="status.id" :value="status.id">{{ status.name }}</option></select></div>
-                    <div class="ft-field"><label>Assignee</label><select v-model="form.assignee_id"><option :value="null">Unassigned</option><option v-for="user in options.users" :key="user.id" :value="user.id">{{ user.name }}</option></select></div>
+                    <div class="ft-field"><label>Status</label><select v-model.number="form.task_status_id" :disabled="!canUpdate"><option v-for="status in records(options, 'task_status')" :key="status.id" :value="status.id">{{ status.name }}</option></select></div>
+                    <div class="ft-field"><label>Assignee</label><select v-model.number="form.assignee_id" :disabled="!canAssign"><option :value="null">Unassigned</option><option v-for="user in options.users" :key="user.id" :value="user.id">{{ user.name }}</option></select></div>
                     <div class="ft-field full"><label>Progress: <b>{{ form.progress }}%</b></label><input v-model.number="form.progress" type="range" min="0" max="100" disabled /><div class="ft-help">Progress updates automatically from the selected status.</div></div>
                 </div>
                 <div class="ft-section-head"><h3>Checklist</h3><span class="ft-muted ft-small">{{ form.completed_checklist_ids.length }}/{{ task.checklist_items.length }} complete</span></div>
-                <label v-for="item in task.checklist_items" :key="item.id" class="ft-check-row"><input v-model="form.completed_checklist_ids" type="checkbox" :value="item.id" /> {{ item.label }}</label>
-                <div class="ft-field" style="margin-top: 18px"><label>Blocker / attention reason</label><textarea v-model="form.blocker_reason" rows="3" placeholder="Required when the task is blocked or attention is needed"></textarea><span v-if="form.errors.blocker_reason" class="ft-error">{{ form.errors.blocker_reason }}</span></div>
-                <label class="ft-check-row"><input v-model="form.attention_required" type="checkbox" /> Mark as attention needed</label>
-                <div class="ft-field" style="margin-top: 18px"><label>Update comment</label><textarea v-model="form.comment" rows="3" placeholder="Add progress, a decision, blocker, or next action"></textarea></div>
+                <label v-for="item in task.checklist_items" :key="item.id" class="ft-check-row"><input v-model="form.completed_checklist_ids" type="checkbox" :value="item.id" :disabled="!canUpdate" /> {{ item.label }}</label>
+                <div class="ft-field" style="margin-top: 18px"><label>Blocker / attention reason</label><textarea v-model="form.blocker_reason" rows="3" :disabled="!canUpdate" placeholder="Required when the task is blocked or attention is needed"></textarea><span v-if="form.errors.blocker_reason" class="ft-error">{{ form.errors.blocker_reason }}</span></div>
+                <label class="ft-check-row"><input v-model="form.attention_required" type="checkbox" :disabled="!canUpdate" /> Mark as attention needed</label>
+                <div class="ft-field" style="margin-top: 18px"><label>Update comment</label><textarea v-model="form.comment" rows="3" :disabled="!canUpdate" placeholder="Add progress, a decision, blocker, or next action"></textarea></div>
                 <div class="ft-section-head" style="margin-top: 18px"><h3>Activity & Comments</h3></div>
                 <div v-for="comment in task.comments" :key="comment.id" class="ft-comment"><span class="ft-avatar">{{ comment.user?.initials || initials(comment.user?.name) }}</span><div><b>{{ comment.user?.name || 'System' }}</b><div style="margin-top: 4px">{{ comment.body }}</div><div class="ft-muted ft-small" style="margin-top: 4px">{{ new Date(comment.created_at).toLocaleString() }}</div></div></div>
-                <button class="ft-primary" style="width: 100%; margin-top: 18px" :disabled="form.processing" @click="save">{{ form.processing ? 'Saving…' : 'Save Task Update' }}</button>
+                <div v-if="!canUpdate" class="ft-source-note" style="margin-top: 18px"><b>Read-only Task</b><div class="ft-help" style="margin-top: 4px">Only the assigned user, an Administrator, or the Super Admin can update this Task.</div></div><button v-else class="ft-primary" style="width: 100%; margin-top: 18px" :disabled="form.processing" @click="save">{{ form.processing ? 'Saving…' : 'Save Task Update' }}</button>
             </template>
         </div>
     </FlowDrawer>

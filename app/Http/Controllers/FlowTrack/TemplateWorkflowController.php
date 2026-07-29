@@ -4,6 +4,8 @@ namespace App\Http\Controllers\FlowTrack;
 
 use App\Http\Controllers\Controller;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
+use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
+use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\TaskPack;
 use App\Modules\OrderFlow\Data\Models\WorkflowPhase;
 use App\Modules\OrderFlow\Data\Models\WorkflowTemplate;
@@ -41,19 +43,22 @@ class TemplateWorkflowController extends Controller
                     ->findOrFail($baseId);
 
                 foreach ($base->phases as $phase) {
-                    $workflow->phases()->create($phase->only([
-                        'task_pack_id',
-                        'document_category_id',
-                        'name',
-                        'short_name',
-                        'sequence',
-                        'allow_job_start',
-                        'is_skippable',
-                        'requires_approval',
-                        'is_active',
-                        'entry_condition',
-                        'exit_condition',
-                    ]));
+                    $workflow->phases()->create([
+                        ...$phase->only([
+                            'task_pack_id',
+                            'document_category_id',
+                            'name',
+                            'short_name',
+                            'sequence',
+                            'allow_job_start',
+                            'is_skippable',
+                            'auto_advance_on_ready',
+                            'is_active',
+                            'entry_condition',
+                            'exit_condition',
+                        ]),
+                        'requires_approval' => false,
+                    ]);
                 }
             }
 
@@ -107,6 +112,7 @@ class TemplateWorkflowController extends Controller
         $data = $this->validatePhase($request, $workspaceId);
         $phase = $workflow->phases()->create([
             ...$data,
+            'requires_approval' => false,
             'sequence' => ((int) $workflow->phases()->max('sequence')) + 1,
         ]);
 
@@ -117,7 +123,7 @@ class TemplateWorkflowController extends Controller
         ], 201);
     }
 
-    public function updatePhase(Request $request, WorkflowPhase $phase): JsonResponse
+    public function updatePhase(Request $request, WorkflowPhase $phase, WorkflowAutomationService $automation): JsonResponse
     {
         $this->authorizeWorkflow($request, 'edit_all');
         $workspaceId = $request->user()->currentWorkspaceId();
@@ -126,11 +132,17 @@ class TemplateWorkflowController extends Controller
 
         $data = $this->validatePhase($request, $workspaceId);
         DB::transaction(function () use ($phase, $data): void {
-            $phase->update($data);
+            $phase->update([...$data, 'requires_approval' => false]);
             if ($phase->workflow->is_active) {
                 $this->assertPublishable($phase->workflow);
             }
         });
+
+        FlowJob::query()
+            ->where('workspace_id', $workspaceId)
+            ->where('current_phase_id', $phase->id)
+            ->where('status', '!=', 'completed')
+            ->each(fn (FlowJob $job) => $automation->synchronize($job, $request->user(), 'workflow_configuration'));
 
         return response()->json([
             'phase' => $this->mapPhase($phase->fresh(['taskPack.items', 'documentCategory'])),
@@ -151,7 +163,7 @@ class TemplateWorkflowController extends Controller
             ]);
         }
 
-        if ($phase->tasks()->exists() || $phase->jobHistories()->exists() || $phase->approvals()->exists()) {
+        if ($phase->tasks()->exists() || $phase->jobHistories()->exists()) {
             throw ValidationException::withMessages([
                 'phase' => 'This phase is already used by Jobs and cannot be deleted. Disable it instead.',
             ]);
@@ -267,7 +279,7 @@ class TemplateWorkflowController extends Controller
             ],
             'allow_job_start' => ['required', 'boolean'],
             'is_skippable' => ['required', 'boolean'],
-            'requires_approval' => ['required', 'boolean'],
+            'auto_advance_on_ready' => ['required', 'boolean'],
             'is_active' => ['required', 'boolean'],
             'entry_condition' => ['nullable', 'string', 'max:255'],
             'exit_condition' => ['nullable', 'string', 'max:255'],
@@ -312,7 +324,7 @@ class TemplateWorkflowController extends Controller
             'documentCategoryId' => $phase->document_category_id,
             'allowStart' => (bool) $phase->allow_job_start,
             'skippable' => (bool) $phase->is_skippable,
-            'approval' => (bool) $phase->requires_approval,
+            'autoAdvance' => (bool) $phase->auto_advance_on_ready,
             'active' => (bool) $phase->is_active,
             'entry' => $phase->entry_condition ?? '',
             'exit' => $phase->exit_condition ?? '',

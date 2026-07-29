@@ -9,9 +9,9 @@ use App\Modules\OrderFlow\Data\Models\Client;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowDocumentVersion;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
+use App\Modules\OrderFlow\Data\Models\FlowJobItem;
 use App\Modules\OrderFlow\Data\Models\FlowJobMember;
 use App\Modules\OrderFlow\Data\Models\FlowJobPhaseHistory;
-use App\Modules\OrderFlow\Data\Models\FlowPhaseApproval;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
 use App\Modules\OrderFlow\Data\Models\MasterRecord;
 use App\Modules\OrderFlow\Data\Models\Permission;
@@ -48,6 +48,7 @@ class FlowTrackSeeder extends Seeder
             ['View all tasks', 'tasks.view-all', 'Tasks'],
             ['Manage clients', 'clients.manage', 'Clients'],
             ['Manage documents', 'documents.manage', 'Documents'],
+            ['Link documents to Jobs and Workflow Phases', 'documents.link', 'Documents'],
             ['View reports', 'reports.view', 'Reports'],
             ['View financial values', 'financials.view', 'Finance'],
             ['Manage workflows', 'workflows.manage', 'Administration'],
@@ -62,7 +63,8 @@ class FlowTrackSeeder extends Seeder
             'administrator' => ['Administrator', $permissions->keys()->all()],
             'operations-manager' => ['Operations Manager', $permissions->keys()->all()],
             'sales-manager' => ['Sales Manager', ['dashboard.view', 'jobs.view-all', 'jobs.create', 'jobs.manage-all', 'tasks.view-all', 'clients.manage', 'documents.manage', 'reports.view', 'financials.view']],
-            'member' => ['Member', ['dashboard.view', 'jobs.view-assigned', 'tasks.view-assigned', 'documents.manage']],
+            'member' => ['Member', ['dashboard.view', 'jobs.view-assigned', 'tasks.view-assigned', 'documents.manage', 'documents.link']],
+            'document-uploader-workflow-linker' => ['Document Uploader & Workflow Linker', ['dashboard.view', 'jobs.view-assigned', 'tasks.view-assigned', 'documents.manage', 'documents.link']],
         ])->mapWithKeys(function (array $definition, string $slug) use ($workspace, $permissions) {
             $role = Role::create(['workspace_id' => $workspace->id, 'name' => $definition[0], 'slug' => $slug, 'is_system' => true]);
             $role->permissions()->sync($permissions->only($definition[1])->pluck('id'));
@@ -280,7 +282,7 @@ class FlowTrackSeeder extends Seeder
                 'sequence' => $index + 1,
                 'allow_job_start' => $allowStart,
                 'is_skippable' => $skippable,
-                'requires_approval' => $approval,
+                'requires_approval' => false,
                 'entry_condition' => $entry,
                 'exit_condition' => $exit,
             ]);
@@ -295,7 +297,7 @@ class FlowTrackSeeder extends Seeder
         ]);
         foreach ($standard->phases()->get() as $phase) {
             $repeat->phases()->create([
-                ...$phase->only(['task_pack_id', 'document_category_id', 'name', 'short_name', 'sequence', 'is_skippable', 'requires_approval', 'is_active', 'entry_condition', 'exit_condition']),
+                ...$phase->only(['task_pack_id', 'document_category_id', 'name', 'short_name', 'sequence', 'is_skippable', 'requires_approval', 'auto_advance_on_ready', 'is_active', 'entry_condition', 'exit_condition']),
                 'allow_job_start' => $phase->sequence >= 5 && $phase->sequence < 11,
             ]);
         }
@@ -310,7 +312,7 @@ class FlowTrackSeeder extends Seeder
         $sequence = 1;
         foreach ($standard->phases()->whereIn('sequence', [1, 2, 3, 4, 6, 7, 11])->get() as $phase) {
             $sample->phases()->create([
-                ...$phase->only(['task_pack_id', 'document_category_id', 'name', 'short_name', 'is_skippable', 'requires_approval', 'is_active', 'entry_condition', 'exit_condition']),
+                ...$phase->only(['task_pack_id', 'document_category_id', 'name', 'short_name', 'is_skippable', 'requires_approval', 'auto_advance_on_ready', 'is_active', 'entry_condition', 'exit_condition']),
                 'sequence' => $sequence++,
                 'allow_job_start' => $phase->short_name !== 'Completed',
             ]);
@@ -406,6 +408,14 @@ class FlowTrackSeeder extends Seeder
                 'attention_required' => $attention,
             ]);
 
+            FlowJobItem::create([
+                'flow_job_id' => $job->id,
+                'product_id' => $product->id,
+                'product_category_id' => $product->parent_id,
+                'quantity' => $qty,
+                'sort_order' => 0,
+            ]);
+
             foreach (collect([$users[$owner]->id, $users[$coordinator]->id])->unique() as $memberId) {
                 FlowJobMember::create([
                     'flow_job_id' => $job->id,
@@ -427,16 +437,6 @@ class FlowTrackSeeder extends Seeder
                     'completed_at' => $sequence < $phaseSequence ? now()->subDays(max(0, $phaseSequence - $sequence) * 2 - 1) : null,
                 ]);
 
-                if ($sequence < $phaseSequence && $workflowPhase->requires_approval) {
-                    FlowPhaseApproval::create([
-                        'flow_job_id' => $job->id,
-                        'workflow_phase_id' => $workflowPhase->id,
-                        'approved_by' => $users['Li Wei']->id,
-                        'status' => 'approved',
-                        'notes' => 'Seeded historical approval.',
-                        'approved_at' => now()->subDays(max(0, $phaseSequence - $sequence) * 2 - 1),
-                    ]);
-                }
             }
 
             $packItems = $phase->taskPack?->items()->get() ?? collect();
@@ -471,8 +471,12 @@ class FlowTrackSeeder extends Seeder
                 $document = FlowDocument::create([
                     'workspace_id' => $workspaceId,
                     'flow_job_id' => $job->id,
+                    'workflow_phase_id' => $phase->id,
+                    'task_pack_item_id' => null,
                     'document_category_id' => $phase->document_category_id,
                     'uploaded_by' => $users['Li Wei']->id,
+                    'linked_by' => $users['Li Wei']->id,
+                    'linked_at' => now(),
                     'code' => 'DOC-'.str_pad((string) (700 + $jobIndex), 6, '0', STR_PAD_LEFT),
                     'name' => str($phase->short_name.'_'.$code)->replace(' ', '_'),
                     'is_final' => $jobIndex % 4 === 0,

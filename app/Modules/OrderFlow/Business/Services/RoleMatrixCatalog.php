@@ -11,7 +11,7 @@ class RoleMatrixCatalog
         'edit_all' => 'Edit all',
         'delete' => 'Delete',
         'assign' => 'Assign',
-        'approve' => 'Approve',
+        'link' => 'Link to Job / Phase',
         'export' => 'Export',
         'override' => 'Override',
         'manage' => 'Manage',

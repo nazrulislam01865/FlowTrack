@@ -19,7 +19,12 @@ class CurrentUserPresenter
     public function toArray(User $user): array
     {
         $membership = $user->currentWorkspaceMembership();
-        $preferences = array_merge($this->defaultNotificationPreferences(), $user->notification_preferences ?? []);
+        $storedPreferences = $user->notification_preferences ?? [];
+        if (! array_key_exists('workflow_updates', $storedPreferences) && array_key_exists('approval_requests', $storedPreferences)) {
+            $storedPreferences['workflow_updates'] = (bool) $storedPreferences['approval_requests'];
+        }
+        unset($storedPreferences['approval_requests']);
+        $preferences = array_merge($this->defaultNotificationPreferences(), $storedPreferences);
 
         return [
             'id' => $user->id,
@@ -52,7 +57,7 @@ class CurrentUserPresenter
             'task_assignments' => true,
             'due_date_reminders' => true,
             'mentions_comments' => true,
-            'approval_requests' => true,
+            'workflow_updates' => true,
             'shipment_alerts' => true,
             'payment_reminders' => false,
         ];

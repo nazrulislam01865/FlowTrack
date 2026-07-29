@@ -16,7 +16,7 @@ const selected = computed(() => props.workflows.find((workflow) => workflow.id =
 const createForm = useForm({ name: '', code: '', description: '', base_workflow_id: null as number | null });
 const phaseForm = useForm({
     name: '', short_name: '', task_pack_id: null as number | null, document_category_id: null as number | null,
-    allow_job_start: false, is_skippable: false, requires_approval: false, is_active: true, entry_condition: '', exit_condition: '',
+    allow_job_start: false, is_skippable: false, auto_advance_on_ready: false, is_active: true, entry_condition: '', exit_condition: '',
 });
 
 function createWorkflow() {
@@ -24,14 +24,14 @@ function createWorkflow() {
 }
 function addPhase() {
     editingPhase.value = null;
-    phaseForm.defaults({ name: '', short_name: '', task_pack_id: null, document_category_id: null, allow_job_start: false, is_skippable: false, requires_approval: false, is_active: true, entry_condition: '', exit_condition: '' });
+    phaseForm.defaults({ name: '', short_name: '', task_pack_id: null, document_category_id: null, allow_job_start: false, is_skippable: false, auto_advance_on_ready: false, is_active: true, entry_condition: '', exit_condition: '' });
     phaseForm.reset(); phaseForm.clearErrors(); phaseOpen.value = true;
 }
 function editPhase(phase: any) {
     editingPhase.value = phase;
     phaseForm.defaults({
         name: phase.name, short_name: phase.short_name, task_pack_id: phase.task_pack_id, document_category_id: phase.document_category_id,
-        allow_job_start: phase.allow_job_start, is_skippable: phase.is_skippable, requires_approval: phase.requires_approval,
+        allow_job_start: phase.allow_job_start, is_skippable: phase.is_skippable, auto_advance_on_ready: phase.auto_advance_on_ready,
         is_active: phase.is_active, entry_condition: phase.entry_condition || '', exit_condition: phase.exit_condition || '',
     });
     phaseForm.reset(); phaseForm.clearErrors(); phaseOpen.value = true;
@@ -52,7 +52,7 @@ function movePhase(index: number, direction: number) {
 
 <template>
     <Head title="Workflow Setup" />
-    <FlowPageHeader title="Workflow Setup" subtitle="Configure phase order, start rules, skip controls, approvals, documents and automatic task packs">
+    <FlowPageHeader title="Workflow Setup" subtitle="Configure phase order, start rules, skip controls, documents and automatic task packs">
         <button class="ft-primary" @click="createOpen = true">＋ New Workflow</button>
     </FlowPageHeader>
 
@@ -64,7 +64,7 @@ function movePhase(index: number, direction: number) {
             <div class="ft-section-card" style="background: linear-gradient(110deg,#fbfdfc,#eff5ff); border-bottom: 1px solid var(--ft-line)">
                 <div class="ft-page-head" style="margin: 0"><div><div class="ft-muted ft-small">{{ selected.code }} · WORKFLOW TEMPLATE</div><h2 style="font-size: 21px; margin: 5px 0">{{ selected.name }}</h2><p>{{ selected.description }}</p></div><div class="ft-actions"><button class="ft-secondary" @click="router.patch(`/flowtrack/workflow-setup/${selected.id}/publish`)">Publish v{{ selected.version + 1 }}</button><FlowBadge :value="selected.is_active ? 'Active' : 'Draft'" /></div></div>
             </div>
-            <div class="ft-section-card"><div class="ft-section-head"><div class="ft-source-note" style="flex: 1; margin: 0">Publishing changes applies the configured sequence to new jobs. Existing jobs retain their phase history and task records.</div><button class="ft-primary" @click="addPhase">＋ Add Phase</button></div><div class="ft-table-wrap" style="margin-top: 14px"><table class="ft-config-table"><thead><tr><th>Seq.</th><th>Phase</th><th>Task Pack</th><th>Required Document</th><th>Allow Start</th><th>Skippable</th><th>Approval</th><th>Status</th><th>Actions</th></tr></thead><tbody><tr v-for="(phase, index) in selected.phases" :key="phase.id"><td><b>{{ phase.sequence }}</b></td><td><b>{{ phase.name }}</b><div class="ft-muted ft-small">Entry: {{ phase.entry_condition || '—' }}<br />Exit: {{ phase.exit_condition || '—' }}</div></td><td>{{ phase.task_pack?.name || 'None' }}<div class="ft-muted ft-small">{{ phase.task_pack?.items?.length || 0 }} tasks</div></td><td>{{ phase.document_category?.name || 'None' }}</td><td><FlowBadge :value="phase.allow_job_start ? 'Allowed' : 'No'" /></td><td><FlowBadge :value="phase.is_skippable ? 'Optional' : 'Required'" /></td><td><FlowBadge :value="phase.requires_approval ? 'Approval' : 'No gate'" /></td><td><FlowBadge :value="phase.is_active ? 'Active' : 'Disabled'" /></td><td><div class="ft-sequence-controls"><button class="ft-mini-btn" @click="movePhase(index, -1)">↑</button><button class="ft-mini-btn" @click="movePhase(index, 1)">↓</button><button class="ft-mini-btn" @click="editPhase(phase)">Edit</button><button class="ft-mini-btn" @click="router.delete(`/flowtrack/workflow-phases/${phase.id}`, { preserveScroll: true })">Delete</button></div></td></tr></tbody></table></div></div>
+            <div class="ft-section-card"><div class="ft-section-head"><div class="ft-source-note" style="flex: 1; margin: 0">Workflow rules remain dynamic. Existing Jobs retain their history and generated Tasks, while readiness, health and the active Phase rules are recalculated from the current configuration.</div><button class="ft-primary" @click="addPhase">＋ Add Phase</button></div><div class="ft-table-wrap" style="margin-top: 14px"><table class="ft-config-table"><thead><tr><th>Seq.</th><th>Phase</th><th>Task Pack</th><th>Required Document</th><th>Allow Start</th><th>Skippable</th><th>Auto Move</th><th>Status</th><th>Actions</th></tr></thead><tbody><tr v-for="(phase, index) in selected.phases" :key="phase.id"><td><b>{{ phase.sequence }}</b></td><td><b>{{ phase.name }}</b><div class="ft-muted ft-small">Entry: {{ phase.entry_condition || '—' }}<br />Exit: {{ phase.exit_condition || '—' }}</div></td><td>{{ phase.task_pack?.name || 'None' }}<div class="ft-muted ft-small">{{ phase.task_pack?.items?.length || 0 }} tasks</div></td><td>{{ phase.document_category?.name || 'None' }}</td><td><FlowBadge :value="phase.allow_job_start ? 'Allowed' : 'No'" /></td><td><FlowBadge :value="phase.is_skippable ? 'Optional' : 'Required'" /></td><td><FlowBadge :value="phase.auto_advance_on_ready ? 'Automatic' : 'Manual'" /></td><td><FlowBadge :value="phase.is_active ? 'Active' : 'Disabled'" /></td><td><div class="ft-sequence-controls"><button class="ft-mini-btn" @click="movePhase(index, -1)">↑</button><button class="ft-mini-btn" @click="movePhase(index, 1)">↓</button><button class="ft-mini-btn" @click="editPhase(phase)">Edit</button><button class="ft-mini-btn" @click="router.delete(`/flowtrack/workflow-phases/${phase.id}`, { preserveScroll: true })">Delete</button></div></td></tr></tbody></table></div></div>
         </article>
     </section>
 
@@ -74,7 +74,7 @@ function movePhase(index: number, direction: number) {
     </FlowModal>
 
     <FlowModal :open="phaseOpen" :title="editingPhase ? 'Configure Workflow Phase' : 'Add Workflow Phase'" subtitle="These controls are enforced by the backend workflow engine." @close="phaseOpen = false">
-        <div class="ft-form-grid"><div class="ft-field"><label>Phase name</label><input v-model="phaseForm.name" /></div><div class="ft-field"><label>Short name</label><input v-model="phaseForm.short_name" /></div><div class="ft-field"><label>Task pack</label><select v-model="phaseForm.task_pack_id"><option :value="null">No automatic tasks</option><option v-for="pack in taskPacks" :key="pack.id" :value="pack.id">{{ pack.name }}</option></select></div><div class="ft-field"><label>Document category</label><select v-model="phaseForm.document_category_id"><option :value="null">No required category</option><option v-for="category in records(options, 'document_category')" :key="category.id" :value="category.id">{{ category.name }}</option></select></div><div class="ft-field full"><label>Entry condition</label><input v-model="phaseForm.entry_condition" /></div><div class="ft-field full"><label>Exit condition</label><input v-model="phaseForm.exit_condition" /></div><label class="ft-check-row"><input v-model="phaseForm.allow_job_start" type="checkbox" /> Jobs may start here</label><label class="ft-check-row"><input v-model="phaseForm.is_skippable" type="checkbox" /> Phase may be skipped</label><label class="ft-check-row"><input v-model="phaseForm.requires_approval" type="checkbox" /> Approval required</label><label class="ft-check-row"><input v-model="phaseForm.is_active" type="checkbox" /> Phase active</label></div>
+        <div class="ft-form-grid"><div class="ft-field"><label>Phase name</label><input v-model="phaseForm.name" /></div><div class="ft-field"><label>Short name</label><input v-model="phaseForm.short_name" /></div><div class="ft-field"><label>Task pack</label><select v-model="phaseForm.task_pack_id"><option :value="null">No automatic tasks</option><option v-for="pack in taskPacks" :key="pack.id" :value="pack.id">{{ pack.name }}</option></select></div><div class="ft-field"><label>Document category</label><select v-model="phaseForm.document_category_id"><option :value="null">No required category</option><option v-for="category in records(options, 'document_category')" :key="category.id" :value="category.id">{{ category.name }}</option></select></div><div class="ft-field full"><label>Entry condition</label><input v-model="phaseForm.entry_condition" /></div><div class="ft-field full"><label>Exit condition</label><input v-model="phaseForm.exit_condition" /></div><label class="ft-check-row"><input v-model="phaseForm.allow_job_start" type="checkbox" /> Jobs may start here</label><label class="ft-check-row"><input v-model="phaseForm.is_skippable" type="checkbox" /> Phase may be skipped</label><label class="ft-check-row"><input v-model="phaseForm.auto_advance_on_ready" type="checkbox" /> Automatically move to the next active phase when every task, document and blocker gate is satisfied</label><label class="ft-check-row"><input v-model="phaseForm.is_active" type="checkbox" /> Phase active</label></div>
         <template #footer><button class="ft-ghost" @click="phaseOpen = false">Cancel</button><button class="ft-primary" :disabled="phaseForm.processing" @click="savePhase">Save Phase</button></template>
     </FlowModal>
 </template>

@@ -40,6 +40,12 @@ function openTask(id: number) {
     taskId.value = id;
     taskOpen.value = true;
 }
+function productSummary(job: any): string {
+    const items = job.items || [];
+    if (!items.length) return job.product?.name || '—';
+    if (items.length === 1) return items[0].product?.name || 'Deleted product';
+    return `${items[0].product?.name || 'Deleted product'} + ${items.length - 1} more`;
+}
 function printPage() { window.print(); }
 </script>
 
@@ -72,7 +78,7 @@ function printPage() { window.print(); }
                 <tr v-for="job in jobs.data" :key="job.id">
                     <td><Link class="ft-job-link" :href="`/flowtrack/jobs/${job.id}`" preserve-scroll>{{ job.code }}</Link><div class="ft-muted ft-small">{{ job.order_code || 'Quotation request' }}</div></td>
                     <td><b>{{ job.client?.name }}</b><div class="ft-muted ft-small ft-truncate" style="max-width: 230px">{{ job.title }}</div></td>
-                    <td>{{ job.product?.name || '—' }}<div class="ft-muted ft-small">{{ Number(job.quantity).toLocaleString() }} units</div></td>
+                    <td>{{ productSummary(job) }}<div class="ft-muted ft-small">{{ job.items?.length || (job.product ? 1 : 0) }} product line{{ (job.items?.length || (job.product ? 1 : 0)) === 1 ? '' : 's' }} · {{ Number(job.quantity).toLocaleString() }} units</div></td>
                     <td><FlowBadge :value="job.current_phase?.short_name" /><div class="ft-muted ft-small" style="margin-top: 4px">{{ job.status.replaceAll('_', ' ') }}</div></td>
                     <td><div class="ft-person"><span class="ft-avatar">{{ job.coordinator?.initials || initials(job.coordinator?.name) }}</span><span>{{ job.coordinator?.name || 'Unassigned' }}</span></div></td>
                     <td>{{ formatDate(job.delivery_date) }}</td>

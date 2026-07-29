@@ -60,3 +60,11 @@ See `ADMIN_ACCESS_SETUP.md` and `FLOWTRACK_SETUP.md` for details.
 ## Profile and session
 
 The exact-template shell now renders authentication state server-side and loads the real signed-in user before displaying the dashboard. Profile fields, password, photo and preferences persist through `/flowtrack/template-api/profile` endpoints. See `PROFILE_SESSION_UPDATE.md`.
+
+## Document, Workflow Phase and Task Pack Linking
+
+See `DOCUMENT_WORKFLOW_PHASE_LINKING_UPDATE.md` for the Documents-only upload workflow, linker role, exact Phase/Task Pack document requirements, and deployment commands.
+
+## Assignment-based Task access
+
+Task visibility and updates are assignment-based for every non-administrator. A normal user sees only Tasks assigned to their user account in My Work, the Task Board, Job Task lists, global search, and Task drawers. Only that assignee can update the Task. Administrators and Super Administrators retain workspace-wide board visibility and Task control. See `ASSIGNMENT_BASED_BOARD_ACCESS_UPDATE.md` for details.

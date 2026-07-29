@@ -5,26 +5,29 @@ namespace App\Modules\OrderFlow\Data\Repositories;
 use App\Models\User;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
+use App\Modules\OrderFlow\Business\Services\TaskPackActivator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class JobRepository
 {
-    public function __construct(private readonly FlowAuthorizationService $authorization)
-    {
-    }
+    public function __construct(
+        private readonly FlowAuthorizationService $authorization,
+        private readonly TaskPackActivator $taskPackActivator,
+    ) {}
     public function paginateVisible(User $user, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $paginator = $this->visibleQuery($user)
-            ->with(['client', 'product', 'productCategory', 'currency', 'priority', 'owner', 'coordinator', 'workflow', 'currentPhase'])
+            ->with(['client', 'product', 'productCategory', 'items.product', 'items.productCategory', 'currency', 'priority', 'owner', 'coordinator', 'workflow', 'currentPhase'])
             ->when($filters['search'] ?? null, function (Builder $query, string $search) {
                 $query->where(function (Builder $nested) use ($search) {
                     $nested->where('code', 'like', "%{$search}%")
                         ->orWhere('order_code', 'like', "%{$search}%")
                         ->orWhere('title', 'like', "%{$search}%")
                         ->orWhereHas('client', fn (Builder $client) => $client->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('product', fn (Builder $product) => $product->where('name', 'like', "%{$search}%"));
+                        ->orWhereHas('product', fn (Builder $product) => $product->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('items.product', fn (Builder $product) => $product->where('name', 'like', "%{$search}%"));
                 });
             })
             ->when($filters['phase'] ?? null, fn (Builder $query, $phase) => $query->where('current_phase_id', $phase))
@@ -48,7 +51,7 @@ class JobRepository
 
     public function board(User $user): Collection
     {
-        $jobs = $this->visibleQuery($user)
+        $jobs = $this->authorization->applyJobBoardVisibility(FlowJob::query(), $user)
             ->with(['client', 'currentPhase', 'coordinator', 'priority', 'workflow.phases', 'members'])
             ->where('status', '!=', 'completed')
             ->orderBy('delivery_date')
@@ -61,16 +64,44 @@ class JobRepository
         return $jobs;
     }
 
+
+    public function findBoardVisible(User $user, int $id): FlowJob
+    {
+        return $this->authorization->applyJobBoardVisibility(FlowJob::query(), $user)
+            ->with(['client', 'workflow.phases', 'currentPhase', 'tasks'])
+            ->findOrFail($id);
+    }
+
     public function findVisible(User $user, int $id): FlowJob
     {
-        return $this->visibleQuery($user)
+        $job = $this->visibleQuery($user)
             ->with([
-                'client.accountManager', 'workflow.phases.taskPack', 'currentPhase.taskPack', 'currentPhase.documentCategory', 'startedPhase',
-                'product', 'productCategory', 'currency', 'priority', 'owner', 'coordinator',
+                'client.accountManager', 'workflow.phases.taskPack', 'currentPhase.taskPack.items.documentCategory', 'currentPhase.documentCategory', 'startedPhase',
+                'product', 'productCategory', 'items.product', 'items.productCategory', 'currency', 'priority', 'owner', 'coordinator',
                 'members.user', 'tasks.assignee', 'tasks.status', 'tasks.priority', 'tasks.packItem', 'tasks.checklistItems', 'tasks.comments.user',
-                'phaseHistory.phase', 'phaseApprovals.approvedBy', 'documents.category', 'documents.versions.uploader',
+                'phaseHistory.phase', 'documents.category', 'documents.versions.uploader',
+                'transitionEvents.actor', 'transitionEvents.phase', 'transitionEvents.task',
             ])
             ->findOrFail($id);
+
+        if ($job->currentPhase && $this->taskPackActivator->activate($job, $job->currentPhase) > 0) {
+            $job->unsetRelation('tasks');
+            $job->load([
+                'tasks.assignee', 'tasks.status', 'tasks.priority', 'tasks.packItem',
+                'tasks.checklistItems', 'tasks.comments.user',
+            ]);
+        }
+
+        // Keep every Job task surface consistent with Task Board and My Work:
+        // non-administrators receive only their own assigned Tasks. Administrators
+        // and Super Administrators retain the complete Job task list.
+        if (! $this->authorization->isAdministrator($user) && $job->relationLoaded('tasks')) {
+            $job->setRelation('tasks', $job->tasks
+                ->where('assignee_id', $user->id)
+                ->values());
+        }
+
+        return $job;
     }
 
     private function canViewFinancials(User $user): bool

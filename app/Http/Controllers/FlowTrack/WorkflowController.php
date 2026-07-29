@@ -5,6 +5,8 @@ namespace App\Http\Controllers\FlowTrack;
 use App\Http\Controllers\Controller;
 use App\Modules\OrderFlow\Application\Queries\FlowTrackOptionsQuery;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
+use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
+use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\TaskPack;
 use App\Modules\OrderFlow\Data\Models\WorkflowPhase;
 use App\Modules\OrderFlow\Data\Models\WorkflowTemplate;
@@ -48,9 +50,12 @@ class WorkflowController extends Controller
             ]);
 
             if ($baseId = $data['base_workflow_id'] ?? null) {
-                WorkflowTemplate::query()->where('workspace_id', $workspaceId)->findOrFail($baseId)->phases()->orderBy('sequence')->get()->each(fn (WorkflowPhase $phase) => $workflow->phases()->create($phase->only([
-                    'task_pack_id', 'document_category_id', 'name', 'short_name', 'sequence', 'allow_job_start', 'is_skippable', 'requires_approval', 'is_active', 'entry_condition', 'exit_condition',
-                ])));
+                WorkflowTemplate::query()->where('workspace_id', $workspaceId)->findOrFail($baseId)->phases()->orderBy('sequence')->get()->each(fn (WorkflowPhase $phase) => $workflow->phases()->create([
+                    ...$phase->only([
+                        'task_pack_id', 'document_category_id', 'name', 'short_name', 'sequence', 'allow_job_start', 'is_skippable', 'auto_advance_on_ready', 'is_active', 'entry_condition', 'exit_condition',
+                    ]),
+                    'requires_approval' => false,
+                ]));
             }
         });
 
@@ -69,13 +74,14 @@ class WorkflowController extends Controller
             'document_category_id' => ['nullable', 'integer', Rule::exists('master_records', 'id')->where(fn ($query) => $query->where('workspace_id', $workspaceId)->where('type', MasterDataType::DocumentCategory->value))],
             'allow_job_start' => ['required', 'boolean'],
             'is_skippable' => ['required', 'boolean'],
-            'requires_approval' => ['required', 'boolean'],
+            'auto_advance_on_ready' => ['required', 'boolean'],
             'entry_condition' => ['nullable', 'string', 'max:255'],
             'exit_condition' => ['nullable', 'string', 'max:255'],
         ]);
 
         $workflow->phases()->create([
             ...$data,
+            'requires_approval' => false,
             'sequence' => ((int) $workflow->phases()->max('sequence')) + 1,
             'is_active' => true,
         ]);
@@ -83,7 +89,7 @@ class WorkflowController extends Controller
         return back()->with('success', 'Workflow phase added.');
     }
 
-    public function updatePhase(Request $request, WorkflowPhase $phase): RedirectResponse
+    public function updatePhase(Request $request, WorkflowPhase $phase, WorkflowAutomationService $automation): RedirectResponse
     {
         $workspaceId = $request->user()->currentWorkspaceId();
         abort_unless($phase->workflow->workspace_id === $workspaceId, 404);
@@ -94,12 +100,18 @@ class WorkflowController extends Controller
             'document_category_id' => ['nullable', 'integer', Rule::exists('master_records', 'id')->where(fn ($query) => $query->where('workspace_id', $workspaceId)->where('type', MasterDataType::DocumentCategory->value))],
             'allow_job_start' => ['required', 'boolean'],
             'is_skippable' => ['required', 'boolean'],
-            'requires_approval' => ['required', 'boolean'],
+            'auto_advance_on_ready' => ['required', 'boolean'],
             'is_active' => ['required', 'boolean'],
             'entry_condition' => ['nullable', 'string', 'max:255'],
             'exit_condition' => ['nullable', 'string', 'max:255'],
         ]);
-        $phase->update($data);
+        $phase->update([...$data, 'requires_approval' => false]);
+
+        FlowJob::query()
+            ->where('workspace_id', $workspaceId)
+            ->where('current_phase_id', $phase->id)
+            ->where('status', '!=', 'completed')
+            ->each(fn (FlowJob $job) => $automation->synchronize($job, $request->user(), 'workflow_configuration'));
 
         return back()->with('success', 'Workflow phase updated.');
     }
@@ -108,7 +120,7 @@ class WorkflowController extends Controller
     public function destroyPhase(Request $request, WorkflowPhase $phase): RedirectResponse
     {
         abort_unless($phase->workflow->workspace_id === $request->user()->currentWorkspaceId(), 404);
-        abort_if($phase->tasks()->exists() || $phase->jobHistories()->exists() || $phase->approvals()->exists(), 422, 'This phase is already used by jobs and cannot be deleted. Disable it instead.');
+        abort_if($phase->tasks()->exists() || $phase->jobHistories()->exists(), 422, 'This phase is already used by jobs and cannot be deleted. Disable it instead.');
         $phase->delete();
 
         return back()->with('success', 'Workflow phase deleted.');

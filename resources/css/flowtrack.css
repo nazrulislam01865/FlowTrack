@@ -259,3 +259,60 @@ body { margin: 0; }
 }
 .ft-step.completed .ft-step-dot { background: var(--ft-green); color: #fff; }
 .ft-step.completed::before { background: var(--ft-green); }
+
+/* Create Job: stacked fields with repeatable Product + Quantity rows */
+.ft-job-form-stack { grid-template-columns: 1fr; }
+.ft-job-form-stack .ft-field { margin-bottom: 0; }
+.ft-product-lines-field { padding: 14px; border: 1px solid var(--ft-line); border-radius: 12px; background: #f9fbfe; }
+.ft-product-lines-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.ft-product-total { white-space: nowrap; padding: 5px 9px; border-radius: 20px; background: var(--ft-blue-2); color: var(--ft-blue); font-size: 11px; font-weight: 700; }
+.ft-product-line-labels,
+.ft-product-line { display: grid; grid-template-columns: minmax(0, 1fr) minmax(105px, 145px) 38px; gap: 9px; align-items: start; }
+.ft-product-line-labels { padding: 11px 2px 6px; color: var(--ft-muted); font-size: 11px; font-weight: 650; }
+.ft-product-lines { display: flex; flex-direction: column; gap: 9px; }
+.ft-product-line > div { min-width: 0; }
+.ft-remove-product { width: 38px; height: 38px; border: 1px solid #f0c7c4; border-radius: 9px; background: var(--ft-red-2); color: var(--ft-red); font-size: 20px; line-height: 1; cursor: pointer; }
+.ft-remove-product:disabled { opacity: .35; cursor: not-allowed; }
+.ft-add-product { align-self: flex-start; margin-top: 11px; }
+
+@media (max-width: 620px) {
+    .ft-product-lines-heading { align-items: flex-start; }
+    .ft-product-total { white-space: normal; text-align: right; }
+    .ft-product-line-labels,
+    .ft-product-line { grid-template-columns: minmax(0, 1fr) 100px 38px; gap: 7px; }
+}
+
+/* Searchable dropdowns used by Client and Job forms. */
+.ft-searchable { position: relative; width: 100%; }
+.ft-searchable-trigger { width: 100%; min-height: 43px; border: 1px solid var(--ft-line); border-radius: 10px; padding: 10px 42px 10px 12px; background: #fff; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; outline: none; cursor: pointer; }
+.ft-searchable-trigger:focus, .ft-searchable.open .ft-searchable-trigger { border-color: #8fb1ff; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.ft-searchable-trigger:disabled { background: #f4f6f9; color: #7a8798; cursor: not-allowed; }
+.ft-searchable-trigger > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ft-searchable-placeholder { color: #7a8798; }
+.ft-searchable-arrow { position: absolute; right: 13px; top: 50%; width: 8px; height: 8px; border-right: 1.8px solid currentColor; border-bottom: 1.8px solid currentColor; transform: translateY(-65%) rotate(45deg); transition: transform .15s; }
+.ft-searchable.open .ft-searchable-arrow { transform: translateY(-25%) rotate(225deg); }
+.ft-searchable-panel { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 120; background: #fff; border: 1px solid var(--ft-line); border-radius: 12px; box-shadow: 0 18px 45px rgba(15,35,65,.18); padding: 9px; }
+.ft-searchable-search-wrap { position: relative; margin-bottom: 8px; }
+.ft-searchable-search { width: 100%; border: 1px solid var(--ft-line); border-radius: 9px; padding: 10px 12px 10px 35px; background: #f8fafc; outline: none; }
+.ft-searchable-search:focus { border-color: #8fb1ff; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.ft-searchable-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #7a8798; font-size: 16px; }
+.ft-searchable-options { max-height: 235px; overflow: auto; display: flex; flex-direction: column; gap: 3px; }
+.ft-searchable-option { width: 100%; border: 0; background: #fff; border-radius: 8px; padding: 10px 11px; text-align: left; display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; }
+.ft-searchable-option:hover { background: #eef4ff; color: #1d4ed8; }
+.ft-searchable-option.selected { background: #eaf1ff; color: #1d4ed8; font-weight: 650; }
+.ft-searchable-option:disabled { opacity: .45; cursor: not-allowed; }
+.ft-searchable-empty { padding: 18px 10px; text-align: center; color: var(--ft-muted); font-size: 12px; }
+.ft-searchable-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 9px; border-top: 1px solid var(--ft-line); margin-top: 8px; }
+.ft-client-form-stack { grid-template-columns: 1fr; }
+.ft-client-form-stack .ft-field { grid-column: 1 / -1; margin-bottom: 0; }
+.ft-client-code input[readonly] { font-weight: 750; letter-spacing: .04em; background: #f4f7fb; border-style: dashed; cursor: not-allowed; }
+.ft-code-lock-note { color: var(--ft-muted); font-size: 11px; display: flex; gap: 7px; align-items: center; }
+.ft-code-lock-note::before { content: '🔒'; font-size: 12px; }
+
+@media (max-width: 620px) {
+    .ft-searchable-panel { position: fixed; left: 14px; right: 14px; top: auto; bottom: 14px; max-height: min(70vh, 520px); border-radius: 16px; padding: 12px; z-index: 160; }
+    .ft-searchable-options { max-height: 50vh; }
+    .ft-searchable-search { font-size: 16px; }
+}
+.ft-kanban-card.is-readonly { cursor: pointer; border-style: dashed; }
+.ft-kanban-card.is-readonly::after { content: 'Read only'; display: inline-flex; margin-top: 8px; padding: 3px 7px; border-radius: 999px; background: #f3f6fa; color: #66758b; font-size: 9px; font-weight: 700; }

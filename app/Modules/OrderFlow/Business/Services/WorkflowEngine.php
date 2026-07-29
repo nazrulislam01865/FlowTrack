@@ -17,6 +17,9 @@ class WorkflowEngine
         private readonly IdentifierGenerator $identifiers,
         private readonly PhaseGateValidator $phaseGates,
         private readonly ProgressCalculator $progressCalculator,
+        private readonly JobHealthSynchronizer $health,
+        private readonly PhaseReadinessEvaluator $readiness,
+        private readonly TransitionAuditLogger $transitions,
     ) {}
 
     public function initialize(FlowJob $job, WorkflowPhase $startPhase, User $actor, ?string $reason = null): void
@@ -35,9 +38,11 @@ class WorkflowEngine
                     'workflow_phase_id' => $phase->id,
                     'changed_by' => $actor->id,
                     'status' => $status,
+                    'readiness_status' => $status === 'current' ? 'in_progress' : ($status === 'skipped' ? 'complete' : 'pending'),
                     'notes' => $status === 'skipped' ? $reason : null,
                     'entered_at' => $status === 'current' ? now() : null,
                     'completed_at' => $status === 'skipped' ? now() : null,
+                    'readiness_checked_at' => $status === 'current' ? now() : null,
                 ]);
             }
 
@@ -51,12 +56,20 @@ class WorkflowEngine
 
             $created = $this->taskPackActivator->activate($job, $startPhase);
             $this->progressCalculator->recalculateJob($job);
+            $this->health->synchronize($job, $actor, 'job_creation');
+            $this->readiness->synchronize($job, $startPhase, $actor, 'job_creation');
             $this->activityLogger->log($job->workspace_id, $actor, $job, 'job.created', "Job created at {$startPhase->name}", ['tasks_created' => $created]);
+            $this->transitions->log($job, 'job.initialized', $actor, 'job_creation', null, $startPhase->name, $reason, ['tasks_created' => $created], phase: $startPhase);
         });
     }
 
-    public function move(FlowJob $job, WorkflowPhase $targetPhase, User $actor, ?string $reason = null): void
-    {
+    public function move(
+        FlowJob $job,
+        WorkflowPhase $targetPhase,
+        User $actor,
+        ?string $reason = null,
+        string $source = 'job_phase_board',
+    ): void {
         $job->loadMissing('workflow.phases', 'currentPhase');
 
         if ($targetPhase->workflow_template_id !== $job->workflow_template_id) {
@@ -70,6 +83,10 @@ class WorkflowEngine
         $current = $job->currentPhase;
         if (! $current) {
             throw new DomainException('The job does not have an active phase.');
+        }
+
+        if ($targetPhase->id === $current->id) {
+            return;
         }
 
         if ($targetPhase->sequence > $current->sequence + 1) {
@@ -89,13 +106,18 @@ class WorkflowEngine
 
         if ($targetPhase->sequence > $current->sequence) {
             $this->phaseGates->assertWorkComplete($job, $current);
-            $this->phaseGates->assertApproved($job, $current);
         }
 
-        DB::transaction(function () use ($job, $targetPhase, $current, $actor, $reason) {
+        DB::transaction(function () use ($job, $targetPhase, $current, $actor, $reason, $source) {
             FlowJobPhaseHistory::where('flow_job_id', $job->id)
                 ->where('workflow_phase_id', $current->id)
-                ->update(['status' => 'completed', 'completed_at' => now(), 'changed_by' => $actor->id]);
+                ->update([
+                    'status' => 'completed',
+                    'readiness_status' => 'complete',
+                    'completed_at' => now(),
+                    'readiness_checked_at' => now(),
+                    'changed_by' => $actor->id,
+                ]);
 
             if ($targetPhase->sequence > $current->sequence + 1) {
                 $job->workflow->phases()
@@ -104,14 +126,31 @@ class WorkflowEngine
                     ->each(function (WorkflowPhase $phase) use ($job, $actor, $reason) {
                         FlowJobPhaseHistory::updateOrCreate(
                             ['flow_job_id' => $job->id, 'workflow_phase_id' => $phase->id],
-                            ['status' => 'skipped', 'notes' => $reason, 'completed_at' => now(), 'changed_by' => $actor->id],
+                            [
+                                'status' => 'skipped',
+                                'readiness_status' => 'complete',
+                                'notes' => $reason,
+                                'completed_at' => now(),
+                                'readiness_checked_at' => now(),
+                                'changed_by' => $actor->id,
+                            ],
                         );
                     });
             }
 
             FlowJobPhaseHistory::updateOrCreate(
                 ['flow_job_id' => $job->id, 'workflow_phase_id' => $targetPhase->id],
-                ['status' => 'current', 'entered_at' => now(), 'completed_at' => null, 'changed_by' => $actor->id, 'notes' => $reason],
+                [
+                    'status' => 'current',
+                    'readiness_status' => 'in_progress',
+                    'entered_at' => now(),
+                    'completed_at' => null,
+                    'ready_at' => null,
+                    'readiness_checked_at' => now(),
+                    'readiness_details' => null,
+                    'changed_by' => $actor->id,
+                    'notes' => $reason,
+                ],
             );
 
             $job->update([
@@ -119,7 +158,6 @@ class WorkflowEngine
                 'order_code' => $job->order_code ?: ($targetPhase->short_name === 'Confirmed' ? $this->identifiers->order() : null),
                 'progress' => $targetPhase->short_name === 'Completed' ? 100 : $job->progress,
                 'status' => $targetPhase->short_name === 'Completed' ? 'completed' : 'in_progress',
-                'health' => $targetPhase->short_name === 'Completed' ? 'completed' : $job->health,
                 'next_action' => $targetPhase->entry_condition,
                 'milestone' => $targetPhase->exit_condition,
             ]);
@@ -127,8 +165,27 @@ class WorkflowEngine
             $created = $this->taskPackActivator->activate($job, $targetPhase);
             $job->refresh();
             $this->progressCalculator->recalculateJob($job);
-            $this->activityLogger->log($job->workspace_id, $actor, $job, 'job.phase_changed', "Job moved to {$targetPhase->name}", ['tasks_created' => $created, 'reason' => $reason]);
+            $this->health->synchronize($job, $actor, $source);
+            $this->readiness->synchronize($job, $targetPhase, $actor, $source);
+            $this->activityLogger->log(
+                $job->workspace_id,
+                $actor,
+                $job,
+                'job.phase_changed',
+                "Job moved from {$current->name} to {$targetPhase->name}",
+                ['from_phase_id' => $current->id, 'to_phase_id' => $targetPhase->id, 'tasks_created' => $created, 'reason' => $reason, 'source' => $source],
+            );
+            $this->transitions->log(
+                $job,
+                'job.phase',
+                $actor,
+                $source,
+                $current->name,
+                $targetPhase->name,
+                $reason,
+                ['from_phase_id' => $current->id, 'to_phase_id' => $targetPhase->id, 'tasks_created' => $created],
+                phase: $targetPhase,
+            );
         });
     }
-
 }

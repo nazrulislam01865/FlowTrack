@@ -63,7 +63,7 @@ function submit() {
             <div class="ft-field"><label>Due date</label><input v-model="form.due_date" type="date" /></div>
             <div class="ft-field"><label>Parent task</label><select v-model="form.parent_id"><option :value="null">No parent</option><option v-for="task in job?.tasks || []" :key="task.id" :value="task.id">{{ task.code }} · {{ task.title }}</option></select></div>
             <div class="ft-field"><label>Dependency</label><select v-model="form.dependency_id"><option :value="null">No dependency</option><option v-for="task in job?.tasks || []" :key="task.id" :value="task.id">After {{ task.code }} · {{ task.title }}</option></select></div>
-            <div class="ft-field full"><label>Starts when</label><input v-model="form.start_rule" placeholder="e.g. After artwork approval" /></div>
+            <div class="ft-field full"><label>Starts when</label><input v-model="form.start_rule" placeholder="e.g. After artwork review" /></div>
             <div class="ft-field full"><label>Description</label><textarea v-model="form.description" rows="4" placeholder="Specifications, acceptance criteria, links, or handoff notes"></textarea></div>
             <div class="ft-field full"><label>Checklist items</label><textarea v-model="form.checklist_text" rows="4" placeholder="One checklist item per line"></textarea></div>
             <label class="ft-check-row full"><input v-model="form.attention_required" type="checkbox" /> Mark as attention needed</label>

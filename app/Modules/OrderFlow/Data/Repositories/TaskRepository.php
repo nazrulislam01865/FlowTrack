@@ -4,18 +4,23 @@ namespace App\Modules\OrderFlow\Data\Repositories;
 
 use App\Models\User;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
+use App\Modules\OrderFlow\Business\Services\TaskPackActivator;
+use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class TaskRepository
 {
-    public function __construct(private readonly FlowAuthorizationService $authorization)
-    {
-    }
+    public function __construct(
+        private readonly FlowAuthorizationService $authorization,
+        private readonly TaskPackActivator $taskPackActivator,
+    ) {}
 
     public function myWork(User $user, array $filters = []): Collection
     {
+        $this->reconcileVisibleCurrentPhaseTasks($user);
+
         $tasks = $this->authorization->applyTaskVisibility(FlowTask::query(), $user)
             ->with(['job.client', 'job.currentPhase', 'assignee', 'status', 'priority', 'phase'])
             ->when($filters['search'] ?? null, fn (Builder $query, $search) => $query->where(fn (Builder $nested) => $nested->where('title', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%")))
@@ -32,7 +37,9 @@ class TaskRepository
 
     public function board(User $user): Collection
     {
-        $tasks = $this->authorization->applyTaskVisibility(FlowTask::query(), $user)
+        $this->reconcileVisibleCurrentPhaseTasks($user);
+
+        $tasks = $this->authorization->applyTaskBoardVisibility(FlowTask::query(), $user)
             ->with(['job.client', 'assignee', 'status', 'priority', 'phase'])
             ->orderBy('sort_order')
             ->orderBy('due_date')
@@ -54,6 +61,23 @@ class TaskRepository
         }
 
         return $task;
+    }
+
+
+    private function reconcileVisibleCurrentPhaseTasks(User $user): void
+    {
+        $this->authorization->applyJobVisibility(FlowJob::query(), $user, 'tasks')
+            ->whereNotNull('current_phase_id')
+            ->where('status', '!=', 'completed')
+            ->with('currentPhase.taskPack.items')
+            ->orderBy('id')
+            ->chunkById(100, function ($jobs): void {
+                foreach ($jobs as $job) {
+                    if ($job->currentPhase) {
+                        $this->taskPackActivator->activate($job, $job->currentPhase);
+                    }
+                }
+            });
     }
 
     private function hideFinancials(Collection $tasks, User $user): void

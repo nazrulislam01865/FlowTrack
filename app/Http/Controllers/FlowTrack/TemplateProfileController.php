@@ -30,7 +30,7 @@ class TemplateProfileController extends Controller
             'notification_preferences.task_assignments' => ['required', 'boolean'],
             'notification_preferences.due_date_reminders' => ['required', 'boolean'],
             'notification_preferences.mentions_comments' => ['required', 'boolean'],
-            'notification_preferences.approval_requests' => ['required', 'boolean'],
+            'notification_preferences.workflow_updates' => ['required', 'boolean'],
             'notification_preferences.shipment_alerts' => ['required', 'boolean'],
             'notification_preferences.payment_reminders' => ['required', 'boolean'],
         ]);

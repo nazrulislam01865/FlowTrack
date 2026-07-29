@@ -39,7 +39,7 @@ function printPage() { window.print(); }
         <FlowMetric label="Due Today" :value="metrics.today" foot="Tasks requiring action" />
         <FlowMetric label="Overdue" :value="metrics.overdue" foot="Past their due date" />
         <FlowMetric label="Blocked / Attention" :value="metrics.attention" foot="Need support" />
-        <FlowMetric label="Waiting Approval" :value="metrics.waiting" foot="Client or internal" />
+        <FlowMetric label="Waiting Review" :value="metrics.waiting" foot="Client or supplier" />
         <FlowMetric label="Completed" :value="metrics.completed" foot="Current result set" />
         <FlowMetric label="Upcoming" :value="metrics.upcoming" foot="Scheduled next" />
     </div>

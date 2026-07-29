@@ -46,7 +46,7 @@ test('a user can update the exact-template profile and preferences', function ()
                 'task_assignments' => true,
                 'due_date_reminders' => false,
                 'mentions_comments' => true,
-                'approval_requests' => true,
+                'workflow_updates' => true,
                 'shipment_alerts' => false,
                 'payment_reminders' => true,
             ],

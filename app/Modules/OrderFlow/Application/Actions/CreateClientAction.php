@@ -2,25 +2,25 @@
 
 namespace App\Modules\OrderFlow\Application\Actions;
 
+use App\Modules\OrderFlow\Business\Services\IdentifierGenerator;
 use App\Modules\OrderFlow\Data\Models\Client;
 
 class CreateClientAction
 {
+    public function __construct(private readonly IdentifierGenerator $identifiers)
+    {
+    }
+
     public function execute(int $workspaceId, array $data): Client
     {
-        $next = Client::withTrashed()
-            ->where('workspace_id', $workspaceId)
-            ->where('code', 'like', 'CL-%')
-            ->pluck('code')
-            ->map(fn (string $code): int => (int) substr($code, 3))
-            ->max() + 1;
+        // Client identifiers are owned by the system. Any incoming code value is
+        // discarded so browser users and API callers cannot choose or alter it.
+        unset($data['code']);
 
         return Client::create([
             ...$data,
             'workspace_id' => $workspaceId,
-            'code' => filled($data['code'] ?? null)
-                ? $data['code']
-                : 'CL-'.str_pad((string) max(1, $next), 3, '0', STR_PAD_LEFT),
+            'code' => $this->identifiers->client($workspaceId),
         ]);
     }
 }

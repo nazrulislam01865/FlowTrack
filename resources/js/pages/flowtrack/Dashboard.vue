@@ -31,7 +31,7 @@ function printPage() { window.print(); }
         <Link href="/flowtrack/jobs" style="text-decoration: none"><FlowMetric label="Active Jobs" :value="metrics.activeJobs" foot="Across all phases" clickable /></Link>
         <Link href="/flowtrack/jobs?health=at_risk" style="text-decoration: none"><FlowMetric label="Needs Attention" :value="metrics.needsAttention" foot="Risk, delay or blocker" clickable /></Link>
         <Link href="/flowtrack/my-work" style="text-decoration: none"><FlowMetric label="Overdue Tasks" :value="metrics.overdueTasks" foot="Require immediate update" clickable /></Link>
-        <Link href="/flowtrack/my-work" style="text-decoration: none"><FlowMetric label="Pending Approvals" :value="metrics.pendingApprovals" foot="Client or internal" clickable /></Link>
+        <Link href="/flowtrack/my-work" style="text-decoration: none"><FlowMetric label="Blocked Tasks" :value="metrics.blockedTasks" foot="Require resolution" clickable /></Link>
         <Link href="/flowtrack/board" style="text-decoration: none"><FlowMetric label="Shipping Now" :value="metrics.shippingNow" foot="Ready or in transit" clickable /></Link>
         <Link href="/flowtrack/clients" style="text-decoration: none"><FlowMetric label="Outstanding" :value="metrics.canViewFinancials ? money(metrics.outstanding) : 'Restricted'" foot="Open client balance" clickable /></Link>
     </section>

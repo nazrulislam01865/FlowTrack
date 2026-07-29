@@ -37,4 +37,5 @@ class FlowTask extends Model
     public function priority(): BelongsTo { return $this->belongsTo(MasterRecord::class, 'priority_id'); }
     public function checklistItems(): HasMany { return $this->hasMany(FlowTaskChecklistItem::class); }
     public function comments(): HasMany { return $this->hasMany(FlowTaskComment::class)->latest(); }
+    public function transitionEvents(): HasMany { return $this->hasMany(FlowTransitionEvent::class, 'flow_task_id')->latest('occurred_at'); }
 }

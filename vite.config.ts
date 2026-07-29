@@ -11,6 +11,8 @@ export default defineConfig({
             refresh: [
                 'resources/views/**',
                 'public/flowtrack-dynamic.js',
+                'public/flowtrack-searchable-dropdown.css',
+                'public/flowtrack-searchable-dropdown.js',
             ],
         }),
     ],

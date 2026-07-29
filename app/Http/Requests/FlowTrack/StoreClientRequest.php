@@ -18,14 +18,7 @@ class StoreClientRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'code' => [
-                $this->route('client') ? 'required' : 'nullable',
-                'string',
-                'max:30',
-                Rule::unique('clients', 'code')
-                    ->where(fn ($query) => $query->where('workspace_id', $this->user()->currentWorkspaceId()))
-                    ->ignore($this->route('client')),
-            ],
+            'code' => ['prohibited'],
             'country' => ['nullable', 'string', 'max:100'],
             'contact_name' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],

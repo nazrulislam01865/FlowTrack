@@ -2,12 +2,27 @@
 
 namespace App\Modules\OrderFlow\Business\Services;
 
+use App\Modules\OrderFlow\Data\Models\Client;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
 
 class IdentifierGenerator
 {
+    public function client(int $workspaceId): string
+    {
+        $codes = Client::withTrashed()
+            ->where('workspace_id', $workspaceId)
+            ->where('code', 'like', 'CL-%')
+            ->pluck('code');
+
+        $number = $codes
+            ->map(fn (string $code): int => preg_match('/^CL-(\d+)$/', $code, $matches) ? (int) $matches[1] : 0)
+            ->max() + 1;
+
+        return 'CL-'.str_pad((string) max(1, $number), 3, '0', STR_PAD_LEFT);
+    }
+
     public function job(): string
     {
         return $this->next(FlowJob::class, 'JOB-'.now()->format('Y').'-', 5);

@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])->prefix('flowtrack')->
         Route::delete('/jobs/{job}', [TemplateApiController::class, 'destroyJob'])->name('jobs.destroy');
         Route::put('/tasks/{task}', [TemplateApiController::class, 'updateTask'])->name('tasks.update');
         Route::delete('/tasks/{task}', [TemplateApiController::class, 'destroyTask'])->name('tasks.destroy');
+        Route::post('/documents', [TemplateApiController::class, 'storeDocument'])->name('documents.store');
         Route::delete('/documents/{document}', [TemplateApiController::class, 'destroyDocument'])->name('documents.destroy');
         Route::patch('/jobs/{job}/phase', [TemplateApiController::class, 'moveJob'])->name('jobs.phase');
         Route::get('/master-data/next-code', [TemplateConfigurationController::class, 'nextMasterCode'])->name('master-data.next-code');
@@ -77,7 +78,6 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])->prefix('flowtrack')->
     Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
     Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
     Route::put('/jobs/{job}/members', [JobController::class, 'updateMembers'])->name('jobs.members.update');
-    Route::post('/jobs/{job}/phases/{phase}/approve', [JobController::class, 'approvePhase'])->name('jobs.phases.approve');
 
     Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
     Route::post('/clients', [ClientController::class, 'store'])->name('clients.store');
@@ -109,13 +109,14 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])->prefix('flowtrack')->
     Route::post('/workflow-setup/{workflow}/phases', [WorkflowController::class, 'storePhase'])->middleware('flow.action:workflow,create')->name('workflows.phases.store');
     Route::put('/workflow-phases/{phase}', [WorkflowController::class, 'updatePhase'])->middleware('flow.action:workflow,edit_all')->name('workflows.phases.update');
     Route::delete('/workflow-phases/{phase}', [WorkflowController::class, 'destroyPhase'])->middleware('flow.action:workflow,delete')->name('workflows.phases.destroy');
+    Route::get('/task-pack-setup', [TaskPackController::class, 'index'])->middleware('flow.action:workflow,view')->name('task-packs.index');
     Route::post('/task-packs', [TaskPackController::class, 'store'])->middleware('flow.action:workflow,create')->name('task-packs.store');
     Route::put('/task-packs/{taskPack}', [TaskPackController::class, 'update'])->middleware('flow.action:workflow,edit_all')->name('task-packs.update');
     Route::post('/task-packs/{taskPack}/items', [TaskPackController::class, 'storeItem'])->middleware('flow.action:workflow,edit_all')->name('task-packs.items.store');
     Route::put('/task-pack-items/{item}', [TaskPackController::class, 'updateItem'])->middleware('flow.action:workflow,edit_all')->name('task-packs.items.update');
     Route::delete('/task-pack-items/{item}', [TaskPackController::class, 'destroyItem'])->middleware('flow.action:workflow,delete')->name('task-packs.items.destroy');
     Route::patch('/workflow-setup/{workflow}/reorder', [WorkflowController::class, 'reorder'])->middleware('flow.action:workflow,edit_all')->name('workflows.reorder');
-    Route::patch('/workflow-setup/{workflow}/publish', [WorkflowController::class, 'publish'])->middleware('flow.action:workflow,approve')->name('workflows.publish');
+    Route::patch('/workflow-setup/{workflow}/publish', [WorkflowController::class, 'publish'])->middleware('flow.action:workflow,edit_all')->name('workflows.publish');
 
     Route::get('/master-data', [MasterDataController::class, 'index'])->middleware('flow.action:masterdata,view')->name('master-data.index');
     Route::post('/master-data', [MasterDataController::class, 'store'])->middleware('flow.action:masterdata,create')->name('master-data.store');

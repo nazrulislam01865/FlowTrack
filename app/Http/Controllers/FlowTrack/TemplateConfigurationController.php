@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\ConfigurationCodeGenerator;
 use App\Modules\OrderFlow\Business\Services\MasterRecordDeletionService;
+use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
+use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\MasterRecord;
 use App\Modules\OrderFlow\Data\Models\TaskPack;
 use App\Modules\OrderFlow\Data\Models\TaskPackItem;
@@ -131,7 +133,7 @@ class TemplateConfigurationController extends Controller
         ], 201);
     }
 
-    public function updateTaskPack(Request $request, TaskPack $taskPack): JsonResponse
+    public function updateTaskPack(Request $request, TaskPack $taskPack, WorkflowAutomationService $automation): JsonResponse
     {
         $this->authorizeWorkflow($request, 'edit_all');
         $workspaceId = $request->user()->currentWorkspaceId();
@@ -147,6 +149,18 @@ class TemplateConfigurationController extends Controller
 
             $this->syncTaskPackItems($taskPack, $data['items'], true);
         });
+
+        FlowJob::query()
+            ->where('workspace_id', $workspaceId)
+            ->where('status', '!=', 'completed')
+            ->whereHas('currentPhase', fn ($phase) => $phase->where('task_pack_id', $taskPack->id))
+            ->with('currentPhase')
+            ->orderBy('id')
+            ->chunkById(100, function ($jobs) use ($automation, $request): void {
+                foreach ($jobs as $job) {
+                    $automation->synchronize($job, $request->user(), 'task_pack_configuration', false);
+                }
+            });
 
         return response()->json(['taskPack' => $this->mapTaskPack($this->loadTaskPack($taskPack))]);
     }
@@ -206,6 +220,15 @@ class TemplateConfigurationController extends Controller
                     ->where('status', 'active')
                     ->whereNull('deleted_at')),
             ],
+            'items.*.document_category_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('master_records', 'id')->where(fn ($query) => $query
+                    ->where('workspace_id', $workspaceId)
+                    ->where('type', MasterDataType::DocumentCategory->value)
+                    ->where('status', 'active')
+                    ->whereNull('deleted_at')),
+            ],
             'items.*.due_offset_days' => ['required', 'integer', 'min:0', 'max:365'],
             'items.*.is_required' => ['required', 'boolean'],
         ]);
@@ -252,6 +275,7 @@ class TemplateConfigurationController extends Controller
                 'default_assignee_id' => $itemData['default_assignee_id'] ?? null,
                 'default_department_id' => $itemData['default_department_id'] ?? null,
                 'priority_id' => $itemData['priority_id'] ?? null,
+                'document_category_id' => $itemData['document_category_id'] ?? null,
                 'due_offset_days' => $itemData['due_offset_days'],
                 'is_required' => $itemData['is_required'],
                 'sort_order' => $index + 1,
@@ -272,6 +296,7 @@ class TemplateConfigurationController extends Controller
             'items.defaultAssignee:id,name,initials',
             'items.defaultDepartment:id,name,code',
             'items.priority:id,name,code',
+            'items.documentCategory:id,name,code',
         ]);
     }
 
@@ -309,6 +334,8 @@ class TemplateConfigurationController extends Controller
                 'default_department_name' => $item->defaultDepartment?->name,
                 'priority_id' => $item->priority_id,
                 'priority_name' => $item->priority?->name,
+                'document_category_id' => $item->document_category_id,
+                'document_category_name' => $item->documentCategory?->name,
                 'due_offset_days' => (int) $item->due_offset_days,
                 'is_required' => (bool) $item->is_required,
                 'sort_order' => (int) $item->sort_order,

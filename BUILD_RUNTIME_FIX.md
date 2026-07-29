@@ -14,3 +14,18 @@ This package fixes two extraction/runtime problems:
 - Added `prepare_runtime.sh`.
 
 The exact-template interface and dynamic workflow implementation are unchanged.
+
+## Duplicate Vite configuration fix
+
+The project previously contained both `vite.config.js` and `vite.config.ts`.
+Vite selected the obsolete JavaScript configuration first. That file referenced
+assets that are not part of this project:
+
+- `resources/css/landing-admin.css`
+- `resources/js/app.js`
+- `resources/js/passkeys.js`
+
+The obsolete `vite.config.js` has been removed. The supported configuration is
+`vite.config.ts`, using the existing FlowTrack validation entries. The
+`rebuild_frontend.sh` script now removes any stale copy of `vite.config.js`
+before running the build.

@@ -12,7 +12,13 @@ class FlowJobPhaseHistory extends Model
 
     protected function casts(): array
     {
-        return ['entered_at' => 'datetime', 'completed_at' => 'datetime'];
+        return [
+            'entered_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'ready_at' => 'datetime',
+            'readiness_checked_at' => 'datetime',
+            'readiness_details' => 'array',
+        ];
     }
 
     public function job(): BelongsTo { return $this->belongsTo(FlowJob::class, 'flow_job_id'); }

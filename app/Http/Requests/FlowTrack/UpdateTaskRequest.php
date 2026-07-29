@@ -2,14 +2,18 @@
 
 namespace App\Http\Requests\FlowTrack;
 
+use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateTaskRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return ($task = $this->route('task'))
-            ? (($this->user()?->hasFlowAction('tasks', 'edit_all', $task) ?? false) || ($this->user()?->hasFlowAction('tasks', 'edit_own', $task) ?? false))
+        $task = $this->route('task');
+        $user = $this->user();
+
+        return $task && $user
+            ? app(FlowAuthorizationService::class)->canUpdateTask($user, $task)
             : false;
     }
 

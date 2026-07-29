@@ -5,15 +5,11 @@ namespace App\Http\Controllers\FlowTrack;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FlowTrack\MoveJobPhaseRequest;
 use App\Modules\OrderFlow\Application\Actions\MoveJobPhaseAction;
+use App\Modules\OrderFlow\Application\Actions\UpdateTaskAction;
 use App\Modules\OrderFlow\Application\Queries\FlowTrackOptionsQuery;
-use App\Modules\OrderFlow\Business\Enums\MasterDataType;
-use App\Modules\OrderFlow\Business\Services\ActivityLogger;
-use App\Modules\OrderFlow\Business\Services\ProgressCalculator;
-use App\Modules\OrderFlow\Business\Services\AccessResolver;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
-use App\Modules\OrderFlow\Data\Models\MasterRecord;
 use App\Modules\OrderFlow\Data\Repositories\JobRepository;
 use App\Modules\OrderFlow\Data\Repositories\TaskRepository;
 use DomainException;
@@ -28,16 +24,27 @@ class BoardController extends Controller
     public function index(Request $request, JobRepository $jobs, TaskRepository $tasks, FlowTrackOptionsQuery $options, FlowAuthorizationService $authorization): Response
     {
         abort_unless($authorization->allows($request->user(), 'jobs', 'view') || $authorization->allows($request->user(), 'tasks', 'view'), 403);
+
+        $boardTasks = $tasks->board($request->user());
+        $boardTasks->each(function (FlowTask $task) use ($request, $authorization): void {
+            $task->setAttribute('can_update', $authorization->canUpdateTask($request->user(), $task));
+            $task->setAttribute('can_assign', $authorization->canAssignExistingTask($request->user(), $task));
+        });
+
         return Inertia::render('flowtrack/Board/Index', [
             'jobs' => $jobs->board($request->user()),
-            'tasks' => $tasks->board($request->user()),
+            'tasks' => $boardTasks,
             'options' => $options->forWorkspace($request->user()),
+            'boardAccess' => [
+                'isAdministrator' => $authorization->isAdministrator($request->user()),
+                'taskVisibility' => $authorization->isAdministrator($request->user()) ? 'workspace' : 'assigned_only',
+            ],
         ]);
     }
 
     public function moveJob(MoveJobPhaseRequest $request, FlowJob $job, JobRepository $jobs, FlowAuthorizationService $authorization, MoveJobPhaseAction $action): RedirectResponse
     {
-        $visible = $jobs->findVisible($request->user(), $job->id);
+        $visible = $jobs->findBoardVisible($request->user(), $job->id);
         abort_unless($authorization->allows($request->user(), 'jobs', 'edit_all', $visible) || $authorization->allows($request->user(), 'jobs', 'edit_own', $visible), 403);
 
         try {
@@ -49,34 +56,17 @@ class BoardController extends Controller
         return back()->with('success', 'Job phase updated.');
     }
 
-    public function moveTask(Request $request, FlowTask $task, TaskRepository $tasks, FlowAuthorizationService $authorization, ActivityLogger $activityLogger, ProgressCalculator $progressCalculator): RedirectResponse
+    public function moveTask(Request $request, FlowTask $task, TaskRepository $tasks, FlowAuthorizationService $authorization, UpdateTaskAction $action): RedirectResponse
     {
         $data = $request->validate(['task_status_id' => ['required', 'integer', 'exists:master_records,id']]);
         $visible = $tasks->findVisible($request->user(), $task->id);
-        abort_unless($authorization->allows($request->user(), 'tasks', 'edit_all', $visible) || $authorization->allows($request->user(), 'tasks', 'edit_own', $visible), 403);
+        abort_unless($authorization->canUpdateTask($request->user(), $visible), 403);
 
-        $status = MasterRecord::query()
-            ->where('workspace_id', $visible->job->workspace_id)
-            ->where('type', MasterDataType::TaskStatus->value)
-            ->findOrFail($data['task_status_id']);
-
-        if ($status->code === 'BLK') {
-            throw ValidationException::withMessages(['task_status_id' => 'Open the task details and add a blocker reason before marking it blocked.']);
+        try {
+            $action->execute($visible, $data, $request->user(), 'task_board');
+        } catch (DomainException $exception) {
+            throw ValidationException::withMessages(['task_status_id' => $exception->getMessage()]);
         }
-
-        $visible->loadMissing('dependency');
-        if (in_array($status->code, ['IP', 'CMP'], true) && $visible->dependency && ! $visible->dependency->completed_at) {
-            throw ValidationException::withMessages(['task_status_id' => "Complete dependency {$visible->dependency->code} before moving this task."]);
-        }
-
-        $visible->update([
-            'task_status_id' => $status->id,
-            'progress' => $progressCalculator->forTaskStatus($status),
-            'completed_at' => $status->code === 'CMP' ? now() : null,
-        ]);
-
-        $activityLogger->log($visible->job->workspace_id, $request->user(), $visible, 'task.status_changed', "Task {$visible->code} moved to {$status->name}");
-        $progressCalculator->recalculateForTask($visible);
 
         return back()->with('success', 'Task status updated.');
     }

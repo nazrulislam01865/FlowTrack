@@ -12,3 +12,12 @@ it('derives task progress from task status', function (string $status, int $prog
     ['WC', 65],
     ['CMP', 100],
 ]);
+
+it('uses a dynamic task status name when the immutable code is auto-generated', function () {
+    $status = new \App\Modules\OrderFlow\Data\Models\MasterRecord([
+        'code' => 'TST-999',
+        'name' => 'Completed',
+    ]);
+
+    expect(app(ProgressCalculator::class)->forTaskStatus($status))->toBe(100);
+});

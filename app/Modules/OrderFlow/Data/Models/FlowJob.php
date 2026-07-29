@@ -23,6 +23,7 @@ class FlowJob extends Model
             'delivery_date' => 'date',
             'quoted_amount' => 'decimal:2',
             'attention_required' => 'boolean',
+            'health_updated_at' => 'datetime',
         ];
     }
 
@@ -42,9 +43,10 @@ class FlowJob extends Model
     public function priority(): BelongsTo { return $this->belongsTo(MasterRecord::class, 'priority_id'); }
     public function owner(): BelongsTo { return $this->belongsTo(User::class, 'owner_id'); }
     public function coordinator(): BelongsTo { return $this->belongsTo(User::class, 'coordinator_id'); }
+    public function items(): HasMany { return $this->hasMany(FlowJobItem::class, 'flow_job_id')->orderBy('sort_order')->orderBy('id'); }
     public function members(): HasMany { return $this->hasMany(FlowJobMember::class); }
     public function tasks(): HasMany { return $this->hasMany(FlowTask::class); }
     public function phaseHistory(): HasMany { return $this->hasMany(FlowJobPhaseHistory::class); }
-    public function phaseApprovals(): HasMany { return $this->hasMany(FlowPhaseApproval::class); }
     public function documents(): HasMany { return $this->hasMany(FlowDocument::class); }
+    public function transitionEvents(): HasMany { return $this->hasMany(FlowTransitionEvent::class, 'flow_job_id')->latest('occurred_at'); }
 }

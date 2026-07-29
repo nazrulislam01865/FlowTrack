@@ -12,6 +12,15 @@ class Client extends Model
 {
     use SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::updating(function (Client $client): void {
+            if ($client->isDirty('code')) {
+                $client->code = $client->getOriginal('code');
+            }
+        });
+    }
+
     protected $guarded = [];
 
     protected function casts(): array

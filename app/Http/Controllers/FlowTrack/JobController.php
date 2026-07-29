@@ -5,7 +5,6 @@ namespace App\Http\Controllers\FlowTrack;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FlowTrack\StoreJobRequest;
 use App\Modules\OrderFlow\Application\Actions\CreateJobAction;
-use App\Modules\OrderFlow\Application\Actions\ApproveJobPhaseAction;
 use App\Modules\OrderFlow\Application\DTOs\CreateJobData;
 use App\Modules\OrderFlow\Application\Queries\FlowTrackOptionsQuery;
 use App\Modules\OrderFlow\Business\Services\AccessResolver;
@@ -13,7 +12,6 @@ use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
 use App\Modules\OrderFlow\Business\Services\ActivityLogger;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowJobMember;
-use App\Modules\OrderFlow\Data\Models\WorkflowPhase;
 use App\Modules\OrderFlow\Data\Repositories\JobRepository;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -45,46 +43,42 @@ class JobController extends Controller
             abort_unless($authorization->allows($request->user(), 'jobs', 'assign'), 403);
         }
 
+        $productItems = collect($data['products'] ?? [])->map(fn (array $item): array => [
+            'product_id' => (int) $item['product_id'],
+            'product_category_id' => isset($item['product_category_id']) ? (int) $item['product_category_id'] : null,
+            'quantity' => (int) $item['quantity'],
+        ])->values();
+        $primaryProduct = $productItems->first();
+        $submittedQuantity = isset($data['quantity'])
+            ? (int) $data['quantity']
+            : max(1, (int) $productItems->sum('quantity'));
+
         try {
             $job = $action->execute(new CreateJobData(
                 workspaceId: $request->user()->currentWorkspaceId(),
                 clientId: (int) $data['client_id'],
                 workflowTemplateId: (int) $data['workflow_template_id'],
                 startPhaseId: (int) $data['start_phase_id'],
-                productId: isset($data['product_id']) ? (int) $data['product_id'] : null,
-                productCategoryId: isset($data['product_category_id']) ? (int) $data['product_category_id'] : null,
+                productId: $primaryProduct['product_id'] ?? (isset($data['product_id']) ? (int) $data['product_id'] : null),
+                productCategoryId: $primaryProduct['product_category_id'] ?? (isset($data['product_category_id']) ? (int) $data['product_category_id'] : null),
                 currencyId: isset($data['currency_id']) ? (int) $data['currency_id'] : null,
                 priorityId: isset($data['priority_id']) ? (int) $data['priority_id'] : null,
                 ownerId: isset($data['owner_id']) ? (int) $data['owner_id'] : null,
                 coordinatorId: isset($data['coordinator_id']) ? (int) $data['coordinator_id'] : null,
                 title: $data['title'],
-                quantity: (int) $data['quantity'],
+                quantity: $submittedQuantity,
                 quotedAmount: (float) ($data['quoted_amount'] ?? 0),
                 deliveryDate: $data['delivery_date'] ?? null,
                 startReason: $data['start_reason'] ?? null,
                 memberIds: $data['member_ids'] ?? [],
                 draft: (bool) ($data['draft'] ?? false),
+                productItems: $productItems->all(),
             ), $request->user());
         } catch (DomainException $exception) {
             throw ValidationException::withMessages(['job' => $exception->getMessage()]);
         }
 
         return to_route('flowtrack.jobs.show', $job)->with('success', "{$job->code} created successfully.");
-    }
-
-    public function approvePhase(Request $request, FlowJob $job, WorkflowPhase $phase, JobRepository $jobs, FlowAuthorizationService $authorization, ApproveJobPhaseAction $action): RedirectResponse
-    {
-        $visible = $jobs->findVisible($request->user(), $job->id);
-        abort_unless($authorization->allows($request->user(), 'jobs', 'approve', $visible), 403);
-        $data = $request->validate(['notes' => ['nullable', 'string', 'max:2000']]);
-
-        try {
-            $action->execute($visible, $phase, $request->user(), $data['notes'] ?? null);
-        } catch (DomainException $exception) {
-            throw ValidationException::withMessages(['approval' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', "{$phase->name} approved successfully.");
     }
 
     public function updateMembers(Request $request, FlowJob $job, JobRepository $jobs, FlowAuthorizationService $authorization, ActivityLogger $activityLogger): RedirectResponse

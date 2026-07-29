@@ -5,13 +5,11 @@ namespace App\Http\Controllers\FlowTrack;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
-use App\Modules\OrderFlow\Business\Services\ConfigurationCodeGenerator;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
 use App\Modules\OrderFlow\Business\Services\RoleMatrixService;
 use App\Modules\OrderFlow\Data\Models\MasterRecord;
 use App\Modules\OrderFlow\Data\Models\Permission;
 use App\Modules\OrderFlow\Data\Models\Role;
-use App\Modules\OrderFlow\Data\Models\TaskPack;
 use App\Modules\OrderFlow\Data\Models\WorkspaceMembership;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +23,7 @@ use Inertia\Response;
 
 class AdministrationController extends Controller
 {
-    public function index(Request $request, ConfigurationCodeGenerator $codes, FlowAuthorizationService $authorization): Response
+    public function index(Request $request, FlowAuthorizationService $authorization): Response
     {
         abort_unless($authorization->allows($request->user(), 'users', 'view'), 403);
         $workspaceId = $request->user()->currentWorkspaceId();
@@ -34,10 +32,7 @@ class AdministrationController extends Controller
             'memberships' => WorkspaceMembership::query()->where('workspace_id', $workspaceId)->with(['user', 'role.permissions', 'department'])->orderBy('id')->get(),
             'roles' => Role::query()->where('workspace_id', $workspaceId)->with(['permissions', 'moduleAccess'])->orderBy('name')->get(),
             'permissions' => Permission::query()->orderBy('group')->orderBy('name')->get()->groupBy('group'),
-            'taskPacks' => TaskPack::query()->where('workspace_id', $workspaceId)->with(['items.defaultAssignee', 'items.defaultDepartment', 'items.priority'])->orderBy('name')->get(),
-            'priorities' => MasterRecord::query()->where('workspace_id', $workspaceId)->where('type', MasterDataType::Priority->value)->where('status', 'active')->orderBy('sort_order')->get(),
             'departments' => MasterRecord::query()->where('workspace_id', $workspaceId)->where('type', MasterDataType::Department->value)->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
-            'nextTaskPackCode' => $codes->taskPack($workspaceId),
             'canCreateUsers' => $authorization->isAdministrator($request->user()),
             'isSuperAdmin' => $authorization->isSuperAdmin($request->user()),
         ]);

@@ -9,6 +9,7 @@ import {
     FileText,
     Columns3,
     LayoutDashboard,
+    Package,
     Settings,
     SlidersHorizontal,
     Users,
@@ -37,6 +38,7 @@ const nav = [
 const admin = [
     { label: 'Notifications', href: '/flowtrack/notifications', icon: Bell, badge: unread },
     { label: 'Workflow Setup', href: '/flowtrack/workflow-setup', icon: Workflow, permission: 'workflows.manage' },
+    { label: 'Task Pack Setup', href: '/flowtrack/task-pack-setup', icon: Package, permission: 'workflows.manage' },
     { label: 'Master Data', href: '/flowtrack/master-data', icon: Database, permission: 'master-data.manage' },
     { label: 'Administration', href: '/flowtrack/administration', icon: SlidersHorizontal, permission: 'administration.manage' },
     { label: 'Profile Settings', href: '/settings/profile', icon: Settings },

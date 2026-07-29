@@ -16,6 +16,7 @@ class WorkflowPhase extends Model
             'allow_job_start' => 'boolean',
             'is_skippable' => 'boolean',
             'requires_approval' => 'boolean',
+            'auto_advance_on_ready' => 'boolean',
             'is_active' => 'boolean',
         ];
     }
@@ -43,10 +44,5 @@ class WorkflowPhase extends Model
     public function jobHistories(): HasMany
     {
         return $this->hasMany(FlowJobPhaseHistory::class);
-    }
-
-    public function approvals(): HasMany
-    {
-        return $this->hasMany(FlowPhaseApproval::class);
     }
 }

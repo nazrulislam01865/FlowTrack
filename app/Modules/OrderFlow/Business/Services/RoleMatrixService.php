@@ -292,7 +292,7 @@ class RoleMatrixService
         }
 
         if ($profile === 'management') {
-            $allow(['dashboard', 'clients', 'jobs', 'tasks', 'quotation', 'artwork', 'sample', 'production', 'shipment', 'invoice', 'documents', 'reports', 'audit'], ['view', 'create', 'edit_own', 'edit_all', 'assign', 'approve', 'export', 'override'], 'all_records');
+            $allow(['dashboard', 'clients', 'jobs', 'tasks', 'quotation', 'artwork', 'sample', 'production', 'shipment', 'invoice', 'documents', 'reports', 'audit'], ['view', 'create', 'link', 'edit_own', 'edit_all', 'assign', 'export', 'override'], 'all_records');
             $allow(['workflow', 'masterdata'], ['view', 'create', 'edit_own', 'edit_all', 'delete', 'manage'], 'all_records');
             $allow('users', ['view', 'create', 'edit_all', 'assign', 'manage'], 'all_records');
             return $matrix;
@@ -300,7 +300,7 @@ class RoleMatrixService
 
         $templates = [
             'jobmanager' => [
-                [['dashboard', 'clients', 'jobs', 'tasks', 'quotation', 'artwork', 'sample', 'production', 'shipment', 'documents', 'reports'], ['view', 'create', 'edit_own', 'edit_all', 'assign', 'approve', 'export', 'override'], 'assigned_jobs'],
+                [['dashboard', 'clients', 'jobs', 'tasks', 'quotation', 'artwork', 'sample', 'production', 'shipment', 'documents', 'reports'], ['view', 'create', 'edit_own', 'edit_all', 'assign', 'export', 'override'], 'assigned_jobs'],
             ],
             'sales' => [
                 [['dashboard', 'clients', 'jobs', 'tasks', 'quotation', 'documents'], ['view', 'create', 'edit_own', 'assign', 'export'], 'selected_clients'],
@@ -318,10 +318,14 @@ class RoleMatrixService
                 [['dashboard', 'jobs', 'tasks', 'shipment', 'documents'], ['view', 'create', 'edit_own', 'export'], 'assigned_jobs'],
             ],
             'accounts' => [
-                [['dashboard', 'clients', 'jobs', 'tasks', 'invoice', 'documents', 'reports'], ['view', 'create', 'edit_own', 'edit_all', 'approve', 'export'], 'selected_clients'],
+                [['dashboard', 'clients', 'jobs', 'tasks', 'invoice', 'documents', 'reports'], ['view', 'create', 'edit_own', 'edit_all', 'export'], 'selected_clients'],
             ],
             'auditor' => [
                 [['dashboard', 'clients', 'jobs', 'tasks', 'quotation', 'artwork', 'sample', 'production', 'shipment', 'invoice', 'documents', 'reports', 'audit'], ['view', 'export'], 'all_records'],
+            ],
+            'document_linker' => [
+                [['dashboard', 'clients', 'jobs', 'tasks'], ['view'], 'assigned_jobs'],
+                [['documents'], ['view', 'create', 'link', 'edit_own', 'export'], 'assigned_jobs'],
             ],
             'member' => [
                 [['dashboard', 'jobs', 'tasks', 'documents'], ['view', 'edit_own'], 'assigned_jobs'],
@@ -330,6 +334,10 @@ class RoleMatrixService
 
         foreach ($templates[$profile] ?? $templates['member'] as [$modules, $actions, $rowScope]) {
             $allow($modules, $actions, $rowScope);
+        }
+
+        if (in_array('create', $matrix['documents']['actions'] ?? [], true)) {
+            $allow('documents', ['link'], $matrix['documents']['scope'] ?? $scope);
         }
 
         // Preserve every existing Laravel permission when translating a legacy role into the matrix.
@@ -342,7 +350,8 @@ class RoleMatrixService
         if (in_array('tasks.view-assigned', $legacy, true)) $allow('tasks', ['view', 'edit_own'], 'assigned_jobs');
         if (in_array('tasks.view-all', $legacy, true)) $allow('tasks', ['view', 'edit_all', 'assign', 'manage'], 'all_records');
         if (in_array('clients.manage', $legacy, true)) $allow('clients', ['view', 'create', 'edit_own', 'edit_all', 'delete', 'manage'], $scope === 'assigned_jobs' ? 'selected_clients' : $scope);
-        if (in_array('documents.manage', $legacy, true)) $allow('documents', ['view', 'create', 'edit_own', 'edit_all', 'delete', 'export', 'manage'], $scope);
+        if (in_array('documents.manage', $legacy, true)) $allow('documents', ['view', 'create', 'link', 'edit_own', 'edit_all', 'delete', 'export', 'manage'], $scope);
+        if (in_array('documents.link', $legacy, true)) $allow('documents', ['view', 'create', 'link'], $scope);
         if (in_array('reports.view', $legacy, true)) $allow('reports', ['view', 'export'], $scope);
         if (in_array('workflows.manage', $legacy, true)) $allow('workflow', ['view', 'create', 'edit_all', 'delete', 'manage'], 'all_records');
         if (in_array('master-data.manage', $legacy, true)) $allow('masterdata', ['view', 'create', 'edit_all', 'delete', 'manage'], 'all_records');
@@ -378,6 +387,7 @@ class RoleMatrixService
             in_array($value, ['SHIPMENT', 'SHIPMENT_USER'], true) => 'shipment',
             in_array($value, ['ACCOUNTS', 'ACCOUNTS_USER'], true) => 'accounts',
             in_array($value, ['AUDITOR', 'READ_ONLY_AUDITOR'], true) => 'auditor',
+            in_array($value, ['DOCUMENT_LINKER', 'DOCUMENT_UPLOADER', 'DOCUMENT_UPLOADER_WORKFLOW_LINKER'], true) => 'document_linker',
             default => 'member',
         };
     }
@@ -431,15 +441,16 @@ class RoleMatrixService
         if ($hasAny('tasks', ['edit_all', 'assign', 'manage']) || ($has('tasks', 'view') && $scope('tasks') === 'all_records')) $slugs[] = 'tasks.view-all';
         if ($hasAny('clients', ['create', 'edit_own', 'edit_all', 'delete', 'manage'])) $slugs[] = 'clients.manage';
         if ($hasAny('documents', ['create', 'edit_own', 'edit_all', 'delete', 'manage'])) $slugs[] = 'documents.manage';
+        if ($has('documents', 'link')) $slugs[] = 'documents.link';
         if ($hasAny('reports', ['view', 'export'])) $slugs[] = 'reports.view';
-        if ($hasAny('invoice', ['view', 'create', 'edit_own', 'edit_all', 'approve', 'export', 'manage'])) $slugs[] = 'financials.view';
+        if ($hasAny('invoice', ['view', 'create', 'edit_own', 'edit_all', 'export', 'manage'])) $slugs[] = 'financials.view';
         if ($hasAny('workflow', ['create', 'edit_all', 'delete', 'manage'])) $slugs[] = 'workflows.manage';
         if ($hasAny('masterdata', ['create', 'edit_all', 'delete', 'manage'])) $slugs[] = 'master-data.manage';
         if ($hasAny('users', ['create', 'edit_all', 'delete', 'assign', 'manage'])) $slugs[] = 'administration.manage';
 
         $managed = [
             'dashboard.view', 'jobs.view-assigned', 'jobs.view-all', 'jobs.create', 'jobs.manage-all',
-            'tasks.view-assigned', 'tasks.view-all', 'clients.manage', 'documents.manage', 'reports.view',
+            'tasks.view-assigned', 'tasks.view-all', 'clients.manage', 'documents.manage', 'documents.link', 'reports.view',
             'financials.view', 'workflows.manage', 'master-data.manage', 'administration.manage',
         ];
         $preserved = $role->permissions()->whereNotIn('slug', $managed)->pluck('permissions.id');
