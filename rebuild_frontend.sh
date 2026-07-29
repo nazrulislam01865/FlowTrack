@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
-# Vite prefers vite.config.js when both JS and TS configs exist. The old JS
-# config referenced deleted starter-kit assets, so it must not remain.
+set -Eeuo pipefail
+
+cd "$(dirname "$0")"
+
 rm -f vite.config.js
 
 for entry in \
-    resources/css/flowtrack-build.css \
-    resources/js/flowtrack-build.ts
+    resources/css/app.css \
+    resources/js/app.ts
 do
     if [[ ! -f "$entry" ]]; then
         echo "Missing Vite entry: $entry" >&2
@@ -16,8 +17,15 @@ do
 done
 
 rm -rf public/build public/hot
-npm install
+
+npm ci
 npm run build
+
+test -s public/build/manifest.json || {
+    echo "Build manifest is missing or empty." >&2
+    exit 1
+}
+
 php artisan optimize:clear
 
-echo "Frontend build completed. Manifest: public/build/manifest.json"
+echo "Frontend build completed: public/build/manifest.json"

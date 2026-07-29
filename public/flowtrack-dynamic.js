@@ -1358,8 +1358,9 @@
                 || workflowTemplates[0];
             if (selectedWorkflow) boardWorkflowId = selectedWorkflow.id;
 
+            // Board columns are workflow-wide. Job-specific excluded phases are checked when a card is dropped.
             const phases = (selectedWorkflow?.phases || [])
-                .filter((phase) => phase.active !== false && !(job.excludedPhaseIds || []).map(Number).includes(Number(phase.id)))
+                .filter((phase) => phase.active !== false)
                 .slice()
                 .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
             const workflowJobs = selectedWorkflow
