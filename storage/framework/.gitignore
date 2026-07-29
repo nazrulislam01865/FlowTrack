@@ -1,0 +1,9 @@
+*
+!cache/
+!cache/.gitignore
+!sessions/
+!sessions/.gitignore
+!testing/
+!testing/.gitignore
+!views/
+!views/.gitignore
