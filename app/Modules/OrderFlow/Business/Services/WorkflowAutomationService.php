@@ -50,9 +50,11 @@ class WorkflowAutomationService
                     return ['job' => $locked, 'moved' => false];
                 }
 
+                $excludedPhaseIds = $locked->excludedPhases()->pluck('workflow_phase_id')->map(fn ($id) => (int) $id);
                 $next = $locked->workflow->phases
                     ->where('is_active', true)
                     ->where('sequence', '>', $locked->currentPhase->sequence)
+                    ->reject(fn ($phase) => $excludedPhaseIds->contains((int) $phase->id))
                     ->sortBy('sequence')
                     ->first();
 

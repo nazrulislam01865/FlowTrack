@@ -3,7 +3,7 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import { Bell, Menu, Search } from '@lucide/vue';
 import { computed, ref } from 'vue';
 
-const emit = defineEmits<{ menu: []; create: [] }>();
+const emit = defineEmits<{ menu: [] }>();
 const page = usePage<any>();
 const query = ref('');
 const user = computed(() => page.props.auth?.user || {});
@@ -23,7 +23,6 @@ function globalSearch() {
             <input v-model="query" placeholder="Search jobs, clients, tasks, documents…" />
         </form>
         <div class="ft-top-actions">
-            <button class="ft-primary" type="button" @click="emit('create')">＋ <span>New Job</span></button>
             <Link href="/flowtrack/notifications" class="ft-icon-btn" aria-label="Notifications">
                 <Bell />
                 <span v-if="unread" class="ft-dot"></span>

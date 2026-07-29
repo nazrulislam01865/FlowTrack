@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
+use App\Modules\OrderFlow\Business\Services\OperationalMetricsService;
 use App\Modules\OrderFlow\Business\Services\RoleMatrixService;
 use App\Modules\OrderFlow\Data\Models\MasterRecord;
 use App\Modules\OrderFlow\Data\Models\Permission;
@@ -23,7 +24,7 @@ use Inertia\Response;
 
 class AdministrationController extends Controller
 {
-    public function index(Request $request, FlowAuthorizationService $authorization): Response
+    public function index(Request $request, FlowAuthorizationService $authorization, OperationalMetricsService $metrics): Response
     {
         abort_unless($authorization->allows($request->user(), 'users', 'view'), 403);
         $workspaceId = $request->user()->currentWorkspaceId();
@@ -35,6 +36,7 @@ class AdministrationController extends Controller
             'departments' => MasterRecord::query()->where('workspace_id', $workspaceId)->where('type', MasterDataType::Department->value)->where('status', 'active')->orderBy('sort_order')->orderBy('name')->get(),
             'canCreateUsers' => $authorization->isAdministrator($request->user()),
             'isSuperAdmin' => $authorization->isSuperAdmin($request->user()),
+            'metrics' => $metrics->forUser($request->user())['administration'],
         ]);
     }
 

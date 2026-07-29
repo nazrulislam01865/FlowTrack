@@ -180,14 +180,16 @@ Run a persistent queue worker through Supervisor or systemd for notifications an
 
 ## Implemented access model
 
-- Administrators and operations managers can access every job and administration screen.
-- Sales managers can manage all jobs and clients but do not receive workflow/master-data administration by default.
-- Members see jobs only when they are the owner, coordinator, assigned job member, or assignee of a task in that job.
-- Job members have independent flags for task management, document upload and financial visibility.
+- Administrators can access every Job in their workspace.
+- Every non-administrator, including managers, sees only Jobs where they are the creator, owner, coordinator, an assigned Job member, or a Task assignee.
+- Everyone involved in a visible Job can view every Task and subtask in that Job; full Task updates remain limited by assignee and role permissions.
+- Job members have independent flags for task management, due-date changes, document upload and financial visibility.
 - Controllers apply visibility-aware repositories and management checks before changing data.
 - An active workspace-membership middleware blocks authenticated users who have not been assigned to a workspace.
 - Public registration is disabled; administrators create members and assign their initial role and department.
-- Assigned project teams can be changed from the Job drawer, while the owner and coordinator retain manager access.
+- Assigned project teams can be changed from the Job drawer, while the creator, owner and coordinator retain manager access.
+- Administrators and the original Job creator can remove any Task or remove a workflow phase from that specific Job without changing the shared workflow template.
+- Authorized assignees and Job managers can change due dates for regular Tasks and subtasks.
 - Administrators can create workspace roles and edit grouped permissions without changing source code.
 - Global search returns only jobs, tasks, clients and documents visible to the signed-in member.
 

@@ -5,6 +5,7 @@ namespace App\Modules\OrderFlow\Business\Services;
 use App\Models\User;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowJobPhaseHistory;
+use App\Modules\OrderFlow\Data\Models\FlowTask;
 use App\Modules\OrderFlow\Data\Models\WorkflowPhase;
 
 class PhaseReadinessEvaluator
@@ -13,15 +14,28 @@ class PhaseReadinessEvaluator
         private readonly ActivityLogger $activities,
         private readonly TransitionAuditLogger $transitions,
         private readonly JobDocumentRequirementService $documentRequirements,
+        private readonly FlowNotificationService $notifications,
     ) {}
 
     public function evaluate(FlowJob $job, WorkflowPhase $phase): array
     {
         $phase->loadMissing('taskPack.items', 'documentCategory');
 
-        $requiredIds = $phase->taskPack && $phase->taskPack->is_active
-            ? $phase->taskPack->items->where('is_required', true)->pluck('id')->values()
+        $configuredRequiredIds = $phase->taskPack && $phase->taskPack->is_active
+            ? $phase->taskPack->items->where('is_required', true)->pluck('id')->map(fn ($id) => (int) $id)->values()
             : collect();
+        $removedRequiredIds = $configuredRequiredIds->isEmpty()
+            ? collect()
+            : FlowTask::withTrashed()
+                ->where('flow_job_id', $job->id)
+                ->where('workflow_phase_id', $phase->id)
+                ->whereIn('task_pack_item_id', $configuredRequiredIds)
+                ->whereNotNull('removed_from_job_at')
+                ->pluck('task_pack_item_id')
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+        $requiredIds = $configuredRequiredIds->diff($removedRequiredIds)->values();
 
         $generatedIds = $requiredIds->isEmpty()
             ? collect()
@@ -86,6 +100,8 @@ class PhaseReadinessEvaluator
             'ready' => $ready,
             'status' => $ready ? 'ready' : ($blockingTask ? 'blocked' : 'in_progress'),
             'task_gate' => [
+                'configured' => $configuredRequiredIds->count(),
+                'removed' => $removedRequiredIds->count(),
                 'required' => $requiredIds->count(),
                 'generated' => $generatedIds->count(),
                 'completed' => $completedIds->count(),
@@ -136,6 +152,10 @@ class PhaseReadinessEvaluator
                 ['phase_id' => $phase->id, 'from' => $previous, 'to' => $newStatus, 'details' => $result, 'source' => $source],
             );
             $this->transitions->log($job, 'phase.readiness', $actor, $source, $previous, $newStatus, implode(' ', $result['blockers']), $result, phase: $phase);
+
+            if ($newStatus === 'ready') {
+                $this->notifications->phaseReady($job->id, $actor?->id, $phase->name);
+            }
         }
 
         return $result;

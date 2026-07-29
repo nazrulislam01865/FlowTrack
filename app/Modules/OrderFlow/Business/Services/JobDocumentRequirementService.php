@@ -3,6 +3,7 @@
 namespace App\Modules\OrderFlow\Business\Services;
 
 use App\Modules\OrderFlow\Data\Models\FlowJob;
+use App\Modules\OrderFlow\Data\Models\FlowTask;
 use App\Modules\OrderFlow\Data\Models\WorkflowPhase;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -32,6 +33,13 @@ class JobDocumentRequirementService
         }
 
         $requirements = collect();
+        $removedTaskPackItemIds = FlowTask::withTrashed()
+            ->where('flow_job_id', $job->id)
+            ->where('workflow_phase_id', $phase->id)
+            ->whereNotNull('task_pack_item_id')
+            ->whereNotNull('removed_from_job_at')
+            ->pluck('task_pack_item_id')
+            ->map(fn ($id) => (int) $id);
 
         if ($phase->document_category_id && $phase->documentCategory) {
             $requirements->push([
@@ -50,6 +58,10 @@ class JobDocumentRequirementService
 
         if ($phase->taskPack?->is_active) {
             foreach ($phase->taskPack->items as $item) {
+                if ($removedTaskPackItemIds->contains((int) $item->id)) {
+                    continue;
+                }
+
                 if (! $item->document_category_id || ! $item->documentCategory) {
                     continue;
                 }

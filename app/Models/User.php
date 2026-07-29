@@ -32,8 +32,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'initials', 'email', 'email_verified_at', 'phone', 'locale', 'status', 'default_landing_page', 'default_task_view', 'avatar_path', 'notification_preferences', 'is_super_admin', 'password'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Fillable(['name', 'initials', 'email', 'email_verified_at', 'phone', 'locale', 'status', 'default_landing_page', 'default_task_view', 'avatar_path', 'notification_preferences', 'is_super_admin', 'password', 'active_session_token', 'active_session_started_at'])]
+#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'active_session_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
@@ -98,6 +98,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'notification_preferences' => 'array',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'active_session_started_at' => 'datetime',
         ];
     }
 }

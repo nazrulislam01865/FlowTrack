@@ -5,6 +5,7 @@ namespace App\Modules\OrderFlow\Application\Actions;
 use App\Models\User;
 use App\Modules\OrderFlow\Business\Services\ActivityLogger;
 use App\Modules\OrderFlow\Business\Services\DocumentWorkflowLinker;
+use App\Modules\OrderFlow\Business\Services\FlowNotificationService;
 use App\Modules\OrderFlow\Business\Services\IdentifierGenerator;
 use App\Modules\OrderFlow\Business\Services\JobDocumentRequirementService;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
@@ -22,6 +23,7 @@ class UploadDocumentAction
         private readonly ActivityLogger $activityLogger,
         private readonly DocumentWorkflowLinker $workflowLinker,
         private readonly JobDocumentRequirementService $documentRequirements,
+        private readonly FlowNotificationService $notifications,
     ) {}
 
     public function execute(
@@ -113,6 +115,11 @@ class UploadDocumentAction
         });
 
         $this->lastWorkflowResult = $this->workflowLinker->synchronize($job, $actor, $advanceWhenReady);
+        $this->notifications->documentUploaded(
+            $document->id,
+            $actor->id,
+            (bool) ($this->lastWorkflowResult['moved'] ?? false),
+        );
 
         return $document->fresh(['category', 'phase', 'taskPackItem', 'versions.uploader']);
     }

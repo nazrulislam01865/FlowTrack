@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Modules\OrderFlow\Business\Services\NotificationFeedService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -42,11 +43,24 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'membership' => fn () => $request->user()?->currentWorkspaceMembership(),
                 'permissions' => fn () => $request->user()?->currentWorkspaceMembership()?->role?->permissions?->pluck('slug')->values() ?? [],
-                'unreadNotifications' => fn () => $request->user()?->unreadNotifications()->count() ?? 0,
+                'unreadNotifications' => fn () => $request->user()
+                    ? app(NotificationFeedService::class)->unreadCount($request->user())
+                    : 0,
+                'notificationStatusEndpoint' => fn () => $request->user()
+                    ? route('flowtrack.notifications.status')
+                    : null,
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
+            ],
+            'session' => [
+                'minutes' => (int) config('session.flowtrack_absolute_lifetime', 30),
+                'expiresAt' => fn () => $request->session()->get('flowtrack.session_expires_at')
+                    ? \Illuminate\Support\Carbon::createFromTimestamp((int) $request->session()->get('flowtrack.session_expires_at'))->toIso8601String()
+                    : null,
+                'statusEndpoint' => route('flowtrack.session.status'),
+                'expiredEndpoint' => route('flowtrack.session.expired'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

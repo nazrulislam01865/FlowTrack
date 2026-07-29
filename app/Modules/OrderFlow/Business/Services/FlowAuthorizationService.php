@@ -7,7 +7,7 @@ use App\Modules\OrderFlow\Data\Models\Client;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class FlowAuthorizationService
@@ -82,18 +82,13 @@ class FlowAuthorizationService
             return $query->whereRaw('1 = 0');
         }
 
-        return match ($this->scope($user, $module)) {
-            'all_records' => $query,
-            'own_records' => $query->where(fn (Builder $builder) => $builder
-                ->where('owner_id', $user->id)
-                ->orWhere('coordinator_id', $user->id)),
-            'selected_clients' => $query->where(fn (Builder $builder) => $builder
-                ->whereHas('client', fn (Builder $client) => $client->where('account_manager_id', $user->id))
-                ->orWhere(fn (Builder $assigned) => $this->assignedJobConditions($assigned, $user))),
-            'department' => $this->applyDepartmentJobVisibility($query, $user),
-            'assigned_jobs' => $query->where(fn (Builder $builder) => $this->assignedJobConditions($builder, $user)),
-            default => $query->whereRaw('1 = 0'),
-        };
+        if ($this->isAdministrator($user)) {
+            return $query;
+        }
+
+        // Job access is always assignment-based for non-administrators. A broad
+        // role scope must never reveal Jobs that do not include the user.
+        return $query->where(fn (Builder $builder) => $this->assignedJobConditions($builder, $user));
     }
 
     public function applyTaskVisibility(Builder $query, User $user): Builder
@@ -102,15 +97,13 @@ class FlowAuthorizationService
             return $query->whereRaw('1 = 0');
         }
 
-        $query->whereHas('job', fn (Builder $job) => $job
-            ->where('workspace_id', $user->currentWorkspaceId()));
+        $query->whereHas('job', function (Builder $job) use ($user): void {
+            $job->where('workspace_id', $user->currentWorkspaceId());
 
-        // The Task Board and My Work are assignment driven. Administrators can
-        // see every workspace Task; every other user sees only Tasks explicitly
-        // assigned to them, regardless of a broader role record scope.
-        if (! $this->isAdministrator($user)) {
-            $query->where('assignee_id', $user->id);
-        }
+            if (! $this->isAdministrator($user)) {
+                $job->where(fn (Builder $assigned) => $this->assignedJobConditions($assigned, $user));
+            }
+        });
 
         return $query;
     }
@@ -132,9 +125,6 @@ class FlowAuthorizationService
             return $query;
         }
 
-        // Non-administrators only see Jobs connected to their own assignment
-        // on the phase board. This includes ownership, coordination, explicit
-        // Job membership, or at least one Task assigned to the user.
         return $query->where(fn (Builder $builder) => $this->assignedJobConditions($builder, $user));
     }
 
@@ -146,7 +136,8 @@ class FlowAuthorizationService
 
         return $this->allows($user, 'tasks', 'view')
             && $task->job?->workspace_id === $user->currentWorkspaceId()
-            && (int) $task->assignee_id === (int) $user->id;
+            && $task->job
+            && $this->isAssignedToJob($user, $task->job);
     }
 
     public function canUpdateTask(User $user, FlowTask $task): bool
@@ -162,14 +153,47 @@ class FlowAuthorizationService
 
     public function canAssignExistingTask(User $user, FlowTask $task): bool
     {
-        return $this->isAdministrator($user)
-            && $task->job?->workspace_id === $user->currentWorkspaceId();
+        if ($this->isAdministrator($user)) {
+            return $task->job?->workspace_id === $user->currentWorkspaceId();
+        }
+
+        return $task->job
+            && $this->canManageTasksForJob($user, $task->job)
+            && $this->allows($user, 'tasks', 'assign', $task);
     }
 
     public function canDeleteTask(User $user, FlowTask $task): bool
     {
-        return $this->isAdministrator($user)
-            && $task->job?->workspace_id === $user->currentWorkspaceId();
+        return $task->job?->workspace_id === $user->currentWorkspaceId()
+            && ($this->isAdministrator($user)
+                || (int) $task->job?->created_by === (int) $user->id);
+    }
+
+    public function canDeleteJobPhase(User $user, FlowJob $job): bool
+    {
+        return $job->workspace_id === $user->currentWorkspaceId()
+            && ($this->isAdministrator($user)
+                || (int) $job->created_by === (int) $user->id);
+    }
+
+    public function canChangeTaskDueDate(User $user, FlowTask $task): bool
+    {
+        $task->loadMissing('job.members');
+        $job = $task->job;
+        if (! $job || ! $this->canViewTask($user, $task)) {
+            return false;
+        }
+
+        if ($this->isAdministrator($user)
+            || (int) $job->created_by === (int) $user->id
+            || $this->canUpdateTask($user, $task)) {
+            return true;
+        }
+
+        return $this->canManageTasksForJob($user, $job)
+            && ($this->allows($user, 'tasks', 'edit_all', $task)
+                || $this->allows($user, 'tasks', 'edit_own', $task)
+                || $this->allows($user, 'tasks', 'assign', $task));
     }
 
     public function applyDocumentVisibility(Builder $query, User $user): Builder
@@ -225,10 +249,14 @@ class FlowAuthorizationService
 
     private function recordWithinScope(User $user, Model $record, string $scope): bool
     {
-        // A non-administrator never gains access to another person's Task from
-        // an all-records, client, department, creator, or Job-level scope.
         if ($record instanceof FlowTask) {
-            return (int) $record->assignee_id === (int) $user->id;
+            $record->loadMissing('job');
+
+            return $record->job && $this->isAssignedToJob($user, $record->job);
+        }
+
+        if ($record instanceof FlowJob) {
+            return $this->isAssignedToJob($user, $record);
         }
 
         if ($scope === 'all_records') {
@@ -259,16 +287,6 @@ class FlowAuthorizationService
             };
         }
 
-        if ($record instanceof FlowJob) {
-            return match ($scope) {
-                'own_records' => $record->owner_id === $user->id || $record->coordinator_id === $user->id,
-                'assigned_jobs' => $this->isAssignedToJob($user, $record),
-                'selected_clients' => $record->client?->account_manager_id === $user->id || $this->isAssignedToJob($user, $record),
-                'department' => $this->sameDepartmentAsJobOwner($user, $record),
-                default => false,
-            };
-        }
-
         return false;
     }
 
@@ -276,16 +294,26 @@ class FlowAuthorizationService
     {
         $builder->where('owner_id', $user->id)
             ->orWhere('coordinator_id', $user->id)
+            ->orWhere('created_by', $user->id)
             ->orWhereHas('members', fn (Builder $member) => $member->where('user_id', $user->id))
             ->orWhereHas('tasks', fn (Builder $task) => $task->where('assignee_id', $user->id));
     }
 
     private function isAssignedToJob(User $user, FlowJob $job): bool
     {
-        return $job->owner_id === $user->id
+        return $job->created_by === $user->id
+            || $job->owner_id === $user->id
             || $job->coordinator_id === $user->id
             || $job->members()->where('user_id', $user->id)->exists()
             || $job->tasks()->where('assignee_id', $user->id)->exists();
+    }
+
+    private function canManageTasksForJob(User $user, FlowJob $job): bool
+    {
+        return (int) $job->created_by === (int) $user->id
+            || (int) $job->owner_id === (int) $user->id
+            || (int) $job->coordinator_id === (int) $user->id
+            || $job->members()->where('user_id', $user->id)->where('can_manage_tasks', true)->exists();
     }
 
     private function applyDepartmentJobVisibility(Builder $query, User $user): Builder

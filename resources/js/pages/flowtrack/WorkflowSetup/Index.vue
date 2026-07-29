@@ -6,7 +6,7 @@ import FlowModal from '@/components/flowtrack/FlowModal.vue';
 import FlowPageHeader from '@/components/flowtrack/FlowPageHeader.vue';
 import { records } from '@/lib/flowtrack';
 
-const props = defineProps<{ workflows: any[]; taskPacks: any[]; options: any }>();
+const props = defineProps<{ workflows: any[]; taskPacks: any[]; options: any; metrics: { templates: number; activeTemplates: number; configuredPhases: number; allowedStartingStages: number; automaticTransitions: number } }>();
 const selectedId = ref(props.workflows[0]?.id || null);
 const createOpen = ref(false);
 const phaseOpen = ref(false);
@@ -56,7 +56,7 @@ function movePhase(index: number, direction: number) {
         <button class="ft-primary" @click="createOpen = true">＋ New Workflow</button>
     </FlowPageHeader>
 
-    <div class="ft-config-summary"><div class="ft-card ft-config-stat"><span>Workflow Templates</span><b>{{ workflows.length }}</b></div><div class="ft-card ft-config-stat"><span>Active Templates</span><b>{{ workflows.filter((item) => item.is_active).length }}</b></div><div class="ft-card ft-config-stat"><span>Task Packs</span><b>{{ taskPacks.length }}</b></div><div class="ft-card ft-config-stat"><span>Configured Phases</span><b>{{ workflows.reduce((sum, item) => sum + item.phases.length, 0) }}</b></div></div>
+    <div class="ft-config-summary"><div class="ft-card ft-config-stat"><span>Active Templates</span><b>{{ metrics.activeTemplates }}</b></div><div class="ft-card ft-config-stat"><span>Configured Phases</span><b>{{ metrics.configuredPhases }}</b></div><div class="ft-card ft-config-stat"><span>Allowed Starting Stages</span><b>{{ metrics.allowedStartingStages }}</b></div><div class="ft-card ft-config-stat"><span>Automatic Transitions</span><b>{{ metrics.automaticTransitions }}</b></div></div>
 
     <section class="ft-workflow-layout">
         <aside class="ft-card ft-side-list"><button v-for="workflow in workflows" :key="workflow.id" :class="{ active: workflow.id === selectedId }" @click="selectedId = workflow.id"><b>{{ workflow.name }}</b><small>{{ workflow.code }} · {{ workflow.phases.length }} phases · v{{ workflow.version }}</small></button></aside>

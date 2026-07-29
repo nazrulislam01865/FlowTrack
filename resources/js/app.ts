@@ -5,6 +5,7 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import FlowTrackLayout from '@/layouts/FlowTrackLayout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
+import { initializeFlowTrackRealtime } from '@/lib/flowtrackRealtime';
 
 const appName = import.meta.env.VITE_APP_NAME || 'FlowTrack';
 
@@ -36,3 +37,6 @@ initializeTheme();
 
 // This will listen for flash toast data from the server...
 initializeFlashToast();
+
+// Subscribe the signed-in user to their private Pusher notification channel.
+initializeFlowTrackRealtime();

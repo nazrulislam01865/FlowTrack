@@ -39,3 +39,30 @@ php artisan test
 - Exact-template profile, password, avatar and preference endpoints added.
 - PHP syntax checked across application, migrations, routes and tests.
 - Inline template JavaScript and `public/flowtrack-dynamic.js` passed Node syntax checks.
+
+## Job assignment visibility and controls update
+
+- Non-administrator Job visibility is now strictly assignment-based, regardless of a broader role record scope.
+- Every participant in a visible Job can read all Tasks and subtasks in that Job.
+- Dedicated Task/subtask due-date endpoints and controls were added to both interfaces.
+- Administrators and original Job creators can intentionally remove Tasks and Job-specific phases.
+- Intentionally removed Task Pack Tasks are not regenerated and no longer block readiness or document gates.
+- Per-Job phase exclusions are respected by manual moves, drag-and-drop moves and automatic advancement.
+- All 164 PHP files under `app`, `database`, `routes` and `tests` passed `php -l`.
+- `public/flowtrack-dynamic.js` passed `node --check`.
+- 324 TypeScript/Vue script sections were syntax-transpiled with TypeScript 5.8, and local frontend imports resolve.
+- Composer/Pest and the full Vite build could not be run in this environment because `vendor` and `node_modules` were not included and package installation was unavailable. Run `composer install`, `npm install`, `php artisan test` and `npm run build` after extraction.
+
+## Session middleware lifecycle fix (2026-07-29)
+
+- Confirmed that `EnforceFlowTrackSession` no longer declares a `terminate()` method, preventing Laravel from treating it as terminable middleware.
+- PHP syntax validation completed for all project PHP source files.
+- Generated Laravel route/config/view/session caches were excluded from the corrected archive.
+
+## Notification authority feed and fallback delivery
+
+- Added workspace-wide authority feed synchronization with independent read state.
+- Added shared event/workspace/audience metadata to new database notifications.
+- Added `/flowtrack/notifications/status` and 20-second polling fallback in both interfaces.
+- Added notifications for due-date changes, task removal, and Job Phase removal.
+- Added feature tests for authority copies, private user visibility, independent read state, and status payload.

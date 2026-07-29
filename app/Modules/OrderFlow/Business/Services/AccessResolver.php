@@ -33,4 +33,9 @@ class AccessResolver
         return $this->authorization->canViewSensitiveField($user, 'invoice_amount')
             && $this->authorization->allows($user, 'invoice', 'view', $job);
     }
+
+    public function canDeleteJobPhase(User $user, FlowJob $job): bool
+    {
+        return $this->authorization->canDeleteJobPhase($user, $job);
+    }
 }

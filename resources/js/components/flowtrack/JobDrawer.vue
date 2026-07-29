@@ -6,7 +6,8 @@ import FlowDrawer from './FlowDrawer.vue';
 import FlowProgress from './FlowProgress.vue';
 import FlowModal from './FlowModal.vue';
 import CreateTaskModal from './CreateTaskModal.vue';
-import { formatDate, initials, money, records } from '@/lib/flowtrack';
+import EditJobModal from './EditJobModal.vue';
+import { formatDate, initials, money } from '@/lib/flowtrack';
 
 const props = defineProps<{ open: boolean; job: any | null; options: any }>();
 const emit = defineEmits<{ close: []; task: [id: number] }>();
@@ -17,8 +18,12 @@ const move = useForm({ phase_id: null as number | null, reason: '' });
 const teamOpen = ref(false);
 const taskCreateOpen = ref(false);
 const deleteOpen = ref(false);
+const editOpen = ref(false);
+const phaseDeleteOpen = ref(false);
+const phaseToDelete = ref<any>(null);
 const deleteConfirmed = ref(false);
 const teamForm = useForm({ member_ids: [] as number[] });
+const phaseDeleteForm = useForm({ reason: '' });
 
 watch(() => props.job?.id, () => {
     tab.value = 'Overview';
@@ -26,14 +31,20 @@ watch(() => props.job?.id, () => {
     move.reason = '';
     teamForm.member_ids = (props.job?.members || []).map((member: any) => member.user_id);
     deleteOpen.value = false;
+    editOpen.value = false;
+    phaseDeleteOpen.value = false;
+    phaseToDelete.value = null;
+    phaseDeleteForm.reason = '';
     deleteConfirmed.value = false;
 });
 
+const excludedPhaseIds = computed(() => new Set((props.job?.excluded_phase_ids || []).map((id: any) => Number(id))));
+const activePhases = computed(() => (props.job?.workflow?.phases || []).filter((phase: any) => !excludedPhaseIds.value.has(Number(phase.id))));
 const phaseHistory = computed(() => {
     const histories = new Map((props.job?.phase_history || []).map((item: any) => [item.workflow_phase_id, item]));
-    return (props.job?.workflow?.phases || []).map((phase: any) => ({ ...phase, history: histories.get(phase.id) }));
+    return activePhases.value.map((phase: any) => ({ ...phase, history: histories.get(phase.id) }));
 });
-const selectedPhase = computed(() => props.job?.workflow?.phases?.find((phase: any) => Number(phase.id) === Number(move.phase_id)));
+const selectedPhase = computed(() => activePhases.value.find((phase: any) => Number(phase.id) === Number(move.phase_id)));
 const canManage = computed(() => {
     const userId = page.props.auth?.user?.id;
     const permissions: string[] = page.props.auth?.permissions || [];
@@ -49,13 +60,16 @@ const canManageTasks = computed(() => {
         || (props.job?.members || []).some((member: any) => member.user_id === userId && member.can_manage_tasks);
 });
 const canDeleteJob = computed(() => (page.props.auth?.permissions || []).includes('jobs.manage-all'));
+const canDeletePhases = computed(() => Boolean(props.job?.can_delete_phases));
 const canUploadDocuments = computed(() => {
     const permissions: string[] = page.props.auth?.permissions || [];
     return permissions.includes('documents.link') || permissions.includes('documents.manage');
 });
 const needsReason = computed(() => {
     if (!selectedPhase.value || !props.job?.current_phase) return false;
-    return selectedPhase.value.sequence > props.job.current_phase.sequence + 1;
+    const currentIndex = activePhases.value.findIndex((phase: any) => Number(phase.id) === Number(props.job.current_phase_id));
+    const targetIndex = activePhases.value.findIndex((phase: any) => Number(phase.id) === Number(selectedPhase.value.id));
+    return currentIndex >= 0 && targetIndex > currentIndex + 1;
 });
 
 const currentRequiredTasks = computed(() => (props.job?.tasks || []).filter((task: any) =>
@@ -63,41 +77,17 @@ const currentRequiredTasks = computed(() => (props.job?.tasks || []).filter((tas
 ));
 const completedRequiredTasks = computed(() => currentRequiredTasks.value.filter((task: any) => Boolean(task.completed_at)).length);
 const requiredTasksDone = computed(() => completedRequiredTasks.value === currentRequiredTasks.value.length);
-const documentCategories = computed(() => records(props.options, 'document_category'));
 const currentDocumentRequirements = computed(() => {
-    const phase = props.job?.current_phase;
-    const requirements: any[] = [];
-    const categoryById = new Map(documentCategories.value.map((category: any) => [Number(category.id), category]));
+    const configured = props.job?.document_requirements || [];
 
-    if (phase?.document_category_id) {
-        const category = phase.document_category || categoryById.get(Number(phase.document_category_id));
-        requirements.push({
-            id: Number(phase.document_category_id),
-            phaseId: Number(phase.id),
-            taskPackItemId: null,
-            name: category?.name || 'Required document',
-            source: `Workflow Phase: ${phase.name}`,
-            requiredForReadiness: true,
-        });
-    }
-
-    for (const item of phase?.task_pack?.items || []) {
-        if (!item.document_category_id) continue;
-        const category = item.document_category || categoryById.get(Number(item.document_category_id));
-        requirements.push({
-            id: Number(item.document_category_id),
-            phaseId: Number(phase.id),
-            taskPackItemId: Number(item.id),
-            name: category?.name || 'Required document',
-            source: `Task: ${item.title}`,
-            requiredForReadiness: Boolean(item.is_required),
-        });
-    }
-
-    return [...new Map(requirements.map((item) => [
-        `${item.phaseId}:${item.taskPackItemId || 0}:${item.id}`,
-        item,
-    ])).values()];
+    return configured.map((requirement: any) => ({
+        id: Number(requirement.category_id),
+        phaseId: Number(requirement.workflow_phase_id),
+        taskPackItemId: requirement.task_pack_item_id ? Number(requirement.task_pack_item_id) : null,
+        name: requirement.category_name || 'Required document',
+        source: requirement.source_label || 'Current workflow requirement',
+        requiredForReadiness: Boolean(requirement.required_for_readiness),
+    }));
 });
 const readinessDocumentRequirements = computed(() => currentDocumentRequirements.value.filter((item: any) => item.requiredForReadiness));
 const missingDocumentRequirements = computed(() => readinessDocumentRequirements.value.filter((requirement: any) =>
@@ -150,14 +140,38 @@ function saveTeam() {
         },
     });
 }
+
+function closeEdit(): void {
+    editOpen.value = false;
+    router.reload({ only: ['jobs', 'selectedJob'] });
+}
+
+function openPhaseDelete(phase: any): void {
+    phaseToDelete.value = phase;
+    phaseDeleteForm.reason = '';
+    phaseDeleteForm.clearErrors();
+    phaseDeleteOpen.value = true;
+}
+
+function deletePhase(): void {
+    if (!props.job || !phaseToDelete.value || !canDeletePhases.value) return;
+    phaseDeleteForm.delete(`/flowtrack/jobs/${props.job.id}/phases/${phaseToDelete.value.id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            phaseDeleteOpen.value = false;
+            phaseToDelete.value = null;
+            router.reload({ only: ['jobs', 'selectedJob', 'tasks'] });
+        },
+    });
+}
 </script>
 
 <template>
     <FlowDrawer :open="open" @close="emit('close')">
         <template v-if="job">
             <div class="ft-drawer-head">
-                <div><div class="ft-muted ft-small">{{ job.code }} <span v-if="job.order_code">· {{ job.order_code }}</span></div><h2 style="font-size: 18px; margin: 4px 0">{{ job.title }}</h2><FlowBadge :value="job.health" health /> <FlowBadge :value="job.status" /></div>
-                <div class="ft-actions"><button v-if="canDeleteJob" class="ft-ghost" @click="deleteOpen = true">Job Actions</button><button class="ft-close-btn" @click="emit('close')">×</button></div>
+                <div><div class="ft-muted ft-small">{{ job.code }} <span v-if="job.order_code">· {{ job.order_code }}</span></div><h2 style="font-size: 18px; margin: 4px 0">{{ job.title }}</h2><FlowBadge :value="job.health" health /> <FlowBadge :value="job.status" /><div class="ft-job-header-assignee"><span class="ft-muted ft-small">Assignee</span><span class="ft-avatar">{{ job.owner?.initials || initials(job.owner?.name) }}</span><b>{{ job.owner?.name || 'Unassigned' }}</b></div></div>
+                <div class="ft-actions ft-job-header-actions"><button v-if="canManage" class="ft-secondary" @click="editOpen = true">✎ Edit Job</button><button v-if="canDeleteJob" class="ft-ghost" @click="deleteOpen = true">Job Actions</button><button class="ft-close-btn" @click="emit('close')">×</button></div>
             </div>
             <div class="ft-drawer-body">
                 <div class="ft-detail-tabs"><button v-for="item in tabs" :key="item" class="ft-detail-tab" :class="{ active: tab === item }" @click="tab = item">{{ item }}</button></div>
@@ -171,6 +185,7 @@ function saveTeam() {
                         <div class="ft-summary-box"><span>Delivery</span><b>{{ formatDate(job.delivery_date) }}</b></div>
                         <div class="ft-summary-box"><span>Current Phase</span><b>{{ job.current_phase?.name }}</b></div>
                     </div>
+                    <div v-if="job.request_description" class="ft-source-note" style="margin-top: 16px"><b>Request description</b><div class="ft-muted ft-small" style="margin-top:5px;white-space:pre-wrap">{{ job.request_description }}</div></div>
                     <div class="ft-card" style="margin-top: 16px; overflow: hidden">
                         <div class="ft-section-head" style="padding: 12px 14px; margin: 0; background: #f8fafc"><h3>Product Lines</h3><span class="ft-muted ft-small">{{ Number(job.quantity).toLocaleString() }} total units</span></div>
                         <div v-if="job.items?.length">
@@ -193,7 +208,7 @@ function saveTeam() {
 
                 <section v-else-if="tab === 'Workflow'">
                     <div class="ft-timeline">
-                        <div v-for="phase in phaseHistory" :key="phase.id" class="ft-step" :class="phase.history?.status"><div class="ft-step-dot">{{ phase.history?.status === 'completed' ? '✓' : phase.sequence }}</div><div class="ft-step-label">{{ phase.short_name }}</div></div>
+                        <div v-for="phase in phaseHistory" :key="phase.id" class="ft-step" :class="phase.history?.status"><div class="ft-step-dot">{{ phase.history?.status === 'completed' ? '✓' : phase.sequence }}</div><div class="ft-step-label">{{ phase.short_name }}<button v-if="canDeletePhases && activePhases.length > 1" class="ft-mini-btn" style="display:block;margin:6px auto 0" @click.stop="openPhaseDelete(phase)">Remove</button></div></div>
                     </div>
                     <div class="ft-card ft-section-card" style="margin-bottom: 14px">
                         <div class="ft-section-head"><h3>Current Phase Controls</h3><div class="ft-actions"><FlowBadge :value="phaseReadiness" /><FlowBadge :value="job.current_phase?.auto_advance_on_ready ? 'Auto Move' : 'Manual Move'" /></div></div><div class="ft-check-row"><span class="ft-avatar" style="width: 24px; height: 24px; font-size: 10px">{{ phaseReadiness === 'ready' ? '✓' : '!' }}</span><div style="flex:1"><b>Backend phase readiness</b><div class="ft-muted ft-small">{{ phaseReadinessDetails.blockers?.join(' ') || 'Every configured gate is satisfied.' }}</div></div><FlowBadge :value="phaseReadiness" /></div>
@@ -202,7 +217,7 @@ function saveTeam() {
                     </div>
                     <div v-if="canManage" class="ft-card ft-section-card">
                         <div class="ft-section-head"><h3>Move Job Phase</h3><FlowBadge :value="job.current_phase?.name" /></div>
-                        <div class="ft-field"><label>Target phase</label><select v-model.number="move.phase_id"><option v-for="phase in job.workflow?.phases" :key="phase.id" :value="phase.id">{{ phase.sequence }} · {{ phase.name }}{{ !phase.is_skippable ? ' · Required' : '' }}</option></select><span v-if="move.errors.phase_id" class="ft-error">{{ move.errors.phase_id }}</span></div>
+                        <div class="ft-field"><label>Target phase</label><select v-model.number="move.phase_id"><option v-for="phase in activePhases" :key="phase.id" :value="phase.id">{{ phase.sequence }} · {{ phase.name }}{{ !phase.is_skippable ? ' · Required' : '' }}</option></select><span v-if="move.errors.phase_id" class="ft-error">{{ move.errors.phase_id }}</span></div>
                         <div v-if="needsReason" class="ft-field"><label>Reason for skipping phases</label><textarea v-model="move.reason" rows="3" required></textarea></div>
                         <button class="ft-primary" :disabled="move.processing || Number(move.phase_id) === Number(job.current_phase_id)" @click="movePhase">{{ move.processing ? 'Updating…' : 'Update Phase' }}</button>
                     </div>
@@ -228,11 +243,20 @@ function saveTeam() {
         </template>
     </FlowDrawer>
 
+
+    <EditJobModal :open="editOpen" :job="job" :options="options" @close="closeEdit" />
     <CreateTaskModal :open="taskCreateOpen" :job="job" :options="options" @close="taskCreateOpen = false" />
 
     <FlowModal :open="teamOpen" title="Manage Assigned Team" subtitle="Only selected project members, owners, coordinators and administrators can access this job." @close="teamOpen = false">
         <div class="ft-field"><label>Project members</label><select v-model="teamForm.member_ids" multiple style="min-height: 220px"><option v-for="user in options?.users || []" :key="user.id" :value="user.id">{{ user.name }}</option></select><div class="ft-help">The job owner and coordinator are retained automatically with manager access.</div><span v-if="teamForm.errors.member_ids" class="ft-error">{{ teamForm.errors.member_ids }}</span></div>
         <template #footer><button class="ft-ghost" @click="teamOpen = false">Cancel</button><button class="ft-primary" :disabled="teamForm.processing" @click="saveTeam">Save Team</button></template>
+    </FlowModal>
+
+
+    <FlowModal :open="phaseDeleteOpen" title="Remove this Phase from the Job?" subtitle="This changes only this Job; the shared workflow template remains unchanged." @close="phaseDeleteOpen = false">
+        <div class="ft-card" style="padding: 16px; border-color: #fecaca; background: #fff7f7"><div class="ft-muted ft-small">Workflow phase</div><h3 style="margin: 5px 0 8px">{{ phaseToDelete?.name }}</h3><div class="ft-small">Tasks in this phase will be removed from this Job and will not be regenerated. Documents remain archived but will no longer be tied to the removed phase.</div></div>
+        <div class="ft-field" style="margin-top:16px"><label>Reason (optional)</label><textarea v-model="phaseDeleteForm.reason" rows="3" placeholder="Why is this phase not needed for this Job?"></textarea><span v-if="phaseDeleteForm.errors.phase" class="ft-error">{{ phaseDeleteForm.errors.phase }}</span></div>
+        <template #footer><button class="ft-ghost" @click="phaseDeleteOpen = false">Keep Phase</button><button class="ft-danger" :disabled="phaseDeleteForm.processing || activePhases.length <= 1" @click="deletePhase">{{ phaseDeleteForm.processing ? 'Removing…' : 'Remove Phase' }}</button></template>
     </FlowModal>
 
     <FlowModal :open="deleteOpen" title="Delete this Job?" subtitle="Review the impact before permanently deleting the Job." @close="deleteOpen = false">

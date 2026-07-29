@@ -1,5 +1,19 @@
 import type { Auth } from '@/types/auth';
 
+declare global {
+    interface Window {
+        Pusher?: any;
+        FLOWTRACK_PUSHER?: {
+            enabled: boolean;
+            key?: string | null;
+            cluster?: string | null;
+            authEndpoint?: string | null;
+            userId?: number | null;
+            csrfToken?: string | null;
+        };
+    }
+}
+
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
     interface ImportMetaEnv {

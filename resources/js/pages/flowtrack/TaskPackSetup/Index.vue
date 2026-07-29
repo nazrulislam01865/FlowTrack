@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import FlowBadge from '@/components/flowtrack/FlowBadge.vue';
 import FlowModal from '@/components/flowtrack/FlowModal.vue';
 import FlowPageHeader from '@/components/flowtrack/FlowPageHeader.vue';
@@ -12,6 +12,7 @@ const props = defineProps<{
     departments: any[];
     documentCategories: any[];
     nextTaskPackCode: string;
+    metrics: { total: number; active: number; configuredTasks: number; mappedPhases: number };
 }>();
 
 const packOpen = ref(false);
@@ -37,8 +38,6 @@ const itemForm = useForm({
     is_required: true,
 });
 
-const configuredTasks = computed(() => props.taskPacks.reduce((sum, pack) => sum + (pack.items?.length || 0), 0));
-const activePacks = computed(() => props.taskPacks.filter((pack) => pack.is_active).length);
 
 function openPack(pack: any | null = null) {
     editingPack.value = pack;
@@ -122,10 +121,10 @@ function deleteItem(item: any) {
     </FlowPageHeader>
 
     <div class="ft-config-summary">
-        <div class="ft-card ft-config-stat"><span>Total Task Packs</span><b>{{ taskPacks.length }}</b></div>
-        <div class="ft-card ft-config-stat"><span>Active Task Packs</span><b>{{ activePacks }}</b></div>
-        <div class="ft-card ft-config-stat"><span>Configured Tasks</span><b>{{ configuredTasks }}</b></div>
-        <div class="ft-card ft-config-stat"><span>Activation Rule</span><b style="font-size: 15px">Phase Entry</b></div>
+        <div class="ft-card ft-config-stat"><span>Total Task Packs</span><b>{{ metrics.total }}</b></div>
+        <div class="ft-card ft-config-stat"><span>Active Task Packs</span><b>{{ metrics.active }}</b></div>
+        <div class="ft-card ft-config-stat"><span>Configured Tasks</span><b>{{ metrics.configuredTasks }}</b></div>
+        <div class="ft-card ft-config-stat"><span>Mapped Phases</span><b>{{ metrics.mappedPhases }}</b></div>
     </div>
 
     <section class="ft-grid-2">

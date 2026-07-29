@@ -37,7 +37,7 @@ class BoardController extends Controller
             'options' => $options->forWorkspace($request->user()),
             'boardAccess' => [
                 'isAdministrator' => $authorization->isAdministrator($request->user()),
-                'taskVisibility' => $authorization->isAdministrator($request->user()) ? 'workspace' : 'assigned_only',
+                'taskVisibility' => $authorization->isAdministrator($request->user()) ? 'workspace' : 'assigned_job_tasks',
             ],
         ]);
     }

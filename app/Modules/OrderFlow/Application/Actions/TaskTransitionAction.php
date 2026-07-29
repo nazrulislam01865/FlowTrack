@@ -5,6 +5,7 @@ namespace App\Modules\OrderFlow\Application\Actions;
 use App\Models\User;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\ActivityLogger;
+use App\Modules\OrderFlow\Business\Services\FlowNotificationService;
 use App\Modules\OrderFlow\Business\Services\ProgressCalculator;
 use App\Modules\OrderFlow\Business\Services\TransitionAuditLogger;
 use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
@@ -21,6 +22,7 @@ class TaskTransitionAction
         private readonly ProgressCalculator $progress,
         private readonly WorkflowAutomationService $automation,
         private readonly TransitionAuditLogger $transitions,
+        private readonly FlowNotificationService $notifications,
     ) {}
 
     public function execute(FlowTask $task, array $data, User $actor, string $source = 'task_drawer'): FlowTask
@@ -63,6 +65,8 @@ class TaskTransitionAction
             $previousStatusId = (int) ($task->task_status_id ?? 0);
             $previousStatus = $task->status?->name ?? null;
             $previousStatusCode = $task->status?->code ?? null;
+            $previousAssigneeId = $task->assignee_id ? (int) $task->assignee_id : null;
+            $previousDueDate = $task->due_date?->toDateString();
             $submittedReason = array_key_exists('blocker_reason', $data)
                 ? trim((string) ($data['blocker_reason'] ?? ''))
                 : trim((string) ($task->blocker_reason ?? ''));
@@ -111,6 +115,7 @@ class TaskTransitionAction
             $task->update([
                 'task_status_id' => $status->id,
                 'assignee_id' => array_key_exists('assignee_id', $data) ? ($data['assignee_id'] ?: null) : $task->assignee_id,
+                'due_date' => array_key_exists('due_date', $data) ? ($data['due_date'] ?: null) : $task->due_date,
                 'progress' => $this->progress->forTaskStatus($status),
                 'attention_required' => $attention,
                 'blocker_reason' => $blockerReason,
@@ -161,6 +166,20 @@ class TaskTransitionAction
 
             $this->progress->recalculateForTask($task);
             $this->automation->synchronize($task->job, $actor, $source);
+
+            $newDueDate = $task->due_date?->toDateString();
+            DB::afterCommit(function () use ($task, $actor, $previousAssigneeId, $previousStatus, $previousDueDate, $newDueDate, $comment): void {
+                $this->notifications->taskChanged(
+                    $task->id,
+                    $actor->id,
+                    $previousAssigneeId,
+                    $previousStatus,
+                );
+                $this->notifications->taskDueDateChanged($task->id, $actor->id, $previousDueDate, $newDueDate);
+                if (filled($comment)) {
+                    $this->notifications->taskCommented($task->id, $actor->id, $comment);
+                }
+            });
 
             return $task->fresh(['job.client', 'job.currentPhase', 'assignee', 'status', 'priority', 'phase', 'checklistItems', 'comments.user']);
         });

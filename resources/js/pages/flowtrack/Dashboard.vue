@@ -43,7 +43,7 @@ function printPage() { window.print(); }
                 <div v-for="job in attentionJobs" :key="job.id" class="ft-attention-item" @click="openJob(job.id)">
                     <span class="ft-signal" :class="job.health === 'blocked' ? 'purple' : job.health === 'needs_attention' ? '' : 'red'"></span>
                     <div><div class="ft-item-title">{{ job.next_action || job.title }}</div><div class="ft-item-meta">{{ job.code }} · {{ job.client?.name }} · {{ job.current_phase?.short_name }}</div></div>
-                    <FlowBadge :value="job.health" health />
+                    <FlowBadge :value="job.health" health :title="job.health_reason || 'Calculated from current-phase Tasks and delivery dates.'" />
                 </div>
                 <div v-if="!attentionJobs.length" class="ft-empty">No jobs currently require attention.</div>
             </div>

@@ -20,6 +20,7 @@ class WorkflowEngine
         private readonly JobHealthSynchronizer $health,
         private readonly PhaseReadinessEvaluator $readiness,
         private readonly TransitionAuditLogger $transitions,
+        private readonly FlowNotificationService $notifications,
     ) {}
 
     public function initialize(FlowJob $job, WorkflowPhase $startPhase, User $actor, ?string $reason = null): void
@@ -60,6 +61,8 @@ class WorkflowEngine
             $this->readiness->synchronize($job, $startPhase, $actor, 'job_creation');
             $this->activityLogger->log($job->workspace_id, $actor, $job, 'job.created', "Job created at {$startPhase->name}", ['tasks_created' => $created]);
             $this->transitions->log($job, 'job.initialized', $actor, 'job_creation', null, $startPhase->name, $reason, ['tasks_created' => $created], phase: $startPhase);
+
+            DB::afterCommit(fn () => $this->notifications->jobCreated($job->id, $actor->id));
         });
     }
 
@@ -80,6 +83,10 @@ class WorkflowEngine
             throw new DomainException('The target workflow phase is disabled.');
         }
 
+        if ($job->excludedPhases()->where('workflow_phase_id', $targetPhase->id)->exists()) {
+            throw new DomainException('The selected workflow phase was removed from this Job.');
+        }
+
         $current = $job->currentPhase;
         if (! $current) {
             throw new DomainException('The job does not have an active phase.');
@@ -90,17 +97,21 @@ class WorkflowEngine
         }
 
         if ($targetPhase->sequence > $current->sequence + 1) {
+            $excludedPhaseIds = $job->excludedPhases()->pluck('workflow_phase_id')->map(fn ($id) => (int) $id);
             $skipped = $job->workflow->phases
                 ->where('sequence', '>', $current->sequence)
-                ->where('sequence', '<', $targetPhase->sequence);
+                ->where('sequence', '<', $targetPhase->sequence)
+                ->reject(fn (WorkflowPhase $phase) => $excludedPhaseIds->contains((int) $phase->id));
 
-            $nonSkippable = $skipped->first(fn (WorkflowPhase $phase) => ! $phase->is_skippable);
-            if ($nonSkippable) {
-                throw new DomainException("{$nonSkippable->name} cannot be skipped.");
-            }
+            if ($skipped->isNotEmpty()) {
+                $nonSkippable = $skipped->first(fn (WorkflowPhase $phase) => ! $phase->is_skippable);
+                if ($nonSkippable) {
+                    throw new DomainException("{$nonSkippable->name} cannot be skipped.");
+                }
 
-            if (! $reason) {
-                throw new DomainException('A reason is required when phases are skipped.');
+                if (! $reason) {
+                    throw new DomainException('A reason is required when phases are skipped.');
+                }
             }
         }
 
@@ -120,8 +131,10 @@ class WorkflowEngine
                 ]);
 
             if ($targetPhase->sequence > $current->sequence + 1) {
+                $excludedPhaseIds = $job->excludedPhases()->pluck('workflow_phase_id')->map(fn ($id) => (int) $id);
                 $job->workflow->phases()
                     ->whereBetween('sequence', [$current->sequence + 1, $targetPhase->sequence - 1])
+                    ->whereNotIn('id', $excludedPhaseIds)
                     ->get()
                     ->each(function (WorkflowPhase $phase) use ($job, $actor, $reason) {
                         FlowJobPhaseHistory::updateOrCreate(
@@ -186,6 +199,13 @@ class WorkflowEngine
                 ['from_phase_id' => $current->id, 'to_phase_id' => $targetPhase->id, 'tasks_created' => $created],
                 phase: $targetPhase,
             );
+
+            DB::afterCommit(fn () => $this->notifications->jobPhaseChanged(
+                $job->id,
+                $actor->id,
+                $current->name,
+                $targetPhase->name,
+            ));
         });
     }
 }

@@ -22,6 +22,7 @@ class UpdateTaskRequest extends FormRequest
         return [
             'task_status_id' => ['required', 'integer', 'exists:master_records,id'],
             'assignee_id' => ['nullable', 'integer', 'exists:users,id'],
+            'due_date' => ['nullable', 'date'],
             'progress' => ['nullable', 'integer', 'between:0,100'],
             'attention_required' => ['sometimes', 'boolean'],
             'blocker_reason' => ['nullable', 'string', 'max:3000'],

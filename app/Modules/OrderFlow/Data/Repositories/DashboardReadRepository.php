@@ -82,6 +82,47 @@ class DashboardReadRepository
             });
         }
 
-        return $query->latest()->limit(6)->get();
+        $auditActivities = $query
+            ->where('event', '!=', 'task.created')
+            ->latest()
+            ->limit(12)
+            ->get()
+            ->map(fn (FlowActivity $activity): array => [
+                'id' => "activity-{$activity->id}",
+                'event' => $activity->event,
+                'description' => $activity->description,
+                'created_at' => $activity->created_at?->toIso8601String(),
+                'user' => $activity->user ? [
+                    'id' => $activity->user->id,
+                    'name' => $activity->user->name,
+                    'initials' => $activity->user->initials,
+                ] : null,
+            ]);
+
+        $recentTaskActivities = $this->authorization
+            ->applyTaskVisibility(FlowTask::query(), $user)
+            ->with(['creator:id,name,initials', 'job:id,code'])
+            ->latest()
+            ->limit(6)
+            ->get()
+            ->map(fn (FlowTask $task): array => [
+                'id' => "task-created-{$task->id}",
+                'event' => 'task.created',
+                'description' => "Task {$task->code} created".($task->job?->code ? " for {$task->job->code}" : '').": {$task->title}",
+                'created_at' => $task->created_at?->toIso8601String(),
+                'task_id' => $task->id,
+                'job_id' => $task->flow_job_id,
+                'user' => [
+                    'id' => $task->creator?->id,
+                    'name' => $task->creator?->name ?? 'System',
+                    'initials' => $task->creator?->initials,
+                ],
+            ]);
+
+        return $recentTaskActivities
+            ->concat($auditActivities)
+            ->sortByDesc('created_at')
+            ->take(6)
+            ->values();
     }
 }

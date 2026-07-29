@@ -40,6 +40,19 @@
         <x-inertia::head>
             <title>{{ config('app.name', 'Laravel') }}</title>
         </x-inertia::head>
+        <script>
+            window.FLOWTRACK_PUSHER = @json([
+                'enabled' => auth()->check() && filled(config('services.pusher.key')),
+                'key' => config('services.pusher.key'),
+                'cluster' => config('services.pusher.cluster', 'ap2'),
+                'authEndpoint' => route('flowtrack.pusher.auth'),
+                'userId' => auth()->id(),
+                'csrfToken' => csrf_token(),
+            ]);
+        </script>
+        @if(auth()->check() && filled(config('services.pusher.key')))
+            <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+        @endif
     </head>
     <body class="font-sans antialiased">
         <x-inertia::app />

@@ -5,7 +5,7 @@ import FlowBadge from '@/components/flowtrack/FlowBadge.vue';
 import FlowModal from '@/components/flowtrack/FlowModal.vue';
 import FlowPageHeader from '@/components/flowtrack/FlowPageHeader.vue';
 
-const props = defineProps<{ records: any[]; type: string; types: any[]; parents: any[]; nextCode: string }>();
+const props = defineProps<{ records: any[]; type: string; types: any[]; parents: any[]; nextCode: string; metrics: { categories: number; totalRecords: number; activeRecords: number; inactiveRecords: number } }>();
 const search = ref('');
 const modalOpen = ref(false);
 const editing = ref<any>(null);
@@ -29,7 +29,7 @@ function printPage() { window.print(); }
 <template>
     <Head title="Master Data" />
     <FlowPageHeader title="Master Data" subtitle="Shared lists used by jobs, tasks, workflow configuration, documents and reporting"><button class="ft-primary" @click="openRecord()">＋ Add Record</button></FlowPageHeader>
-    <div class="ft-config-summary"><div class="ft-card ft-config-stat"><span>Current Category</span><b style="font-size: 15px">{{ currentLabel }}</b></div><div class="ft-card ft-config-stat"><span>Total Records</span><b>{{ records.length }}</b></div><div class="ft-card ft-config-stat"><span>Active</span><b>{{ records.filter((record) => record.status === 'active').length }}</b></div><div class="ft-card ft-config-stat"><span>Inactive</span><b>{{ records.filter((record) => record.status !== 'active').length }}</b></div></div>
+    <div class="ft-config-summary"><div class="ft-card ft-config-stat"><span>Master Categories</span><b>{{ metrics.categories }}</b></div><div class="ft-card ft-config-stat"><span>Total Records</span><b>{{ metrics.totalRecords }}</b></div><div class="ft-card ft-config-stat"><span>Active Records</span><b>{{ metrics.activeRecords }}</b></div><div class="ft-card ft-config-stat"><span>Selected Category</span><b style="font-size: 15px">{{ currentLabel }}</b></div></div>
     <section class="ft-master-layout">
         <aside class="ft-card ft-side-list"><button v-for="item in types" :key="item.value" :class="{ active: item.value === type }" @click="changeType(item.value)"><b>{{ item.label }}</b><small>Configure reusable records</small></button></aside>
         <article class="ft-card">

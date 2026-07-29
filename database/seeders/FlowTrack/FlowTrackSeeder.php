@@ -384,6 +384,7 @@ class FlowTrackSeeder extends Seeder
             $phase = $phases[$phaseSequence];
             $job = FlowJob::create([
                 'workspace_id' => $workspaceId,
+                'created_by' => $users['Li Wei']->id,
                 'client_id' => $clients[$clientCode]->id,
                 'workflow_template_id' => $workflows['standard']->id,
                 'current_phase_id' => $phase->id,
@@ -416,7 +417,7 @@ class FlowTrackSeeder extends Seeder
                 'sort_order' => 0,
             ]);
 
-            foreach (collect([$users[$owner]->id, $users[$coordinator]->id])->unique() as $memberId) {
+            foreach (collect([$users['Li Wei']->id, $users[$owner]->id, $users[$coordinator]->id])->unique() as $memberId) {
                 FlowJobMember::create([
                     'flow_job_id' => $job->id,
                     'user_id' => $memberId,

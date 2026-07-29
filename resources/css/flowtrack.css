@@ -204,6 +204,7 @@ body { margin: 0; }
 .ft-close-btn { border: 0; background: #f1f4f8; width: 32px; height: 32px; border-radius: 8px; font-size: 19px; cursor: pointer; }
 .ft-drawer { position: fixed; z-index: 80; right: 0; top: 0; height: 100vh; width: min(680px,100%); background: #fff; box-shadow: -20px 0 60px rgba(0,0,0,.2); overflow-y: auto; }
 .ft-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }.ft-form-grid .full { grid-column: 1 / -1; }
+.ft-form-stack { grid-template-columns: 1fr; }.ft-form-stack .full { grid-column: auto; }
 .ft-summary-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
 .ft-summary-box { border: 1px solid var(--ft-line); border-radius: 10px; padding: 12px; }
 .ft-summary-box span { display: block; color: var(--ft-muted); font-size: 10px; margin-bottom: 5px; }
@@ -316,3 +317,116 @@ body { margin: 0; }
 }
 .ft-kanban-card.is-readonly { cursor: pointer; border-style: dashed; }
 .ft-kanban-card.is-readonly::after { content: 'Read only'; display: inline-flex; margin-top: 8px; padding: 3px 7px; border-radius: 999px; background: #f3f6fa; color: #66758b; font-size: 9px; font-weight: 700; }
+
+/* Compact and consistent FlowTrack controls */
+:root { --ft-control-height: 38px; }
+.ft-primary, .ft-secondary, .ft-ghost, .ft-danger {
+    min-height: var(--ft-control-height);
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+.ft-mini-btn { min-height: 32px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; }
+.ft-topbar { height: 60px; padding: 0 20px; }
+.ft-content { padding: 18px 20px; }
+.ft-page-head { margin-bottom: 14px; align-items: center; }
+.ft-page-head h1 { font-size: 23px; }
+.ft-page-head p { font-size: 13px; }
+.ft-metrics { gap: 10px; margin-bottom: 14px; }
+.ft-metric { padding: 13px; }
+.ft-metric-value { font-size: 24px; }
+.ft-section-card { padding: 14px; }
+.ft-section-head { margin-bottom: 11px; }
+.ft-config-summary { margin-bottom: 12px; }
+.ft-config-stat { padding: 12px 14px; }
+.ft-config-stat b { font-size: 19px; }
+.ft-modal { width: min(680px, calc(100% - 28px)); max-height: 88vh; }
+.ft-modal-head, .ft-drawer-head { padding: 14px 16px; }
+.ft-modal-body, .ft-drawer-body { padding: 16px; }
+.ft-modal-foot { padding: 12px 16px; }
+.ft-drawer { width: min(620px, 100%); }
+.ft-field { gap: 6px; margin-bottom: 12px; }
+.ft-field input, .ft-field select, .ft-field textarea, .ft-input, .ft-select { padding: 10px 12px; }
+.ft-summary-box { padding: 10px; }
+.ft-detail-tabs { margin-bottom: 14px; }
+.ft-detail-tab { padding: 9px 11px; }
+.ft-login-error { border: 1px solid #f1b5b1; background: var(--ft-red-2); color: #b42318; border-radius: 10px; padding: 11px 12px; margin-bottom: 16px; font-size: 13px; font-weight: 650; line-height: 1.45; }
+@media (max-width: 620px) {
+    .ft-content { padding: 14px 12px 76px; }
+    .ft-topbar { height: 56px; }
+    .ft-modal-head, .ft-modal-body, .ft-modal-foot, .ft-drawer-head, .ft-drawer-body { padding-left: 13px; padding-right: 13px; }
+}
+
+/* Job product rows: Category + Product + Quantity */
+.ft-product-line-labels,
+.ft-product-line {
+    grid-template-columns: minmax(150px, .8fr) minmax(220px, 1.35fr) minmax(100px, 135px) 38px;
+}
+.ft-job-priority-options,
+.job-priority-options {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    padding: 6px;
+    border: 1px solid var(--ft-line);
+    border-radius: 10px;
+    background: #fff;
+}
+.ft-job-priority-option,
+.job-priority-option {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 650;
+    line-height: 1.15;
+}
+.ft-job-priority-option:hover,
+.job-priority-option:hover { background: #f5f8ff; }
+.ft-job-priority-option input,
+.job-priority-option input { position: absolute; opacity: 0; pointer-events: none; }
+.ft-job-priority-check,
+.job-priority-check {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 1px solid #aeb9c8;
+    border-radius: 4px;
+    color: transparent;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 800;
+}
+.ft-job-priority-option:has(input:checked),
+.job-priority-option:has(input:checked) { border-color: #9ab7ff; background: #eef4ff; color: var(--ft-blue); }
+.ft-job-priority-option input:checked + .ft-job-priority-check,
+.job-priority-option input:checked + .job-priority-check { background: #14243a; border-color: #14243a; color: #fff; }
+.ft-job-header-assignee,
+.job-header-assignee { display: inline-flex; align-items: center; gap: 7px; margin-top: 8px; padding: 5px 9px; border: 1px solid var(--ft-line); border-radius: 999px; background: #f8fafc; }
+.ft-job-header-assignee .ft-avatar,
+.job-header-assignee .avatar { width: 26px; height: 26px; font-size: 10px; }
+.ft-job-header-actions,
+.job-header-actions { align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+@media (max-width: 760px) {
+    .ft-product-line-labels { display: none; }
+    .ft-product-line { grid-template-columns: 1fr 1fr 90px 38px; }
+    .ft-job-priority-options, .job-priority-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+    .ft-job-priority-options, .job-priority-options { grid-template-columns: 1fr; }
+    .ft-product-line { grid-template-columns: 1fr 38px; }
+    .ft-product-line > :nth-child(1), .ft-product-line > :nth-child(2), .ft-product-line > :nth-child(3) { grid-column: 1; }
+    .ft-product-line > :nth-child(4) { grid-column: 2; grid-row: 1; }
+}

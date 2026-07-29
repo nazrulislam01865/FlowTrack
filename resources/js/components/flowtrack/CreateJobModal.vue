@@ -15,23 +15,19 @@ type ProductLine = {
 const props = defineProps<{ open: boolean; options: any }>();
 const emit = defineEmits<{ close: [] }>();
 
-const blankProductLine = (categoryId: number | null = null, quantity = 1): ProductLine => ({
-    product_id: null,
-    product_category_id: categoryId,
-    quantity,
-});
+const blankProductLine = (quantity = 1): ProductLine => ({ product_id: null, product_category_id: null, quantity });
 
 const form = useForm({
     client_id: null as number | null,
     workflow_template_id: null as number | null,
     start_phase_id: null as number | null,
-    product_category_id: null as number | null,
     products: [blankProductLine()] as ProductLine[],
     currency_id: null as number | null,
     priority_id: null as number | null,
     owner_id: null as number | null,
     coordinator_id: null as number | null,
     title: '',
+    request_description: '',
     quoted_amount: 0,
     delivery_date: '',
     start_reason: '',
@@ -44,35 +40,41 @@ const selectedWorkflow = computed(() => workflows.value.find((item: any) => item
 const phases = computed(() => selectedWorkflow.value?.phases?.filter((phase: any) => phase.allow_job_start) || []);
 const selectedPhase = computed(() => phases.value.find((phase: any) => phase.id === form.start_phase_id));
 const categories = computed(() => records(props.options, 'product_category'));
-const products = computed(() => records(props.options, 'product').filter((product: any) => !form.product_category_id || product.parent_id === form.product_category_id));
+const priorities = computed(() => records(props.options, 'priority'));
+const allProducts = computed(() => records(props.options, 'product'));
 const totalQuantity = computed(() => form.products.reduce((total, item) => total + Math.max(0, Number(item.quantity) || 0), 0));
 
 const clientOptions = computed(() => (props.options?.clients || []).map((client: any) => ({ value: client.id, label: `${client.code} · ${client.name}` })));
 const workflowOptions = computed(() => workflows.value.map((workflow: any) => ({ value: workflow.id, label: `${workflow.code} · ${workflow.name}` })));
 const phaseOptions = computed(() => phases.value.map((phase: any) => ({ value: phase.id, label: `${phase.sequence} · ${phase.name}` })));
-const priorityOptions = computed(() => records(props.options, 'priority').map((item: any) => ({ value: item.id, label: item.name })));
 const categoryOptions = computed(() => [{ value: null, label: 'Select category' }, ...categories.value.map((item: any) => ({ value: item.id, label: `${item.code} · ${item.name}` }))]);
-const productOptions = computed(() => [{ value: null, label: products.value.length ? 'Select product' : 'No products available in this category', disabled: !products.value.length }, ...products.value.map((item: any) => ({ value: item.id, label: `${item.code} · ${item.name}` }))]);
 const currencyOptions = computed(() => records(props.options, 'currency').map((item: any) => ({ value: item.id, label: `${item.code} · ${item.name}` })));
 const userOptions = computed(() => (props.options?.users || []).map((user: any) => ({ value: user.id, label: user.name })));
+
+function productOptions(categoryId: number | null) {
+    const available = allProducts.value.filter((product: any) => Number(product.parent_id) === Number(categoryId));
+    return [
+        { value: null, label: categoryId ? (available.length ? 'Select product' : 'No products available in this category') : 'Select category first', disabled: !available.length },
+        ...available.map((item: any) => ({ value: item.id, label: `${item.code} · ${item.name}` })),
+    ];
+}
 
 watch(
     () => props.open,
     (open) => {
         if (!open) return;
         const workflow = workflows.value[0];
-        const categoryId = categories.value[0]?.id || null;
         form.defaults({
             client_id: props.options?.clients?.[0]?.id || null,
             workflow_template_id: workflow?.id || null,
             start_phase_id: workflow?.phases?.find((phase: any) => phase.allow_job_start)?.id || null,
-            product_category_id: categoryId,
-            products: [blankProductLine(categoryId)],
+            products: [blankProductLine(1000)],
             currency_id: records(props.options, 'currency').find((item: any) => item.code === 'USD')?.id || null,
-            priority_id: records(props.options, 'priority').find((item: any) => item.code === 'MED')?.id || null,
+            priority_id: records(props.options, 'priority').find((item: any) => item.code === 'MED')?.id || priorities.value[0]?.id || null,
             owner_id: props.options?.users?.[0]?.id || null,
             coordinator_id: props.options?.users?.[0]?.id || null,
             title: '',
+            request_description: '',
             quoted_amount: 0,
             delivery_date: '',
             start_reason: '',
@@ -84,35 +86,16 @@ watch(
     },
 );
 
-watch(
-    () => form.workflow_template_id,
-    () => {
-        form.start_phase_id = phases.value[0]?.id || null;
-    },
-);
+watch(() => form.workflow_template_id, () => { form.start_phase_id = phases.value[0]?.id || null; });
 
-watch(
-    () => form.product_category_id,
-    (categoryId) => {
-        const allowedProductIds = new Set(products.value.map((product: any) => Number(product.id)));
-        form.products = form.products.map((line) => ({
-            ...line,
-            product_category_id: categoryId,
-            product_id: line.product_id && allowedProductIds.has(Number(line.product_id)) ? line.product_id : null,
-        }));
-    },
-);
-
-function addProduct(): void {
-    form.products.push(blankProductLine(form.product_category_id));
+function onCategoryChanged(line: ProductLine): void {
+    const valid = allProducts.value.some((product: any) => Number(product.id) === Number(line.product_id) && Number(product.parent_id) === Number(line.product_category_id));
+    if (!valid) line.product_id = null;
 }
 
-function removeProduct(index: number): void {
-    if (form.products.length === 1) return;
-    form.products.splice(index, 1);
-}
-
-function productError(index: number, field: 'product_id' | 'quantity'): string | undefined {
+function addProduct(): void { form.products.push(blankProductLine()); }
+function removeProduct(index: number): void { if (form.products.length > 1) form.products.splice(index, 1); }
+function productError(index: number, field: 'product_category_id' | 'product_id' | 'quantity'): string | undefined {
     return (form.errors as Record<string, string>)[`products.${index}.${field}`];
 }
 
@@ -120,13 +103,10 @@ function submit(draft = false): void {
     form.draft = draft;
     form.products = form.products.map((line) => ({
         product_id: line.product_id,
-        product_category_id: form.product_category_id,
+        product_category_id: line.product_category_id,
         quantity: Math.max(1, Number(line.quantity) || 1),
     }));
-    form.post('/flowtrack/jobs', {
-        preserveScroll: true,
-        onSuccess: () => emit('close'),
-    });
+    form.post('/flowtrack/jobs', { preserveScroll: true, onSuccess: () => emit('close') });
 }
 </script>
 
@@ -148,40 +128,25 @@ function submit(draft = false): void {
             </div>
 
             <div class="ft-field full">
-                <label>Workflow template</label>
-                <SearchableSelect v-model="form.workflow_template_id" :options="workflowOptions" placeholder="Select workflow template" search-placeholder="Search workflow templates…" />
-            </div>
-
-            <div class="ft-field full">
-                <label>Starting phase</label>
-                <SearchableSelect v-model="form.start_phase_id" :options="phaseOptions" placeholder="Select starting phase" search-placeholder="Search starting phases…" />
-                <span v-if="form.errors.start_phase_id" class="ft-error">{{ form.errors.start_phase_id }}</span>
-            </div>
-
-            <div class="ft-field full">
-                <label>Priority</label>
-                <SearchableSelect v-model="form.priority_id" :options="priorityOptions" placeholder="Select priority" search-placeholder="Search priorities…" />
-            </div>
-
-            <div class="ft-field full">
-                <label>Product category</label>
-                <SearchableSelect v-model="form.product_category_id" :options="categoryOptions" placeholder="Select category" search-placeholder="Search product categories…" />
+                <label>Request description</label>
+                <textarea v-model="form.request_description" rows="3" placeholder="Specifications, target price, printing or customization requirements…" />
+                <span v-if="form.errors.request_description" class="ft-error">{{ form.errors.request_description }}</span>
             </div>
 
             <div class="ft-field full ft-product-lines-field">
                 <div class="ft-product-lines-heading">
-                    <div>
-                        <label>Products & quantities</label>
-                        <div class="ft-help">Product and Quantity stay on the same line. Add more rows as needed.</div>
-                    </div>
+                    <div><label>Products & quantities</label><div class="ft-help">Choose the Product Category first, then its Product and Quantity on the same row.</div></div>
                     <div class="ft-product-total">{{ totalQuantity.toLocaleString() }} total units</div>
                 </div>
-
-                <div class="ft-product-line-labels"><span>Product</span><span>Quantity</span><span></span></div>
+                <div class="ft-product-line-labels"><span>Product category</span><span>Product</span><span>Quantity</span><span></span></div>
                 <div class="ft-product-lines">
                     <div v-for="(line, index) in form.products" :key="index" class="ft-product-line">
                         <div>
-                            <SearchableSelect v-model="line.product_id" :options="productOptions" placeholder="Select product" search-placeholder="Search products…" />
+                            <SearchableSelect v-model="line.product_category_id" :options="categoryOptions" placeholder="Select category" search-placeholder="Search product categories…" @update:model-value="onCategoryChanged(line)" />
+                            <span v-if="productError(index, 'product_category_id')" class="ft-error">{{ productError(index, 'product_category_id') }}</span>
+                        </div>
+                        <div>
+                            <SearchableSelect v-model="line.product_id" :options="productOptions(line.product_category_id)" placeholder="Select product" search-placeholder="Search products…" :disabled="!line.product_category_id" />
                             <span v-if="productError(index, 'product_id')" class="ft-error">{{ productError(index, 'product_id') }}</span>
                         </div>
                         <div>
@@ -196,23 +161,23 @@ function submit(draft = false): void {
             </div>
 
             <div class="ft-field full">
-                <label>Quoted amount</label>
-                <input v-model.number="form.quoted_amount" type="number" min="0" step="0.01" />
-            </div>
-
-            <div class="ft-field full">
-                <label>Currency</label>
-                <SearchableSelect v-model="form.currency_id" :options="currencyOptions" placeholder="Select currency" search-placeholder="Search currencies…" />
-            </div>
-
-            <div class="ft-field full">
                 <label>Delivery date</label>
                 <input v-model="form.delivery_date" type="date" required />
             </div>
 
             <div class="ft-field full">
-                <label>Job owner</label>
-                <SearchableSelect v-model="form.owner_id" :options="userOptions" placeholder="Select job owner" search-placeholder="Search users…" />
+                <label>Priority</label>
+                <div class="ft-job-priority-options">
+                    <label v-for="priority in priorities" :key="priority.id" class="ft-job-priority-option">
+                        <input v-model="form.priority_id" type="radio" :value="priority.id" />
+                        <span class="ft-job-priority-check">✓</span><span>{{ priority.name }}</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="ft-field full">
+                <label>Job assignee</label>
+                <SearchableSelect v-model="form.owner_id" :options="userOptions" placeholder="Select assignee" search-placeholder="Search users…" />
             </div>
 
             <div class="ft-field full">
@@ -226,9 +191,30 @@ function submit(draft = false): void {
                 <div class="ft-help">Project access is granted only to selected members, owners, coordinators, and administrators.</div>
             </div>
 
+            <div class="ft-field full">
+                <label>Quoted amount</label>
+                <input v-model.number="form.quoted_amount" type="number" min="0" step="0.01" />
+            </div>
+
+            <div class="ft-field full">
+                <label>Currency</label>
+                <SearchableSelect v-model="form.currency_id" :options="currencyOptions" placeholder="Select currency" search-placeholder="Search currencies…" />
+            </div>
+
+            <div class="ft-field full">
+                <label>Workflow template</label>
+                <SearchableSelect v-model="form.workflow_template_id" :options="workflowOptions" placeholder="Select workflow template" search-placeholder="Search workflow templates…" />
+            </div>
+
+            <div class="ft-field full">
+                <label>Starting phase</label>
+                <SearchableSelect v-model="form.start_phase_id" :options="phaseOptions" placeholder="Select starting phase" search-placeholder="Search starting phases…" />
+                <span v-if="form.errors.start_phase_id" class="ft-error">{{ form.errors.start_phase_id }}</span>
+            </div>
+
             <div v-if="selectedPhase?.sequence > 1" class="ft-field full">
                 <label>Reason for starting at {{ selectedPhase.name }}</label>
-                <textarea v-model="form.start_reason" rows="3" required placeholder="Reference the prior confirmed order, existing artwork, PO, or other reason for skipping earlier phases."></textarea>
+                <textarea v-model="form.start_reason" rows="3" required placeholder="Reference the prior confirmed order, existing artwork, PO, or other reason for skipping earlier phases." />
                 <span v-if="form.errors.start_reason" class="ft-error">{{ form.errors.start_reason }}</span>
             </div>
 

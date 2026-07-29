@@ -17,8 +17,188 @@
     let currentSensitiveFields = [];
     let boardWorkflowId = null;
     let boardJobIds = new Set();
-    let boardAccess = { isAdministrator: false, taskVisibility: 'assigned_only' };
+    let boardAccess = { isAdministrator: false, taskVisibility: 'assigned_job_tasks' };
     let pendingDocumentUploadJobId = null;
+    let summaryMetrics = {};
+    let dashboardActivities = [];
+    let notificationRules = [];
+    let notificationAccess = { authorityView: false, statusEndpoint: '/flowtrack/notifications/status' };
+    let realtimePusher = null;
+    let realtimeChannel = null;
+    let realtimeUserId = null;
+    let realtimeRefreshTimer = null;
+    let sessionExpiryTimer = null;
+    let sessionStatusTimer = null;
+    let notificationStatusTimer = null;
+    let notificationSignature;
+    let notificationUnread = 0;
+
+
+
+    function sessionRedirect(reason = 'expired') {
+        if (sessionExpiryTimer) clearTimeout(sessionExpiryTimer);
+        if (sessionStatusTimer) clearInterval(sessionStatusTimer);
+        if (notificationStatusTimer) clearInterval(notificationStatusTimer);
+        const safeReason = reason === 'replaced' ? 'replaced' : 'expired';
+        window.location.replace(`/login?session=${safeReason}`);
+    }
+
+    function scheduleSessionGuard(expiresAt = null) {
+        const config = window.FLOWTRACK_SESSION || {};
+        const resolvedExpiry = expiresAt || config.expiresAt;
+
+        if (sessionExpiryTimer) clearTimeout(sessionExpiryTimer);
+        if (sessionStatusTimer) clearInterval(sessionStatusTimer);
+
+        if (resolvedExpiry) {
+            config.expiresAt = resolvedExpiry;
+            window.FLOWTRACK_SESSION = config;
+            const delay = Math.max(0, new Date(resolvedExpiry).getTime() - Date.now());
+            sessionExpiryTimer = setTimeout(() => {
+                window.location.replace(config.expiredEndpoint || '/flowtrack/session-expired');
+            }, delay + 250);
+        }
+
+        if (!config.statusEndpoint) return;
+        const checkStatus = async () => {
+            try {
+                const response = await fetch(config.statusEndpoint, {
+                    credentials: 'same-origin',
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    cache: 'no-store',
+                });
+                if (response.status === 401) {
+                    const payload = await response.json().catch(() => ({}));
+                    sessionRedirect(payload.reason || 'expired');
+                    return;
+                }
+                if (!response.ok) return;
+                const payload = await response.json();
+                if (payload.expires_at && payload.expires_at !== config.expiresAt) {
+                    scheduleSessionGuard(payload.expires_at);
+                }
+            } catch (_) {
+                // A temporary network outage must not log the user out locally.
+            }
+        };
+        checkStatus();
+        sessionStatusTimer = setInterval(checkStatus, 10000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) checkStatus();
+        });
+    }
+
+    async function pollNotificationStatus() {
+        if (document.hidden || !notificationAccess?.statusEndpoint) return;
+
+        try {
+            const payload = await api(notificationAccess.statusEndpoint);
+            const nextSignature = payload?.latest_signature ?? null;
+            const nextUnread = Number(payload?.unread_count || 0);
+
+            if (notificationSignature === undefined) {
+                const unreadChanged = nextUnread !== notificationUnread;
+                notificationSignature = nextSignature;
+                notificationUnread = nextUnread;
+                if (!unreadChanged) return;
+
+                await loadBootstrap();
+                updateBadges();
+                if (currentPage) renderPage(currentPage);
+                applyActionPermissions();
+                return;
+            }
+
+            if (nextSignature === notificationSignature && nextUnread === notificationUnread) return;
+
+            notificationSignature = nextSignature;
+            notificationUnread = nextUnread;
+            await loadBootstrap();
+            updateBadges();
+            if (currentPage) renderPage(currentPage);
+            applyActionPermissions();
+        } catch (_) {
+            // Polling is the reliable fallback when Pusher is absent or misconfigured.
+        }
+    }
+
+    function startNotificationPolling() {
+        if (notificationStatusTimer) clearInterval(notificationStatusTimer);
+        void pollNotificationStatus();
+        notificationStatusTimer = setInterval(() => void pollNotificationStatus(), 20000);
+    }
+
+    function realtimeNotificationRecord(payload) {
+        return {
+            id: payload.id || `live-${Date.now()}`,
+            title: payload.title || 'Notification',
+            text: payload.text || '',
+            time: payload.time || 'Just now',
+            read: false,
+            type: payload.type || 'info',
+            job: payload.job || null,
+            task: payload.task || null,
+            url: payload.url || null,
+            event: payload.event || null,
+        };
+    }
+
+    function scheduleRealtimeRefresh() {
+        if (realtimeRefreshTimer) clearTimeout(realtimeRefreshTimer);
+        realtimeRefreshTimer = setTimeout(async () => {
+            try {
+                await loadBootstrap();
+                if (currentPage) renderPage(currentPage);
+                updateBadges();
+                applyActionPermissions();
+            } catch (error) {
+                console.warn('FlowTrack realtime refresh failed.', error);
+            }
+        }, 650);
+    }
+
+    function receiveRealtimeNotification(payload) {
+        const record = realtimeNotificationRecord(payload || {});
+        if (!notifications.some((item) => String(item.id) === String(record.id))) {
+            notifications.unshift(record);
+        }
+        updateBadges();
+        showToast(`${record.title}${record.text ? `: ${record.text}` : ''}`);
+        if (currentPage === 'notifications') renderNotifications();
+        window.dispatchEvent(new CustomEvent('flowtrack:realtime-notification', { detail: payload }));
+        scheduleRealtimeRefresh();
+    }
+
+    function initializeRealtimeNotifications() {
+        const config = window.FLOWTRACK_PUSHER || {};
+        const userId = Number(currentUser?.id || config.userId || 0);
+        if (!config.enabled || !config.key || !userId || typeof window.Pusher !== 'function') return;
+        if (realtimePusher && realtimeUserId === userId) return;
+
+        try {
+            realtimeChannel?.unbind_all?.();
+            realtimePusher?.disconnect?.();
+
+            realtimePusher = new window.Pusher(config.key, {
+                cluster: config.cluster || 'ap2',
+                forceTLS: true,
+                channelAuthorization: {
+                    endpoint: config.authEndpoint || '/flowtrack/pusher/auth',
+                    transport: 'ajax',
+                    headers: {
+                        'X-CSRF-TOKEN': config.csrfToken || csrfToken(),
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                },
+            });
+            realtimeUserId = userId;
+            realtimeChannel = realtimePusher.subscribe(`private-flowtrack.user.${userId}`);
+            realtimeChannel.bind('notification.created', receiveRealtimeNotification);
+            realtimeChannel.bind('pusher:subscription_error', (status) => console.warn('FlowTrack Pusher subscription failed.', status));
+        } catch (error) {
+            console.warn('FlowTrack realtime notifications could not start.', error);
+        }
+    }
 
     const originalRenderClients = renderClients;
     const originalRenderDocuments = renderDocuments;
@@ -72,6 +252,9 @@
         const payload = contentType.includes('application/json') ? await response.json() : null;
 
         if (!response.ok) {
+            if (response.status === 401 && payload?.reason) {
+                setTimeout(() => sessionRedirect(payload.reason), 0);
+            }
             const error = new Error(firstValidationMessage(payload, `Request failed (${response.status}).`));
             error.payload = payload;
             error.status = response.status;
@@ -80,6 +263,69 @@
 
         return payload;
     }
+
+    window.renderNotifications = function renderPersistentNotifications() {
+        const page = document.querySelector('#page-notifications');
+        if (!page) return;
+
+        const rows = notifications.map((notification) => {
+            const signal = notification.type === 'risk' || notification.severity === 'warning'
+                ? 'red'
+                : notification.severity === 'success'
+                    ? 'green'
+                    : 'purple';
+
+            return `<div class="attention-item" data-notification-id="${html(notification.id)}" style="${notification.read ? 'opacity:.62' : ''}">
+                <span class="signal ${signal}"></span>
+                <div>
+                    <div class="item-title">${html(notification.title)} ${notification.read ? '' : '<span class="badge b-blue">New</span>'}</div>
+                    <div class="item-meta">${html(notification.text)}${notification.phase ? ` · ${html(notification.phase)}` : ''} · ${html(notification.time)}</div>
+                    ${notificationAccess.authorityView && Array.isArray(notification.audience) && notification.audience.length
+                        ? `<div class="item-meta" style="margin-top:4px">For: ${html([...new Set(notification.audience.map((recipient) => recipient?.name).filter(Boolean))].join(', '))}</div>`
+                        : ''}
+                </div>
+                <button class="mini-btn" type="button">Open</button>
+            </div>`;
+        }).join('');
+
+        page.innerHTML = `<div class="page-head"><div><h1>Notifications</h1><p>${notificationAccess.authorityView ? 'Workspace-wide' : 'Your'} assignment, Task, Workflow, document and health updates</p></div><div class="actions"><button class="ghost" id="markAllRead" type="button" ${notifications.some((item) => !item.read) ? '' : 'disabled'}>Mark all read</button></div></div>
+            <div class="card section-card"><div class="attention-list">${rows || '<div class="empty">You are all caught up.</div>'}</div></div>`;
+
+        document.querySelector('#markAllRead')?.addEventListener('click', async () => {
+            try {
+                await api('/flowtrack/notifications/read-all', { method: 'PATCH' });
+                notifications.forEach((item) => { item.read = true; });
+                window.renderNotifications();
+                updateBadges();
+                showToast('All notifications marked as read.');
+            } catch (error) {
+                showToast(error.message || 'Unable to mark notifications as read.');
+            }
+        });
+
+        page.querySelectorAll('[data-notification-id]').forEach((row) => {
+            row.addEventListener('click', async () => {
+                const notification = notifications.find((item) => String(item.id) === String(row.dataset.notificationId));
+                if (!notification) return;
+
+                try {
+                    if (!notification.read) {
+                        await api(`/flowtrack/notifications/${encodeURIComponent(notification.id)}/read`, { method: 'PATCH' });
+                        notification.read = true;
+                        updateBadges();
+                    }
+
+                    if (notification.job_id && jobs.some((job) => String(job.id) === String(notification.job_id))) {
+                        openJob(notification.job_id);
+                    } else if (notification.url) {
+                        window.location.href = notification.url;
+                    }
+                } catch (error) {
+                    showToast(error.message || 'Unable to open the notification.');
+                }
+            });
+        });
+    };
 
     function canFlow(module, action = 'view') {
         if (isFlowAdmin || isFlowSuperAdmin) return true;
@@ -137,13 +383,18 @@
         replaceArray(clients, data.clients);
         replaceArray(jobs, data.jobs);
         boardJobIds = new Set((data.boardJobIds || []).map((id) => Number(id)));
-        boardAccess = data.boardAccess || { isAdministrator: false, taskVisibility: 'assigned_only' };
+        boardAccess = data.boardAccess || { isAdministrator: false, taskVisibility: 'assigned_job_tasks' };
         replaceArray(tasks, data.tasks);
         replaceArray(docs, data.documents);
         replaceArray(notifications, data.notifications);
+        replaceArray(dashboardActivities, data.activities);
         replaceArray(workflowTemplates, data.workflows);
         taskPacks = data.taskPacks || [];
         capabilities = data.capabilities || {};
+        summaryMetrics = data.summaryMetrics || {};
+        notificationRules = Array.isArray(data.notificationRules) ? data.notificationRules : [];
+        notificationAccess = data.notificationAccess || notificationAccess;
+        notificationUnread = notifications.filter((notification) => !notification.read).length;
         currentSensitiveFields = data.currentUser?.sensitiveFields || [];
         canViewAccess = Boolean(data.accessControl);
         canManageAccess = Boolean(data.accessControl?.canManage);
@@ -178,6 +429,7 @@
         }
 
         applyCurrentUserIdentity();
+        initializeRealtimeNotifications();
     }
 
     async function loadBootstrap() {
@@ -240,7 +492,6 @@
         setVisible('#jobExport,#reportPdf,#reportExcel', canFlow('reports', 'export') || canFlow('jobs', 'export'));
         setVisible('[data-delete-client]', canFlow('clients', 'delete'));
         setVisible('[data-delete-job]', canFlow('jobs', 'delete'));
-        setVisible('[data-delete-task]', canFlow('tasks', 'delete'));
         setVisible('[data-delete-document]', canFlow('documents', 'delete'));
         setVisible('.client-sensitive-contact', canSensitive('client_contact_details'));
         setVisible('.client-sensitive-financial', canSensitive('invoice_amount'));
@@ -264,6 +515,8 @@
 
         const preferredPage = currentUser?.defaultLandingPage || 'dashboard';
         navigate(canOpenPage(preferredPage) ? preferredPage : 'dashboard');
+        scheduleSessionGuard();
+        startNotificationPolling();
     }
 
     async function login() {
@@ -276,10 +529,13 @@
         button.textContent = 'Signing in…';
 
         try {
-            await api('/login', {
+            const loginResult = await api('/login', {
                 method: 'POST',
                 body: { email, password, remember: Boolean($('#loginRemember')?.checked) },
             });
+            if (loginResult?.expires_at) {
+                window.FLOWTRACK_SESSION = { ...(window.FLOWTRACK_SESSION || {}), expiresAt: loginResult.expires_at };
+            }
             await loadBootstrap();
             window.history.replaceState({}, '', '/dashboard');
             showApplication();
@@ -301,6 +557,8 @@
         }
 
         try {
+            if (sessionExpiryTimer) clearTimeout(sessionExpiryTimer);
+            if (sessionStatusTimer) clearInterval(sessionStatusTimer);
             await api('/flowtrack/logout', { method: 'POST' });
             window.FLOWTRACK_AUTHENTICATED = false;
             window.location.replace('/login');
@@ -679,6 +937,41 @@
         });
     }
 
+    function openRemoveJobPhaseConfirmation(job, phase) {
+        $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>Remove this Phase?</h2><div class="small muted" style="margin-top:5px">This affects only this Job. The shared workflow template remains unchanged.</div></div><button class="close-btn" data-phase-remove-close>×</button></div>
+        <div class="modal-body"><div class="card" style="padding:16px;border-color:#fecaca;background:#fff7f7"><div class="small muted">${html(job.id)}</div><h3 style="margin:5px 0 8px">${html(phase.name)}</h3><div class="small">Tasks in this phase will be removed from the Job and will not be regenerated. Documents stay archived but are detached from this phase.</div></div><div class="field" style="margin-top:16px"><label>Reason (optional)</label><textarea id="phaseRemovalReason" rows="3" placeholder="Why is this phase not needed for this Job?"></textarea></div></div>
+        <div class="modal-foot"><button class="ghost" data-phase-remove-close>Keep Phase</button><button class="danger-btn" id="confirmRemoveJobPhase">Remove Phase</button></div>`;
+        openOverlay();
+        $('#jobModal').classList.add('open');
+        $$('[data-phase-remove-close]').forEach((button) => button.addEventListener('click', () => {
+            closeAll();
+            setTimeout(() => openJob(job.id), 30);
+        }));
+        $('#confirmRemoveJobPhase').addEventListener('click', async () => {
+            const button = $('#confirmRemoveJobPhase');
+            button.disabled = true;
+            button.textContent = 'Removing…';
+            try {
+                const result = await api(`/flowtrack/template-api/jobs/${job.dbId}/phases/${phase.id}`, {
+                    method: 'DELETE',
+                    body: { reason: $('#phaseRemovalReason').value.trim() || null },
+                });
+                const jobIndex = jobs.findIndex((item) => Number(item.dbId) === Number(result.job.dbId));
+                if (jobIndex >= 0) jobs.splice(jobIndex, 1, result.job);
+                replaceTasksForJob(result.job.id, result.tasks);
+                closeAll();
+                renderPage(currentPage);
+                updateBadges();
+                showToast(`${phase.name} was removed from this Job.`);
+                setTimeout(() => openJob(result.job.id), 30);
+            } catch (error) {
+                showToast(error.message);
+                button.disabled = false;
+                button.textContent = 'Remove Phase';
+            }
+        });
+    }
+
     openJob = function (id) {
         const job = jobs.find((item) => item.id === id);
         originalOpenJob(id);
@@ -686,22 +979,75 @@
 
         const head = $('#detailDrawer .drawer-head');
         const close = head?.querySelector('.close-btn');
-        if (canFlow('jobs', 'delete') && head && close && !head.querySelector('[data-job-actions]')) {
-            const button = document.createElement('button');
-            button.className = 'ghost';
-            button.dataset.jobActions = String(job.dbId);
-            button.textContent = 'Job Actions';
-            button.title = 'Open Job actions';
-            button.style.padding = '8px 11px';
-            const actionGroup = document.createElement('div');
-            actionGroup.className = 'actions';
-            head.insertBefore(actionGroup, close);
-            actionGroup.appendChild(button);
-            actionGroup.appendChild(close);
-            button.addEventListener('click', () => {
+        const titleBlock = head?.firstElementChild;
+        if (titleBlock && !titleBlock.querySelector('[data-job-assignee]')) {
+            const assignee = document.createElement('div');
+            assignee.className = 'job-header-assignee';
+            assignee.dataset.jobAssignee = String(job.ownerId || '');
+            assignee.innerHTML = `<span class="small muted">Assignee</span><span class="avatar">${userInitials(job.owner || 'Unassigned')}</span><b>${html(job.owner || 'Unassigned')}</b>`;
+            titleBlock.appendChild(assignee);
+        }
+        if (head && close) {
+            let actionGroup = head.querySelector('.job-header-actions');
+            if (!actionGroup) {
+                actionGroup = document.createElement('div');
+                actionGroup.className = 'actions job-header-actions';
+                head.insertBefore(actionGroup, close);
+                actionGroup.appendChild(close);
+            }
+            if (canEditJobRecord() && !actionGroup.querySelector('[data-edit-job]')) {
+                const editButton = document.createElement('button');
+                editButton.className = 'secondary';
+                editButton.dataset.editJob = String(job.dbId);
+                editButton.textContent = '✎ Edit Job';
+                editButton.addEventListener('click', () => {
+                    closeAll();
+                    setTimeout(() => openEditJobModal(job), 30);
+                });
+                actionGroup.insertBefore(editButton, close);
+            }
+            if (canFlow('jobs', 'delete') && !actionGroup.querySelector('[data-job-actions]')) {
+                const button = document.createElement('button');
+                button.className = 'ghost';
+                button.dataset.jobActions = String(job.dbId);
+                button.textContent = 'Job Actions';
+                button.title = 'Open Job actions';
+                button.addEventListener('click', () => {
+                    closeAll();
+                    setTimeout(() => openDeleteJobConfirmation(job), 30);
+                });
+                actionGroup.insertBefore(button, close);
+            }
+        }
+
+        const workflow = getWorkflow(Number(job.workflow));
+        const excludedPhaseIds = new Set((job.excludedPhaseIds || []).map((phaseId) => Number(phaseId)));
+        const activePhases = (workflow?.phases || [])
+            .filter((phase) => phase.active !== false && !excludedPhaseIds.has(Number(phase.id)))
+            .slice()
+            .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
+        const currentPhase = activePhases.find((phase) => Number(phase.id) === Number(job.phaseId));
+        const timeline = $('#detailPanel1 .timeline');
+        if (timeline && activePhases.length) {
+            timeline.innerHTML = activePhases.map((phase) => {
+                const originalIndex = (workflow?.phases || []).findIndex((item) => Number(item.id) === Number(phase.id));
+                const skipped = (job.skippedPhases || []).includes(originalIndex);
+                const beforeCurrent = currentPhase && Number(phase.sequence) < Number(currentPhase.sequence);
+                const isCurrent = Number(phase.id) === Number(job.phaseId);
+                const state = skipped ? 'skipped' : beforeCurrent ? 'done' : isCurrent ? 'current' : '';
+                const dot = skipped ? '↷' : beforeCurrent ? '✓' : phase.sequence;
+                const remove = job.canDeletePhases && activePhases.length > 1
+                    ? `<button class="mini-btn" data-remove-job-phase="${phase.id}" style="display:block;margin:6px auto 0">Remove</button>`
+                    : '';
+                return `<div class="step ${state}"><div class="step-dot">${dot}</div><div class="step-label">${html(phase.name)}${skipped ? '<br><small>Skipped / external</small>' : ''}${remove}</div></div>`;
+            }).join('');
+            $$('[data-remove-job-phase]').forEach((button) => button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const phase = activePhases.find((item) => Number(item.id) === Number(button.dataset.removeJobPhase));
+                if (!phase) return;
                 closeAll();
-                setTimeout(() => openDeleteJobConfirmation(job), 30);
-            });
+                setTimeout(() => openRemoveJobPhaseConfirmation(job, phase), 30);
+            }));
         }
 
         const requirement = jobPhaseDocumentRequirement(job);
@@ -838,6 +1184,7 @@
         const payload = {
             task_status_id: statusRecord.id,
             assignee_id: extras.assignee_id ?? task.assigneeId ?? null,
+            due_date: extras.due_date ?? task.due ?? null,
             progress: taskProgressForStatus(statusRecord),
             attention_required: extras.attention_required ?? task.attention ?? false,
             blocker_reason: extras.blocker_reason ?? task.blockerReason ?? null,
@@ -860,6 +1207,7 @@
         <div class="drawer-body"><div class="summary-grid"><div class="summary-box"><span>Job</span><b>${html(job?.title || task.job)}</b></div><div class="summary-box"><span>Assignee</span><b>${html(task.assignee)}</b></div><div class="summary-box"><span>Due Date</span><b class="${dueClass(task.due)}">${formatDate(task.due)}</b></div></div>
         <div class="form-grid" style="margin-top:18px"><div class="field"><label>Status</label><select id="taskUpdateStatus" ${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}>${statuses.map((status) => `<option value="${status.id}" ${Number(status.id) === Number(selectedStatus?.id) ? 'selected' : ''}>${html(status.name)}</option>`).join('')}</select></div>
         <div class="field"><label>Assignee</label><select id="taskUpdateAssignee" ${task.canAssign || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}><option value="">Unassigned</option>${users.map((user) => `<option value="${user.id}" ${Number(user.id) === Number(task.assigneeId) ? 'selected' : ''}>${html(user.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Due Date</label><input type="date" id="taskUpdateDueDate" value="${task.due ? task.due.split('T')[0] : ''}" ${task.canChangeDueDate || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}><div class="inline-help">Available for regular tasks and subtasks.</div></div>
         <div class="field full"><label>Progress: <b id="progressValue">${task.progress}%</b></label><input id="taskProgress" type="range" min="0" max="100" value="${task.progress}" disabled><div class="inline-help">Progress is calculated automatically from the selected status.</div></div></div>
         <div class="section-head"><h3>Checklist</h3><span class="small muted">${task.checklist.filter((item) => item.done).length}/${task.checklist.length} complete</span></div>
         ${task.checklist.map((item, index) => `<label class="check-row"><input class="task-check" data-check="${index}" type="checkbox" ${item.done ? 'checked' : ''} ${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}> <span>${html(item.text)}</span></label>`).join('')}
@@ -867,8 +1215,8 @@
         <label class="check-row"><input id="taskAttention" type="checkbox" ${task.attention ? 'checked' : ''} ${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}> <span>Mark as attention needed</span></label>
         <div class="section-head" style="margin-top:18px"><h3>Activity & Comments</h3></div>
         ${(task.comments || []).map((comment) => `<div class="comment"><span class="avatar">${userInitials(comment.user)}</span><div><b>${html(comment.user)}</b><div style="margin-top:4px">${html(comment.text)}</div><div class="small muted" style="margin-top:4px">${html(comment.time)}</div></div></div>`).join('')}
-        ${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '' : '<div class="source-note" style="margin-top:18px"><b>Read-only Task</b><div class="small muted" style="margin-top:4px">Only the assigned user, an Administrator, or the Super Admin can update this Task.</div></div>'}
-        <div class="actions" style="margin-top:18px">${task.canDelete || isFlowAdmin || isFlowSuperAdmin ? `<button class="danger-btn" data-delete-task="${task.dbId}">Delete Task</button>` : ''}${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '<button class="primary" id="saveTaskUpdate" style="flex:1">Save Task Update</button>' : '<button class="ghost" data-close style="flex:1">Close</button>'}</div></div>`;
+        ${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '' : '<div class="source-note" style="margin-top:18px"><b>Limited Task Access</b><div class="small muted" style="margin-top:4px">Everyone assigned to this Job can view its Tasks. Full updates remain limited to the assignee or an Administrator; authorised Job managers can still change the due date.</div></div>'}
+        <div class="actions" style="margin-top:18px">${task.canDelete || isFlowAdmin || isFlowSuperAdmin ? `<button class="danger-btn" data-delete-task="${task.dbId}">Delete Task</button>` : ''}${task.canChangeDueDate || isFlowAdmin || isFlowSuperAdmin ? '<button class="secondary" id="saveTaskDueDate">Save Due Date</button>' : ''}${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '<button class="primary" id="saveTaskUpdate" style="flex:1">Save Task Update</button>' : '<button class="ghost" data-close style="flex:1">Close</button>'}</div></div>`;
 
         openOverlay();
         $('#detailDrawer').classList.add('open');
@@ -886,16 +1234,37 @@
             if (!confirm(`Delete task ${task.id}?`)) return;
             try {
                 const result = await api(`/flowtrack/template-api/tasks/${task.dbId}`, { method: 'DELETE' });
-                const index = tasks.findIndex((item) => Number(item.dbId) === Number(task.dbId));
-                if (index >= 0) tasks.splice(index, 1);
                 if (result.job) {
                     const jobIndex = jobs.findIndex((item) => Number(item.dbId) === Number(result.job.dbId));
                     if (jobIndex >= 0) jobs.splice(jobIndex, 1, result.job);
+                    replaceTasksForJob(result.job.id, result.tasks || []);
                 }
                 closeAll(); renderPage(currentPage); updateBadges(); showToast('Task deleted successfully.');
             } catch (error) { showToast(error.message); }
         });
         applyActionPermissions();
+
+        $('#saveTaskDueDate')?.addEventListener('click', async () => {
+            const button = $('#saveTaskDueDate');
+            button.disabled = true;
+            button.textContent = 'Saving…';
+            try {
+                const result = await api(`/flowtrack/template-api/tasks/${task.dbId}/due-date`, {
+                    method: 'PATCH',
+                    body: { due_date: $('#taskUpdateDueDate').value || null },
+                });
+                updateTaskAndJob(result);
+                renderPage(currentPage);
+                updateBadges();
+                showToast('Task due date updated.');
+                openTask(result.task?.id || task.id);
+            } catch (error) {
+                showToast(error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Save Due Date';
+            }
+        });
 
         $('#saveTaskUpdate')?.addEventListener('click', async () => {
             const status = taskStatusRecord($('#taskUpdateStatus').value);
@@ -915,6 +1284,7 @@
                 const completed = $$('.task-check').filter((checkbox) => checkbox.checked).map((checkbox) => task.checklist[Number(checkbox.dataset.check)]?.id).filter(Boolean);
                 await persistTask(task, status, {
                     assignee_id: $('#taskUpdateAssignee').value ? Number($('#taskUpdateAssignee').value) : null,
+                    due_date: $('#taskUpdateDueDate').value || null,
                     attention_required: attention,
                     blocker_reason: (isBlocked || attention) ? (comment || task.blockerReason) : null,
                     completed_checklist_ids: completed,
@@ -989,7 +1359,7 @@
             if (selectedWorkflow) boardWorkflowId = selectedWorkflow.id;
 
             const phases = (selectedWorkflow?.phases || [])
-                .filter((phase) => phase.active !== false)
+                .filter((phase) => phase.active !== false && !(job.excludedPhaseIds || []).map(Number).includes(Number(phase.id)))
                 .slice()
                 .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
             const workflowJobs = selectedWorkflow
@@ -1056,12 +1426,18 @@
                         if (!job) throw new Error('The selected Job is no longer available.');
                         const workflow = getWorkflow(Number(job.workflow));
                         const phaseId = Number(list.dataset.dropPhaseId);
-                        const phase = (workflow?.phases || []).find((item) => Number(item.id) === phaseId && item.active !== false);
+                        const excludedPhaseIds = new Set((job.excludedPhaseIds || []).map((id) => Number(id)));
+                        const phase = (workflow?.phases || []).find((item) => Number(item.id) === phaseId && item.active !== false && !excludedPhaseIds.has(Number(item.id)));
                         if (!phase) throw new Error('The selected workflow phase is not configured for this Job.');
 
-                        const currentPhase = (workflow.phases || []).find((item) => Number(item.id) === Number(job.phaseId));
+                        const activePhases = (workflow.phases || [])
+                            .filter((item) => item.active !== false && !excludedPhaseIds.has(Number(item.id)))
+                            .slice()
+                            .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
+                        const currentIndex = activePhases.findIndex((item) => Number(item.id) === Number(job.phaseId));
+                        const targetIndex = activePhases.findIndex((item) => Number(item.id) === Number(phase.id));
                         let reason = null;
-                        if (currentPhase && Number(phase.sequence) > Number(currentPhase.sequence) + 1) {
+                        if (currentIndex >= 0 && targetIndex > currentIndex + 1) {
                             reason = window.prompt('Enter the authorised reason for skipping workflow phases:')?.trim() || '';
                             if (!reason) {
                                 showToast('A reason is required when skipping workflow phases.');
@@ -1115,8 +1491,9 @@
             const job = jobs.find((item) => item.id === next.dataset.nextPhase);
             if (!job) return;
             const workflow = getWorkflow(Number(job.workflow));
+            const excludedPhaseIds = new Set((job.excludedPhaseIds || []).map((phaseId) => Number(phaseId)));
             const phases = (workflow?.phases || [])
-                .filter((phase) => phase.active !== false)
+                .filter((phase) => phase.active !== false && !excludedPhaseIds.has(Number(phase.id)))
                 .slice()
                 .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
             const currentIndex = phases.findIndex((phase) => Number(phase.id) === Number(job.phaseId));
@@ -1138,6 +1515,198 @@
         });
         const viewTasks = $('[data-open-job-tasks]');
         if (viewTasks) viewTasks.addEventListener('click', () => $('[data-detailtab="2"]')?.click());
+    };
+
+    function metricDateKey(value = new Date()) {
+        const date = value instanceof Date ? value : new Date(value);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function taskIsCompleted(task) {
+        return Boolean(task.completedAt) || String(task.status || '').toLowerCase() === 'completed';
+    }
+
+    function jobIsCompleted(job) {
+        return String(job.status || '').toLowerCase() === 'completed' || String(job.health || '').toLowerCase() === 'completed';
+    }
+
+    function taskIsBlocked(task) {
+        const status = String(task.status || '').toLowerCase();
+        return !taskIsCompleted(task) && (Boolean(task.attention) || Boolean(task.blockerReason) || status === 'blocked');
+    }
+
+    function dynamicDashboardMetrics() {
+        const date = summaryMetrics.asOf?.date || metricDateKey();
+        const activeJobs = jobs.filter((job) => !jobIsCompleted(job));
+        return {
+            activeJobs: activeJobs.length,
+            needsAttention: activeJobs.filter((job) => job.attention || ['needs attention', 'at risk', 'delayed', 'blocked'].includes(String(job.health || '').toLowerCase())).length,
+            overdueTasks: tasks.filter((task) => !taskIsCompleted(task) && task.due && task.due < date).length,
+            blockedTasks: tasks.filter(taskIsBlocked).length,
+            shippingNow: activeJobs.filter((job) => /ship/i.test(phaseNameFor(job)) || /ship/i.test(phaseShortFor(job))).length,
+            outstanding: canSensitive('invoice_amount') ? clients.reduce((sum, client) => sum + Number(client.outstanding || 0), 0) : null,
+            canViewFinancials: canSensitive('invoice_amount'),
+        };
+    }
+
+    function recentTaskActivities() {
+        const apiActivities = (Array.isArray(dashboardActivities) ? dashboardActivities : []).map((item) => ({
+            ...item,
+            createdAt: item.createdAt || item.created_at || '',
+        }));
+        const derivedActivities = [...tasks]
+            .filter((task) => task.createdAt)
+            .map((task) => ({
+                id: `task-created-${task.dbId || task.id}`,
+                title: 'Task created',
+                text: `${task.id} · ${task.title}${task.job ? ` · ${task.job}` : ''}`,
+                time: new Date(task.createdAt).toLocaleString(),
+                createdAt: task.createdAt,
+                event: 'task.created',
+                task: task.id,
+                job: task.job,
+                user: { name: task.assignee || 'System', initials: userInitials(task.assignee || 'System') },
+            }));
+
+        const seenTasks = new Set();
+        return [...apiActivities, ...derivedActivities]
+            .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+            .filter((item) => {
+                const key = String(item.task || item.id || '');
+                if (!key || seenTasks.has(key)) return false;
+                seenTasks.add(key);
+                return true;
+            })
+            .slice(0, 6);
+    }
+
+    renderDashboard = function () {
+        const metrics = { ...(summaryMetrics.dashboard || {}), ...dynamicDashboardMetrics() };
+        const activeJobs = jobs.filter((job) => !jobIsCompleted(job));
+        const attentionJobs = activeJobs
+            .filter((job) => job.attention || ['needs attention', 'at risk', 'delayed', 'blocked'].includes(String(job.health || '').toLowerCase()))
+            .sort((a, b) => String(a.delivery || '9999-12-31').localeCompare(String(b.delivery || '9999-12-31')))
+            .slice(0, 6);
+        const phaseMap = new Map();
+        activeJobs.forEach((job) => {
+            const label = phaseShortFor(job) || phaseNameFor(job) || 'Unassigned';
+            phaseMap.set(label, (phaseMap.get(label) || 0) + 1);
+        });
+        const phaseCounts = [...phaseMap.entries()].sort((a, b) => b[1] - a[1]);
+        const maxPhase = Math.max(1, ...phaseCounts.map(([, count]) => count));
+        const workloadMap = new Map();
+        tasks.filter((task) => !taskIsCompleted(task)).forEach((task) => {
+            const assignee = task.assignee || 'Unassigned';
+            workloadMap.set(assignee, (workloadMap.get(assignee) || 0) + 1);
+        });
+        const workload = [...workloadMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+        const maxWorkload = Math.max(1, ...workload.map(([, count]) => count));
+        const displayDate = summaryMetrics.asOf?.displayDate || new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        const outstandingValue = metrics.canViewFinancials ? currency(metrics.outstanding || 0) : 'Restricted';
+        const recentActivities = recentTaskActivities();
+
+        $('#page-dashboard').innerHTML = `<div class="page-head"><div><h1>Management Dashboard</h1><p>${html(displayDate)} · Exceptions, workload and delivery health</p></div><div class="actions"><button class="ghost" data-dashboard-action="export">Export summary</button><button class="primary" data-dashboard-action="create">＋ New Job</button></div></div>
+        <div class="metrics">${metric('Active Jobs', metrics.activeJobs, 'Across visible workflow phases', 'jobs')}${metric('Needs Attention', metrics.needsAttention, 'Risk, delay or blocker', 'risk')}${metric('Overdue Tasks', metrics.overdueTasks, 'Require immediate update', 'overdue')}${metric('Blocked Tasks', metrics.blockedTasks, 'Require resolution', 'blocked')}${metric('Shipping Now', metrics.shippingNow, 'Ready or in transit', 'shipment')}${metric('Outstanding', outstandingValue, metrics.canViewFinancials ? 'Open client balance' : 'Financial access required', 'payment')}</div>
+        <div class="grid-2"><div class="card section-card"><div class="section-head"><h3>Needs Attention</h3><button class="link-btn" data-go="jobs">View all Jobs</button></div><div class="attention-list">${attentionJobs.map((job) => `<div class="attention-item" data-job="${job.id}"><span class="signal ${String(job.health).toLowerCase() === 'blocked' ? 'purple' : String(job.health).toLowerCase() === 'needs attention' ? 'amber' : 'red'}"></span><div><div class="item-title">${html(job.next || job.title)}</div><div class="item-meta">${html(job.id)} · ${html(clientName(job.client))} · ${html(phaseShortFor(job))}</div></div>${healthBadge(job.health)}</div>`).join('') || '<div class="empty-state">No visible Jobs currently require attention.</div>'}</div></div>
+        <div class="card section-card"><div class="section-head"><h3>Jobs by Phase</h3><button class="link-btn" data-go="board">Open board</button></div><div class="phase-list">${phaseCounts.map(([label, count]) => `<div class="phase-row"><span>${html(label)}</span><div class="progress"><span style="width:${Math.max(8, count / maxPhase * 100)}%"></span></div><b>${count}</b></div>`).join('') || '<div class="empty-state">No active Jobs are visible.</div>'}</div></div></div>
+        <div class="grid-3"><div class="card section-card"><div class="section-head"><h3>Team Workload</h3><button class="link-btn" data-go="reports">Details</button></div>${workload.map(([name, count]) => `<div class="workload-row"><div class="person"><span class="avatar">${html(userInitials(name))}</span>${html(name)}</div><div class="progress"><span style="width:${Math.max(8, count / maxWorkload * 100)}%"></span></div><b>${count}</b></div>`).join('') || '<div class="empty-state">No open Tasks are visible.</div>'}</div>
+        <div class="card section-card"><div class="section-head"><h3>Upcoming Deliveries</h3><button class="link-btn" data-go="jobs">View Jobs</button></div><table class="mini-table"><thead><tr><th>Job</th><th>Client</th><th>Delivery</th></tr></thead><tbody>${activeJobs.filter((job) => job.delivery).sort((a, b) => a.delivery.localeCompare(b.delivery)).slice(0, 6).map((job) => `<tr data-job="${job.id}" style="cursor:pointer"><td><b>${html(String(job.id).slice(-5))}</b><div class="muted small truncate" style="max-width:125px">${html(job.title)}</div></td><td>${html(clientName(job.client).split(' ')[0])}</td><td class="${job.delivery < (summaryMetrics.asOf?.date || metricDateKey()) ? 'due overdue' : ''}">${formatDate(job.delivery)}</td></tr>`).join('') || '<tr><td colspan="3"><div class="empty-state">No upcoming deliveries.</div></td></tr>'}</tbody></table></div>
+        <div class="card section-card"><div class="section-head"><h3>Recent Activity</h3><button class="link-btn" data-go="mywork">View Tasks</button></div>${recentActivities.map((item) => `<div class="activity" ${item.task ? `data-task="${html(item.task)}"` : item.job ? `data-job="${html(item.job)}"` : ''} style="cursor:pointer"><span class="avatar">${html(item.user?.initials || userInitials(item.user?.name || 'System'))}</span><div><div class="activity-text"><b>${html(item.title || 'Task created')}</b><br>${html(item.text || '')}</div><div class="activity-time">${html(item.time || '')}</div></div></div>`).join('') || '<div class="empty-state">No recently created tasks.</div>'}</div></div>`;
+        bindCommon();
+        $$('[data-dashboard-action="create"]').forEach((button) => button.addEventListener('click', openJobModal));
+        $('[data-dashboard-action="export"]')?.addEventListener('click', () => window.print());
+        applyActionPermissions();
+    };
+
+    renderMyWork = function () {
+        const date = summaryMetrics.asOf?.date || metricDateKey();
+        const weekStart = summaryMetrics.asOf?.weekStart || metricDateKey(new Date(new Date().setDate(new Date().getDate() - new Date().getDay() + 1)));
+        const weekEnd = summaryMetrics.asOf?.weekEnd || metricDateKey(new Date(new Date().setDate(new Date().getDate() - new Date().getDay() + 7)));
+        const openTasks = tasks.filter((task) => !taskIsCompleted(task));
+        const metrics = {
+            dueToday: openTasks.filter((task) => task.due === date).length,
+            overdue: openTasks.filter((task) => task.due && task.due < date).length,
+            blockedAttention: openTasks.filter(taskIsBlocked).length,
+            waitingReview: openTasks.filter((task) => /waiting|review/i.test(task.status || '')).length,
+            completedThisWeek: tasks.filter((task) => taskIsCompleted(task) && task.completedAt && task.completedAt.slice(0, 10) >= weekStart && task.completedAt.slice(0, 10) <= weekEnd).length,
+            upcoming: openTasks.filter((task) => task.due && task.due > date).length,
+        };
+        const statusOptions = (masterData.taskStatuses || []).filter((status) => String(status.status).toLowerCase() === 'active');
+        const showAssignees = boardAccess.isAdministrator;
+
+        $('#page-mywork').innerHTML = `<div class="page-head"><div><h1>My Work</h1><p>What needs your action now</p></div><div class="actions"><button class="ghost" id="myCalendar">Calendar</button><button class="primary" data-go="board">Open board</button></div></div>
+        <div class="metrics">${metric('Due Today', metrics.dueToday, 'Tasks requiring action', 'today')}${metric('Overdue', metrics.overdue, 'Past their due date', 'overdue')}${metric('Blocked / Attention', metrics.blockedAttention, 'Need support', 'blocked')}${metric('Waiting Review', metrics.waitingReview, 'Client, supplier or internal', 'blocked')}${metric('Completed This Week', metrics.completedThisWeek, 'Across visible assignments', 'done')}${metric('Upcoming', metrics.upcoming, 'Scheduled next', 'upcoming')}</div>
+        <div class="card toolbar"><input id="taskSearch" class="search-small" placeholder="Search assigned tasks…"><select id="taskStatus"><option value="">All statuses</option>${statusOptions.map((status) => `<option value="${html(status.name)}">${html(status.name)}</option>`).join('')}</select>${showAssignees ? `<select id="taskAssignee"><option value="">All assignees</option>${users.map((user) => `<option value="${html(user.name)}">${html(user.name)}</option>`).join('')}</select>` : ''}</div>
+        <div id="myTaskGrid" class="task-grid">${renderTaskCards(openTasks)}</div>`;
+
+        const rerender = () => {
+            const query = ($('#taskSearch')?.value || '').toLowerCase();
+            const status = $('#taskStatus')?.value || '';
+            const assignee = $('#taskAssignee')?.value || '';
+            const filtered = openTasks.filter((task) => (!query || `${task.title} ${task.job}`.toLowerCase().includes(query)) && (!status || task.status === status) && (!assignee || task.assignee === assignee));
+            $('#myTaskGrid').innerHTML = renderTaskCards(filtered);
+            bindCommon();
+        };
+        $('#taskSearch')?.addEventListener('input', rerender);
+        $('#taskStatus')?.addEventListener('change', rerender);
+        $('#taskAssignee')?.addEventListener('change', rerender);
+        $('#myCalendar')?.addEventListener('click', () => window.print());
+        bindCommon();
+        applyActionPermissions();
+    };
+
+    renderReports = function () {
+        const report = summaryMetrics.reports || {};
+        const activeJobs = jobs.filter((job) => !jobIsCompleted(job));
+        const phaseMap = new Map();
+        activeJobs.forEach((job) => {
+            const label = phaseShortFor(job) || phaseNameFor(job) || 'Unassigned';
+            phaseMap.set(label, (phaseMap.get(label) || 0) + 1);
+        });
+        const phaseData = [...phaseMap.entries()].map(([label, value]) => ({ label, value }));
+        const workloadMap = new Map();
+        tasks.filter((task) => !taskIsCompleted(task)).forEach((task) => workloadMap.set(task.assignee || 'Unassigned', (workloadMap.get(task.assignee || 'Unassigned') || 0) + 1));
+        const workload = [...workloadMap.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 10);
+        const maxPhase = Math.max(1, ...phaseData.map((item) => item.value));
+        const maxWorkload = Math.max(1, ...workload.map((item) => item.value));
+        const ageing = Array.isArray(report.ageing) ? report.ageing : [];
+        const maxAgeing = Math.max(1, ...ageing.map((item) => Number(item.value)));
+        const receivables = report.financialVisible === false ? 'Restricted' : currency(report.openReceivables || 0);
+
+        $('#page-reports').innerHTML = `<div class="page-head"><div><h1>Reports</h1><p>Operational performance, conversion, workload and cash collection</p></div><div class="actions"><button class="ghost" id="reportPdf">Print / PDF</button><button class="primary" id="reportExcel">Export CSV</button></div></div>
+        <div class="metrics">${metric('Quotation Conversion', `${Number(report.quotationConversion || 0)}%`, 'Visible Jobs', '')}${metric('On-time Jobs', `${Number(report.onTimeJobs || 0)}%`, 'Completed deliveries', '')}${metric('Task Completion', `${Number(report.taskCompletion || 0)}%`, 'Within target date', '')}${metric('Avg. Artwork Cycle', `${Number(report.artworkCycle || 0)}d`, 'Request to completion', '')}${metric('Shipment On Time', `${Number(report.shipmentOnTime || 0)}%`, 'Completed shipment phases', '')}${metric('Open Receivables', receivables, report.financialVisible === false ? 'Financial access required' : 'Across visible clients', '')}</div>
+        <div class="report-grid"><div class="card section-card"><div class="section-head"><h3>Active Jobs by Phase</h3><span class="small muted">Current portfolio</span></div><div class="bars">${phaseData.map((item) => barRow(item.label, item.value, maxPhase)).join('') || '<div class="empty-state">No active Jobs.</div>'}</div></div>
+        <div class="card section-card"><div class="section-head"><h3>Team Workload</h3><span class="small muted">Open Tasks</span></div><div class="bars">${workload.map((item) => barRow(item.label, item.value, maxWorkload)).join('') || '<div class="empty-state">No open Tasks.</div>'}</div></div>
+        <div class="card section-card"><div class="section-head"><h3>Delivery Performance</h3></div><div class="kpi-list"><div class="kpi"><b>${Number(report.deliveredThisMonth || 0)}</b><span>Delivered this month</span></div><div class="kpi"><b>${Number(report.deliveredOnTimeThisMonth || 0)}</b><span>Delivered on time</span></div><div class="kpi"><b>${Number(report.supplierDelays || 0)}</b><span>Supplier delays</span></div><div class="kpi"><b>${Number(report.clientDependencies || 0)}</b><span>Client dependencies</span></div></div></div>
+        <div class="card section-card"><div class="section-head"><h3>Receivable Ageing</h3></div><div class="bars">${report.financialVisible === false ? '<div class="empty-state">Financial access is restricted.</div>' : ageing.map((item) => barRow(item.label, Number(item.value), maxAgeing, currency(item.value))).join('') || '<div class="empty-state">No open receivables.</div>'}</div></div></div>`;
+        $('#reportPdf')?.addEventListener('click', () => window.print());
+        $('#reportExcel')?.addEventListener('click', () => {
+            const rows = [['Metric', 'Value'], ['Quotation Conversion', `${report.quotationConversion || 0}%`], ['On-time Jobs', `${report.onTimeJobs || 0}%`], ['Task Completion', `${report.taskCompletion || 0}%`], ['Average Artwork Cycle', `${report.artworkCycle || 0} days`], ['Shipment On Time', `${report.shipmentOnTime || 0}%`], ['Open Receivables', report.openReceivables ?? 'Restricted']];
+            const csv = rows.map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(',')).join('\n');
+            const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+            const link = document.createElement('a'); link.href = url; link.download = `flowtrack-report-${metricDateKey()}.csv`; link.click(); URL.revokeObjectURL(url);
+        });
+    };
+
+    clientCards = function (items) {
+        return items.map((client) => {
+            const clientJobs = jobs.filter((job) => Number(job.client) === Number(client.id));
+            const activeJobs = clientJobs.filter((job) => !jobIsCompleted(job)).length;
+            const attention = clientJobs.filter((job) => !jobIsCompleted(job) && (job.attention || ['needs attention', 'at risk', 'delayed', 'blocked'].includes(String(job.health || '').toLowerCase()))).length;
+            const outstanding = canSensitive('invoice_amount') ? currency(client.outstanding || 0).replace('$', '') : 'Restricted';
+            return `<div class="card client-card" data-client="${client.id}"><div class="client-head"><div class="company-logo">${html(client.code)}</div><div><h3>${html(client.name)}</h3><div class="small muted">${html(client.country || '—')} · ${html(client.contact || 'No contact')}</div></div></div><div class="client-stats"><div class="client-stat"><b>${activeJobs}</b><span>Active Jobs</span></div><div class="client-stat"><b>${attention}</b><span>Attention</span></div><div class="client-stat"><b>${html(outstanding)}</b><span>Outstanding</span></div></div><div class="small muted" style="margin-top:12px">Account manager: ${html(client.manager || 'Unassigned')}</div></div>`;
+        }).join('') || '<div class="card empty-state">No clients found.</div>';
+    };
+
+    updateBadges = function () {
+        const unread = notifications.filter((notification) => !notification.read).length;
+        if ($('#notificationBadge')) $('#notificationBadge').textContent = unread;
+        const visibleOpenTasks = tasks.filter((task) => !taskIsCompleted(task));
+        const ownOpenTasks = boardAccess.isAdministrator ? visibleOpenTasks : visibleOpenTasks.filter((task) => Number(task.assigneeId) === Number(currentUser?.id));
+        if ($('#myWorkBadge')) $('#myWorkBadge').textContent = ownOpenTasks.length;
     };
 
     function masterSection(category = selectedMasterCategory) {
@@ -1452,7 +2021,7 @@
         const configuredTasks = taskPacks.reduce((sum, pack) => sum + (pack.items || []).length, 0);
         const mappedPhases = workflowTemplates.reduce((sum, workflow) => sum + (workflow.phases || []).filter((phase) => phase.taskPackId).length, 0);
         page.innerHTML = `<div class="page-head"><div><h1>Task Pack Setup</h1><p>Create reusable task sequences that activate when a Job enters a workflow phase</p></div><div class="actions"><button class="primary" id="addTaskPack">＋ Add Task Pack</button></div></div>
-        <div class="config-summary"><div class="card config-stat"><span>Total Task Packs</span><b>${taskPacks.length}</b></div><div class="card config-stat"><span>Configured Tasks</span><b>${configuredTasks}</b></div><div class="card config-stat"><span>Mapped Phases</span><b>${mappedPhases}</b></div><div class="card config-stat"><span>Activation Rule</span><b style="font-size:15px">Phase Entry</b></div></div>
+        <div class="config-summary"><div class="card config-stat"><span>Total Task Packs</span><b>${taskPacks.length}</b></div><div class="card config-stat"><span>Active Task Packs</span><b>${taskPacks.filter((pack) => pack.active).length}</b></div><div class="card config-stat"><span>Configured Tasks</span><b>${configuredTasks}</b></div><div class="card config-stat"><span>Mapped Phases</span><b>${mappedPhases}</b></div></div>
         <div id="taskPackSetupContent"><div class="pack-list">${taskPacks.map((pack) => `<div class="card pack"><div class="section-head"><div><h4>${html(pack.name)} Task Pack</h4><div class="small muted">${html(pack.code)} · ${(pack.items || []).length} predefined tasks · ${pack.active ? 'Active' : 'Inactive'}</div></div><button class="mini-btn" data-edit-pack-id="${pack.id}">Edit</button></div><div class="small muted">${html(pack.description || 'No description')}</div><ul class="pack-tasks">${(pack.items || []).map((item, index) => `<li><div><span>${index + 1}. ${html(item.title)}</span><div class="small muted" style="margin-top:3px">${html(item.default_assignee_name || item.default_department_name || 'Job coordinator')} · Due +${item.due_offset_days} day(s)${item.priority_name ? ` · ${html(item.priority_name)}` : ''}${item.document_category_name ? ` · Required file: ${html(item.document_category_name)}` : ''}</div></div><span class="badge ${item.is_required ? 'b-blue' : 'b-gray'}">${item.is_required ? 'Mandatory' : 'Optional'}</span></li>`).join('') || '<li><span class="muted">No tasks configured</span></li>'}</ul></div>`).join('') || '<div class="card empty-state">No Task Packs have been created.</div>'}</div></div>`;
         $('#addTaskPack')?.addEventListener('click', () => openTaskPackModal());
         $$('[data-edit-pack-id]').forEach((button) => button.addEventListener('click', () => {
@@ -1464,6 +2033,15 @@
 
     function productByName(name) {
         return (masterData.products || []).find((product) => product.name.toLowerCase() === String(name || '').trim().toLowerCase());
+    }
+
+    function jobPriorityOptions(name, selectedId) {
+        const priorities = activeMaster('priorities');
+        return `<div class="job-priority-options">${priorities.map((item) => `<label class="job-priority-option"><input type="radio" name="${name}" value="${item.id}" ${Number(item.id) === Number(selectedId) ? 'checked' : ''}><span class="job-priority-check">✓</span><span>${html(item.name)}</span></label>`).join('')}</div>`;
+    }
+
+    function canEditJobRecord() {
+        return canFlow('jobs', 'edit_all') || canFlow('jobs', 'edit_own');
     }
 
     openJobModal = function (prefillClient) {
@@ -1479,50 +2057,50 @@
         <div class="field full"><label>Client *</label><select id="newJobClient" data-searchable data-search-placeholder="Search clients…">${clients.map((client) => `<option value="${client.id}" ${Number(defaultClient?.id) === Number(client.id) ? 'selected' : ''}>${html(client.name)}</option>`).join('')}</select></div>
         <div class="field full"><label>Client contact</label><input id="newJobContact" value="${html(defaultClient?.contact)}" readonly></div>
         <div class="field full"><label>Job title *</label><input id="newJobTitle" placeholder="e.g. Conference merchandise order"></div>
-        <div class="field full"><label>Product category *</label><select id="newJobCategory" data-searchable data-search-placeholder="Search product categories…"><option value="">Select category</option>${categories.map((item) => `<option value="${item.id}">${html(item.name)}</option>`).join('')}</select></div>
+        <div class="field full"><label>Request description</label><textarea id="newJobDesc" rows="3" placeholder="Specifications, target price, printing or customization requirements…"></textarea></div>
         <div class="field full job-products-field">
-            <div class="job-products-title"><div><label>Products & quantities *</label><div class="inline-help">Keep Product and Quantity together. Use “Add another product” for additional line items.</div></div></div>
-            <div class="job-product-labels"><span>Product</span><span>Quantity</span><span aria-hidden="true"></span></div>
+            <div class="job-products-title"><div><label>Products & quantities *</label><div class="inline-help">Choose the Product Category first, then its Product and Quantity on the same row.</div></div></div>
+            <div class="job-product-labels"><span>Product category</span><span>Product</span><span>Quantity</span><span aria-hidden="true"></span></div>
             <div id="newJobProducts" class="job-product-list"></div>
             <button type="button" class="secondary job-add-product" id="addJobProduct">＋ Add another product</button>
         </div>
         <div class="field full"><label>Required delivery date *</label><input id="newJobDelivery" type="date"></div>
-        <div class="field full"><label>Priority</label><select id="newJobPriority" data-searchable data-search-placeholder="Search priorities…">${activeMaster('priorities').map((item) => `<option value="${item.id}" ${Number(item.id) === Number(defaultPriority?.id) ? 'selected' : ''}>${html(item.name)}</option>`).join('')}</select></div>
-        <div class="field full"><label>Sales owner</label><select id="newJobOwner" data-searchable data-search-placeholder="Search sales owners…" ${canFlow('jobs', 'assign') ? '' : 'disabled'}>${ownerUsers.map((user) => `<option value="${user.id}">${html(user.name)}</option>`).join('')}</select></div>
+        <div class="field full"><label>Priority</label>${jobPriorityOptions('newJobPriority', defaultPriority?.id)}</div>
+        <div class="field full"><label>Job assignee</label><select id="newJobOwner" data-searchable data-search-placeholder="Search assignees…" ${canFlow('jobs', 'assign') ? '' : 'disabled'}>${ownerUsers.map((user) => `<option value="${user.id}" ${Number(user.id) === Number(currentUser?.id) ? 'selected' : ''}>${html(user.name)}</option>`).join('')}</select></div>
         <div class="field full"><label>Workflow template *</label><select id="newJobWorkflow" data-searchable data-search-placeholder="Search workflow templates…">${workflowTemplates.filter((workflow) => workflow.active).map((workflow) => `<option value="${workflow.id}">${html(workflow.name)}</option>`).join('')}</select><div class="inline-help">The selected workflow controls available starting stages and Task Packs.</div></div>
         <div class="field full"><label>Start Job from stage *</label><select id="newJobStartPhase" data-searchable data-search-placeholder="Search starting stages…"></select><div class="inline-help">Use this when earlier stages happened outside the system or do not apply.</div></div>
         <div id="skipHandlingWrap" class="field full hidden"><label>How should earlier phases be recorded? *</label><select id="newJobSkipHandling" data-searchable data-search-placeholder="Search phase handling options…"><option>Completed outside FlowTrack</option><option>Not applicable for this Job</option><option>Migrated from an existing process</option><option>Manager-authorized skip</option></select></div>
         <div id="skipReasonWrap" class="field full hidden"><label>Reason / reference *</label><textarea id="newJobStartReason" rows="2" placeholder="Explain why the Job begins at this stage, and add any external reference."></textarea></div>
-        <div class="field full"><label>Request description</label><textarea id="newJobDesc" rows="3" placeholder="Specifications, target price, printing or customization requirements…"></textarea></div>
         </div><div id="jobStagePreview" class="stage-preview"></div></div>
-        <div class="modal-foot"><button class="ghost" data-close>Cancel</button><button class="secondary" id="saveDraftJob">Save Draft</button><button class="primary" id="createJob">Create & Activate Current Task Pack</button></div>`;
+        <div class="modal-foot"><button class="ghost" data-close>Cancel</button><button class="secondary" id="saveDraftJob">Save Draft</button><button class="primary" id="createJob">Create</button></div>`;
 
         openOverlay();
         $('#jobModal').classList.add('open');
         $$('[data-close]').forEach((button) => button.addEventListener('click', closeAll));
 
-        let productRows = [{ product_id: '', quantity: 1000 }];
-
-        const availableProducts = () => {
-            const categoryId = Number($('#newJobCategory').value || 0);
-            return activeMaster('products').filter((product) => !categoryId || Number(product.parent_id) === categoryId);
-        };
+        let productRows = [{ product_category_id: '', product_id: '', quantity: 1000 }];
+        const productsForCategory = (categoryId) => activeMaster('products').filter((product) => Number(product.parent_id) === Number(categoryId));
+        const categoryOptions = (selectedId) => `<option value="">Select category</option>${categories.map((item) => `<option value="${item.id}" ${Number(item.id) === Number(selectedId) ? 'selected' : ''}>${html(item.name)}</option>`).join('')}`;
 
         const renderProductRows = () => {
-            const products = availableProducts();
-            $('#newJobProducts').innerHTML = productRows.map((row, index) => `<div class="job-product-row" data-product-row="${index}">
-                <select class="new-job-product" data-searchable data-search-placeholder="Search products…" aria-label="Product ${index + 1}">
-                    <option value="">${products.length ? 'Select product' : 'No products available in this category'}</option>
-                    ${products.map((product) => `<option value="${product.id}" ${Number(row.product_id) === Number(product.id) ? 'selected' : ''}>${html(product.code)} · ${html(product.name)}</option>`).join('')}
-                </select>
-                <input class="new-job-quantity" type="number" min="1" max="1000000000" value="${Math.max(1, Number(row.quantity) || 1)}" aria-label="Quantity for product ${index + 1}">
-                <button type="button" class="job-remove-product" data-remove-product="${index}" title="Remove product" aria-label="Remove product ${index + 1}" ${productRows.length === 1 ? 'disabled' : ''}>×</button>
-            </div>`).join('');
+            $('#newJobProducts').innerHTML = productRows.map((row, index) => {
+                const products = productsForCategory(row.product_category_id);
+                return `<div class="job-product-row" data-product-row="${index}">
+                    <select class="new-job-category" data-searchable data-search-placeholder="Search categories…" aria-label="Product category ${index + 1}">${categoryOptions(row.product_category_id)}</select>
+                    <select class="new-job-product" data-searchable data-search-placeholder="Search products…" aria-label="Product ${index + 1}" ${row.product_category_id ? '' : 'disabled'}>
+                        <option value="">${row.product_category_id ? (products.length ? 'Select product' : 'No products in this category') : 'Select category first'}</option>
+                        ${products.map((product) => `<option value="${product.id}" ${Number(row.product_id) === Number(product.id) ? 'selected' : ''}>${html(product.code)} · ${html(product.name)}</option>`).join('')}
+                    </select>
+                    <input class="new-job-quantity" type="number" min="1" max="1000000000" value="${Math.max(1, Number(row.quantity) || 1)}" aria-label="Quantity for product ${index + 1}">
+                    <button type="button" class="job-remove-product" data-remove-product="${index}" title="Remove product" aria-label="Remove product ${index + 1}" ${productRows.length === 1 ? 'disabled' : ''}>×</button>
+                </div>`;
+            }).join('');
             window.FlowtrackSearchableDropdown?.enhance($('#newJobProducts'));
         };
 
         const syncProductRows = () => {
             productRows = $$('#newJobProducts .job-product-row').map((row) => ({
+                product_category_id: row.querySelector('.new-job-category').value,
                 product_id: row.querySelector('.new-job-product').value,
                 quantity: Number(row.querySelector('.new-job-quantity').value || 1),
             }));
@@ -1530,9 +2108,9 @@
 
         $('#addJobProduct').addEventListener('click', () => {
             syncProductRows();
-            productRows.push({ product_id: '', quantity: 1 });
+            productRows.push({ product_category_id: '', product_id: '', quantity: 1 });
             renderProductRows();
-            $('#newJobProducts .job-product-row:last-child .new-job-product')?.focus();
+            $('#newJobProducts .job-product-row:last-child .new-job-category')?.focus();
         });
 
         $('#newJobProducts').addEventListener('click', (event) => {
@@ -1542,14 +2120,12 @@
             productRows.splice(Number(button.dataset.removeProduct), 1);
             renderProductRows();
         });
-
-        $('#newJobCategory').addEventListener('change', () => {
+        $('#newJobProducts').addEventListener('change', (event) => {
+            if (!event.target.matches('.new-job-category')) return;
+            const row = event.target.closest('.job-product-row');
             syncProductRows();
-            const validIds = new Set(availableProducts().map((product) => Number(product.id)));
-            productRows = productRows.map((row) => ({
-                ...row,
-                product_id: validIds.has(Number(row.product_id)) ? row.product_id : '',
-            }));
+            const index = Number(row.dataset.productRow);
+            productRows[index].product_id = '';
             renderProductRows();
         });
 
@@ -1583,7 +2159,6 @@
 
         const submit = async (draft) => {
             const title = $('#newJobTitle').value.trim();
-            const categoryId = Number($('#newJobCategory').value || 0);
             const workflow = getWorkflow(Number($('#newJobWorkflow').value));
             const phaseId = Number($('#newJobStartPhase').value);
             const phaseIndex = workflow.phases.findIndex((phase) => Number(phase.id) === phaseId);
@@ -1592,35 +2167,16 @@
 
             const normalizedProducts = productRows.map((row) => ({
                 product_id: Number(row.product_id || 0),
-                product_category_id: categoryId || null,
+                product_category_id: Number(row.product_category_id || 0),
                 quantity: Number(row.quantity || 0),
             }));
             const productIds = normalizedProducts.map((item) => item.product_id);
 
-            if (!title) {
-                showToast('Please enter the Job title.');
-                return;
-            }
-            if (!categoryId) {
-                showToast('Please select a product category.');
-                return;
-            }
-            if (normalizedProducts.some((item) => !item.product_id || item.quantity < 1)) {
-                showToast('Select a product and enter a valid quantity in every product row.');
-                return;
-            }
-            if (new Set(productIds).size !== productIds.length) {
-                showToast('The same product cannot be added more than once.');
-                return;
-            }
-            if (!$('#newJobDelivery').value) {
-                showToast('Please select the required delivery date.');
-                return;
-            }
-            if (phaseIndex > 0 && !reason) {
-                showToast('Please explain why earlier workflow phases are being skipped.');
-                return;
-            }
+            if (!title) return showToast('Please enter the Job title.');
+            if (normalizedProducts.some((item) => !item.product_category_id || !item.product_id || item.quantity < 1)) return showToast('Select a category, product and valid quantity in every product row.');
+            if (new Set(productIds).size !== productIds.length) return showToast('The same product cannot be added more than once.');
+            if (!$('#newJobDelivery').value) return showToast('Please select the required delivery date.');
+            if (phaseIndex > 0 && !reason) return showToast('Please explain why earlier workflow phases are being skipped.');
 
             const button = draft ? $('#saveDraftJob') : $('#createJob');
             button.disabled = true;
@@ -1635,10 +2191,11 @@
                         start_phase_id: phaseId,
                         products: normalizedProducts,
                         currency_id: defaultCurrency?.id || null,
-                        priority_id: Number($('#newJobPriority').value) || null,
+                        priority_id: Number(document.querySelector('input[name="newJobPriority"]:checked')?.value || 0) || null,
                         owner_id: Number($('#newJobOwner').value) || currentUser?.id,
                         coordinator_id: currentUser?.id || null,
                         title,
+                        request_description: $('#newJobDesc').value.trim() || null,
                         quoted_amount: 0,
                         delivery_date: $('#newJobDelivery').value || null,
                         start_reason: reason || null,
@@ -1663,6 +2220,89 @@
         $('#createJob').addEventListener('click', () => submit(false));
         $('#saveDraftJob').addEventListener('click', () => submit(true));
     };
+
+    function openEditJobModal(job) {
+        if (!job || !canEditJobRecord()) return;
+        const categories = activeMaster('productCategories');
+        const defaultCurrency = (masterData.currencies || []).find((item) => Number(item.id) === Number(job.currencyId)) || activeMaster('currencies')[0];
+        const assignableUsers = canFlow('jobs', 'assign') ? users : users.filter((user) => Number(user.id) === Number(job.ownerId) || Number(user.id) === Number(currentUser?.id));
+        let productRows = (job.products || []).map((item) => ({ product_category_id: item.categoryId || '', product_id: item.productId || '', quantity: item.qty || 1 }));
+        if (!productRows.length) productRows = [{ product_category_id: job.categoryId || '', product_id: job.productId || '', quantity: job.qty || 1 }];
+
+        $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>Edit Job</h2><div class="small muted" style="margin-top:5px">Update the Job details without changing its active Workflow or current Phase.</div></div><button class="close-btn" data-edit-job-close>×</button></div>
+        <div class="modal-body"><div class="form-grid job-form-stack">
+            <div class="field full"><label>Job code</label><input value="${html(job.id)}" readonly></div>
+            <div class="field full"><label>Client *</label><select id="editJobClient" data-searchable data-search-placeholder="Search clients…">${clients.map((client) => `<option value="${client.id}" ${Number(client.id) === Number(job.client) ? 'selected' : ''}>${html(client.name)}</option>`).join('')}</select></div>
+            <div class="field full"><label>Job title *</label><input id="editJobTitle" value="${html(job.title)}"></div>
+            <div class="field full"><label>Request description</label><textarea id="editJobDesc" rows="3" placeholder="Specifications, target price, printing or customization requirements…">${html(job.requestDescription || '')}</textarea></div>
+            <div class="field full job-products-field"><div class="job-products-title"><div><label>Products & quantities *</label><div class="inline-help">Category, Product and Quantity stay linked on each row.</div></div></div><div class="job-product-labels"><span>Product category</span><span>Product</span><span>Quantity</span><span></span></div><div id="editJobProducts" class="job-product-list"></div><button type="button" class="secondary job-add-product" id="addEditJobProduct">＋ Add another product</button></div>
+            <div class="field full"><label>Required delivery date *</label><input id="editJobDelivery" type="date" value="${html(job.delivery || '')}"></div>
+            <div class="field full"><label>Priority</label>${jobPriorityOptions('editJobPriority', job.priorityId)}</div>
+            <div class="field full"><label>Job assignee</label><select id="editJobOwner" data-searchable data-search-placeholder="Search assignees…" ${canFlow('jobs', 'assign') ? '' : 'disabled'}>${assignableUsers.map((user) => `<option value="${user.id}" ${Number(user.id) === Number(job.ownerId) ? 'selected' : ''}>${html(user.name)}</option>`).join('')}</select></div>
+            <div class="field full"><label>Coordinator</label><select id="editJobCoordinator" data-searchable data-search-placeholder="Search coordinators…" ${canFlow('jobs', 'assign') ? '' : 'disabled'}>${assignableUsers.map((user) => `<option value="${user.id}" ${Number(user.id) === Number(job.coordinatorId) ? 'selected' : ''}>${html(user.name)}</option>`).join('')}</select></div>
+            <div class="field full"><label>Workflow</label><input value="${html(getWorkflow(job.workflow)?.name || '')}" readonly><div class="inline-help">Use the Workflow tab to move the Job between configured Phases.</div></div>
+        </div></div>
+        <div class="modal-foot"><button class="ghost" data-edit-job-close>Cancel</button><button class="primary" id="saveEditJob">Save Job Changes</button></div>`;
+
+        openOverlay();
+        $('#jobModal').classList.add('open');
+        $$('[data-edit-job-close]').forEach((button) => button.addEventListener('click', () => { closeAll(); setTimeout(() => openJob(job.id), 20); }));
+
+        const productsForCategory = (categoryId) => activeMaster('products').filter((product) => Number(product.parent_id) === Number(categoryId));
+        const renderRows = () => {
+            $('#editJobProducts').innerHTML = productRows.map((row, index) => {
+                const products = productsForCategory(row.product_category_id);
+                return `<div class="job-product-row" data-product-row="${index}"><select class="edit-job-category" data-searchable data-search-placeholder="Search categories…"><option value="">Select category</option>${categories.map((item) => `<option value="${item.id}" ${Number(item.id) === Number(row.product_category_id) ? 'selected' : ''}>${html(item.name)}</option>`).join('')}</select><select class="edit-job-product" data-searchable data-search-placeholder="Search products…" ${row.product_category_id ? '' : 'disabled'}><option value="">${row.product_category_id ? 'Select product' : 'Select category first'}</option>${products.map((product) => `<option value="${product.id}" ${Number(product.id) === Number(row.product_id) ? 'selected' : ''}>${html(product.code)} · ${html(product.name)}</option>`).join('')}</select><input class="edit-job-quantity" type="number" min="1" max="1000000000" value="${Math.max(1, Number(row.quantity) || 1)}"><button type="button" class="job-remove-product" data-remove-edit-product="${index}" ${productRows.length === 1 ? 'disabled' : ''}>×</button></div>`;
+            }).join('');
+            window.FlowtrackSearchableDropdown?.enhance($('#editJobProducts'));
+        };
+        const syncRows = () => {
+            productRows = $$('#editJobProducts .job-product-row').map((row) => ({ product_category_id: row.querySelector('.edit-job-category').value, product_id: row.querySelector('.edit-job-product').value, quantity: Number(row.querySelector('.edit-job-quantity').value || 1) }));
+        };
+        $('#addEditJobProduct').addEventListener('click', () => { syncRows(); productRows.push({ product_category_id: '', product_id: '', quantity: 1 }); renderRows(); });
+        $('#editJobProducts').addEventListener('click', (event) => { const button = event.target.closest('[data-remove-edit-product]'); if (!button || productRows.length === 1) return; syncRows(); productRows.splice(Number(button.dataset.removeEditProduct), 1); renderRows(); });
+        $('#editJobProducts').addEventListener('change', (event) => { if (!event.target.matches('.edit-job-category')) return; const row = event.target.closest('.job-product-row'); syncRows(); productRows[Number(row.dataset.productRow)].product_id = ''; renderRows(); });
+        renderRows();
+        window.FlowtrackSearchableDropdown?.enhance($('#jobModal'));
+
+        $('#saveEditJob').addEventListener('click', async () => {
+            syncRows();
+            const products = productRows.map((row) => ({ product_category_id: Number(row.product_category_id || 0), product_id: Number(row.product_id || 0), quantity: Number(row.quantity || 0) }));
+            if (!$('#editJobTitle').value.trim()) return showToast('Please enter the Job title.');
+            if (products.some((item) => !item.product_category_id || !item.product_id || item.quantity < 1)) return showToast('Select a category, product and valid quantity in every product row.');
+            if (new Set(products.map((item) => item.product_id)).size !== products.length) return showToast('The same product cannot be added more than once.');
+            if (!$('#editJobDelivery').value) return showToast('Please select the required delivery date.');
+            const button = $('#saveEditJob'); button.disabled = true; button.textContent = 'Saving…';
+            try {
+                const updateBody = {
+                    client_id: Number($('#editJobClient').value),
+                    products,
+                    priority_id: Number(document.querySelector('input[name="editJobPriority"]:checked')?.value || 0) || null,
+                    owner_id: Number($('#editJobOwner').value) || null,
+                    coordinator_id: Number($('#editJobCoordinator').value) || null,
+                    title: $('#editJobTitle').value.trim(),
+                    request_description: $('#editJobDesc').value.trim() || null,
+                    delivery_date: $('#editJobDelivery').value,
+                };
+                if (job.price !== null && job.price !== undefined) {
+                    updateBody.quoted_amount = Number(job.price || 0);
+                    updateBody.currency_id = defaultCurrency?.id || null;
+                }
+                const result = await api(`/flowtrack/template-api/jobs/${job.dbId}`, { method: 'PUT', body: updateBody });
+                const index = jobs.findIndex((item) => Number(item.dbId) === Number(job.dbId));
+                if (index >= 0) jobs.splice(index, 1, result.job);
+                replaceTasksForJob(result.job.id, result.tasks || []);
+                closeAll();
+                renderPage(currentPage);
+                setTimeout(() => openJob(result.job.id), 20);
+                showToast('Job details updated successfully.');
+            } catch (error) {
+                showToast(error.message);
+                button.disabled = false;
+                button.textContent = 'Save Job Changes';
+            }
+        });
+    }
 
     const originalQuickCreate = $('#quickCreateBtn');
     if (originalQuickCreate) {
@@ -2047,7 +2687,7 @@
         const superAdminRole = String(role.code).toUpperCase() === 'SUPER_ADMIN';
         if (superAdminRole && !isFlowSuperAdmin) return showToast('Only the Super Admin can edit this role.');
         $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>${existing ? 'Edit Access Role' : 'Create Access Role'}</h2><div class="small muted" style="margin-top:5px">Role details and default scope follow the supplied access-control design.</div></div><button class="close-btn" data-close>×</button></div>
-        <div class="modal-body"><div class="form-grid"><div class="field"><label>Role name *</label><input id="accessRoleName" value="${html(role.name)}" placeholder="e.g. Quality Inspector"></div><div class="field"><label>Role code *</label><input class="access-code-input" id="accessRoleCode" value="${html(role.code)}" placeholder="QUALITY_INSPECTOR" ${role.system ? 'readonly' : ''}></div><div class="field full"><label>Description</label><textarea id="accessRoleDescription" rows="3" placeholder="What this role is responsible for">${html(role.description)}</textarea></div><div class="field"><label>Default record scope</label><select id="accessRoleDefaultScope" ${administratorRole || !canManageAccess ? 'disabled' : ''}>${accessCatalog.scopes.filter((scope) => scope.code !== 'none').map((scope) => `<option value="${scope.code}" ${(administratorRole ? scope.code === 'all_records' : scope.code === role.defaultScope) ? 'selected' : ''}>${html(scope.label)}</option>`).join('')}</select></div><div class="field"><label>Status</label><select id="accessRoleActive" ${administratorRole || !canManageAccess ? 'disabled' : ''}><option value="1" ${role.active ? 'selected' : ''}>Active</option><option value="0" ${!role.active ? 'selected' : ''}>Inactive</option></select></div>${existing ? '' : `<div class="field full"><label>Copy permissions from</label><select id="accessRoleCopy"><option value="">Start empty</option>${accessRoles.map((item) => `<option value="${item.id}">${html(item.name)}</option>`).join('')}</select></div>`}</div>${administratorRole ? '<div class="access-info"><b>Unrestricted administrator role</b><div class="small" style="margin-top:4px">All modules, actions, records and sensitive fields remain enabled automatically.</div></div>' : (role.system ? '<div class="access-form-note">This is a system role. Its code remains fixed so backend authorization mappings stay stable.</div>' : '')}</div>
+        <div class="modal-body"><div class="form-grid access-form-stack"><div class="field"><label>Role name *</label><input id="accessRoleName" value="${html(role.name)}" placeholder="e.g. Quality Inspector"></div><div class="field"><label>Role code *</label><input class="access-code-input" id="accessRoleCode" value="${html(role.code)}" placeholder="QUALITY_INSPECTOR" ${role.system ? 'readonly' : ''}></div><div class="field full"><label>Description</label><textarea id="accessRoleDescription" rows="3" placeholder="What this role is responsible for">${html(role.description)}</textarea></div><div class="field"><label>Default record scope</label><select id="accessRoleDefaultScope" ${administratorRole || !canManageAccess ? 'disabled' : ''}>${accessCatalog.scopes.filter((scope) => scope.code !== 'none').map((scope) => `<option value="${scope.code}" ${(administratorRole ? scope.code === 'all_records' : scope.code === role.defaultScope) ? 'selected' : ''}>${html(scope.label)}</option>`).join('')}</select></div><div class="field"><label>Status</label><select id="accessRoleActive" ${administratorRole || !canManageAccess ? 'disabled' : ''}><option value="1" ${role.active ? 'selected' : ''}>Active</option><option value="0" ${!role.active ? 'selected' : ''}>Inactive</option></select></div>${existing ? '' : `<div class="field full"><label>Copy permissions from</label><select id="accessRoleCopy"><option value="">Start empty</option>${accessRoles.map((item) => `<option value="${item.id}">${html(item.name)}</option>`).join('')}</select></div>`}</div>${administratorRole ? '<div class="access-info"><b>Unrestricted administrator role</b><div class="small" style="margin-top:4px">All modules, actions, records and sensitive fields remain enabled automatically.</div></div>' : (role.system ? '<div class="access-form-note">This is a system role. Its code remains fixed so backend authorization mappings stay stable.</div>' : '')}</div>
         <div class="modal-foot"><button class="ghost" data-close>Cancel</button><button class="primary" id="saveAccessRole">${existing ? 'Save Role' : 'Create Role'}</button></div>`;
         openOverlay();
         $('#jobModal').classList.add('open');
@@ -2213,7 +2853,7 @@
         const departments = activeMaster('departments');
         const roles = availableRolesForActor(existing?.roleId);
         $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>${existing ? 'Edit User' : 'Add User'}</h2><div class="small muted" style="margin-top:5px">Create the login and assign its workspace role.</div></div><button class="close-btn" data-close>×</button></div>
-        <div class="modal-body"><div class="form-grid"><div class="field"><label>Full name *</label><input id="accessUserName" value="${html(existing?.name || '')}"></div><div class="field"><label>Email *</label><input id="accessUserEmail" type="email" value="${html(existing?.email || '')}"></div><div class="field"><label>Role *</label><select id="accessUserRole">${roles.map((role) => `<option value="${role.id}" ${Number(role.id) === Number(existing?.roleId) ? 'selected' : ''}>${html(role.name)}</option>`).join('')}</select></div><div class="field"><label>Department</label><select id="accessUserDepartment"><option value="">Unassigned</option>${departments.map((department) => `<option value="${department.id}" ${Number(department.id) === Number(existing?.departmentId) ? 'selected' : ''}>${html(department.name)}</option>`).join('')}</select></div><div class="field full"><label>Job title</label><input id="accessUserJobTitle" value="${html(existing?.jobTitle || '')}"></div><div class="field"><label>Status</label><select id="accessUserStatus"><option value="active" ${!existing || existing.status === 'active' ? 'selected' : ''}>Active</option><option value="pending" ${existing?.status === 'pending' ? 'selected' : ''}>Pending</option><option value="inactive" ${existing?.status === 'inactive' ? 'selected' : ''}>Inactive</option></select></div><div class="field"><label>Language</label><select id="accessUserLocale"><option value="en">English</option><option value="zh">中文</option></select></div><div class="field"><label>${existing ? 'New password' : 'Password *'}</label><input id="accessUserPassword" type="password" autocomplete="new-password"></div><div class="field"><label>${existing ? 'Confirm new password' : 'Confirm password *'}</label><input id="accessUserPasswordConfirmation" type="password" autocomplete="new-password"></div></div><div class="access-form-note">Passwords require at least 8 characters with letters and numbers. Admin roles always receive unrestricted system access.</div></div>
+        <div class="modal-body"><div class="form-grid access-form-stack"><div class="field"><label>Full name *</label><input id="accessUserName" value="${html(existing?.name || '')}"></div><div class="field"><label>Email *</label><input id="accessUserEmail" type="email" value="${html(existing?.email || '')}"></div><div class="field"><label>Role *</label><select id="accessUserRole">${roles.map((role) => `<option value="${role.id}" ${Number(role.id) === Number(existing?.roleId) ? 'selected' : ''}>${html(role.name)}</option>`).join('')}</select></div><div class="field"><label>Department</label><select id="accessUserDepartment"><option value="">Unassigned</option>${departments.map((department) => `<option value="${department.id}" ${Number(department.id) === Number(existing?.departmentId) ? 'selected' : ''}>${html(department.name)}</option>`).join('')}</select></div><div class="field full"><label>Job title</label><input id="accessUserJobTitle" value="${html(existing?.jobTitle || '')}"></div><div class="field"><label>Status</label><select id="accessUserStatus"><option value="active" ${!existing || existing.status === 'active' ? 'selected' : ''}>Active</option><option value="pending" ${existing?.status === 'pending' ? 'selected' : ''}>Pending</option><option value="inactive" ${existing?.status === 'inactive' ? 'selected' : ''}>Inactive</option></select></div><div class="field"><label>Language</label><select id="accessUserLocale"><option value="en">English</option><option value="zh">中文</option></select></div><div class="field"><label>${existing ? 'New password' : 'Password *'}</label><input id="accessUserPassword" type="password" autocomplete="new-password"></div><div class="field"><label>${existing ? 'Confirm new password' : 'Confirm password *'}</label><input id="accessUserPasswordConfirmation" type="password" autocomplete="new-password"></div></div><div class="access-form-note">Passwords require at least 8 characters with letters and numbers. Admin roles always receive unrestricted system access.</div></div>
         <div class="modal-foot"><button class="ghost" data-close>Cancel</button><button class="primary" id="saveAccessUser">${existing ? 'Save User' : 'Create User'}</button></div>`;
         openOverlay();
         $('#jobModal').classList.add('open');
@@ -2371,12 +3011,25 @@
         if (type === 'roles') return renderAccessRoles();
         if (type === 'permissions') return renderPermissionMatrix();
         if (type === 'users') return renderRoleAssignments();
+        if (type === 'notification') {
+            const rules = notificationRules || [];
+            $('#setupContent').innerHTML = `<div class="card section-card"><div class="section-head"><div><h3>Notification Rules</h3><div class="small muted">Configured reminder and escalation rules.</div></div></div><table class="mini-table"><thead><tr><th>Name</th><th>Trigger</th><th>Recipients</th><th>Status</th></tr></thead><tbody>${rules.map((rule) => `<tr><td><b>${html(rule.name)}</b></td><td>${html(rule.trigger)}</td><td>${html(rule.recipients)}</td><td><span class="badge ${rule.active === false ? 'b-gray' : 'b-green'}">${rule.active === false ? 'Inactive' : 'Active'}</span></td></tr>`).join('') || '<tr><td colspan="4"><div class="empty-state">No notification rules are configured.</div></td></tr>'}</tbody></table></div>`;
+            return;
+        }
         return setupContentBase(type);
     };
 
     renderSetup = function () {
         originalRenderSetup();
         injectAccessMatrixStyles();
+        const metrics = summaryMetrics.administration || {};
+        const activeUsers = accessMembers.length ? accessMembers.filter((member) => String(member.status).toLowerCase() === 'active').length : users.length;
+        const activeRoles = accessRoles.length ? accessRoles.filter((role) => role.active !== false).length : new Set(users.map((user) => user.role).filter(Boolean)).size;
+        const departments = (masterData.departments || []).filter((department) => String(department.status).toLowerCase() === 'active').length;
+        const summary = $('#page-setup .config-summary');
+        if (summary) {
+            summary.innerHTML = `<div class="card config-stat"><span>Active Users</span><b>${Number(metrics.activeUsers ?? activeUsers)}</b></div><div class="card config-stat"><span>Operational Roles</span><b>${Number(metrics.operationalRoles ?? activeRoles)}</b></div><div class="card config-stat"><span>Departments</span><b>${Number(metrics.departments ?? departments)}</b></div><div class="card config-stat"><span>Notification Rules</span><b>${Number(metrics.notificationRules ?? notificationRules.length)}</b></div>`;
+        }
         const roleButton = $('.setup-menu [data-setup="roles"]');
         const userButton = $('.setup-menu [data-setup="users"]');
         if (!canViewAccess) {
@@ -2396,6 +3049,7 @@
                 renderSetupContent('permissions');
             });
         }
+        applyActionPermissions();
     };
 
     const permissionObserver = new MutationObserver(() => applyActionPermissions());
@@ -2418,7 +3072,7 @@
             .then(showApplication)
             .catch((error) => {
                 if ([401, 419].includes(error.status)) {
-                    window.location.replace('/login');
+                    sessionRedirect(error.payload?.reason || 'expired');
                     return;
                 }
                 $('#authLoadingScreen')?.classList.add('hidden');

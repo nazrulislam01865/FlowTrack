@@ -83,7 +83,7 @@ function printPage() { window.print(); }
                     <td><div class="ft-person"><span class="ft-avatar">{{ job.coordinator?.initials || initials(job.coordinator?.name) }}</span><span>{{ job.coordinator?.name || 'Unassigned' }}</span></div></td>
                     <td>{{ formatDate(job.delivery_date) }}</td>
                     <td style="min-width: 120px"><FlowProgress :value="job.progress" /><div class="ft-muted ft-small" style="margin-top: 4px">{{ job.progress }}%</div></td>
-                    <td><FlowBadge :value="job.health" health /></td>
+                    <td><FlowBadge :value="job.health" health :title="job.health_reason || 'Calculated from current-phase Tasks and delivery dates.'" /></td>
                     <td><Link class="ft-mini-btn" :href="`/flowtrack/jobs/${job.id}`" preserve-scroll>Open</Link></td>
                 </tr>
                 <tr v-if="!jobs.data.length"><td colspan="9"><div class="ft-empty">No jobs match the selected filters.</div></td></tr>

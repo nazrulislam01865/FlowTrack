@@ -32,7 +32,10 @@ return [
     |
     */
 
-    'lifetime' => (int) env('SESSION_LIFETIME', 120),
+    'lifetime' => (int) env('SESSION_LIFETIME', 30),
+
+    // Absolute FlowTrack login duration. Activity does not extend this window.
+    'flowtrack_absolute_lifetime' => (int) env('FLOWTRACK_SESSION_MINUTES', 30),
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 

@@ -21,6 +21,7 @@ class FlowTask extends Model
             'due_date' => 'date',
             'attention_required' => 'boolean',
             'completed_at' => 'datetime',
+            'removed_from_job_at' => 'datetime',
         ];
     }
 
@@ -32,6 +33,7 @@ class FlowTask extends Model
     public function dependency(): BelongsTo { return $this->belongsTo(self::class, 'dependency_id'); }
     public function dependents(): HasMany { return $this->hasMany(self::class, 'dependency_id'); }
     public function creator(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
+    public function removedBy(): BelongsTo { return $this->belongsTo(User::class, 'removed_from_job_by'); }
     public function assignee(): BelongsTo { return $this->belongsTo(User::class, 'assignee_id'); }
     public function status(): BelongsTo { return $this->belongsTo(MasterRecord::class, 'task_status_id'); }
     public function priority(): BelongsTo { return $this->belongsTo(MasterRecord::class, 'priority_id'); }

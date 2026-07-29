@@ -7,18 +7,28 @@ use App\Http\Requests\FlowTrack\StoreClientRequest;
 use App\Http\Requests\FlowTrack\StoreJobRequest;
 use App\Http\Requests\FlowTrack\StoreDocumentRequest;
 use App\Http\Requests\FlowTrack\UpdateTaskRequest;
+use App\Http\Requests\FlowTrack\UpdateTaskDueDateRequest;
+use App\Http\Requests\FlowTrack\UpdateJobRequest;
 use App\Models\User;
 use App\Modules\OrderFlow\Application\Actions\CreateClientAction;
 use App\Modules\OrderFlow\Application\Actions\CreateJobAction;
 use App\Modules\OrderFlow\Application\Actions\MoveJobPhaseAction;
+use App\Modules\OrderFlow\Application\Actions\RemoveJobPhaseAction;
+use App\Modules\OrderFlow\Application\Actions\RemoveTaskFromJobAction;
 use App\Modules\OrderFlow\Application\Actions\UpdateTaskAction;
+use App\Modules\OrderFlow\Application\Actions\UpdateTaskDueDateAction;
+use App\Modules\OrderFlow\Application\Actions\UpdateJobAction;
 use App\Modules\OrderFlow\Application\Actions\UploadDocumentAction;
 use App\Modules\OrderFlow\Application\DTOs\CreateJobData;
+use App\Modules\OrderFlow\Application\DTOs\UpdateJobData;
 use App\Modules\OrderFlow\Application\Presenters\CurrentUserPresenter;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\AccessResolver;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
+use App\Modules\OrderFlow\Business\Services\FlowNotificationService;
+use App\Modules\OrderFlow\Business\Services\NotificationFeedService;
 use App\Modules\OrderFlow\Business\Services\JobDocumentRequirementService;
+use App\Modules\OrderFlow\Business\Services\OperationalMetricsService;
 use App\Modules\OrderFlow\Business\Services\RoleMatrixCatalog;
 use App\Modules\OrderFlow\Business\Services\ProgressCalculator;
 use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
@@ -48,7 +58,7 @@ class TemplateApiController extends Controller
 {
     public function __construct(private readonly JobDocumentRequirementService $documentRequirements) {}
 
-    public function bootstrap(Request $request, ProgressCalculator $progressCalculator, WorkflowAutomationService $workflowAutomation, RoleMatrixService $roleMatrixService, FlowAuthorizationService $authorization, RoleMatrixCatalog $roleCatalog, CurrentUserPresenter $currentUserPresenter): JsonResponse
+    public function bootstrap(Request $request, ProgressCalculator $progressCalculator, WorkflowAutomationService $workflowAutomation, RoleMatrixService $roleMatrixService, FlowAuthorizationService $authorization, RoleMatrixCatalog $roleCatalog, CurrentUserPresenter $currentUserPresenter, OperationalMetricsService $metrics, NotificationFeedService $notificationFeed): JsonResponse
     {
         $user = $request->user();
         $workspaceId = $user->currentWorkspaceId();
@@ -119,7 +129,8 @@ class TemplateApiController extends Controller
             ->with([
                 'client:id,name,code', 'workflow.phases', 'currentPhase.documentCategory', 'currentPhase.taskPack.items.documentCategory', 'startedPhase',
                 'product:id,name,code', 'productCategory:id,name,code', 'items.product:id,name,code', 'items.productCategory:id,name,code', 'currency:id,name,code',
-                'priority:id,name,code', 'owner:id,name,initials', 'coordinator:id,name,initials',
+                'priority:id,name,code', 'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
+                'members.user:id,name,initials', 'excludedPhases.phase:id,name,short_name,sequence',
                 'phaseHistory.phase:id,sequence',
                 'transitionEvents.actor:id,name,initials', 'transitionEvents.phase:id,name,short_name', 'transitionEvents.task:id,code,title',
             ])
@@ -148,8 +159,9 @@ class TemplateApiController extends Controller
         $tasks = $authorization->allows($user, 'tasks', 'view')
             ? $authorization->applyTaskVisibility(FlowTask::query(), $user)
             ->with([
-                'job:id,code,title,client_id,current_phase_id,workflow_template_id,progress', 'job.client:id,name',
+                'job:id,workspace_id,code,title,client_id,current_phase_id,workflow_template_id,progress,created_by,owner_id,coordinator_id', 'job.client:id,name', 'job.members',
                 'phase:id,name,short_name,sequence,task_pack_id', 'phase.taskPack:id,name',
+                'creator:id,name,initials',
                 'assignee:id,name,initials', 'assignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $workspaceId)->with('department:id,name'),
                 'status:id,name,code', 'priority:id,name,code', 'checklistItems', 'comments.user:id,name,initials',
             ])
@@ -208,7 +220,8 @@ class TemplateApiController extends Controller
                 ->get()
             : collect();
 
-        $notifications = $user->notifications()->latest()->limit(50)->get()->map(function ($notification) {
+        $authorityNotificationView = $notificationFeed->isAuthority($user);
+        $notifications = $notificationFeed->latest($user, 50)->map(function ($notification) use ($authorityNotificationView) {
             $data = $notification->data;
 
             return [
@@ -216,11 +229,43 @@ class TemplateApiController extends Controller
                 'title' => $data['title'] ?? 'Notification',
                 'text' => $data['text'] ?? '',
                 'time' => $notification->created_at?->diffForHumans() ?? '',
+                'created_at' => $notification->created_at?->toIso8601String(),
                 'read' => $notification->read_at !== null,
                 'type' => $data['type'] ?? 'info',
+                'severity' => $data['severity'] ?? 'info',
+                'event' => $data['event'] ?? null,
                 'job' => $data['job'] ?? null,
+                'job_id' => $data['job_id'] ?? null,
+                'task' => $data['task'] ?? null,
+                'task_id' => $data['task_id'] ?? null,
+                'phase' => $data['phase'] ?? null,
+                'actor' => $data['actor'] ?? null,
+                'url' => $data['url'] ?? null,
+                'audience' => $authorityNotificationView ? array_values($data['audience'] ?? []) : [],
             ];
         })->values();
+
+        $recentActivities = $tasks
+            ->sortByDesc(fn (FlowTask $task): int => $task->created_at?->getTimestamp() ?? 0)
+            ->take(6)
+            ->map(fn (FlowTask $task): array => [
+                'id' => "task-created-{$task->id}",
+                'title' => 'Task created',
+                'text' => collect([$task->code, $task->title, $task->job?->code])->filter()->join(' · '),
+                'time' => $task->created_at?->diffForHumans() ?? '',
+                'created_at' => $task->created_at?->toIso8601String(),
+                'event' => 'task.created',
+                'job' => $task->job?->code,
+                'job_id' => $task->flow_job_id,
+                'task' => $task->code,
+                'task_id' => $task->id,
+                'user' => [
+                    'id' => $task->creator?->id,
+                    'name' => $task->creator?->name ?? 'System',
+                    'initials' => $task->creator?->initials,
+                ],
+            ])
+            ->values();
 
         $capabilities = collect($roleCatalog->moduleCodes())->mapWithKeys(function (string $module) use ($user, $roleCatalog): array {
             return [$module => [
@@ -251,17 +296,24 @@ class TemplateApiController extends Controller
             'boardJobIds' => $boardJobIds,
             'boardAccess' => [
                 'isAdministrator' => $authorization->isAdministrator($user),
-                'taskVisibility' => $authorization->isAdministrator($user) ? 'workspace' : 'assigned_only',
+                'taskVisibility' => $authorization->isAdministrator($user) ? 'workspace' : 'assigned_job_tasks',
             ],
             'tasks' => $tasks->map(fn (FlowTask $task) => $this->mapTask($task)),
             'documents' => $documents->map(fn (FlowDocument $document) => $this->mapDocument($document)),
             'notifications' => $notifications,
+            'notificationAccess' => [
+                'authorityView' => $authorityNotificationView,
+                'statusEndpoint' => route('flowtrack.notifications.status'),
+            ],
+            'activities' => $recentActivities,
             'workflows' => $workflows->map(fn (WorkflowTemplate $workflow) => $this->mapWorkflow($workflow)),
             'masterData' => $this->mapMasterData($master),
             'masterDataCatalog' => collect(MasterDataType::cases())->map(fn (MasterDataType $type) => $type->catalogEntry())->values()->all(),
             'taskPacks' => $taskPacks->map(fn (TaskPack $taskPack) => $this->mapTaskPack($taskPack)),
             'capabilities' => $capabilities,
             'accessControl' => $accessControl,
+            'summaryMetrics' => $metrics->forUser($user),
+            'notificationRules' => config('flowtrack.notification_rules', []),
         ]);
     }
 
@@ -329,24 +381,22 @@ class TemplateApiController extends Controller
         return response()->json(['message' => 'Job deleted successfully.']);
     }
 
-    public function destroyTask(Request $request, FlowTask $task, WorkflowAutomationService $automation, FlowAuthorizationService $authorization): JsonResponse
+    public function destroyTask(
+        Request $request,
+        FlowTask $task,
+        FlowAuthorizationService $authorization,
+        RemoveTaskFromJobAction $action,
+    ): JsonResponse
     {
         $task->loadMissing('job', 'packItem');
         abort_unless($task->job?->workspace_id === $request->user()->currentWorkspaceId(), 404);
         abort_unless($authorization->canDeleteTask($request->user(), $task), 403);
-        if ($task->packItem?->is_required) {
-            throw ValidationException::withMessages([
-                'task' => 'Required Task Pack tasks cannot be deleted. Mark the task Completed or change the Task Pack configuration.',
-            ]);
-        }
-        $job = $task->job;
-        $task->delete();
-        app(ProgressCalculator::class)->recalculateJob($job);
-        $automation->synchronize($job, $request->user(), 'task_deletion');
+        $job = $action->execute($task, $request->user(), 'exact_template_task_deletion');
 
         return response()->json([
             'message' => 'Task deleted successfully.',
             'job' => $this->mapJob($this->loadJob($job), $this->canViewFinancials($request->user())),
+            'tasks' => $this->loadJobTasks($job, $request->user())->map(fn (FlowTask $jobTask) => $this->mapTask($jobTask)),
         ]);
     }
 
@@ -439,6 +489,7 @@ class TemplateApiController extends Controller
                 ownerId: isset($data['owner_id']) ? (int) $data['owner_id'] : null,
                 coordinatorId: isset($data['coordinator_id']) ? (int) $data['coordinator_id'] : null,
                 title: $data['title'],
+                requestDescription: $data['request_description'] ?? null,
                 quantity: $submittedQuantity,
                 quotedAmount: (float) ($data['quoted_amount'] ?? 0),
                 deliveryDate: $data['delivery_date'] ?? null,
@@ -458,6 +509,60 @@ class TemplateApiController extends Controller
             'job' => $this->mapJob($job, $this->canViewFinancials($request->user())),
             'tasks' => $tasks->map(fn (FlowTask $task) => $this->mapTask($task)),
         ], 201);
+    }
+
+    public function updateJob(
+        UpdateJobRequest $request,
+        FlowJob $job,
+        JobRepository $jobs,
+        FlowAuthorizationService $authorization,
+        UpdateJobAction $action,
+        FlowNotificationService $notifications,
+    ): JsonResponse {
+        $visible = $jobs->findVisible($request->user(), $job->id);
+        $data = $request->validated();
+
+        $assignmentChanged = (int) ($data['owner_id'] ?? 0) !== (int) ($visible->owner_id ?? 0)
+            || (int) ($data['coordinator_id'] ?? 0) !== (int) ($visible->coordinator_id ?? 0);
+        if ($assignmentChanged) {
+            abort_unless($authorization->allows($request->user(), 'jobs', 'assign', $visible), 403);
+        }
+
+        $previousMemberIds = $visible->members()->pluck('user_id')->map(fn ($id) => (int) $id);
+        $productItems = collect($data['products'])->map(fn (array $item): array => [
+            'product_id' => (int) $item['product_id'],
+            'product_category_id' => (int) $item['product_category_id'],
+            'quantity' => (int) $item['quantity'],
+        ])->values();
+
+        try {
+            $updated = $action->execute($visible, new UpdateJobData(
+                clientId: (int) $data['client_id'],
+                currencyId: isset($data['currency_id']) ? (int) $data['currency_id'] : null,
+                priorityId: isset($data['priority_id']) ? (int) $data['priority_id'] : null,
+                ownerId: isset($data['owner_id']) ? (int) $data['owner_id'] : null,
+                coordinatorId: isset($data['coordinator_id']) ? (int) $data['coordinator_id'] : null,
+                title: $data['title'],
+                requestDescription: $data['request_description'] ?? null,
+                quotedAmount: array_key_exists('quoted_amount', $data) && $data['quoted_amount'] !== null ? (float) $data['quoted_amount'] : null,
+                deliveryDate: $data['delivery_date'] ?? null,
+                productItems: $productItems->all(),
+            ), $request->user());
+        } catch (DomainException $exception) {
+            throw ValidationException::withMessages(['job' => $exception->getMessage()]);
+        }
+
+        $newMemberIds = $updated->members()->pluck('user_id')->map(fn ($id) => (int) $id);
+        $newlyAssigned = $newMemberIds->diff($previousMemberIds)->values();
+        if ($newlyAssigned->isNotEmpty()) {
+            DB::afterCommit(fn () => $notifications->jobMembersChanged($updated->id, $request->user()->id, $newlyAssigned->all()));
+        }
+
+        $updated = $this->loadJob($updated);
+        return response()->json([
+            'job' => $this->mapJob($updated, $this->canViewFinancials($request->user())),
+            'tasks' => $this->loadJobTasks($updated, $request->user())->map(fn (FlowTask $task) => $this->mapTask($task)),
+        ]);
     }
 
     public function updateTask(
@@ -498,6 +603,32 @@ class TemplateApiController extends Controller
         ]);
     }
 
+    public function updateTaskDueDate(
+        UpdateTaskDueDateRequest $request,
+        FlowTask $task,
+        TaskRepository $tasks,
+        FlowAuthorizationService $authorization,
+        UpdateTaskDueDateAction $action,
+    ): JsonResponse {
+        $visibleTask = $tasks->findVisible($request->user(), $task->id);
+        abort_unless($authorization->canChangeTaskDueDate($request->user(), $visibleTask), 403);
+
+        $updated = $action->execute(
+            $visibleTask,
+            $request->validated('due_date'),
+            $request->user(),
+            'exact_template_task_due_date',
+        );
+        $job = $this->loadJob($updated->job);
+
+        return response()->json([
+            'message' => 'Task due date updated.',
+            'task' => $this->mapTask($updated),
+            'job' => $this->mapJob($job, $this->canViewFinancials($request->user())),
+            'tasks' => $this->loadJobTasks($job, $request->user())->map(fn (FlowTask $jobTask) => $this->mapTask($jobTask)),
+        ]);
+    }
+
     public function moveJob(
         Request $request,
         FlowJob $job,
@@ -528,12 +659,43 @@ class TemplateApiController extends Controller
         ]);
     }
 
+    public function destroyJobPhase(
+        Request $request,
+        FlowJob $job,
+        WorkflowPhase $phase,
+        JobRepository $jobs,
+        FlowAuthorizationService $authorization,
+        RemoveJobPhaseAction $action,
+    ): JsonResponse {
+        $visible = $jobs->findVisible($request->user(), $job->id);
+        abort_unless($authorization->canDeleteJobPhase($request->user(), $visible), 403);
+
+        $data = $request->validate([
+            'reason' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            $updated = $action->execute($visible, $phase, $request->user(), $data['reason'] ?? null);
+        } catch (DomainException $exception) {
+            throw ValidationException::withMessages(['phase' => $exception->getMessage()]);
+        }
+
+        $updated = $this->loadJob($updated);
+
+        return response()->json([
+            'message' => "{$phase->name} was removed from this Job.",
+            'job' => $this->mapJob($updated, $this->canViewFinancials($request->user())),
+            'tasks' => $this->loadJobTasks($updated, $request->user())->map(fn (FlowTask $task) => $this->mapTask($task)),
+        ]);
+    }
+
     private function loadJob(FlowJob $job): FlowJob
     {
         return $job->fresh([
             'client:id,name,code', 'workflow.phases', 'currentPhase.documentCategory', 'currentPhase.taskPack.items.documentCategory', 'startedPhase',
             'product:id,name,code', 'productCategory:id,name,code', 'items.product:id,name,code', 'items.productCategory:id,name,code', 'currency:id,name,code',
-            'priority:id,name,code', 'owner:id,name,initials', 'coordinator:id,name,initials', 'phaseHistory.phase:id,sequence',
+            'priority:id,name,code', 'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
+            'members.user:id,name,initials', 'excludedPhases.phase:id,name,short_name,sequence', 'phaseHistory.phase:id,sequence',
             'transitionEvents.actor:id,name,initials', 'transitionEvents.phase:id,name,short_name', 'transitionEvents.task:id,code,title',
         ]);
     }
@@ -544,7 +706,7 @@ class TemplateApiController extends Controller
             ->applyTaskVisibility(FlowTask::query(), $user)
             ->where('flow_job_id', $job->id)
             ->with([
-                'job:id,code,title,client_id,current_phase_id,workflow_template_id,progress', 'job.client:id,name',
+                'job:id,workspace_id,code,title,client_id,current_phase_id,workflow_template_id,progress,created_by,owner_id,coordinator_id', 'job.client:id,name', 'job.members',
                 'phase:id,name,short_name,sequence,task_pack_id', 'phase.taskPack:id,name',
                 'assignee:id,name,initials', 'assignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $job->workspace_id)->with('department:id,name'),
                 'status:id,name,code', 'priority:id,name,code', 'checklistItems', 'comments.user:id,name,initials',
@@ -620,6 +782,7 @@ class TemplateApiController extends Controller
             'id' => $job->code,
             'order' => $job->order_code ?? '',
             'title' => $job->title,
+            'requestDescription' => $job->request_description ?? '',
             'client' => $job->client_id,
             'product' => $productSummary,
             'productId' => $productItems->first()['productId'] ?? $job->product_id,
@@ -634,6 +797,8 @@ class TemplateApiController extends Controller
             'phase' => max(0, ((int) ($job->currentPhase?->sequence ?? 1)) - 1),
             'phaseId' => $job->current_phase_id,
             'status' => $this->label($job->status),
+            'createdAt' => $job->created_at?->toIso8601String(),
+            'updatedAt' => $job->updated_at?->toIso8601String(),
             'health' => $this->label($job->health),
             'healthReason' => $job->health_reason ?? '',
             'progress' => (int) $job->progress,
@@ -641,6 +806,16 @@ class TemplateApiController extends Controller
             'ownerId' => $job->owner_id,
             'coordinator' => $job->coordinator?->name ?? 'Unassigned',
             'coordinatorId' => $job->coordinator_id,
+            'createdById' => $job->created_by,
+            'createdBy' => $job->creator?->name ?? 'Unknown',
+            'canDeletePhases' => request()->user()
+                ? app(FlowAuthorizationService::class)->canDeleteJobPhase(request()->user(), $job)
+                : false,
+            'excludedPhaseIds' => $job->excludedPhases
+                ->pluck('workflow_phase_id')
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all(),
             'delivery' => $job->delivery_date?->toDateString() ?? '',
             'priority' => $job->priority?->name ?? 'Medium',
             'priorityId' => $job->priority_id,
@@ -681,11 +856,15 @@ class TemplateApiController extends Controller
             'status' => $task->status?->name ?? 'Not Started',
             'statusId' => $task->task_status_id,
             'statusCode' => $task->status?->code,
+            'createdAt' => $task->created_at?->toIso8601String(),
+            'updatedAt' => $task->updated_at?->toIso8601String(),
+            'completedAt' => $task->completed_at?->toIso8601String(),
             'assignee' => $task->assignee?->name ?? 'Unassigned',
             'assigneeId' => $task->assignee_id,
             'canUpdate' => $actor ? $authorization->canUpdateTask($actor, $task) : false,
             'canAssign' => $actor ? $authorization->canAssignExistingTask($actor, $task) : false,
             'canDelete' => $actor ? $authorization->canDeleteTask($actor, $task) : false,
+            'canChangeDueDate' => $actor ? $authorization->canChangeTaskDueDate($actor, $task) : false,
             'dept' => $membership?->department?->name ?? 'Unassigned',
             'due' => $task->due_date?->toDateString() ?? '',
             'priority' => $task->priority?->name ?? 'Medium',

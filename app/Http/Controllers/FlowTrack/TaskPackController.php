@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\ConfigurationCodeGenerator;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
+use App\Modules\OrderFlow\Business\Services\OperationalMetricsService;
 use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\TaskPack;
@@ -20,7 +21,7 @@ use Inertia\Response;
 
 class TaskPackController extends Controller
 {
-    public function index(Request $request, ConfigurationCodeGenerator $codes, FlowAuthorizationService $authorization): Response
+    public function index(Request $request, ConfigurationCodeGenerator $codes, FlowAuthorizationService $authorization, OperationalMetricsService $metrics): Response
     {
         $workspaceId = $request->user()->currentWorkspaceId();
 
@@ -59,6 +60,7 @@ class TaskPackController extends Controller
                 ->get(),
             'nextTaskPackCode' => $codes->taskPack($workspaceId),
             'canManage' => $authorization->allows($request->user(), 'workflow', 'edit_all'),
+            'metrics' => $metrics->forUser($request->user())['taskPacks'],
         ]);
     }
     public function store(Request $request, ConfigurationCodeGenerator $codes): RedirectResponse

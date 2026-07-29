@@ -4,14 +4,21 @@ namespace App\Http\Controllers\FlowTrack;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FlowTrack\StoreJobRequest;
+use App\Http\Requests\FlowTrack\UpdateJobRequest;
 use App\Modules\OrderFlow\Application\Actions\CreateJobAction;
+use App\Modules\OrderFlow\Application\Actions\RemoveJobPhaseAction;
+use App\Modules\OrderFlow\Application\Actions\UpdateJobAction;
 use App\Modules\OrderFlow\Application\DTOs\CreateJobData;
+use App\Modules\OrderFlow\Application\DTOs\UpdateJobData;
 use App\Modules\OrderFlow\Application\Queries\FlowTrackOptionsQuery;
 use App\Modules\OrderFlow\Business\Services\AccessResolver;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
+use App\Modules\OrderFlow\Business\Services\FlowNotificationService;
+use App\Modules\OrderFlow\Business\Services\JobDocumentRequirementService;
 use App\Modules\OrderFlow\Business\Services\ActivityLogger;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowJobMember;
+use App\Modules\OrderFlow\Data\Models\WorkflowPhase;
 use App\Modules\OrderFlow\Data\Repositories\JobRepository;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -66,6 +73,7 @@ class JobController extends Controller
                 ownerId: isset($data['owner_id']) ? (int) $data['owner_id'] : null,
                 coordinatorId: isset($data['coordinator_id']) ? (int) $data['coordinator_id'] : null,
                 title: $data['title'],
+                requestDescription: $data['request_description'] ?? null,
                 quantity: $submittedQuantity,
                 quotedAmount: (float) ($data['quoted_amount'] ?? 0),
                 deliveryDate: $data['delivery_date'] ?? null,
@@ -81,7 +89,47 @@ class JobController extends Controller
         return to_route('flowtrack.jobs.show', $job)->with('success', "{$job->code} created successfully.");
     }
 
-    public function updateMembers(Request $request, FlowJob $job, JobRepository $jobs, FlowAuthorizationService $authorization, ActivityLogger $activityLogger): RedirectResponse
+    public function update(
+        UpdateJobRequest $request,
+        FlowJob $job,
+        JobRepository $jobs,
+        FlowAuthorizationService $authorization,
+        UpdateJobAction $action,
+    ): RedirectResponse {
+        $visible = $jobs->findVisible($request->user(), $job->id);
+        $data = $request->validated();
+
+        $assignmentChanged = (int) ($data['owner_id'] ?? 0) !== (int) ($visible->owner_id ?? 0)
+            || (int) ($data['coordinator_id'] ?? 0) !== (int) ($visible->coordinator_id ?? 0);
+        if ($assignmentChanged) {
+            abort_unless($authorization->allows($request->user(), 'jobs', 'assign', $visible), 403);
+        }
+
+        try {
+            $action->execute($visible, new UpdateJobData(
+                clientId: (int) $data['client_id'],
+                currencyId: isset($data['currency_id']) ? (int) $data['currency_id'] : null,
+                priorityId: isset($data['priority_id']) ? (int) $data['priority_id'] : null,
+                ownerId: isset($data['owner_id']) ? (int) $data['owner_id'] : null,
+                coordinatorId: isset($data['coordinator_id']) ? (int) $data['coordinator_id'] : null,
+                title: $data['title'],
+                requestDescription: $data['request_description'] ?? null,
+                quotedAmount: array_key_exists('quoted_amount', $data) && $data['quoted_amount'] !== null ? (float) $data['quoted_amount'] : null,
+                deliveryDate: $data['delivery_date'] ?? null,
+                productItems: collect($data['products'])->map(fn (array $item): array => [
+                    'product_id' => (int) $item['product_id'],
+                    'product_category_id' => (int) $item['product_category_id'],
+                    'quantity' => (int) $item['quantity'],
+                ])->all(),
+            ), $request->user());
+        } catch (DomainException $exception) {
+            throw ValidationException::withMessages(['job' => $exception->getMessage()]);
+        }
+
+        return back()->with('success', 'Job details updated successfully.');
+    }
+
+    public function updateMembers(Request $request, FlowJob $job, JobRepository $jobs, FlowAuthorizationService $authorization, ActivityLogger $activityLogger, FlowNotificationService $notifications): RedirectResponse
     {
         $visible = $jobs->findVisible($request->user(), $job->id);
         abort_unless($authorization->allows($request->user(), 'jobs', 'assign', $visible), 403);
@@ -91,8 +139,12 @@ class JobController extends Controller
             'member_ids.*' => ['integer', Rule::exists('workspace_memberships', 'user_id')->where(fn ($query) => $query->where('workspace_id', $workspaceId)->where('status', 'active'))],
         ]);
 
-        DB::transaction(function () use ($visible, $data, $request, $activityLogger) {
+        $previousMemberIds = $visible->members()->pluck('user_id')->map(fn ($id) => (int) $id);
+        $newlyAssignedIds = collect();
+
+        DB::transaction(function () use ($visible, $data, $request, $activityLogger, $previousMemberIds, &$newlyAssignedIds) {
             $memberIds = collect($data['member_ids'] ?? [])
+                ->push($visible->created_by)
                 ->push($visible->owner_id)
                 ->push($visible->coordinator_id)
                 ->filter()
@@ -103,7 +155,7 @@ class JobController extends Controller
             $visible->members()->whereNotIn('user_id', $memberIds)->delete();
 
             foreach ($memberIds as $memberId) {
-                $isManager = in_array($memberId, [$visible->owner_id, $visible->coordinator_id], true);
+                $isManager = in_array($memberId, [$visible->created_by, $visible->owner_id, $visible->coordinator_id], true);
                 FlowJobMember::updateOrCreate(
                     ['flow_job_id' => $visible->id, 'user_id' => $memberId],
                     [
@@ -115,8 +167,13 @@ class JobController extends Controller
                 );
             }
 
+            $newlyAssignedIds = $memberIds->diff($previousMemberIds)->values();
             $activityLogger->log($visible->workspace_id, $request->user(), $visible, 'job.members_updated', "Assigned team updated for {$visible->code}", ['member_ids' => $memberIds->all()]);
         });
+
+        if ($newlyAssignedIds->isNotEmpty()) {
+            $notifications->jobMembersChanged($visible->id, $request->user()->id, $newlyAssignedIds->all());
+        }
 
         return back()->with('success', 'Assigned project team updated.');
     }
@@ -135,6 +192,30 @@ class JobController extends Controller
         return to_route('flowtrack.jobs.index')->with('success', 'Job deleted successfully.');
     }
 
+    public function destroyPhase(
+        Request $request,
+        FlowJob $job,
+        WorkflowPhase $phase,
+        JobRepository $jobs,
+        FlowAuthorizationService $authorization,
+        RemoveJobPhaseAction $action,
+    ): RedirectResponse {
+        $visible = $jobs->findVisible($request->user(), $job->id);
+        abort_unless($authorization->canDeleteJobPhase($request->user(), $visible), 403);
+
+        $data = $request->validate([
+            'reason' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            $action->execute($visible, $phase, $request->user(), $data['reason'] ?? null);
+        } catch (DomainException $exception) {
+            throw ValidationException::withMessages(['phase' => $exception->getMessage()]);
+        }
+
+        return back()->with('success', "{$phase->name} was removed from this Job.");
+    }
+
     private function render(Request $request, JobRepository $jobs, FlowTrackOptionsQuery $options, AccessResolver $access, ?int $selectedId = null): Response
     {
         abort_unless($request->user()->hasFlowAction('jobs', 'view'), 403);
@@ -146,6 +227,12 @@ class JobController extends Controller
             if (! $canViewFinancials) {
                 $selected->setAttribute('quoted_amount', null);
             }
+            $selected->setAttribute('can_delete_phases', $access->canDeleteJobPhase($request->user(), $selected));
+            $selected->setAttribute('excluded_phase_ids', $selected->excludedPhases->pluck('workflow_phase_id')->map(fn ($id) => (int) $id)->values());
+            $selected->setAttribute(
+                'document_requirements',
+                app(JobDocumentRequirementService::class)->requirements($selected)->values()->all(),
+            );
         }
 
         return Inertia::render('flowtrack/Jobs/Index', [

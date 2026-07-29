@@ -67,4 +67,4 @@ See `DOCUMENT_WORKFLOW_PHASE_LINKING_UPDATE.md` for the Documents-only upload wo
 
 ## Assignment-based Task access
 
-Task visibility and updates are assignment-based for every non-administrator. A normal user sees only Tasks assigned to their user account in My Work, the Task Board, Job Task lists, global search, and Task drawers. Only that assignee can update the Task. Administrators and Super Administrators retain workspace-wide board visibility and Task control. See `ASSIGNMENT_BASED_BOARD_ACCESS_UPDATE.md` for details.
+Job visibility is assignment-based for every non-administrator. A user sees only Jobs where they are the creator, owner, coordinator, an assigned member, or a Task assignee; everyone involved in a visible Job can see all Tasks in that Job. Full Task updates remain limited to the Task assignee or an Administrator, while authorised Job managers can change due dates. Administrators and Job creators can remove Tasks or job-specific workflow phases. See `JOB_ASSIGNMENT_VISIBILITY_AND_CONTROLS_UPDATE.md` for details.

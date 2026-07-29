@@ -7,6 +7,7 @@ use App\Http\Requests\FlowTrack\StoreMasterRecordRequest;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\ConfigurationCodeGenerator;
 use App\Modules\OrderFlow\Business\Services\MasterRecordDeletionService;
+use App\Modules\OrderFlow\Business\Services\OperationalMetricsService;
 use App\Modules\OrderFlow\Data\Models\MasterRecord;
 use App\Modules\OrderFlow\Data\Repositories\MasterDataRepository;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +19,7 @@ use Inertia\Response;
 
 class MasterDataController extends Controller
 {
-    public function index(Request $request, MasterDataRepository $records, ConfigurationCodeGenerator $codes): Response
+    public function index(Request $request, MasterDataRepository $records, ConfigurationCodeGenerator $codes, OperationalMetricsService $metrics): Response
     {
         $type = (string) $request->query('type', MasterDataType::ProductCategory->value);
         abort_unless(in_array($type, array_map(fn (MasterDataType $case) => $case->value, MasterDataType::cases()), true), 404);
@@ -30,6 +31,7 @@ class MasterDataController extends Controller
             'types' => collect(MasterDataType::cases())->map(fn (MasterDataType $case) => $case->catalogEntry()),
             'parents' => $type === MasterDataType::Product->value ? $records->byType($request->user()->currentWorkspaceId(), MasterDataType::ProductCategory->value, true) : [],
             'nextCode' => $codes->master($masterType, $request->user()->currentWorkspaceId()),
+            'metrics' => $metrics->forUser($request->user())['masterData'],
         ]);
     }
 

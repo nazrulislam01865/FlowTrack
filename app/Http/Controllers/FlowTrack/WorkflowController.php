@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\OrderFlow\Application\Queries\FlowTrackOptionsQuery;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
+use App\Modules\OrderFlow\Business\Services\OperationalMetricsService;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\TaskPack;
 use App\Modules\OrderFlow\Data\Models\WorkflowPhase;
@@ -19,7 +20,7 @@ use Inertia\Response;
 
 class WorkflowController extends Controller
 {
-    public function index(Request $request, FlowTrackOptionsQuery $options): Response
+    public function index(Request $request, FlowTrackOptionsQuery $options, OperationalMetricsService $metrics): Response
     {
         $workspaceId = $request->user()->currentWorkspaceId();
 
@@ -27,6 +28,7 @@ class WorkflowController extends Controller
             'workflows' => WorkflowTemplate::query()->where('workspace_id', $workspaceId)->with(['phases.taskPack.items', 'phases.documentCategory'])->orderByDesc('is_default')->orderBy('name')->get(),
             'taskPacks' => TaskPack::query()->where('workspace_id', $workspaceId)->with('items')->orderBy('name')->get(),
             'options' => $options->forWorkspace($request->user()),
+            'metrics' => $metrics->forUser($request->user())['workflow'],
         ]);
     }
 

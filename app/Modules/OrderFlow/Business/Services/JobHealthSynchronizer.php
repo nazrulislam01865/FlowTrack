@@ -5,12 +5,14 @@ namespace App\Modules\OrderFlow\Business\Services;
 use App\Models\User;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
+use Illuminate\Support\Facades\DB;
 
 class JobHealthSynchronizer
 {
     public function __construct(
         private readonly ActivityLogger $activities,
         private readonly TransitionAuditLogger $transitions,
+        private readonly FlowNotificationService $notifications,
     ) {}
 
     /**
@@ -48,6 +50,14 @@ class JobHealthSynchronizer
                     ['from' => $previous, 'to' => $health, 'reason' => $reason, 'source' => $source],
                 );
                 $this->transitions->log($job, 'job.health', $actor, $source, $previous, $health, $reason);
+                DB::afterCommit(fn () => $this->notifications->jobHealthChanged(
+                    $job->id,
+                    (int) ($actor?->id ?? 0),
+                    $previous,
+                    $health,
+                    $reason,
+                    $source,
+                ));
             }
         }
 

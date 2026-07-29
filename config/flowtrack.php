@@ -14,6 +14,33 @@ return [
         'password' => env('FLOWTRACK_SUPER_ADMIN_PASSWORD'),
     ],
 
+    'notification_rules' => [
+        ['name' => 'Job created or assigned', 'trigger' => 'Immediately', 'recipients' => 'Assigned Job users + Authorities', 'active' => true],
+        ['name' => 'Task assigned', 'trigger' => 'Immediately', 'recipients' => 'Task assignee + Authorities', 'active' => true],
+        ['name' => 'Task status or blocker changed', 'trigger' => 'Immediately', 'recipients' => 'Assigned Job users + Authorities', 'active' => true],
+        ['name' => 'Task due date changed', 'trigger' => 'Immediately', 'recipients' => 'Assigned Job users + Authorities', 'active' => true],
+        ['name' => 'Task comment added', 'trigger' => 'Immediately', 'recipients' => 'Task assignee + Job managers + Authorities', 'active' => true],
+        ['name' => 'Task or Job Phase removed', 'trigger' => 'Immediately', 'recipients' => 'Affected users + Authorities', 'active' => true],
+        ['name' => 'Workflow Phase changed', 'trigger' => 'Immediately', 'recipients' => 'Assigned Job users + Authorities', 'active' => true],
+        ['name' => 'Required document uploaded', 'trigger' => 'Immediately', 'recipients' => 'Assigned Job users + Authorities', 'active' => true],
+        ['name' => 'Job health changed', 'trigger' => 'Immediately', 'recipients' => 'Assigned Job users + Authorities', 'active' => true],
+    ],
+
+
+    'notification_authority_role_codes' => array_values(array_filter(array_map(
+        fn (string $code): string => strtoupper(trim($code)),
+        explode(',', env(
+            'FLOWTRACK_NOTIFICATION_AUTHORITY_ROLE_CODES',
+            'SUPER_ADMIN,ADMIN,SYS_ADMIN,ADMINISTRATOR,SYSTEM_ADMINISTRATOR,OPERATIONS_MANAGER'
+        )),
+    ))),
+
+    // Maximum historical recipient records inspected when an authority account
+    // first opens the workspace-wide notification feed.
+    'notification_authority_sync_limit' => (int) env('FLOWTRACK_NOTIFICATION_AUTHORITY_SYNC_LIMIT', 2000),
+
+    'notification_authority_sync_interval_seconds' => (int) env('FLOWTRACK_NOTIFICATION_AUTHORITY_SYNC_INTERVAL_SECONDS', 60),
+
     'administrator_role_codes' => [
         'SUPER_ADMIN',
         'ADMIN',

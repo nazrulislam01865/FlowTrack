@@ -5,6 +5,7 @@ namespace App\Modules\OrderFlow\Application\Actions;
 use App\Models\User;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\ActivityLogger;
+use App\Modules\OrderFlow\Business\Services\FlowNotificationService;
 use App\Modules\OrderFlow\Business\Services\IdentifierGenerator;
 use App\Modules\OrderFlow\Business\Services\ProgressCalculator;
 use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
@@ -13,7 +14,6 @@ use App\Modules\OrderFlow\Data\Models\FlowTask;
 use App\Modules\OrderFlow\Data\Models\MasterRecord;
 use App\Modules\OrderFlow\Data\Models\WorkspaceMembership;
 use App\Modules\OrderFlow\Data\Models\WorkflowPhase;
-use App\Notifications\FlowTrackAlert;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -24,6 +24,7 @@ class CreateTaskAction
         private readonly ActivityLogger $activityLogger,
         private readonly ProgressCalculator $progressCalculator,
         private readonly WorkflowAutomationService $automation,
+        private readonly FlowNotificationService $notifications,
     ) {}
 
     public function execute(FlowJob $job, array $data, User $actor): FlowTask
@@ -102,15 +103,7 @@ class CreateTaskAction
             $this->progressCalculator->recalculateJob($job);
             $this->automation->synchronize($job, $actor, 'task_creation');
 
-            if ($assignee && $assignee->id !== $actor->id) {
-                $assignee->notify(new FlowTrackAlert([
-                    'title' => 'New task assigned',
-                    'text' => "{$task->code}: {$task->title}",
-                    'type' => 'task',
-                    'job' => $job->code,
-                    'task_id' => $task->id,
-                ]));
-            }
+            DB::afterCommit(fn () => $this->notifications->taskCreated($task->id, $actor->id));
 
             return $task->fresh(['job.client', 'phase', 'parent', 'dependency', 'creator', 'assignee', 'status', 'priority', 'checklistItems']);
         });

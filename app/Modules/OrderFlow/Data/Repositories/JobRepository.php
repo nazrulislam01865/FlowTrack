@@ -19,7 +19,7 @@ class JobRepository
     public function paginateVisible(User $user, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $paginator = $this->visibleQuery($user)
-            ->with(['client', 'product', 'productCategory', 'items.product', 'items.productCategory', 'currency', 'priority', 'owner', 'coordinator', 'workflow', 'currentPhase'])
+            ->with(['client', 'product', 'productCategory', 'items.product', 'items.productCategory', 'currency', 'priority', 'owner', 'coordinator', 'creator', 'workflow', 'currentPhase'])
             ->when($filters['search'] ?? null, function (Builder $query, string $search) {
                 $query->where(function (Builder $nested) use ($search) {
                     $nested->where('code', 'like', "%{$search}%")
@@ -52,7 +52,7 @@ class JobRepository
     public function board(User $user): Collection
     {
         $jobs = $this->authorization->applyJobBoardVisibility(FlowJob::query(), $user)
-            ->with(['client', 'currentPhase', 'coordinator', 'priority', 'workflow.phases', 'members'])
+            ->with(['client', 'currentPhase', 'coordinator', 'priority', 'workflow.phases', 'members', 'excludedPhases'])
             ->where('status', '!=', 'completed')
             ->orderBy('delivery_date')
             ->get();
@@ -77,9 +77,10 @@ class JobRepository
         $job = $this->visibleQuery($user)
             ->with([
                 'client.accountManager', 'workflow.phases.taskPack', 'currentPhase.taskPack.items.documentCategory', 'currentPhase.documentCategory', 'startedPhase',
-                'product', 'productCategory', 'items.product', 'items.productCategory', 'currency', 'priority', 'owner', 'coordinator',
+                'product', 'productCategory', 'items.product', 'items.productCategory', 'currency', 'priority', 'owner', 'coordinator', 'creator',
                 'members.user', 'tasks.assignee', 'tasks.status', 'tasks.priority', 'tasks.packItem', 'tasks.checklistItems', 'tasks.comments.user',
                 'phaseHistory.phase', 'documents.category', 'documents.versions.uploader',
+                'excludedPhases.phase',
                 'transitionEvents.actor', 'transitionEvents.phase', 'transitionEvents.task',
             ])
             ->findOrFail($id);
@@ -90,15 +91,6 @@ class JobRepository
                 'tasks.assignee', 'tasks.status', 'tasks.priority', 'tasks.packItem',
                 'tasks.checklistItems', 'tasks.comments.user',
             ]);
-        }
-
-        // Keep every Job task surface consistent with Task Board and My Work:
-        // non-administrators receive only their own assigned Tasks. Administrators
-        // and Super Administrators retain the complete Job task list.
-        if (! $this->authorization->isAdministrator($user) && $job->relationLoaded('tasks')) {
-            $job->setRelation('tasks', $job->tasks
-                ->where('assignee_id', $user->id)
-                ->values());
         }
 
         return $job;

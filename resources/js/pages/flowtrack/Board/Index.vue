@@ -59,7 +59,17 @@ function dropJob(phase: any) {
     if (dragging.value?.type !== 'job') return;
     const job = props.jobs.find((item) => item.id === dragging.value?.id);
     if (!job) return;
-    if (phase.sequence > (job.current_phase?.sequence || 0) + 1) {
+
+    const excluded = new Set((job.excluded_phases || []).map((item: any) => Number(item.workflow_phase_id)));
+    if (excluded.has(Number(phase.id))) {
+        dragging.value = null;
+        return;
+    }
+
+    const activeForJob = phases.value.filter((item: any) => !excluded.has(Number(item.id)));
+    const currentIndex = activeForJob.findIndex((item: any) => Number(item.id) === Number(job.current_phase_id));
+    const targetIndex = activeForJob.findIndex((item: any) => Number(item.id) === Number(phase.id));
+    if (currentIndex >= 0 && targetIndex > currentIndex + 1) {
         pendingJobMove.value = { job, phase };
         reason.value = '';
     } else {
@@ -79,7 +89,7 @@ function confirmMove() {
         <button class="ft-primary" @click="createOpen = true">＋ New Job</button>
     </FlowPageHeader>
 
-    <div v-if="!boardAccess.isAdministrator" class="ft-source-note" style="margin-bottom: 14px"><b>Assignment-based board</b><div class="ft-small ft-muted" style="margin-top: 4px">Task Board shows only Tasks assigned to you. Job Phase Board shows only Jobs connected to your assignments.</div></div>
+    <div v-if="!boardAccess.isAdministrator" class="ft-source-note" style="margin-bottom: 14px"><b>Assignment-based board</b><div class="ft-small ft-muted" style="margin-top: 4px">Task Board shows all Tasks belonging to Jobs you are involved in. Job Phase Board shows only Jobs connected to your assignments.</div></div>
 
     <div class="ft-board-tabs"><button class="ft-tab-btn" :class="{ active: mode === 'tasks' }" @click="mode = 'tasks'">Task Board</button><button class="ft-tab-btn" :class="{ active: mode === 'jobs' }" @click="mode = 'jobs'">Job Phase Board</button></div>
 
@@ -101,7 +111,7 @@ function confirmMove() {
             <header class="ft-kanban-head"><span>{{ phase.short_name }}</span><span class="ft-count">{{ jobsForPhase(phase.id).length }}</span></header>
             <div class="ft-kanban-list" @dragover.prevent @drop="dropJob(phase)">
                 <div v-for="job in jobsForPhase(phase.id)" :key="job.id" class="ft-kanban-card" draggable="true" @dragstart="dragStart('job', job.id)" @click="router.get(`/flowtrack/jobs/${job.id}`)">
-                    <FlowBadge :value="job.health" health /><div class="ft-kanban-card-title">{{ job.title }}</div><div class="ft-kanban-job">{{ job.code }} · {{ job.client?.name }}</div><div class="ft-kanban-meta"><span class="ft-avatar" style="width: 25px; height: 25px; font-size: 9px">{{ job.coordinator?.initials || initials(job.coordinator?.name) }}</span><span class="ft-small">{{ job.progress }}%</span></div>
+                    <FlowBadge :value="job.health" health :title="job.health_reason || 'Calculated from current-phase Tasks and delivery dates.'" /><div class="ft-kanban-card-title">{{ job.title }}</div><div class="ft-kanban-job">{{ job.code }} · {{ job.client?.name }}</div><div class="ft-kanban-meta"><span class="ft-avatar" style="width: 25px; height: 25px; font-size: 9px">{{ job.coordinator?.initials || initials(job.coordinator?.name) }}</span><span class="ft-small">{{ job.progress }}%</span></div>
                 </div>
             </div>
         </article>

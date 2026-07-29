@@ -55,6 +55,7 @@ class CreateJobAction
 
             $job = FlowJob::create([
                 'workspace_id' => $data->workspaceId,
+                'created_by' => $actor->id,
                 'client_id' => $data->clientId,
                 'workflow_template_id' => $workflow->id,
                 // These legacy summary fields remain synchronized for reports,
@@ -68,6 +69,7 @@ class CreateJobAction
                 'code' => $this->identifiers->job(),
                 'order_code' => $phase->sequence >= 5 ? $this->identifiers->order() : null,
                 'title' => $data->title,
+                'request_description' => blank($data->requestDescription) ? null : trim($data->requestDescription),
                 'quantity' => $totalQuantity,
                 'quoted_amount' => $data->quotedAmount,
                 'delivery_date' => $data->deliveryDate,
@@ -88,6 +90,7 @@ class CreateJobAction
             }
 
             $memberIds = collect($data->memberIds)
+                ->push($actor->id)
                 ->push($job->owner_id)
                 ->push($job->coordinator_id)
                 ->filter()
@@ -95,11 +98,12 @@ class CreateJobAction
                 ->unique();
 
             foreach ($memberIds as $memberId) {
+                $isManager = in_array($memberId, [$actor->id, $job->owner_id, $job->coordinator_id], true);
                 FlowJobMember::create([
                     'flow_job_id' => $job->id,
                     'user_id' => $memberId,
-                    'access_level' => in_array($memberId, [$job->owner_id, $job->coordinator_id], true) ? 'manager' : 'member',
-                    'can_manage_tasks' => in_array($memberId, [$job->owner_id, $job->coordinator_id], true),
+                    'access_level' => $isManager ? 'manager' : 'member',
+                    'can_manage_tasks' => $isManager,
                     'can_upload_documents' => true,
                     'can_view_financials' => $memberId === $job->owner_id,
                 ]);

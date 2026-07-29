@@ -22,7 +22,7 @@ class StoreJobRequest extends FormRequest
             // accepted so older clients can continue creating Jobs safely.
             'products' => ['nullable', 'array', 'min:1', 'max:25', 'required_without:product_id'],
             'products.*.product_id' => ['required', 'integer', 'distinct', 'exists:master_records,id'],
-            'products.*.product_category_id' => ['nullable', 'integer', 'exists:master_records,id'],
+            'products.*.product_category_id' => ['required', 'integer', 'exists:master_records,id'],
             'products.*.quantity' => ['required', 'integer', 'min:1', 'max:1000000000'],
             'product_id' => ['nullable', 'integer', 'exists:master_records,id', 'required_without:products'],
             'product_category_id' => ['nullable', 'integer', 'exists:master_records,id'],
@@ -33,6 +33,7 @@ class StoreJobRequest extends FormRequest
             'owner_id' => ['nullable', 'integer', 'exists:users,id'],
             'coordinator_id' => ['nullable', 'integer', 'exists:users,id'],
             'title' => ['required', 'string', 'max:255'],
+            'request_description' => ['nullable', 'string', 'max:10000'],
             'quoted_amount' => ['nullable', 'numeric', 'min:0'],
             'delivery_date' => ['nullable', 'date'],
             'start_reason' => ['nullable', 'string', 'max:2000'],
@@ -46,6 +47,7 @@ class StoreJobRequest extends FormRequest
     {
         return [
             'products.required_without' => 'Add at least one product to the Job.',
+            'products.*.product_category_id.required' => 'Select a category for every product row.',
             'products.*.product_id.required' => 'Select a product for every product row.',
             'products.*.product_id.distinct' => 'The same product cannot be added more than once.',
             'products.*.quantity.required' => 'Enter a quantity for every product row.',

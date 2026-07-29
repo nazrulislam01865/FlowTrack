@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import FlowBrand from '@/components/flowtrack/FlowBrand.vue';
 
 const props = defineProps<{ status?: string; canResetPassword: boolean }>();
-const form = useForm({ email: 'manager@flowtrack.cn', password: 'demo123', remember: true });
+const page = usePage<any>();
+const form = useForm({ email: '', password: '', remember: false });
+const loginError = computed(() => page.props.flash?.error || null);
 
 function submit() {
     form.post('/login', { onFinish: () => form.reset('password') });
@@ -33,7 +36,8 @@ function submit() {
                 <div style="margin-bottom: 30px"><FlowBrand /></div>
                 <h2 style="font-size: 30px; margin: 0 0 8px; font-weight: 760">Welcome back</h2>
                 <p class="ft-muted" style="line-height: 1.6; margin: 0 0 28px">Sign in to manage jobs, assignments and client delivery.</p>
-                <div v-if="props.status" class="ft-source-note" style="margin-bottom: 16px">{{ props.status }}</div>
+                <div v-if="loginError" class="ft-login-error" role="alert">{{ loginError }}</div>
+                <div v-else-if="props.status" class="ft-source-note" style="margin-bottom: 16px">{{ props.status }}</div>
                 <div class="ft-field">
                     <label for="email">Email</label>
                     <input id="email" v-model="form.email" type="email" autocomplete="email" autofocus required />
@@ -47,13 +51,9 @@ function submit() {
                     <input id="password" v-model="form.password" type="password" autocomplete="current-password" required />
                     <span v-if="form.errors.password" class="ft-error">{{ form.errors.password }}</span>
                 </div>
-                <label class="ft-check-row" style="border: 0; padding: 0 0 16px">
-                    <input v-model="form.remember" type="checkbox" />
-                    <span class="ft-small">Remember me</span>
-                </label>
                 <button class="ft-primary" style="width: 100%; padding: 13px" :disabled="form.processing">{{ form.processing ? 'Signing in…' : 'Sign in' }}</button>
                 <div style="margin-top: 16px; padding: 13px; border-radius: 10px; background: #f7f9fc; color: var(--ft-muted); font-size: 12px; line-height: 1.6">
-                    <b>Demo access:</b> manager@flowtrack.cn / demo123
+                    <b>Secure access:</b> Each account allows one active login and automatically signs out after 30 minutes.
                 </div>
             </form>
         </section>

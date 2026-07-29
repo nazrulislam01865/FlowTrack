@@ -23,5 +23,6 @@ final readonly class CreateJobData
         public array $memberIds = [],
         public bool $draft = false,
         public array $productItems = [],
+        public ?string $requestDescription = null,
     ) {}
 }

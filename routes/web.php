@@ -10,6 +10,7 @@ use App\Http\Controllers\FlowTrack\JobController;
 use App\Http\Controllers\FlowTrack\MasterDataController;
 use App\Http\Controllers\FlowTrack\MyWorkController;
 use App\Http\Controllers\FlowTrack\NotificationController;
+use App\Http\Controllers\FlowTrack\PusherAuthController;
 use App\Http\Controllers\FlowTrack\ReportController;
 use App\Http\Controllers\FlowTrack\TaskController;
 use App\Http\Controllers\FlowTrack\TaskPackController;
@@ -17,6 +18,8 @@ use App\Http\Controllers\FlowTrack\TemplateApiController;
 use App\Http\Controllers\FlowTrack\TemplatePageController;
 use App\Http\Controllers\FlowTrack\TemplateProfileController;
 use App\Http\Controllers\FlowTrack\TemplateSessionController;
+use App\Http\Controllers\FlowTrack\SessionExpiredController;
+use App\Http\Controllers\FlowTrack\SessionStatusController;
 use App\Http\Controllers\FlowTrack\TemplateAccessController;
 use App\Http\Controllers\FlowTrack\TemplateConfigurationController;
 use App\Http\Controllers\FlowTrack\TemplateWorkflowController;
@@ -29,6 +32,7 @@ Route::get('/dashboard', TemplatePageController::class)->name('dashboard');
 Route::get('/flowtrack', TemplatePageController::class)->name('flowtrack.prototype');
 Route::get('/flowtrack/dashboard', TemplatePageController::class)->name('flowtrack.dashboard');
 Route::post('/flowtrack/logout', TemplateSessionController::class)->middleware('auth')->name('flowtrack.logout');
+Route::get('/flowtrack/session-expired', SessionExpiredController::class)->name('flowtrack.session.expired');
 
 Route::middleware(['auth', 'verified', 'flow.workspace'])->prefix('flowtrack')->name('flowtrack.')->group(function () {
     Route::prefix('template-api')->name('template-api.')->group(function () {
@@ -41,12 +45,15 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])->prefix('flowtrack')->
         Route::put('/clients/{client}', [TemplateApiController::class, 'updateClient'])->name('clients.update');
         Route::delete('/clients/{client}', [TemplateApiController::class, 'destroyClient'])->name('clients.destroy');
         Route::post('/jobs', [TemplateApiController::class, 'storeJob'])->name('jobs.store');
+        Route::put('/jobs/{job}', [TemplateApiController::class, 'updateJob'])->name('jobs.update');
         Route::delete('/jobs/{job}', [TemplateApiController::class, 'destroyJob'])->name('jobs.destroy');
         Route::put('/tasks/{task}', [TemplateApiController::class, 'updateTask'])->name('tasks.update');
+        Route::patch('/tasks/{task}/due-date', [TemplateApiController::class, 'updateTaskDueDate'])->name('tasks.due-date.update');
         Route::delete('/tasks/{task}', [TemplateApiController::class, 'destroyTask'])->name('tasks.destroy');
         Route::post('/documents', [TemplateApiController::class, 'storeDocument'])->name('documents.store');
         Route::delete('/documents/{document}', [TemplateApiController::class, 'destroyDocument'])->name('documents.destroy');
         Route::patch('/jobs/{job}/phase', [TemplateApiController::class, 'moveJob'])->name('jobs.phase');
+        Route::delete('/jobs/{job}/phases/{phase}', [TemplateApiController::class, 'destroyJobPhase'])->name('jobs.phases.destroy');
         Route::get('/master-data/next-code', [TemplateConfigurationController::class, 'nextMasterCode'])->name('master-data.next-code');
         Route::post('/master-data', [TemplateConfigurationController::class, 'storeMaster'])->name('master-data.store');
         Route::put('/master-data/{record}', [TemplateConfigurationController::class, 'updateMaster'])->name('master-data.update');
@@ -70,11 +77,13 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])->prefix('flowtrack')->
         Route::put('/access/members/{membership}', [TemplateAccessController::class, 'updateMember'])->name('access.members.update');
         Route::delete('/access/members/{membership}', [TemplateAccessController::class, 'destroyMember'])->name('access.members.destroy');
     });
+    Route::get('/session/status', SessionStatusController::class)->name('session.status');
     Route::get('/search', GlobalSearchController::class)->name('search');
     Route::get('/my-work', MyWorkController::class)->name('my-work');
 
     Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
     Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
+    Route::put('/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
     Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
     Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
     Route::put('/jobs/{job}/members', [JobController::class, 'updateMembers'])->name('jobs.members.update');
@@ -91,7 +100,9 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])->prefix('flowtrack')->
     Route::post('/jobs/{job}/tasks', [TaskController::class, 'store'])->name('tasks.store');
     Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
     Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+    Route::patch('/tasks/{task}/due-date', [TaskController::class, 'updateDueDate'])->name('tasks.due-date.update');
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+    Route::delete('/jobs/{job}/phases/{phase}', [JobController::class, 'destroyPhase'])->name('jobs.phases.destroy');
 
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
@@ -100,7 +111,9 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])->prefix('flowtrack')->
 
     Route::get('/reports', ReportController::class)->middleware('flow.action:reports,view')->name('reports');
 
+    Route::post('/pusher/auth', PusherAuthController::class)->name('pusher.auth');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/status', [NotificationController::class, 'status'])->name('notifications.status');
     Route::patch('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
 

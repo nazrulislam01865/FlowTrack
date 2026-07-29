@@ -5,11 +5,12 @@ namespace App\Http\Controllers\FlowTrack;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FlowTrack\UpdateTaskRequest;
 use App\Http\Requests\FlowTrack\StoreTaskRequest;
+use App\Http\Requests\FlowTrack\UpdateTaskDueDateRequest;
 use App\Modules\OrderFlow\Application\Actions\UpdateTaskAction;
 use App\Modules\OrderFlow\Application\Actions\CreateTaskAction;
+use App\Modules\OrderFlow\Application\Actions\RemoveTaskFromJobAction;
+use App\Modules\OrderFlow\Application\Actions\UpdateTaskDueDateAction;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
-use App\Modules\OrderFlow\Business\Services\ProgressCalculator;
-use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Repositories\TaskRepository;
@@ -47,6 +48,7 @@ class TaskController extends Controller
         $visibleTask->setAttribute('can_update', $authorization->canUpdateTask($request->user(), $visibleTask));
         $visibleTask->setAttribute('can_assign', $authorization->canAssignExistingTask($request->user(), $visibleTask));
         $visibleTask->setAttribute('can_delete', $authorization->canDeleteTask($request->user(), $visibleTask));
+        $visibleTask->setAttribute('can_change_due_date', $authorization->canChangeTaskDueDate($request->user(), $visibleTask));
 
         return response()->json($visibleTask);
     }
@@ -69,19 +71,27 @@ class TaskController extends Controller
 
         return back()->with('success', 'Task update saved.');
     }
-    public function destroy(Request $request, FlowTask $task, TaskRepository $tasks, FlowAuthorizationService $authorization, ProgressCalculator $progressCalculator, WorkflowAutomationService $automation): RedirectResponse
+
+    public function updateDueDate(
+        UpdateTaskDueDateRequest $request,
+        FlowTask $task,
+        TaskRepository $tasks,
+        FlowAuthorizationService $authorization,
+        UpdateTaskDueDateAction $action,
+    ): RedirectResponse {
+        $visibleTask = $tasks->findVisible($request->user(), $task->id);
+        abort_unless($authorization->canChangeTaskDueDate($request->user(), $visibleTask), 403);
+
+        $action->execute($visibleTask, $request->validated('due_date'), $request->user());
+
+        return back()->with('success', 'Task due date updated.');
+    }
+
+    public function destroy(Request $request, FlowTask $task, TaskRepository $tasks, FlowAuthorizationService $authorization, RemoveTaskFromJobAction $action): RedirectResponse
     {
         $visibleTask = $tasks->findVisible($request->user(), $task->id);
         abort_unless($authorization->canDeleteTask($request->user(), $visibleTask), 403);
-        if ($visibleTask->packItem?->is_required) {
-            throw ValidationException::withMessages([
-                'task' => 'Required Task Pack tasks cannot be deleted. Mark the task Completed or change the Task Pack configuration.',
-            ]);
-        }
-        $job = $visibleTask->job;
-        $visibleTask->delete();
-        $progressCalculator->recalculateJob($job);
-        $automation->synchronize($job, $request->user(), 'task_deletion');
+        $action->execute($visibleTask, $request->user());
 
         return back()->with('success', 'Task deleted successfully.');
     }

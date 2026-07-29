@@ -32,7 +32,21 @@ test('workspace manager can load the exact-template bootstrap data', function ()
     $this->actingAs($manager)
         ->getJson(route('flowtrack.template-api.bootstrap'))
         ->assertOk()
-        ->assertJsonStructure(['currentUser', 'users', 'clients', 'jobs', 'tasks', 'workflows', 'masterData', 'taskPacks']);
+        ->assertJsonStructure([
+            'currentUser',
+            'users',
+            'clients',
+            'jobs',
+            'tasks',
+            'activities' => [[
+                'id', 'title', 'text', 'time', 'event', 'job', 'job_id', 'task', 'task_id',
+                'user' => ['id', 'name', 'initials'],
+            ]],
+            'workflows',
+            'masterData',
+            'taskPacks',
+        ])
+        ->assertJsonPath('activities.0.event', 'task.created');
 });
 
 test('workspace manager can create a client with a system generated immutable code', function () {
@@ -114,6 +128,57 @@ test('a Job can be created with multiple product and quantity lines', function (
     $job = FlowJob::where('code', $response->json('job.id'))->firstOrFail();
     expect($job->quantity)->toBe(200)
         ->and(FlowJobItem::where('flow_job_id', $job->id)->count())->toBe(2);
+});
+
+test('a Job can be updated with category-linked product lines, request description, priority and assignee', function () {
+    $manager = User::where('email', 'manager@flowtrack.cn')->firstOrFail();
+    $workspaceId = $manager->currentWorkspaceId();
+    $job = FlowJob::query()->where('workspace_id', $workspaceId)->visibleTo($manager)->firstOrFail();
+    $client = Client::where('workspace_id', $workspaceId)->where('status', 'active')->firstOrFail();
+    $priority = MasterRecord::where('workspace_id', $workspaceId)->where('type', 'priority')->where('status', 'active')->firstOrFail();
+    $products = MasterRecord::where('workspace_id', $workspaceId)
+        ->where('type', 'product')
+        ->where('status', 'active')
+        ->whereNotNull('parent_id')
+        ->take(2)
+        ->get();
+
+    expect($products)->toHaveCount(2);
+
+    $this->actingAs($manager)
+        ->putJson(route('flowtrack.template-api.jobs.update', $job), [
+            'client_id' => $client->id,
+            'products' => $products->map(fn (MasterRecord $product, int $index) => [
+                'product_id' => $product->id,
+                'product_category_id' => $product->parent_id,
+                'quantity' => ($index + 1) * 25,
+            ])->all(),
+            'currency_id' => $job->currency_id,
+            'priority_id' => $priority->id,
+            'owner_id' => $manager->id,
+            'coordinator_id' => $manager->id,
+            'title' => 'Updated multi-line Job title',
+            'request_description' => 'Updated specifications, customization and target-price details.',
+            'delivery_date' => now()->addWeeks(3)->toDateString(),
+        ])
+        ->assertOk()
+        ->assertJsonPath('job.title', 'Updated multi-line Job title')
+        ->assertJsonPath('job.requestDescription', 'Updated specifications, customization and target-price details.')
+        ->assertJsonPath('job.ownerId', $manager->id)
+        ->assertJsonPath('job.productCount', 2)
+        ->assertJsonPath('job.qty', 75)
+        ->assertJsonCount(2, 'job.products');
+
+    $job->refresh();
+    expect($job->request_description)->toBe('Updated specifications, customization and target-price details.')
+        ->and($job->owner_id)->toBe($manager->id)
+        ->and($job->priority_id)->toBe($priority->id)
+        ->and($job->items()->count())->toBe(2)
+        ->and($job->quantity)->toBe(75);
+
+    foreach ($job->items()->with('product')->get() as $item) {
+        expect((int) $item->product_category_id)->toBe((int) $item->product->parent_id);
+    }
 });
 
 test('members cannot open jobs outside their project assignment', function () {
@@ -636,30 +701,135 @@ test('Task Pack activation always uses the pack mapped to the selected Workflow 
     expect($generatedItemIds->intersect($first->taskPack->items->pluck('id')))->toBeEmpty();
 });
 
-test('a non-administrator sees and updates only Tasks assigned to them', function () {
+test('a non-administrator sees every Task in an assigned Job but no unrelated Jobs or Tasks', function () {
     $user = User::where('email', 'manager@flowtrack.cn')->firstOrFail();
+    $otherUser = User::where('email', 'chen.mei@flowtrack.cn')->firstOrFail();
+    $thirdUser = User::where('email', 'zhang.min@flowtrack.cn')->firstOrFail();
     $authorization = app(\App\Modules\OrderFlow\Business\Services\FlowAuthorizationService::class);
 
-    $assigned = \App\Modules\OrderFlow\Data\Models\FlowTask::query()
-        ->whereHas('job', fn ($query) => $query->where('workspace_id', $user->currentWorkspaceId()))
-        ->firstOrFail();
-    $assigned->update(['assignee_id' => $user->id]);
+    $assignedJob = FlowJob::query()->with('tasks')->has('tasks', '>=', 2)->firstOrFail();
+    $assignedJob->update(['created_by' => $user->id]);
+    \App\Modules\OrderFlow\Data\Models\FlowJobMember::updateOrCreate(
+        ['flow_job_id' => $assignedJob->id, 'user_id' => $user->id],
+        ['access_level' => 'manager', 'can_manage_tasks' => true, 'can_upload_documents' => true, 'can_view_financials' => true],
+    );
+    $assignedTasks = $assignedJob->tasks()->take(2)->get();
+    $assignedTasks[0]->update(['assignee_id' => $user->id]);
+    $assignedTasks[1]->update(['assignee_id' => $otherUser->id]);
 
-    $other = \App\Modules\OrderFlow\Data\Models\FlowTask::query()
-        ->where('id', '!=', $assigned->id)
-        ->whereNotNull('assignee_id')
-        ->where('assignee_id', '!=', $user->id)
-        ->with('job')
-        ->firstOrFail();
+    $unrelatedJob = FlowJob::query()->whereKeyNot($assignedJob->id)->with('tasks')->firstOrFail();
+    $unrelatedJob->update([
+        'created_by' => $otherUser->id,
+        'owner_id' => $otherUser->id,
+        'coordinator_id' => $thirdUser->id,
+    ]);
+    $unrelatedJob->members()->where('user_id', $user->id)->delete();
+    $unrelatedJob->tasks()->where('assignee_id', $user->id)->update(['assignee_id' => $otherUser->id]);
+    $unrelatedTask = $unrelatedJob->tasks()->firstOrFail();
 
-    $visibleIds = $authorization->applyTaskBoardVisibility(
+    $visibleJobIds = $authorization->applyJobVisibility(FlowJob::query(), $user)->pluck('id');
+    $visibleTaskIds = $authorization->applyTaskBoardVisibility(
         \App\Modules\OrderFlow\Data\Models\FlowTask::query(),
         $user,
     )->pluck('id');
 
     expect($authorization->isAdministrator($user))->toBeFalse()
-        ->and($visibleIds)->toContain($assigned->id)
-        ->and($visibleIds)->not->toContain($other->id)
-        ->and($authorization->canUpdateTask($user, $assigned->fresh('job')))->toBeTrue()
-        ->and($authorization->canUpdateTask($user, $other))->toBeFalse();
+        ->and($visibleJobIds)->toContain($assignedJob->id)
+        ->and($visibleJobIds)->not->toContain($unrelatedJob->id)
+        ->and($visibleTaskIds)->toContain($assignedTasks[0]->id, $assignedTasks[1]->id)
+        ->and($visibleTaskIds)->not->toContain($unrelatedTask->id)
+        ->and($authorization->canUpdateTask($user, $assignedTasks[0]->fresh('job')))->toBeTrue()
+        ->and($authorization->canUpdateTask($user, $assignedTasks[1]->fresh('job')))->toBeFalse();
+});
+
+test('a Job creator can change the due date of any Task or subtask in that Job', function () {
+    $creator = User::where('email', 'manager@flowtrack.cn')->firstOrFail();
+    $otherUser = User::where('email', 'chen.mei@flowtrack.cn')->firstOrFail();
+    $job = FlowJob::query()->where('created_by', $creator->id)->whereHas('tasks')->firstOrFail();
+    $task = $job->tasks()->firstOrFail();
+    $task->update(['assignee_id' => $otherUser->id]);
+    $subtask = $task->replicate(['code']);
+    $subtask->code = 'TSK-SUB-'.str_pad((string) $task->id, 6, '0', STR_PAD_LEFT);
+    $subtask->parent_id = $task->id;
+    $subtask->task_pack_item_id = null;
+    $subtask->assignee_id = $otherUser->id;
+    $subtask->save();
+
+    $newDate = now()->addDays(21)->toDateString();
+    $this->actingAs($creator)
+        ->patch(route('flowtrack.tasks.due-date.update', $subtask), ['due_date' => $newDate])
+        ->assertRedirect();
+
+    expect($subtask->fresh()->due_date?->toDateString())->toBe($newDate);
+});
+
+test('a Job creator can remove a generated Task and it is not regenerated', function () {
+    $creator = User::where('email', 'manager@flowtrack.cn')->firstOrFail();
+    $job = FlowJob::query()
+        ->where('created_by', $creator->id)
+        ->whereHas('currentPhase.taskPack')
+        ->with(['currentPhase.taskPack.items'])
+        ->firstOrFail();
+
+    app(\App\Modules\OrderFlow\Business\Services\TaskPackActivator::class)->activate($job, $job->currentPhase);
+    $task = $job->tasks()->where('workflow_phase_id', $job->current_phase_id)->whereNotNull('task_pack_item_id')->firstOrFail();
+
+    $this->actingAs($creator)
+        ->delete(route('flowtrack.tasks.destroy', $task))
+        ->assertRedirect();
+
+    $removed = \App\Modules\OrderFlow\Data\Models\FlowTask::withTrashed()->findOrFail($task->id);
+    expect($removed->trashed())->toBeTrue()
+        ->and($removed->removed_from_job_at)->not->toBeNull()
+        ->and($removed->removed_from_job_by)->toBe($creator->id);
+
+    app(\App\Modules\OrderFlow\Business\Services\WorkflowAutomationService::class)
+        ->synchronize($job->fresh(['currentPhase']), $creator, 'automated_test', false);
+
+    $readiness = app(\App\Modules\OrderFlow\Business\Services\PhaseReadinessEvaluator::class)
+        ->evaluate($job->fresh(), $job->currentPhase);
+
+    expect(\App\Modules\OrderFlow\Data\Models\FlowTask::withTrashed()->findOrFail($task->id)->trashed())->toBeTrue()
+        ->and($readiness['task_gate']['missing'])->toBe(0)
+        ->and($readiness['task_gate']['removed'])->toBeGreaterThanOrEqual(1);
+});
+
+test('a Job creator can remove a workflow phase from only that Job', function () {
+    $creator = User::where('email', 'manager@flowtrack.cn')->firstOrFail();
+    $job = FlowJob::query()
+        ->where('created_by', $creator->id)
+        ->whereNotNull('current_phase_id')
+        ->with(['currentPhase', 'workflow.phases'])
+        ->firstOrFail();
+    $removedPhase = $job->currentPhase;
+    $taskIds = $job->tasks()->where('workflow_phase_id', $removedPhase->id)->pluck('id');
+
+    $this->actingAs($creator)
+        ->delete(route('flowtrack.jobs.phases.destroy', [$job, $removedPhase]), ['reason' => 'Not required for this order.'])
+        ->assertRedirect();
+
+    $job->refresh();
+    expect($job->current_phase_id)->not->toBe($removedPhase->id)
+        ->and($job->excludedPhases()->where('workflow_phase_id', $removedPhase->id)->exists())->toBeTrue()
+        ->and($job->workflow->phases()->whereKey($removedPhase->id)->exists())->toBeTrue();
+
+    foreach ($taskIds as $taskId) {
+        $removedTask = \App\Modules\OrderFlow\Data\Models\FlowTask::withTrashed()->findOrFail($taskId);
+        expect($removedTask->trashed())->toBeTrue()
+            ->and($removedTask->removed_from_job_at)->not->toBeNull();
+    }
+});
+
+test('an assigned member who did not create the Job cannot delete its Tasks or phases', function () {
+    $creator = User::where('email', 'manager@flowtrack.cn')->firstOrFail();
+    $member = User::where('email', 'tang.rui@flowtrack.cn')->firstOrFail();
+    $job = FlowJob::query()->where('created_by', $creator->id)->whereHas('tasks')->with('currentPhase')->firstOrFail();
+    \App\Modules\OrderFlow\Data\Models\FlowJobMember::updateOrCreate(
+        ['flow_job_id' => $job->id, 'user_id' => $member->id],
+        ['access_level' => 'member', 'can_manage_tasks' => false, 'can_upload_documents' => true, 'can_view_financials' => false],
+    );
+    $task = $job->tasks()->firstOrFail();
+
+    $this->actingAs($member)->delete(route('flowtrack.tasks.destroy', $task))->assertForbidden();
+    $this->actingAs($member)->delete(route('flowtrack.jobs.phases.destroy', [$job, $job->currentPhase]))->assertForbidden();
 });

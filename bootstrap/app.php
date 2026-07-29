@@ -5,6 +5,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\FlowPermissionMiddleware;
 use App\Http\Middleware\EnsureFlowWorkspaceMembership;
 use App\Http\Middleware\FlowActionMiddleware;
+use App\Http\Middleware\EnforceFlowTrackSession;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            EnforceFlowTrackSession::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

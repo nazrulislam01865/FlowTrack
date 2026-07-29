@@ -25,6 +25,10 @@ class TaskPackActivator
      */
     public function activate(FlowJob $job, WorkflowPhase $phase): int
     {
+        if ($job->excludedPhases()->where('workflow_phase_id', $phase->id)->exists()) {
+            return 0;
+        }
+
         $phase = WorkflowPhase::query()
             ->whereKey($phase->id)
             ->where('workflow_template_id', $job->workflow_template_id)
@@ -74,6 +78,10 @@ class TaskPackActivator
             $task = $existing->get($item->id);
 
             if ($task) {
+                if ($task->removed_from_job_at) {
+                    continue;
+                }
+
                 if ($task->trashed() && $item->is_required) {
                     $task->restore();
                     $task->forceFill([

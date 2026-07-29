@@ -3,14 +3,19 @@ import { router, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import FlowBadge from './FlowBadge.vue';
 import FlowDrawer from './FlowDrawer.vue';
+import FlowModal from './FlowModal.vue';
 import { dueClass, formatDate, initials, records } from '@/lib/flowtrack';
 
 const props = defineProps<{ open: boolean; taskId: number | null; options: any }>();
 const emit = defineEmits<{ close: [] }>();
 const task = ref<any>(null);
 const loading = ref(false);
+const deleteOpen = ref(false);
+const deleting = ref(false);
 const canUpdate = computed(() => Boolean(task.value?.can_update));
 const canAssign = computed(() => Boolean(task.value?.can_assign));
+const canDelete = computed(() => Boolean(task.value?.can_delete));
+const canChangeDueDate = computed(() => Boolean(task.value?.can_change_due_date));
 const form = useForm({
     task_status_id: null as number | null,
     assignee_id: null as number | null,
@@ -20,12 +25,14 @@ const form = useForm({
     completed_checklist_ids: [] as number[],
     comment: '',
 });
+const dueForm = useForm({ due_date: '' });
 
 watch(
     () => [props.open, props.taskId],
     async ([open, id]) => {
         if (!open || !id) return;
         loading.value = true;
+        deleteOpen.value = false;
         try {
             const response = await fetch(`/flowtrack/tasks/${id}`, { headers: { Accept: 'application/json' } });
             if (!response.ok) throw new Error('Unable to load task.');
@@ -37,13 +44,14 @@ watch(
             form.blocker_reason = task.value.blocker_reason || '';
             form.completed_checklist_ids = task.value.checklist_items.filter((item: any) => item.is_completed).map((item: any) => item.id);
             form.comment = '';
+            dueForm.due_date = String(task.value.due_date || '').slice(0, 10);
             form.clearErrors();
+            dueForm.clearErrors();
         } finally {
             loading.value = false;
         }
     },
 );
-
 
 function statusMatches(status: any, values: string[]): boolean {
     const allowed = values.map((value) => value.trim().toUpperCase());
@@ -74,7 +82,34 @@ function save() {
         preserveScroll: true,
         onSuccess: () => {
             emit('close');
-            router.reload({ only: ['tasks'] });
+            router.reload();
+        },
+    });
+}
+
+function saveDueDate() {
+    if (!task.value || !canChangeDueDate.value) return;
+    dueForm.patch(`/flowtrack/tasks/${task.value.id}/due-date`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            task.value.due_date = dueForm.due_date || null;
+            router.reload();
+        },
+    });
+}
+
+function deleteTask() {
+    if (!task.value || !canDelete.value) return;
+    deleting.value = true;
+    router.delete(`/flowtrack/tasks/${task.value.id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            deleteOpen.value = false;
+            emit('close');
+            router.reload();
+        },
+        onFinish: () => {
+            deleting.value = false;
         },
     });
 }
@@ -84,7 +119,7 @@ function save() {
     <FlowDrawer :open="open" @close="emit('close')">
         <div class="ft-drawer-head">
             <div v-if="task"><div class="ft-muted ft-small">{{ task.code }} · {{ task.job?.code }}</div><h2 style="font-size: 18px; margin: 4px 0">{{ task.title }}</h2><FlowBadge :value="task.status?.name" /> <FlowBadge :value="task.priority?.name" /></div>
-            <button class="ft-close-btn" @click="emit('close')">×</button>
+            <div class="ft-actions"><button v-if="canDelete" class="ft-danger" @click="deleteOpen = true">Delete Task</button><button class="ft-close-btn" @click="emit('close')">×</button></div>
         </div>
         <div class="ft-drawer-body">
             <div v-if="loading" class="ft-empty">Loading task…</div>
@@ -101,6 +136,8 @@ function save() {
                 <div class="ft-form-grid" style="margin-top: 18px">
                     <div class="ft-field"><label>Status</label><select v-model.number="form.task_status_id" :disabled="!canUpdate"><option v-for="status in records(options, 'task_status')" :key="status.id" :value="status.id">{{ status.name }}</option></select></div>
                     <div class="ft-field"><label>Assignee</label><select v-model.number="form.assignee_id" :disabled="!canAssign"><option :value="null">Unassigned</option><option v-for="user in options.users" :key="user.id" :value="user.id">{{ user.name }}</option></select></div>
+                    <div class="ft-field"><label>Due date</label><input v-model="dueForm.due_date" type="date" :disabled="!canChangeDueDate" /><span v-if="dueForm.errors.due_date" class="ft-error">{{ dueForm.errors.due_date }}</span><div v-if="canChangeDueDate" class="ft-help">Applies to regular tasks and subtasks.</div></div>
+                    <div class="ft-field" style="display:flex;align-items:flex-end"><button v-if="canChangeDueDate" class="ft-secondary" style="width:100%" :disabled="dueForm.processing" @click="saveDueDate">{{ dueForm.processing ? 'Saving…' : 'Save Due Date' }}</button></div>
                     <div class="ft-field full"><label>Progress: <b>{{ form.progress }}%</b></label><input v-model.number="form.progress" type="range" min="0" max="100" disabled /><div class="ft-help">Progress updates automatically from the selected status.</div></div>
                 </div>
                 <div class="ft-section-head"><h3>Checklist</h3><span class="ft-muted ft-small">{{ form.completed_checklist_ids.length }}/{{ task.checklist_items.length }} complete</span></div>
@@ -110,8 +147,14 @@ function save() {
                 <div class="ft-field" style="margin-top: 18px"><label>Update comment</label><textarea v-model="form.comment" rows="3" :disabled="!canUpdate" placeholder="Add progress, a decision, blocker, or next action"></textarea></div>
                 <div class="ft-section-head" style="margin-top: 18px"><h3>Activity & Comments</h3></div>
                 <div v-for="comment in task.comments" :key="comment.id" class="ft-comment"><span class="ft-avatar">{{ comment.user?.initials || initials(comment.user?.name) }}</span><div><b>{{ comment.user?.name || 'System' }}</b><div style="margin-top: 4px">{{ comment.body }}</div><div class="ft-muted ft-small" style="margin-top: 4px">{{ new Date(comment.created_at).toLocaleString() }}</div></div></div>
-                <div v-if="!canUpdate" class="ft-source-note" style="margin-top: 18px"><b>Read-only Task</b><div class="ft-help" style="margin-top: 4px">Only the assigned user, an Administrator, or the Super Admin can update this Task.</div></div><button v-else class="ft-primary" style="width: 100%; margin-top: 18px" :disabled="form.processing" @click="save">{{ form.processing ? 'Saving…' : 'Save Task Update' }}</button>
+                <div v-if="!canUpdate" class="ft-source-note" style="margin-top: 18px"><b>Limited Task Access</b><div class="ft-help" style="margin-top: 4px">Everyone assigned to this Job can view its Tasks. Full Task updates remain limited to the assignee or an Administrator; authorized Job managers can still change the due date.</div></div>
+                <button v-if="canUpdate" class="ft-primary" style="width: 100%; margin-top: 18px" :disabled="form.processing" @click="save">{{ form.processing ? 'Saving…' : 'Save Task Update' }}</button>
             </template>
         </div>
     </FlowDrawer>
+
+    <FlowModal :open="deleteOpen" title="Delete this Task?" subtitle="The task will be removed from this Job and will not be regenerated automatically." @close="deleteOpen = false">
+        <div class="ft-card" style="padding: 16px; border-color: #fecaca; background: #fff7f7"><div class="ft-muted ft-small">{{ task?.code }}</div><h3 style="margin: 5px 0 8px">{{ task?.title }}</h3><div class="ft-small">Checklist items, comments and generated task links connected to this task will no longer appear in the Job.</div></div>
+        <template #footer><button class="ft-ghost" @click="deleteOpen = false">Keep Task</button><button class="ft-danger" :disabled="deleting" @click="deleteTask">{{ deleting ? 'Deleting…' : 'Delete Task' }}</button></template>
+    </FlowModal>
 </template>

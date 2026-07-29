@@ -11,6 +11,7 @@ const props = defineProps<{
     roles: any[];
     permissions: Record<string, any[]>;
     departments: any[];
+    metrics: { activeUsers: number; operationalRoles: number; departments: number; notificationRules: number };
 }>();
 
 const tab = ref<'users' | 'roles'>('users');
@@ -110,10 +111,10 @@ function saveRole() {
     </FlowPageHeader>
 
     <div class="ft-config-summary">
-        <div class="ft-card ft-config-stat"><span>Active Users</span><b>{{ memberships.filter((item) => item.status === 'active').length }}</b></div>
-        <div class="ft-card ft-config-stat"><span>Roles</span><b>{{ roles.length }}</b></div>
-        <div class="ft-card ft-config-stat"><span>Departments</span><b>{{ departments.length }}</b></div>
-        <div class="ft-card ft-config-stat"><span>Permissions</span><b>{{ Object.values(permissions).flat().length }}</b></div>
+        <div class="ft-card ft-config-stat"><span>Active Users</span><b>{{ metrics.activeUsers }}</b></div>
+        <div class="ft-card ft-config-stat"><span>Operational Roles</span><b>{{ metrics.operationalRoles }}</b></div>
+        <div class="ft-card ft-config-stat"><span>Departments</span><b>{{ metrics.departments }}</b></div>
+        <div class="ft-card ft-config-stat"><span>Notification Rules</span><b>{{ metrics.notificationRules }}</b></div>
     </div>
 
     <div class="ft-board-tabs">
@@ -159,7 +160,7 @@ function saveRole() {
     </section>
 
     <FlowModal :open="roleOpen" :title="roleEditing ? 'Edit Role Permissions' : 'Create Role'" subtitle="Roles define workspace-wide capabilities." @close="roleOpen = false">
-        <div class="ft-form-grid">
+        <div class="ft-form-grid ft-form-stack">
             <div class="ft-field"><label>Role name</label><input v-model="roleForm.name" required /><span v-if="roleForm.errors.name" class="ft-error">{{ roleForm.errors.name }}</span></div>
             <div class="ft-field"><label>Role slug</label><input v-model="roleForm.slug" required placeholder="e.g. quality-manager" /><span v-if="roleForm.errors.slug" class="ft-error">{{ roleForm.errors.slug }}</span></div>
             <div class="ft-field full">
@@ -181,7 +182,7 @@ function saveRole() {
     </FlowModal>
 
     <FlowModal :open="inviteOpen" title="Add Workspace Member" subtitle="Create a secure account and assign its initial role and department." @close="inviteOpen = false">
-        <div class="ft-form-grid">
+        <div class="ft-form-grid ft-form-stack">
             <div class="ft-field"><label>Name</label><input v-model="inviteForm.name" required /><span v-if="inviteForm.errors.name" class="ft-error">{{ inviteForm.errors.name }}</span></div>
             <div class="ft-field"><label>Initials</label><input v-model="inviteForm.initials" maxlength="8" placeholder="Auto-generated when blank" /></div>
             <div class="ft-field"><label>Email</label><input v-model="inviteForm.email" type="email" required /><span v-if="inviteForm.errors.email" class="ft-error">{{ inviteForm.errors.email }}</span></div>
@@ -198,7 +199,7 @@ function saveRole() {
     </FlowModal>
 
     <FlowModal :open="modalOpen" title="Update Member Access" :subtitle="editing?.user?.name" @close="modalOpen = false">
-        <div class="ft-form-grid">
+        <div class="ft-form-grid ft-form-stack">
             <div class="ft-field"><label>Role</label><select v-model="form.role_id"><option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option></select></div>
             <div class="ft-field"><label>Department</label><select v-model="form.department_id"><option :value="null">No department</option><option v-for="department in departments" :key="department.id" :value="department.id">{{ department.name }}</option></select></div>
             <div class="ft-field"><label>Job title</label><input v-model="form.job_title" /></div>

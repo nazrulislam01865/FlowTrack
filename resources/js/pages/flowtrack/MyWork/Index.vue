@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { computed, reactive, ref } from 'vue';
+import { reactive, ref } from 'vue';
 import FlowBadge from '@/components/flowtrack/FlowBadge.vue';
 import FlowMetric from '@/components/flowtrack/FlowMetric.vue';
 import FlowPageHeader from '@/components/flowtrack/FlowPageHeader.vue';
@@ -8,20 +8,9 @@ import FlowProgress from '@/components/flowtrack/FlowProgress.vue';
 import TaskDrawer from '@/components/flowtrack/TaskDrawer.vue';
 import { dueClass, formatDate, initials, records } from '@/lib/flowtrack';
 
-const props = defineProps<{ tasks: any[]; filters: any; options: any }>();
+const props = defineProps<{ tasks: any[]; filters: any; options: any; metrics: Record<string, number> }>();
 const selectedTask = ref<number | null>(null);
 const filter = reactive({ search: props.filters.search || '', status: props.filters.status || '', assignee: props.filters.assignee || '' });
-const today = new Date().toISOString().slice(0, 10);
-
-const metrics = computed(() => ({
-    today: props.tasks.filter((task) => task.due_date?.slice(0, 10) === today).length,
-    overdue: props.tasks.filter((task) => task.due_date?.slice(0, 10) < today).length,
-    attention: props.tasks.filter((task) => task.attention_required).length,
-    waiting: props.tasks.filter((task) => /Waiting/.test(task.status?.name || '')).length,
-    completed: props.tasks.filter((task) => task.completed_at).length,
-    upcoming: props.tasks.filter((task) => task.due_date?.slice(0, 10) > today).length,
-}));
-
 function apply() {
     router.get('/flowtrack/my-work', filter, { preserveState: true, preserveScroll: true, replace: true });
 }
@@ -36,11 +25,11 @@ function printPage() { window.print(); }
     </FlowPageHeader>
 
     <div class="ft-metrics">
-        <FlowMetric label="Due Today" :value="metrics.today" foot="Tasks requiring action" />
+        <FlowMetric label="Due Today" :value="metrics.dueToday" foot="Tasks requiring action" />
         <FlowMetric label="Overdue" :value="metrics.overdue" foot="Past their due date" />
-        <FlowMetric label="Blocked / Attention" :value="metrics.attention" foot="Need support" />
-        <FlowMetric label="Waiting Review" :value="metrics.waiting" foot="Client or supplier" />
-        <FlowMetric label="Completed" :value="metrics.completed" foot="Current result set" />
+        <FlowMetric label="Blocked / Attention" :value="metrics.blockedAttention" foot="Need support" />
+        <FlowMetric label="Waiting Review" :value="metrics.waitingReview" foot="Client or supplier" />
+        <FlowMetric label="Completed This Week" :value="metrics.completedThisWeek" foot="Across assigned Jobs" />
         <FlowMetric label="Upcoming" :value="metrics.upcoming" foot="Scheduled next" />
     </div>
 
