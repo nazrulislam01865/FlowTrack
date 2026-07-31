@@ -187,12 +187,24 @@ class TemplateConfigurationController extends Controller
 
     private function validateTaskPack(Request $request, int $workspaceId, ?TaskPack $taskPack = null): array
     {
+        $taskPackItemRule = Rule::exists('task_pack_items', 'id')->where(function ($query) use ($workspaceId, $taskPack): void {
+            if ($taskPack) {
+                $query->where('task_pack_id', $taskPack->id);
+
+                return;
+            }
+
+            $query->whereIn('task_pack_id', function ($subquery) use ($workspaceId): void {
+                $subquery->select('id')->from('task_packs')->where('workspace_id', $workspaceId);
+            });
+        });
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:3000'],
             'is_active' => ['required', 'boolean'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
-            'items.*.id' => ['nullable', 'integer', 'exists:task_pack_items,id'],
+            'items.*.id' => ['nullable', 'integer', $taskPackItemRule],
             'items.*.title' => ['required', 'string', 'max:255'],
             'items.*.description' => ['nullable', 'string', 'max:3000'],
             'items.*.default_assignee_id' => [
@@ -229,7 +241,7 @@ class TemplateConfigurationController extends Controller
                     ->where('status', 'active')
                     ->whereNull('deleted_at')),
             ],
-            'items.*.due_offset_days' => ['required', 'integer', 'min:0', 'max:365'],
+            'items.*.due_offset_days' => ['nullable', 'integer', 'min:0', 'max:365'],
             'items.*.is_required' => ['required', 'boolean'],
         ]);
 
@@ -276,7 +288,7 @@ class TemplateConfigurationController extends Controller
                 'default_department_id' => $itemData['default_department_id'] ?? null,
                 'priority_id' => $itemData['priority_id'] ?? null,
                 'document_category_id' => $itemData['document_category_id'] ?? null,
-                'due_offset_days' => $itemData['due_offset_days'],
+                'due_offset_days' => (int) ($itemData['due_offset_days'] ?? 0),
                 'is_required' => $itemData['is_required'],
                 'sort_order' => $index + 1,
             ];

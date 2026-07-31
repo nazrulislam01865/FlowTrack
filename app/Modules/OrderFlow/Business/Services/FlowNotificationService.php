@@ -38,7 +38,7 @@ class FlowNotificationService
             'job_id' => $job->id,
             'phase' => $phase,
             'actor' => $actor?->name ?: 'System',
-            'url' => "/flowtrack/jobs/{$job->id}",
+            'url' => "/flowtrack/view/jobs/{$job->id}",
         ], null);
 
         $job->tasks()
@@ -64,7 +64,7 @@ class FlowNotificationService
                         'job_id' => $job->id,
                         'phase' => $phase,
                         'actor' => $actor?->name ?: 'System',
-                        'url' => "/flowtrack/jobs/{$job->id}",
+                        'url' => "/flowtrack/view/jobs/{$job->id}",
                     ],
                     null,
                 );
@@ -94,7 +94,7 @@ class FlowNotificationService
             'task_id' => $task->id,
             'phase' => $task->phase?->name,
             'actor' => $actor?->name ?: 'System',
-            'url' => "/flowtrack/jobs/{$task->job->id}?task={$task->id}",
+            'url' => "/flowtrack/view/tasks/{$task->id}",
         ], null);
     }
 
@@ -127,7 +127,7 @@ class FlowNotificationService
                     'task_id' => $task->id,
                     'phase' => $task->phase?->name,
                     'actor' => $actor?->name ?: 'System',
-                    'url' => "/flowtrack/jobs/{$task->job->id}?task={$task->id}",
+                    'url' => "/flowtrack/view/tasks/{$task->id}",
                 ],
                 null,
             );
@@ -147,12 +147,13 @@ class FlowNotificationService
                 'task_id' => $task->id,
                 'phase' => $task->phase?->name,
                 'actor' => $actor?->name ?: 'System',
-                'url' => "/flowtrack/jobs/{$task->job->id}?task={$task->id}",
+                'url' => "/flowtrack/view/tasks/{$task->id}",
             ], 'workflow_updates');
         }
     }
 
-    public function taskCommented(int $taskId, int $actorId, string $comment): void
+    /** @param array<int, int> $excludeUserIds */
+    public function taskCommented(int $taskId, int $actorId, string $comment, array $excludeUserIds = []): void
     {
         $task = $this->task($taskId);
         if (! $task || ! $task->job || blank($comment)) return;
@@ -164,7 +165,8 @@ class FlowNotificationService
             $task->job->coordinator_id,
         ])->filter()->map(fn ($id): int => (int) $id)->unique();
         $recipients = User::query()->whereIn('id', $recipientIds)->get()
-            ->merge($this->administrators($task->job->workspace_id));
+            ->merge($this->administrators($task->job->workspace_id))
+            ->reject(fn (User $user): bool => in_array((int) $user->id, array_map('intval', $excludeUserIds), true));
         $excerpt = str(trim($comment))->squish()->limit(180)->toString();
 
         $this->send($recipients, [
@@ -179,7 +181,38 @@ class FlowNotificationService
             'task_id' => $task->id,
             'phase' => $task->phase?->name,
             'actor' => $actor?->name ?: 'System',
-            'url' => "/flowtrack/jobs/{$task->job->id}?task={$task->id}",
+            'url' => "/flowtrack/view/tasks/{$task->id}",
+        ], 'mentions_comments');
+    }
+
+    /** @param array<int, int> $mentionedUserIds */
+    public function taskMentioned(int $taskId, int $actorId, string $comment, array $mentionedUserIds): void
+    {
+        $task = $this->task($taskId);
+        if (! $task || ! $task->job || blank($comment) || empty($mentionedUserIds)) return;
+
+        $actor = User::query()->find($actorId);
+        $recipientIds = collect($mentionedUserIds)
+            ->map(fn ($id): int => (int) $id)
+            ->filter(fn (int $id): bool => $id > 0 && $id !== $actorId)
+            ->unique()
+            ->values();
+        if ($recipientIds->isEmpty()) return;
+
+        $excerpt = str(trim($comment))->squish()->limit(180)->toString();
+        $this->send(User::query()->whereIn('id', $recipientIds)->get(), [
+            'event' => 'task.mentioned',
+            'title' => 'You were mentioned in a Task comment',
+            'text' => "{$actor?->name}: {$excerpt}",
+            'type' => 'mention',
+            'severity' => 'info',
+            'job' => $task->job->code,
+            'job_id' => $task->job->id,
+            'task' => $task->code,
+            'task_id' => $task->id,
+            'phase' => $task->phase?->name,
+            'actor' => $actor?->name ?: 'System',
+            'url' => "/flowtrack/view/tasks/{$task->id}",
         ], 'mentions_comments');
     }
 
@@ -204,7 +237,7 @@ class FlowNotificationService
             'task_id' => $task->id,
             'phase' => $task->phase?->name,
             'actor' => $actor?->name ?: 'System',
-            'url' => "/flowtrack/jobs/{$task->job->id}?task={$task->id}",
+            'url' => "/flowtrack/view/tasks/{$task->id}",
         ], 'workflow_updates');
     }
 
@@ -235,7 +268,7 @@ class FlowNotificationService
             'task_id' => $task['id'],
             'phase' => $task['phase'] ?? null,
             'actor' => $actor?->name ?: 'System',
-            'url' => "/flowtrack/jobs/{$job->id}",
+            'url' => "/flowtrack/view/jobs/{$job->id}",
         ], 'workflow_updates');
     }
 
@@ -258,7 +291,7 @@ class FlowNotificationService
             'job_id' => $job->id,
             'phase' => $replacementPhase ?: $job->currentPhase?->name,
             'actor' => $actor?->name ?: 'System',
-            'url' => "/flowtrack/jobs/{$job->id}",
+            'url' => "/flowtrack/view/jobs/{$job->id}",
         ], 'workflow_updates');
     }
 
@@ -280,7 +313,7 @@ class FlowNotificationService
             'job_id' => $job->id,
             'phase' => $toPhase,
             'actor' => $actor?->name ?: 'System',
-            'url' => "/flowtrack/jobs/{$job->id}",
+            'url' => "/flowtrack/view/jobs/{$job->id}",
         ], 'workflow_updates');
 
         $newTasks = $job->tasks()
@@ -307,7 +340,7 @@ class FlowNotificationService
                     'job_id' => $job->id,
                     'phase' => $toPhase,
                     'actor' => $actor?->name ?: 'System',
-                    'url' => "/flowtrack/jobs/{$job->id}",
+                    'url' => "/flowtrack/view/jobs/{$job->id}",
                 ],
                 null,
             );
@@ -333,7 +366,7 @@ class FlowNotificationService
                 'job_id' => $job->id,
                 'phase' => $phaseName,
                 'actor' => $actor?->name ?: 'System',
-                'url' => "/flowtrack/jobs/{$job->id}",
+                'url' => "/flowtrack/view/jobs/{$job->id}",
             ],
             'workflow_updates',
         );
@@ -387,7 +420,7 @@ class FlowNotificationService
             'job_id' => $job->id,
             'phase' => $job->currentPhase?->name,
             'actor' => $actor?->name ?: 'System',
-            'url' => "/flowtrack/jobs/{$job->id}",
+            'url' => "/flowtrack/view/jobs/{$job->id}",
         ], 'workflow_updates');
     }
 
@@ -410,7 +443,7 @@ class FlowNotificationService
             'job_id' => $job->id,
             'phase' => $job->currentPhase?->name,
             'actor' => $actor?->name ?: 'System',
-            'url' => "/flowtrack/jobs/{$job->id}",
+            'url' => "/flowtrack/view/jobs/{$job->id}",
         ], null);
     }
 

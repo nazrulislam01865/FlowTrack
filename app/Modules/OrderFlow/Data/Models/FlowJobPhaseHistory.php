@@ -24,4 +24,5 @@ class FlowJobPhaseHistory extends Model
     public function job(): BelongsTo { return $this->belongsTo(FlowJob::class, 'flow_job_id'); }
     public function phase(): BelongsTo { return $this->belongsTo(WorkflowPhase::class, 'workflow_phase_id'); }
     public function changedBy(): BelongsTo { return $this->belongsTo(User::class, 'changed_by'); }
+    public function changedByUser(): BelongsTo { return $this->belongsTo(User::class, 'changed_by'); }
 }

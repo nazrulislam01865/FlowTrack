@@ -35,7 +35,7 @@ class PhaseGateValidator
             $missing = collect($result['document_gate']['missing'] ?? [])
                 ->map(fn (array $requirement): string => $requirement['category_name'].(! empty($requirement['source_label']) ? " ({$requirement['source_label']})" : ''))
                 ->join(', ');
-            throw new DomainException('Upload and link the required '.($missing ?: 'phase document').' from the Documents page before continuing.');
+            throw new DomainException('Upload and link the required '.($missing ?: 'phase document').' from its Task or the Documents page before continuing.');
         }
 
         if ($result['has_blocking_task']) {

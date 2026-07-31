@@ -146,6 +146,13 @@ class FlowAuthorizationService
             return $task->job?->workspace_id === $user->currentWorkspaceId();
         }
 
+        // After a Task is completed it becomes an audit-controlled record.
+        // Only Admin/Super Admin may edit, reopen, reassign or otherwise
+        // change it. Assigned users can still view the Task and its history.
+        if ($this->taskIsCompleted($task)) {
+            return false;
+        }
+
         return (int) $task->assignee_id === (int) $user->id
             && ($this->allows($user, 'tasks', 'edit_own', $task)
                 || $this->allows($user, 'tasks', 'edit_all', $task));
@@ -153,27 +160,25 @@ class FlowAuthorizationService
 
     public function canAssignExistingTask(User $user, FlowTask $task): bool
     {
-        if ($this->isAdministrator($user)) {
-            return $task->job?->workspace_id === $user->currentWorkspaceId();
-        }
-
-        return $task->job
-            && $this->canManageTasksForJob($user, $task->job)
-            && $this->allows($user, 'tasks', 'assign', $task);
+        // Generated assignments come from Task Setup. Only an Admin or Super
+        // Admin may override the assignee after the Task has been generated.
+        return $task->job?->workspace_id === $user->currentWorkspaceId()
+            && $this->isAdministrator($user);
     }
 
     public function canDeleteTask(User $user, FlowTask $task): bool
     {
+        // Task removal is intentionally restricted to Admin and Super Admin.
+        // Job creators and ordinary assignees may update Tasks but cannot remove them.
         return $task->job?->workspace_id === $user->currentWorkspaceId()
-            && ($this->isAdministrator($user)
-                || (int) $task->job?->created_by === (int) $user->id);
+            && $this->isAdministrator($user);
     }
 
     public function canDeleteJobPhase(User $user, FlowJob $job): bool
     {
-        return $job->workspace_id === $user->currentWorkspaceId()
-            && ($this->isAdministrator($user)
-                || (int) $job->created_by === (int) $user->id);
+        // Workflow phases are structural and can never be removed from an
+        // individual Job. They may only be configured in Workflow Setup.
+        return false;
     }
 
     public function canChangeTaskDueDate(User $user, FlowTask $task): bool
@@ -184,9 +189,17 @@ class FlowAuthorizationService
             return false;
         }
 
-        if ($this->isAdministrator($user)
-            || (int) $job->created_by === (int) $user->id
-            || $this->canUpdateTask($user, $task)) {
+        if ($this->isAdministrator($user)) {
+            return true;
+        }
+
+        // Completed Tasks are locked for everyone except Admin/Super Admin,
+        // including due date-only changes.
+        if ($this->taskIsCompleted($task)) {
+            return false;
+        }
+
+        if ((int) $job->created_by === (int) $user->id || $this->canUpdateTask($user, $task)) {
             return true;
         }
 
@@ -194,6 +207,18 @@ class FlowAuthorizationService
             && ($this->allows($user, 'tasks', 'edit_all', $task)
                 || $this->allows($user, 'tasks', 'edit_own', $task)
                 || $this->allows($user, 'tasks', 'assign', $task));
+    }
+
+    private function taskIsCompleted(FlowTask $task): bool
+    {
+        if ($task->completed_at !== null) {
+            return true;
+        }
+
+        $task->loadMissing('status:id,name,code');
+        $status = strtoupper(trim((string) ($task->status?->code ?: $task->status?->name)));
+
+        return in_array($status, ['CMP', 'COMPLETED', 'COMPLETE', 'DONE'], true);
     }
 
     public function applyDocumentVisibility(Builder $query, User $user): Builder

@@ -1,70 +1,90 @@
-# FlowTrack
+# FlowTrack Exact Design — Laravel Blade
 
-FlowTrack is a Laravel 13 order-flow management application. The supplied prototype remains the visual source of truth while Laravel provides authentication, database persistence, workflow logic, users, roles and system-wide authorization.
+This package uses the supplied FlowTrac screen design as the canonical UI. The workspace is served through `resources/views/flowtrack-template.blade.php` with vanilla JavaScript assets in `public/`. Vue and Inertia are not mounted.
 
-## Current implementation
-
-- Exact FlowTrack template served through Blade.
-- Database-backed clients, Jobs, tasks, workflows, Task Packs, master data, documents and notifications.
-- Dynamic client and Job forms.
-- Automatic task and Job progress.
-- Automatic immutable Master Data and Task Pack codes.
-- Working Workflow Setup and Task Pack editors.
-- Database-backed Roles & Policies and Permission Matrix.
-- Complete Add/Edit/Delete User form.
-- Full Admin and Super Admin control.
-- Super Admin credentials seeded from `.env`.
-
-## Existing database update
-
-Set the Super Admin values in `.env`:
-
-```dotenv
-FLOWTRACK_SUPER_ADMIN_NAME="Your Super Admin Name"
-FLOWTRACK_SUPER_ADMIN_EMAIL=superadmin@yourcompany.com
-FLOWTRACK_SUPER_ADMIN_PASSWORD="ReplaceWithAUniqueStrongPassword123!"
-```
-
-Then run:
+## Local setup
 
 ```bash
 composer install
-php artisan migrate
-php artisan db:seed --class="Database\\Seeders\\FlowTrack\\SuperAdminSeeder"
-php artisan storage:link
-php artisan optimize:clear
-php artisan serve --host=127.0.0.1 --port=8000
-```
-
-Open `http://127.0.0.1:8000` and sign in with the `.env` Super Admin credentials.
-
-Do not run `migrate:fresh` on an existing installation.
-
-## Fresh installation
-
-```bash
 cp .env.example .env
-composer install
 php artisan key:generate
-# Update DB_* and FLOWTRACK_SUPER_ADMIN_* in .env
-php artisan migrate:fresh --seed
-php artisan storage:link
-php artisan optimize:clear
-php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-The exact FlowTrack interface uses `public/flowtrack-dynamic.js` and does not require a Vite build. `npm install && npm run build` is optional for the included Vue/Inertia source.
+Create the MySQL database, then update `.env` if your local values differ:
 
-See `ADMIN_ACCESS_SETUP.md` and `FLOWTRACK_SETUP.md` for details.
+```bash
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS flow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
 
-## Profile and session
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=flow
+DB_USERNAME=root
+DB_PASSWORD=
+SESSION_DRIVER=database
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+FILESYSTEM_DISK=public
+```
 
-The exact-template shell now renders authentication state server-side and loads the real signed-in user before displaying the dashboard. Profile fields, password, photo and preferences persist through `/flowtrack/template-api/profile` endpoints. See `PROFILE_SESSION_UPDATE.md`.
+Install and seed:
 
-## Document, Workflow Phase and Task Pack Linking
+```bash
+php artisan optimize:clear
+php artisan migrate:fresh --seed
+rm -f public/storage
+php artisan storage:link
+php artisan serve
+```
 
-See `DOCUMENT_WORKFLOW_PHASE_LINKING_UPDATE.md` for the Documents-only upload workflow, linker role, exact Phase/Task Pack document requirements, and deployment commands.
+Open `http://127.0.0.1:8000`.
 
-## Assignment-based Task access
+## Test logins
 
-Job visibility is assignment-based for every non-administrator. A user sees only Jobs where they are the creator, owner, coordinator, an assigned member, or a Task assignee; everyone involved in a visible Job can see all Tasks in that Job. Full Task updates remain limited to the Task assignee or an Administrator, while authorised Job managers can change due dates. Administrators and Job creators can remove Tasks or job-specific workflow phases. See `JOB_ASSIGNMENT_VISIBILITY_AND_CONTROLS_UPDATE.md` for details.
+```text
+Super Admin
+Email: superadmin@flowtrack.cn
+Password: SuperAdmin12345
+
+Manager
+Email: manager@flowtrack.cn
+Password: demo123
+```
+
+## What is dynamic
+
+- Dashboard metrics, recent activity and notifications are returned by Laravel endpoints.
+- Clients, jobs, tasks, documents, notifications, workflows, task packs, master data, roles and users are database-backed.
+- Job creation activates the selected workflow phase and generates tasks from the configured task pack.
+- Required document tasks support upload, preview and download.
+- Board movement, task completion, comments, mentions, due date changes, assignee changes and notifications go through Laravel controllers/services.
+- Document deletion removes stored physical file versions.
+- Workflow Setup, Task Pack Setup and Master Data changes are persisted and immediately reflected through the bootstrap payload.
+
+## Verification commands
+
+After `composer install`, run:
+
+```bash
+npm run build
+php artisan optimize:clear
+php artisan migrate:fresh --seed
+php artisan route:list
+php artisan test
+```
+
+Or run the included helper:
+
+```bash
+bash scripts/verify-flowtrack.sh
+```
+
+## Frontend assets
+
+```bash
+npm run build
+```
+
+This verifies the Blade/vanilla assets. No Vite/Vue/Inertia dev server is required for the UI.

@@ -13,9 +13,13 @@ class SessionStatusController extends Controller
     {
         $expiresAt = (int) $request->session()->get('flowtrack.session_expires_at', 0);
 
+        $expiresAtIso = $expiresAt > 0 ? Carbon::createFromTimestamp($expiresAt)->toIso8601String() : null;
+
         return response()->json([
+            'authenticated' => true,
             'active' => true,
-            'expires_at' => $expiresAt > 0 ? Carbon::createFromTimestamp($expiresAt)->toIso8601String() : null,
+            'expiresAt' => $expiresAtIso,
+            'expires_at' => $expiresAtIso,
             'remaining_seconds' => $expiresAt > 0 ? max(0, $expiresAt - now()->timestamp) : null,
         ]);
     }

@@ -5,7 +5,6 @@ namespace App\Modules\OrderFlow\Data\Repositories;
 use App\Models\User;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
-use App\Modules\OrderFlow\Business\Services\TaskPackActivator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -14,7 +13,6 @@ class JobRepository
 {
     public function __construct(
         private readonly FlowAuthorizationService $authorization,
-        private readonly TaskPackActivator $taskPackActivator,
     ) {}
     public function paginateVisible(User $user, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
@@ -78,20 +76,12 @@ class JobRepository
             ->with([
                 'client.accountManager', 'workflow.phases.taskPack', 'currentPhase.taskPack.items.documentCategory', 'currentPhase.documentCategory', 'startedPhase',
                 'product', 'productCategory', 'items.product', 'items.productCategory', 'currency', 'priority', 'owner', 'coordinator', 'creator',
-                'members.user', 'tasks.assignee', 'tasks.status', 'tasks.priority', 'tasks.packItem', 'tasks.checklistItems', 'tasks.comments.user',
-                'phaseHistory.phase', 'documents.category', 'documents.versions.uploader',
+                'members.user', 'tasks.creator', 'tasks.assignee', 'tasks.status', 'tasks.priority', 'tasks.packItem.documentCategory', 'tasks.documentCategory', 'tasks.checklistItems', 'tasks.comments.user', 'tasks.transitionEvents.actor',
+                'phaseHistory.phase', 'phaseHistory.changedByUser', 'documents.category', 'documents.phase', 'documents.taskPackItem', 'documents.uploader', 'documents.linker', 'documents.versions.uploader',
                 'excludedPhases.phase',
                 'transitionEvents.actor', 'transitionEvents.phase', 'transitionEvents.task',
             ])
             ->findOrFail($id);
-
-        if ($job->currentPhase && $this->taskPackActivator->activate($job, $job->currentPhase) > 0) {
-            $job->unsetRelation('tasks');
-            $job->load([
-                'tasks.assignee', 'tasks.status', 'tasks.priority', 'tasks.packItem',
-                'tasks.checklistItems', 'tasks.comments.user',
-            ]);
-        }
 
         return $job;
     }

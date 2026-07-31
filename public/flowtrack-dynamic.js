@@ -1,4 +1,162 @@
 (() => {
+    function flowtrackToArray(value) {
+        if (Array.isArray(value)) return value;
+        if (value == null) return [];
+
+        // Laravel collections/paginators may occasionally be encoded as keyed
+        // objects after cache restoration. Normalize them without assuming that
+        // Symbol.iterator exists or is callable.
+        if (typeof value === 'object' && Array.isArray(value.data)) return value.data;
+
+        const length = typeof value === 'object' && Number.isFinite(Number(value.length))
+            ? Math.max(0, Number(value.length))
+            : null;
+        if (length !== null) {
+            const items = [];
+            for (let index = 0; index < length; index += 1) {
+                if (index in value) items.push(value[index]);
+            }
+            return items;
+        }
+
+        try {
+            const iterator = typeof Symbol !== 'undefined' ? value?.[Symbol.iterator] : null;
+            if (typeof iterator === 'function') {
+                const items = [];
+                for (const item of value) items.push(item);
+                return items;
+            }
+        } catch (_) {
+            // Fall through to keyed-object normalization.
+        }
+
+        if (typeof value === 'object') return Object.values(value);
+        return [];
+    }
+
+    function flowtrackNormalizeWorkflow(workflow) {
+        const source = workflow && typeof workflow === 'object' ? workflow : {};
+        return {
+            ...source,
+            phases: flowtrackToArray(source.phases).filter((phase) => phase && typeof phase === 'object'),
+        };
+    }
+
+    function flowtrackNormalizeWorkflows(value) {
+        return flowtrackToArray(value)
+            .filter((workflow) => workflow && typeof workflow === 'object')
+            .map(flowtrackNormalizeWorkflow);
+    }
+
+
+    const flowtrackNativeInnerHtml = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+    const flowtrackUnsafeTags = 'script,iframe,object,embed,base,meta[http-equiv],link[rel="import"]';
+    const flowtrackUrlAttributes = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'poster']);
+
+    function flowtrackSafeUrl(value) {
+        const candidate = String(value ?? '').trim();
+        if (!candidate || candidate.startsWith('#') || candidate.startsWith('/') || candidate.startsWith('./') || candidate.startsWith('../') || candidate.startsWith('?')) return true;
+        if (/^data:image\/(?:png|gif|jpe?g|webp|bmp);/i.test(candidate)) return true;
+        try {
+            const parsed = new URL(candidate, window.location.origin);
+            return ['http:', 'https:', 'mailto:', 'tel:', 'blob:'].includes(parsed.protocol);
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function sanitizeFlowtrackHtml(value) {
+        if (!flowtrackNativeInnerHtml?.set || !flowtrackNativeInnerHtml?.get) return String(value ?? '');
+        const template = document.createElement('template');
+        flowtrackNativeInnerHtml.set.call(template, String(value ?? ''));
+        template.content.querySelectorAll(flowtrackUnsafeTags).forEach((element) => element.remove());
+        template.content.querySelectorAll('*').forEach((element) => {
+            flowtrackToArray(element.attributes).forEach((attribute) => {
+                const name = attribute.name.toLowerCase();
+                const attributeValue = attribute.value;
+                if (name.startsWith('on') || name === 'srcdoc') {
+                    element.removeAttribute(attribute.name);
+                    return;
+                }
+                if (name === 'style' && /(?:expression\s*\(|javascript\s*:|vbscript\s*:|url\s*\()/i.test(attributeValue)) {
+                    element.removeAttribute(attribute.name);
+                    return;
+                }
+                if (flowtrackUrlAttributes.has(name) && !flowtrackSafeUrl(attributeValue)) {
+                    element.removeAttribute(attribute.name);
+                }
+            });
+            if (element instanceof HTMLAnchorElement && element.target === '_blank') {
+                element.rel = 'noopener noreferrer';
+            }
+        });
+        return flowtrackNativeInnerHtml.get.call(template);
+    }
+
+    if (flowtrackNativeInnerHtml?.configurable && !window.__FLOWTRACK_SAFE_HTML_INSTALLED__) {
+        Object.defineProperty(Element.prototype, 'innerHTML', {
+            configurable: true,
+            enumerable: flowtrackNativeInnerHtml.enumerable,
+            get() {
+                return flowtrackNativeInnerHtml.get.call(this);
+            },
+            set(value) {
+                flowtrackNativeInnerHtml.set.call(this, sanitizeFlowtrackHtml(value));
+            },
+        });
+        window.__FLOWTRACK_SAFE_HTML_INSTALLED__ = true;
+    }
+    window.FlowtrackSafeHtml = Object.freeze({
+        sanitize: sanitizeFlowtrackHtml,
+        isSafeUrl: flowtrackSafeUrl,
+    });
+
+    function flowtrackNavigateTo(url) {
+        const target = String(url ?? '').trim();
+        if (!flowtrackSafeUrl(target)) {
+            showToast('The requested link was blocked because it is not a safe URL.');
+            return false;
+        }
+        window.location.assign(target);
+        return true;
+    }
+
+    const flowtrackExtensionRegistry = new Map();
+    const flowtrackBaseImplementations = Object.freeze({ openJob, openTask, renderJobs, renderKanban });
+    const flowtrackActiveImplementations = { ...flowtrackBaseImplementations };
+
+    function currentFlowtrackImplementation(name) {
+        const implementation = flowtrackActiveImplementations[name];
+        if (typeof implementation !== 'function') throw new Error(`Missing FlowTrack implementation: ${name}`);
+        return implementation;
+    }
+
+    function registerFlowtrackExtension(name, stage, implementation) {
+        if (typeof implementation !== 'function') throw new TypeError(`FlowTrack extension ${name}:${stage} must be a function.`);
+        const stages = flowtrackExtensionRegistry.get(name) || [];
+        if (stages.some((entry) => entry.stage === stage)) throw new Error(`Duplicate FlowTrack extension stage: ${name}:${stage}`);
+        stages.push({ stage, implementation });
+        flowtrackExtensionRegistry.set(name, stages);
+        flowtrackActiveImplementations[name] = implementation;
+        return implementation;
+    }
+
+    const flowtrackDispatchers = Object.freeze({
+        openJob: (...args) => currentFlowtrackImplementation('openJob')(...args),
+        openTask: (...args) => currentFlowtrackImplementation('openTask')(...args),
+        renderJobs: (...args) => currentFlowtrackImplementation('renderJobs')(...args),
+        renderKanban: (...args) => currentFlowtrackImplementation('renderKanban')(...args),
+    });
+
+    // Install one stable public function per feature. Extension registration only
+    // changes the private implementation target, so core globals are never
+    // repeatedly overwritten while preserving the exact staged behavior.
+    openJob = flowtrackDispatchers.openJob;
+    openTask = flowtrackDispatchers.openTask;
+    renderJobs = flowtrackDispatchers.renderJobs;
+    renderKanban = flowtrackDispatchers.renderKanban;
+
+    window.__FLOWTRACK_EXTENSION_REGISTRY__ = flowtrackExtensionRegistry;
     const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     let currentUser = null;
     let taskPacks = [];
@@ -30,10 +188,56 @@
     let sessionExpiryTimer = null;
     let sessionStatusTimer = null;
     let notificationStatusTimer = null;
+    let sessionActivityPending = false;
+    let sessionActivityBound = false;
+    let sessionVisibilityBound = false;
+    let sessionLastTouchSyncAt = 0;
+    let sessionCheckNow = null;
     let notificationSignature;
     let notificationUnread = 0;
+    let bootstrapGeneration = 0;
+    let bootstrapAppliedGeneration = 0;
+
+    function invalidateBootstrapLoads() {
+        bootstrapGeneration += 1;
+    }
+
+    function hasOwnBootstrapField(payload, field) {
+        return Boolean(payload && typeof payload === 'object' && Object.prototype.hasOwnProperty.call(payload, field));
+    }
+
+    const taskFeedbackStyles = document.createElement('style');
+    taskFeedbackStyles.textContent = `
+        .task-head-actions{display:flex;align-items:flex-start;gap:8px}.task-menu-wrap{position:relative}.task-menu-button{width:42px;height:42px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;font-size:22px;line-height:1;cursor:pointer}.task-action-menu{position:absolute;right:0;top:48px;z-index:30;min-width:150px;padding:6px;background:#fff;border:1px solid #dbe3ef;border-radius:12px;box-shadow:0 16px 36px rgba(15,23,42,.18)}.task-action-menu.hidden{display:none}.task-action-menu button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:10px 12px;border-radius:8px;font-weight:700;cursor:pointer}.task-action-menu button:hover{background:#f1f5f9}.task-action-menu .danger-option{color:#b91c1c}.task-job-link{border:0;background:transparent;padding:0;color:#2563eb;font:inherit;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:2px}.task-progress-track{height:10px;border-radius:999px;background:#e5e7eb;overflow:hidden;margin-top:8px}.task-progress-fill{display:block;height:100%;min-width:0;border-radius:999px;background:#2f6fed;transition:width .2s ease,background .2s ease}.task-progress-fill.complete{background:#16a34a}.task-history{display:grid;gap:10px}.task-history-entry{border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#fff}.task-history-head{display:flex;align-items:flex-start;gap:10px}.task-history-copy{flex:1}.task-change-list{margin:8px 0 0 34px;padding-left:16px;color:#475569}.mention-wrap{position:relative}.mention-menu{position:absolute;left:0;right:0;top:100%;z-index:25;max-height:190px;overflow:auto;background:#fff;border:1px solid #cbd5e1;border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,.16);padding:5px}.mention-menu.hidden{display:none}.mention-option{width:100%;display:flex;align-items:center;gap:9px;border:0;background:#fff;padding:9px;border-radius:8px;text-align:left;cursor:pointer}.mention-option:hover{background:#eff6ff}.job-attachment-drop{border:2px dashed #bfdbfe;border-radius:14px;background:#f8fbff;padding:20px;text-align:center;cursor:pointer;transition:.15s}.job-attachment-drop.dragging{border-color:#2563eb;background:#eff6ff}.job-attachment-list{display:grid;gap:8px;margin-top:10px}.job-attachment-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #dbe3ef;border-radius:10px;padding:9px 11px;background:#fff}.job-attachment-row button{border:0;background:#fee2e2;color:#b91c1c;border-radius:8px;padding:5px 9px;cursor:pointer}.task-document-section{margin-top:18px;border:1px solid #dbe3ef;border-radius:14px;padding:14px;background:#f8fafc}.task-document-list{display:grid;gap:10px;margin-top:10px}.task-document-file{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #dbe3ef;border-radius:12px;padding:11px;background:#fff}.task-document-file-copy{min-width:0;flex:1}.task-document-file-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.task-document-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.task-document-actions a{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}.task-document-thumb{width:64px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #dbe3ef;background:#f1f5f9}.task-document-upload{display:grid;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid #dbe3ef}.kanban-job-link{border:0;background:transparent;padding:0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:2px}.progress span.complete{background:#16a34a!important}
+    `;
+    document.head.appendChild(taskFeedbackStyles);
+
+    const taskDocumentSelectionStyles = document.createElement('style');
+    taskDocumentSelectionStyles.textContent = `
+        .task-document-selected-preview{display:flex;align-items:center;gap:12px;margin-top:10px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:12px;padding:10px 11px}
+        .task-document-selected-preview img{width:64px;height:48px;object-fit:cover;border:1px solid #dbe3ef;border-radius:8px;background:#fff}
+        .task-upload-progress{height:6px;margin-top:7px;border-radius:999px;background:#dbeafe;overflow:hidden}
+        .task-upload-progress span{display:block;height:100%;border-radius:999px;background:#2563eb;transition:width .2s ease}
+    `;
+    document.head.appendChild(taskDocumentSelectionStyles);
 
 
+    function bindSessionActivityTracking() {
+        if (sessionActivityBound) return;
+        sessionActivityBound = true;
+        const markActive = () => {
+            sessionActivityPending = true;
+            const now = Date.now();
+            const expiresAt = window.FLOWTRACK_SESSION?.expiresAt ? new Date(window.FLOWTRACK_SESSION.expiresAt).getTime() : 0;
+            if (typeof sessionCheckNow === 'function' && (now - sessionLastTouchSyncAt > 15000 || (expiresAt && expiresAt - now < 60000))) {
+                sessionLastTouchSyncAt = now;
+                sessionCheckNow();
+            }
+        };
+        ['click', 'keydown', 'input', 'change', 'pointerdown', 'touchstart', 'scroll'].forEach((eventName) => {
+            window.addEventListener(eventName, markActive, { passive: true, capture: true });
+        });
+    }
 
     function sessionRedirect(reason = 'expired') {
         if (sessionExpiryTimer) clearTimeout(sessionExpiryTimer);
@@ -60,11 +264,14 @@
         }
 
         if (!config.statusEndpoint) return;
+        bindSessionActivityTracking();
         const checkStatus = async () => {
+            const activityHeader = sessionActivityPending ? { 'X-FlowTrack-Activity': '1' } : {};
+            const sentActivity = sessionActivityPending;
             try {
                 const response = await fetch(config.statusEndpoint, {
                     credentials: 'same-origin',
-                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', ...activityHeader },
                     cache: 'no-store',
                 });
                 if (response.status === 401) {
@@ -74,18 +281,24 @@
                 }
                 if (!response.ok) return;
                 const payload = await response.json();
-                if (payload.expires_at && payload.expires_at !== config.expiresAt) {
-                    scheduleSessionGuard(payload.expires_at);
+                if (sentActivity) sessionActivityPending = false;
+                const refreshedExpiry = payload.expiresAt || payload.expires_at;
+                if (refreshedExpiry && refreshedExpiry !== config.expiresAt) {
+                    scheduleSessionGuard(refreshedExpiry);
                 }
             } catch (_) {
                 // A temporary network outage must not log the user out locally.
             }
         };
+        sessionCheckNow = checkStatus;
         checkStatus();
-        sessionStatusTimer = setInterval(checkStatus, 10000);
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) checkStatus();
-        });
+        sessionStatusTimer = setInterval(checkStatus, 30000);
+        if (!sessionVisibilityBound) {
+            sessionVisibilityBound = true;
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && typeof sessionCheckNow === 'function') sessionCheckNow();
+            });
+        }
     }
 
     async function pollNotificationStatus() {
@@ -158,6 +371,7 @@
     }
 
     function receiveRealtimeNotification(payload) {
+        invalidateBootstrapLoads();
         const record = realtimeNotificationRecord(payload || {});
         if (!notifications.some((item) => String(item.id) === String(record.id))) {
             notifications.unshift(record);
@@ -205,11 +419,12 @@
     const originalRenderSetupContent = renderSetupContent;
     const originalRenderSetup = renderSetup;
     const originalNavigate = navigate;
-    const originalOpenJob = openJob;
+    const originalOpenJob = flowtrackBaseImplementations.openJob;
     const originalOpenDoc = openDoc;
 
     function replaceArray(target, values) {
-        target.splice(0, target.length, ...(values || []));
+        target.splice(0, target.length);
+        flowtrackToArray(values).forEach((value) => target.push(value));
     }
 
     function html(value) {
@@ -219,6 +434,59 @@
             .replaceAll('>', '&gt;')
             .replaceAll('"', '&quot;')
             .replaceAll("'", '&#039;');
+    }
+
+    function bindFlowtrackMentionInput(input, menu, mentionableUsers, selectedIds) {
+        if (!input || !menu) return () => {};
+        input.__flowtrackMentionAbortController?.abort();
+        const controller = new AbortController();
+        input.__flowtrackMentionAbortController = controller;
+        const { signal } = controller;
+
+        const close = () => menu.classList.add('hidden');
+        const context = () => {
+            const cursor = input.selectionStart ?? 0;
+            const before = input.value.slice(0, cursor);
+            const match = before.match(/(^|\s)@([^@\n]*)$/);
+            return match
+                ? { cursor, query: match[2].trim().toLowerCase(), start: cursor - match[0].length + match[1].length }
+                : null;
+        };
+        const render = () => {
+            const activeContext = context();
+            if (!activeContext) return close();
+            const matches = mentionableUsers
+                .filter((user) => String(user.name || '').toLowerCase().includes(activeContext.query))
+                .slice(0, 8);
+            if (!matches.length) return close();
+            menu.innerHTML = matches.map((user) => `<button type="button" class="mention-option" data-mention-user="${html(user.id)}"><span class="avatar">${html(user.initials || userInitials(user.name))}</span><span><b>${html(user.name)}</b></span></button>`).join('');
+            menu.classList.remove('hidden');
+        };
+
+        input.addEventListener('input', render, { signal });
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') close();
+        }, { signal });
+        menu.addEventListener('mousedown', (event) => {
+            const button = event.target.closest('[data-mention-user]');
+            if (!button) return;
+            event.preventDefault();
+            const user = mentionableUsers.find((item) => Number(item.id) === Number(button.dataset.mentionUser));
+            const activeContext = context();
+            if (!user || !activeContext) return;
+            const insertion = `@${user.name} `;
+            input.value = `${input.value.slice(0, activeContext.start)}${insertion}${input.value.slice(activeContext.cursor)}`;
+            const nextCursor = activeContext.start + insertion.length;
+            input.setSelectionRange(nextCursor, nextCursor);
+            input.focus();
+            selectedIds.add(Number(user.id));
+            close();
+        }, { signal });
+        document.addEventListener('pointerdown', (event) => {
+            if (!menu.contains(event.target) && event.target !== input) close();
+        }, { signal, capture: true });
+
+        return () => controller.abort();
     }
 
     function firstValidationMessage(payload, fallback = 'Something went wrong. Please try again.') {
@@ -261,6 +529,14 @@
             throw error;
         }
 
+        const method = String(options.method || 'GET').toUpperCase();
+        if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+            // A mutation makes every bootstrap request that started before this
+            // response obsolete. Those responses must never overwrite the
+            // authoritative local save result when they finish later.
+            invalidateBootstrapLoads();
+        }
+
         return payload;
     }
 
@@ -281,7 +557,7 @@
                     <div class="item-title">${html(notification.title)} ${notification.read ? '' : '<span class="badge b-blue">New</span>'}</div>
                     <div class="item-meta">${html(notification.text)}${notification.phase ? ` · ${html(notification.phase)}` : ''} · ${html(notification.time)}</div>
                     ${notificationAccess.authorityView && Array.isArray(notification.audience) && notification.audience.length
-                        ? `<div class="item-meta" style="margin-top:4px">For: ${html([...new Set(notification.audience.map((recipient) => recipient?.name).filter(Boolean))].join(', '))}</div>`
+                        ? `<div class="item-meta" style="margin-top:4px">For: ${html(flowtrackToArray(new Set(flowtrackToArray(notification.audience).map((recipient) => recipient?.name).filter(Boolean))).join(', '))}</div>`
                         : ''}
                 </div>
                 <button class="mini-btn" type="button">Open</button>
@@ -315,10 +591,17 @@
                         updateBadges();
                     }
 
-                    if (notification.job_id && jobs.some((job) => String(job.id) === String(notification.job_id))) {
-                        openJob(notification.job_id);
+                    const notificationTask = notification.task_id
+                        ? tasks.find((task) => Number(task.dbId) === Number(notification.task_id))
+                        : null;
+                    if (notificationTask) {
+                        openTask(notificationTask.id);
+                    } else if (notification.job_id) {
+                        const notificationJob = jobs.find((job) => Number(job.dbId) === Number(notification.job_id) || String(job.id) === String(notification.job_id));
+                        if (notificationJob) openJob(notificationJob.id);
+                        else if (notification.url) flowtrackNavigateTo(notification.url);
                     } else if (notification.url) {
-                        window.location.href = notification.url;
+                        flowtrackNavigateTo(notification.url);
                     }
                 } catch (error) {
                     showToast(error.message || 'Unable to open the notification.');
@@ -353,7 +636,7 @@
     function applyCurrentUserIdentity() {
         const initialsText = currentUser?.initials || 'FT';
         document.querySelectorAll('.sidebar-footer .avatar, [data-page-jump="profile"] .avatar, #profileAvatar').forEach((element) => {
-            if (currentUser?.avatarUrl) {
+            if (currentUser?.avatarUrl && flowtrackSafeUrl(currentUser.avatarUrl)) {
                 element.classList.add('has-photo');
                 element.style.backgroundImage = `url("${String(currentUser.avatarUrl).replaceAll('"', '%22')}")`;
                 element.textContent = initialsText;
@@ -382,45 +665,52 @@
         replaceArray(users, data.users);
         replaceArray(clients, data.clients);
         replaceArray(jobs, data.jobs);
-        boardJobIds = new Set((data.boardJobIds || []).map((id) => Number(id)));
+        boardJobIds = new Set(flowtrackToArray(data.boardJobIds).map((id) => Number(id)));
         boardAccess = data.boardAccess || { isAdministrator: false, taskVisibility: 'assigned_job_tasks' };
         replaceArray(tasks, data.tasks);
         replaceArray(docs, data.documents);
-        replaceArray(notifications, data.notifications);
-        replaceArray(dashboardActivities, data.activities);
-        replaceArray(workflowTemplates, data.workflows);
-        taskPacks = data.taskPacks || [];
-        capabilities = data.capabilities || {};
-        summaryMetrics = data.summaryMetrics || {};
-        notificationRules = Array.isArray(data.notificationRules) ? data.notificationRules : [];
+        if (hasOwnBootstrapField(data, 'notifications')) replaceArray(notifications, data.notifications);
+        if (hasOwnBootstrapField(data, 'activities')) replaceArray(dashboardActivities, data.activities);
+        if (hasOwnBootstrapField(data, 'workflows')) replaceArray(workflowTemplates, flowtrackNormalizeWorkflows(data.workflows));
+        if (hasOwnBootstrapField(data, 'taskPacks')) {
+            taskPacks = flowtrackToArray(data.taskPacks).filter((pack) => pack && typeof pack === 'object');
+        }
+        capabilities = data.capabilities && typeof data.capabilities === 'object' ? data.capabilities : {};
+        summaryMetrics = data.summaryMetrics && typeof data.summaryMetrics === 'object' && !Array.isArray(data.summaryMetrics) ? data.summaryMetrics : {};
+        notificationRules = flowtrackToArray(data.notificationRules);
         notificationAccess = data.notificationAccess || notificationAccess;
         notificationUnread = notifications.filter((notification) => !notification.read).length;
-        currentSensitiveFields = data.currentUser?.sensitiveFields || [];
+        currentSensitiveFields = flowtrackToArray(data.currentUser?.sensitiveFields);
         canViewAccess = Boolean(data.accessControl);
         canManageAccess = Boolean(data.accessControl?.canManage);
         canCreateUsers = Boolean(data.accessControl?.canCreateUsers);
         canDeleteUsers = Boolean(data.accessControl?.canDeleteUsers);
         isFlowAdmin = Boolean(data.accessControl?.isAdmin || data.currentUser?.isAdmin);
         isFlowSuperAdmin = Boolean(data.accessControl?.isSuperAdmin || data.currentUser?.isSuperAdmin);
-        accessRoles = data.accessControl?.roles || [];
-        accessMembers = data.accessControl?.members || [];
-        accessCatalog = data.accessControl?.catalog || accessCatalog;
+        accessRoles = flowtrackToArray(data.accessControl?.roles);
+        accessMembers = flowtrackToArray(data.accessControl?.members);
+        const incomingAccessCatalog = data.accessControl?.catalog || accessCatalog || {};
+        accessCatalog = {
+            modules: flowtrackToArray(incomingAccessCatalog.modules),
+            actions: flowtrackToArray(incomingAccessCatalog.actions),
+            scopes: flowtrackToArray(incomingAccessCatalog.scopes),
+            sensitiveFields: flowtrackToArray(incomingAccessCatalog.sensitiveFields),
+        };
         if (!selectedAccessRoleId || !accessRoles.some((role) => Number(role.id) === Number(selectedAccessRoleId))) {
             selectedAccessRoleId = accessRoles[0]?.id || null;
         }
 
-        masterCatalog = Array.isArray(data.masterDataCatalog) ? data.masterDataCatalog : [];
+        masterCatalog = flowtrackToArray(data.masterDataCatalog);
         for (const key of Object.keys(masterLabels)) delete masterLabels[key];
         for (const key of Object.keys(masterData)) delete masterData[key];
         masterCatalog.forEach((section) => {
             masterLabels[section.key] = section.label;
-            masterData[section.key] = Array.isArray(data.masterData?.[section.key]) ? data.masterData[section.key] : [];
+            masterData[section.key] = flowtrackToArray(data.masterData?.[section.key]);
         });
         if (!masterCatalog.some((section) => section.key === selectedMasterCategory)) {
             selectedMasterCategory = masterCatalog[0]?.key || '';
         }
-        for (const key of Object.keys(taskTemplates)) delete taskTemplates[key];
-        taskPacks.forEach((pack) => { taskTemplates[pack.name] = (pack.items || []).map((item) => item.title); });
+        rebuildTaskPackDerivedState();
         selectedWorkflowId = workflowTemplates[0]?.id ?? selectedWorkflowId;
         if (!boardWorkflowId || !workflowTemplates.some((workflow) => Number(workflow.id) === Number(boardWorkflowId))) {
             boardWorkflowId = workflowTemplates.find((workflow) => workflow.active !== false)?.id
@@ -432,9 +722,59 @@
         initializeRealtimeNotifications();
     }
 
+    async function loadBootstrapSegment(url, perPage = 100, generation = bootstrapGeneration) {
+        const rows = [];
+        let nextUrl = url ? `${url}${url.includes('?') ? '&' : '?'}per_page=${encodeURIComponent(perPage)}` : null;
+        let safetyCounter = 0;
+
+        while (nextUrl) {
+            if (generation !== bootstrapGeneration) return null;
+            const page = await api(nextUrl, { cache: 'no-store' });
+            if (generation !== bootstrapGeneration) return null;
+            if (!page || typeof page !== 'object') {
+                throw new Error('FlowTrack returned an invalid data page. Please reload once more.');
+            }
+            flowtrackToArray(page.data).forEach((row) => rows.push(row));
+            nextUrl = typeof page.pagination?.nextPageUrl === 'string' && page.pagination.nextPageUrl
+                ? page.pagination.nextPageUrl
+                : null;
+            safetyCounter += 1;
+            if (safetyCounter > 10000) throw new Error('FlowTrack data pagination exceeded its safety limit.');
+            await new Promise((resolve) => window.requestAnimationFrame(resolve));
+        }
+
+        return rows;
+    }
+
     async function loadBootstrap() {
-        const data = await api('/flowtrack/template-api/bootstrap');
+        const generation = ++bootstrapGeneration;
+        const coreUrl = `/flowtrack/template-api/bootstrap?_flowtrack_generation=${generation}&_=${Date.now()}`;
+        const core = await api(coreUrl, { cache: 'no-store' });
+        if (generation !== bootstrapGeneration) return null;
+        if (!core || typeof core !== 'object') {
+            throw new Error('FlowTrack bootstrap data is unavailable. Please reload the page.');
+        }
+
+        const segmentUrls = core.segments || {};
+        const perPage = Number(segmentUrls.perPage || 100);
+        const [segmentClients, segmentJobs, segmentTasks, segmentDocuments] = await Promise.all([
+            loadBootstrapSegment(segmentUrls.clients, perPage, generation),
+            loadBootstrapSegment(segmentUrls.jobs, perPage, generation),
+            loadBootstrapSegment(segmentUrls.tasks, perPage, generation),
+            loadBootstrapSegment(segmentUrls.documents, perPage, generation),
+        ]);
+        if (generation !== bootstrapGeneration) return null;
+        if ([segmentClients, segmentJobs, segmentTasks, segmentDocuments].some((segment) => segment === null)) return null;
+
+        const data = Object.assign({}, core, {
+            clients: segmentClients,
+            jobs: segmentJobs,
+            tasks: segmentTasks,
+            documents: segmentDocuments,
+        });
+        if (generation !== bootstrapGeneration) return null;
         applyBootstrap(data);
+        bootstrapAppliedGeneration = generation;
         return data;
     }
 
@@ -768,7 +1108,7 @@
             return;
         }
 
-        const requirements = [...jobDocumentRequirements(job)]
+        const requirements = flowtrackToArray(jobDocumentRequirements(job))
             .sort((left, right) => Number(left.present) - Number(right.present));
         if (!requirements.length) {
             showToast('No required document is configured for this Job’s current phase.');
@@ -777,7 +1117,6 @@
 
         const defaultRequirement = requirements.find((item) => !item.present) || requirements[0];
         const singleRequirement = requirements.length === 1;
-        const canLinkAndContinue = canFlow('documents', 'link');
         const title = singleRequirement ? `Upload ${html(defaultRequirement.categoryName)}` : 'Upload Required Job Document';
 
         $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>${title}</h2><div class="small muted" style="margin-top:5px">Upload from Documents. The file will be linked to ${html(job.id)}, ${html(defaultRequirement.phaseName)}, and its exact Workflow requirement.</div></div><button class="close-btn" data-upload-close>×</button></div>
@@ -791,10 +1130,8 @@
           </div>
           <div class="field full"><label>File *</label><input id="jobDocumentFile" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.zip"><div class="inline-help">PDF, Office documents, images or ZIP. Maximum 20 MB.</div></div>
           <div class="field full"><label>Notes</label><textarea id="jobDocumentNotes" rows="3" placeholder="Add a version note, reference number or document description…"></textarea></div>
-          <label class="check-row full"><input id="jobDocumentFinal" type="checkbox"> <span>Mark this as the final file</span></label>
-          ${canLinkAndContinue ? `<label class="check-row full"><input id="jobDocumentAdvance" type="checkbox" checked> <span>When every current-phase Task and document requirement is complete, continue the Job to the next Phase and activate its Task Pack.</span></label>` : ''}
         </div></div>
-        <div class="modal-foot"><button class="ghost" data-upload-close>Cancel</button><button class="primary" id="uploadJobDocumentBtn">${canLinkAndContinue ? 'Upload, Link & Continue' : 'Upload & Link'}</button></div>`;
+        <div class="modal-foot"><button class="ghost" data-upload-close>Cancel</button><button class="primary" id="uploadJobDocumentBtn">Upload & Link</button></div>`;
 
         openOverlay();
         $('#jobModal').classList.add('open');
@@ -821,8 +1158,6 @@
             if (requirement.taskPackItemId) formData.append('task_pack_item_id', String(requirement.taskPackItemId));
             formData.append('document_category_id', String(requirement.categoryId));
             formData.append('file', file);
-            formData.append('is_final', $('#jobDocumentFinal').checked ? '1' : '0');
-            formData.append('advance_phase', canLinkAndContinue && $('#jobDocumentAdvance')?.checked ? '1' : '0');
             const notes = $('#jobDocumentNotes').value.trim();
             if (notes) formData.append('notes', notes);
 
@@ -842,7 +1177,7 @@
             } catch (error) {
                 showToast(error.message);
                 button.disabled = false;
-                button.textContent = canLinkAndContinue ? 'Upload, Link & Continue' : 'Upload & Link';
+                button.textContent = 'Upload & Link';
             }
         });
     }
@@ -972,12 +1307,13 @@
         });
     }
 
-    openJob = function (id) {
-        const job = jobs.find((item) => item.id === id);
-        originalOpenJob(id);
-        if (!job || !$('#detailDrawer')?.classList.contains('open')) return;
+    registerFlowtrackExtension('openJob', 'openJob-stage-1', function (id) {        const job = jobs.find((item) => String(item.id) === String(id) || Number(item.dbId) === Number(id));
+        if (!job) return;
+        originalOpenJob(job.id);
+        const drawer = $('#detailDrawer');
+        if (!drawer?.classList.contains('open')) return;
 
-        const head = $('#detailDrawer .drawer-head');
+        const head = drawer.querySelector('.drawer-head');
         const close = head?.querySelector('.close-btn');
         const titleBlock = head?.firstElementChild;
         if (titleBlock && !titleBlock.querySelector('[data-job-assignee]')) {
@@ -1027,7 +1363,7 @@
             .slice()
             .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
         const currentPhase = activePhases.find((phase) => Number(phase.id) === Number(job.phaseId));
-        const timeline = $('#detailPanel1 .timeline');
+        const timeline = drawer.querySelector('#detailPanel1 .timeline');
         if (timeline && activePhases.length) {
             timeline.innerHTML = activePhases.map((phase) => {
                 const originalIndex = (workflow?.phases || []).findIndex((item) => Number(item.id) === Number(phase.id));
@@ -1036,22 +1372,16 @@
                 const isCurrent = Number(phase.id) === Number(job.phaseId);
                 const state = skipped ? 'skipped' : beforeCurrent ? 'done' : isCurrent ? 'current' : '';
                 const dot = skipped ? '↷' : beforeCurrent ? '✓' : phase.sequence;
-                const remove = job.canDeletePhases && activePhases.length > 1
-                    ? `<button class="mini-btn" data-remove-job-phase="${phase.id}" style="display:block;margin:6px auto 0">Remove</button>`
-                    : '';
-                return `<div class="step ${state}"><div class="step-dot">${dot}</div><div class="step-label">${html(phase.name)}${skipped ? '<br><small>Skipped / external</small>' : ''}${remove}</div></div>`;
+                return `<button type="button" class="step workflow-phase-step ${state}" data-flow-phase="${html(phase.id)}" data-flow-job="${html(job.id)}" title="View ${html(phase.name)} task history"><div class="step-dot">${dot}</div><div class="step-label">${html(phase.name)}${skipped ? '<br><small>Skipped / external</small>' : ''}</div></button>`;
             }).join('');
-            $$('[data-remove-job-phase]').forEach((button) => button.addEventListener('click', (event) => {
-                event.stopPropagation();
-                const phase = activePhases.find((item) => Number(item.id) === Number(button.dataset.removeJobPhase));
-                if (!phase) return;
-                closeAll();
-                setTimeout(() => openRemoveJobPhaseConfirmation(job, phase), 30);
-            }));
+            const workflowPanel = drawer.querySelector('#detailPanel1');
+            if (workflowPanel && !workflowPanel.querySelector('#flowtrackPhaseHistoryPanel')) {
+                timeline.insertAdjacentHTML('afterend', `<div id="flowtrackPhaseHistoryPanel" style="margin-top:14px">${flowtrackRenderPhaseHistoryPanel(job, currentPhase?.id || activePhases[0]?.id)}</div>`);
+            }
         }
 
         const requirement = jobPhaseDocumentRequirement(job);
-        const workflowActions = $('#detailPanel1 .actions');
+        const workflowActions = drawer.querySelector('#detailPanel1 .actions');
         if (canFlow('documents', 'create') && canFlow('documents', 'link') && workflowActions && requirement.categoryId && !requirement.present && !workflowActions.querySelector('[data-upload-required-document]')) {
             const uploadButton = document.createElement('button');
             uploadButton.className = 'secondary';
@@ -1066,8 +1396,51 @@
             button.textContent = 'Open Documents Page';
             button.addEventListener('click', () => goToDocumentUpload(job));
         });
+
+        // The Job Tasks tab must reflect only the Job's current Workflow Phase.
+        // Completed Tasks from previous phases remain available in Workflow history,
+        // but they are intentionally excluded from this operational list.
+        const taskPanel = drawer.querySelector('#detailPanel2');
+        if (taskPanel) {
+            const panelHeading = taskPanel.querySelector('.section-head h3');
+            if (panelHeading) panelHeading.textContent = 'Current Phase Tasks';
+
+            const panelHead = taskPanel.querySelector('.section-head');
+            if (panelHead && !panelHead.querySelector('[data-current-phase-task-label]')) {
+                const phaseLabel = document.createElement('span');
+                phaseLabel.className = 'small muted';
+                phaseLabel.dataset.currentPhaseTaskLabel = '1';
+                phaseLabel.textContent = currentPhase?.name || job.phase || 'Current Phase';
+                phaseLabel.style.marginLeft = '8px';
+                phaseLabel.style.marginRight = 'auto';
+                const addButton = panelHead.querySelector('[data-add-task]');
+                panelHead.insertBefore(phaseLabel, addButton || null);
+            }
+
+            const currentPhaseTaskIds = new Set(
+                (typeof jobCurrentPhaseTasks === 'function' ? jobCurrentPhaseTasks(job, tasks.filter((item) => String(item.job) === String(job.id) || Number(item.jobDbId) === Number(job.dbId))) : [])
+                    .map((item) => String(item.id))
+            );
+            let visibleCurrentTasks = 0;
+            taskPanel.querySelectorAll('[data-task]').forEach((row) => {
+                const rowTask = tasks.find((item) => item.id === row.dataset.task || Number(item.dbId) === Number(row.dataset.task));
+                if (!rowTask || (currentPhaseTaskIds.size && !currentPhaseTaskIds.has(String(rowTask.id)))) {
+                    row.remove();
+                    return;
+                }
+                visibleCurrentTasks += 1;
+            });
+
+            taskPanel.querySelectorAll('.empty-state').forEach((empty) => empty.remove());
+            if (!visibleCurrentTasks) {
+                const empty = document.createElement('div');
+                empty.className = 'empty-state';
+                empty.textContent = `No Tasks are configured for ${currentPhase?.name || 'the current phase'} yet.`;
+                taskPanel.appendChild(empty);
+            }
+        }
         applyActionPermissions();
-    };
+    });
 
     openDoc = function (id) {
         const documentRecord = docs.find((item) => item.id === id);
@@ -1172,7 +1545,7 @@
         for (let index = tasks.length - 1; index >= 0; index -= 1) {
             if (tasks[index].job === jobCode) tasks.splice(index, 1);
         }
-        tasks.push(...(newTasks || []));
+        flowtrackToArray(newTasks).forEach((task) => tasks.push(task));
     }
 
     async function persistTask(task, status, extras = {}) {
@@ -1182,55 +1555,210 @@
         const statusRecord = taskStatusRecord(status);
         if (!statusRecord) throw new Error('The selected task status is not available in this workspace.');
         const payload = {
+            title: extras.title ?? task.title,
+            description: extras.description ?? task.description ?? null,
             task_status_id: statusRecord.id,
             assignee_id: extras.assignee_id ?? task.assigneeId ?? null,
+            priority_id: extras.priority_id ?? task.priorityId ?? null,
             due_date: extras.due_date ?? task.due ?? null,
             progress: taskProgressForStatus(statusRecord),
             attention_required: extras.attention_required ?? task.attention ?? false,
             blocker_reason: extras.blocker_reason ?? task.blockerReason ?? null,
-            completed_checklist_ids: extras.completed_checklist_ids ?? (task.checklist || []).filter((item) => item.done).map((item) => item.id),
             comment: extras.comment ?? '',
+            mentioned_user_ids: extras.mentioned_user_ids ?? [],
         };
         const result = await api(`/flowtrack/template-api/tasks/${task.dbId}`, { method: 'PUT', body: payload });
         updateTaskAndJob(result);
         return result;
     }
 
-    openTask = function (id) {
-        const task = tasks.find((item) => item.id === id);
+    registerFlowtrackExtension('openTask', 'openTask-stage-1', function (id) {        const task = tasks.find((item) => item.id === id || Number(item.dbId) === Number(id));
         if (!task) return;
-        const job = jobs.find((item) => item.id === task.job);
+        const job = jobs.find((item) => item.id === task.job || Number(item.dbId) === Number(task.jobDbId));
         const selectedStatus = taskStatusRecord(task.statusId || task.statusCode || task.status);
         const statuses = selectableTaskStatuses(selectedStatus);
+        const priorityOptions = (masterData.priorities || [])
+            .filter((priority) => String(priority.status || 'Active').toLowerCase() === 'active' || Number(priority.id) === Number(task.priorityId))
+            .map((priority) => `<option value="${html(priority.id)}" ${Number(priority.id) === Number(task.priorityId) ? 'selected' : ''}>${html(priority.name)}</option>`)
+            .join('');
+        const taskAlreadyCompleted = taskIsCompleted(task) || taskStatusMatches(selectedStatus, ['CMP', 'COMPLETED', 'COMPLETE', 'DONE']);
+        const completedTaskLocked = taskAlreadyCompleted && !(isFlowAdmin || isFlowSuperAdmin);
+        const canEdit = !completedTaskLocked && (task.canUpdate || isFlowAdmin || isFlowSuperAdmin);
+        const canDeleteTask = Boolean(task.canDelete || isFlowAdmin || isFlowSuperAdmin);
+        const canChangeDue = !completedTaskLocked && (task.canChangeDueDate || isFlowAdmin || isFlowSuperAdmin);
+        const initialCompleted = taskAlreadyCompleted;
+        const progress = Math.max(0, Math.min(100, Number(task.progress) || 0));
+        const history = Array.isArray(task.history) ? task.history : [];
+        const mentionableUsers = flowtrackToArray(task.mentionableUsers).concat(flowtrackToArray(users))
+            .filter((user, index, collection) => user && collection.findIndex((candidate) => Number(candidate.id) === Number(user.id)) === index);
+        const documentRequirement = task.documentRequirement || null;
+        const taskDocuments = Array.isArray(task.documents) ? task.documents : [];
+        const formatTaskFileSize = (bytes) => {
+            const value = Math.max(0, Number(bytes) || 0);
+            if (value < 1024) return `${value} B`;
+            if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+            return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+        };
+        const taskDocumentCategories = (masterData.documentCategories || []).filter((category) => String(category.status || 'Active').toLowerCase() === 'active');
+        const genericTaskAttachment = Boolean(documentRequirement?.genericAttachment);
+        const selectedTaskDocumentCategoryId = taskDocuments[0]?.categoryId || documentRequirement?.categoryId || null;
+        const taskDocumentCategoryOptions = taskDocumentCategories.map((category) => `<option value="${html(category.id)}" ${Number(category.id) === Number(selectedTaskDocumentCategoryId) ? 'selected' : ''}>${html(category.name)}</option>`).join('');
+        const documentRowsHtml = taskDocuments.flatMap((documentRecord) => {
+            const versions = Array.isArray(documentRecord.versions) ? documentRecord.versions : [];
+            return versions.map((version, versionIndex) => {
+                const imagePreview = version.previewable && String(version.mimeType || '').startsWith('image/') && version.previewUrl
+                    ? `<a href="${html(version.previewUrl)}" target="_blank" rel="noopener" title="Preview ${html(version.originalName)}"><img class="task-document-thumb" src="${html(version.previewUrl)}" alt="Preview of ${html(version.originalName)}"></a>`
+                    : '<div class="doc-icon" style="flex:0 0 auto">FILE</div>';
+                const currentBadge = versionIndex === 0 ? '<span class="badge b-green">Current</span>' : '';
+                return `<div class="task-document-file">${imagePreview}<div class="task-document-file-copy"><b class="task-document-file-name">${html(version.originalName || documentRecord.name || 'Document')}</b><div class="small muted" style="margin-top:4px">Version ${version.version || 1} · ${formatTaskFileSize(version.size)} · ${html(version.uploadedBy || documentRecord.uploadedBy || 'System')}</div>${version.notes ? `<div class="small" style="margin-top:5px">${html(version.notes)}</div>` : ''}</div><div class="task-document-actions">${currentBadge}${version.previewUrl ? `<a class="secondary" href="${html(version.previewUrl)}" target="_blank" rel="noopener">Preview</a>` : ''}${version.downloadUrl ? `<a class="ghost" href="${html(version.downloadUrl)}">Download</a>` : ''}</div></div>`;
+            });
+        }).join('');
+        const documentSectionHtml = documentRequirement ? `<div class="task-document-section"><div class="section-head" style="margin:0"><div><h3>${genericTaskAttachment ? 'Task Document / Attachment' : 'Required Document'}</h3><div class="small muted" style="margin-top:4px">${html(documentRequirement.categoryName)} · ${html(documentRequirement.sourceLabel)}</div></div>${taskDocuments.length ? '<span class="badge b-green">Uploaded</span>' : `<span class="badge ${genericTaskAttachment ? 'b-blue' : 'b-amber'}">${genericTaskAttachment ? 'Attachment' : 'Required'}</span>`}</div><div class="task-document-list">${documentRowsHtml || `<div class="empty">${genericTaskAttachment ? 'No document has been attached to this Task yet.' : 'No file has been uploaded for this requirement yet.'}</div>`}</div>${task.canUploadDocument ? `<div class="task-document-upload">${genericTaskAttachment ? `<div class="field"><label>Document type *</label><select id="taskDocumentCategory"><option value="">Select document type</option>${taskDocumentCategoryOptions}</select></div>` : ''}<div class="field"><label>${taskDocuments.length ? 'Upload a new version' : (genericTaskAttachment ? 'Upload document or attachment' : 'Upload required document')} *</label><input id="taskDocumentFile" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.zip"><div class="inline-help">PDF, Office documents, images or ZIP. Maximum 20 MB. The selected file will be uploaded when you save the Task.${genericTaskAttachment ? ' The file will be linked directly to this Task.' : ' A successful upload completes this document Task automatically.'}</div></div><div class="field"><label>Attachment note</label><textarea id="taskDocumentNotes" rows="2" placeholder="Add a version note, reference number or document description…"></textarea></div></div>` : (!taskDocuments.length ? '<div class="source-note" style="margin-top:12px"><b>Upload unavailable</b><div class="small muted" style="margin-top:4px">Documents can only be uploaded while this is the Job’s current phase and by users with Document Upload & Link access.</div></div>' : '')}</div>` : '';
+        const historyHtml = history.map((entry) => `<div class="task-history-entry">
+            <div class="task-history-head"><span class="avatar">${html(entry.actorInitials || userInitials(entry.actor))}</span><div class="task-history-copy"><b>${html(entry.actor || 'System')}</b><div style="margin-top:3px">${html(entry.description || 'Task updated')}</div><div class="small muted" style="margin-top:3px">${html(entry.time || (entry.occurredAt ? new Date(entry.occurredAt).toLocaleString() : ''))}</div></div></div>
+            ${(entry.changes || []).length ? `<ul class="task-change-list">${entry.changes.map((change) => `<li><b>${html(change.field)}:</b> ${html(change.from)} → ${html(change.to)}</li>`).join('')}</ul>` : ''}
+        </div>`).join('');
 
-        $('#detailDrawer').innerHTML = `<div class="drawer-head"><div><div class="small muted">${task.id} · ${task.job}</div><h2>${html(task.title)}</h2><div>${statusBadge(task.status)} <span class="badge ${task.priority === 'Critical' ? 'b-red' : task.priority === 'High' ? 'b-amber' : 'b-gray'}">${html(task.priority)}</span></div></div><button class="close-btn" data-close>×</button></div>
-        <div class="drawer-body"><div class="summary-grid"><div class="summary-box"><span>Job</span><b>${html(job?.title || task.job)}</b></div><div class="summary-box"><span>Assignee</span><b>${html(task.assignee)}</b></div><div class="summary-box"><span>Due Date</span><b class="${dueClass(task.due)}">${formatDate(task.due)}</b></div></div>
-        <div class="form-grid" style="margin-top:18px"><div class="field"><label>Status</label><select id="taskUpdateStatus" ${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}>${statuses.map((status) => `<option value="${status.id}" ${Number(status.id) === Number(selectedStatus?.id) ? 'selected' : ''}>${html(status.name)}</option>`).join('')}</select></div>
+        $('#detailDrawer').innerHTML = `<div class="drawer-head"><div><div class="small muted">${html(task.id)} · <button type="button" class="task-job-link" data-task-job-link>${html(task.job)}</button></div><h2>${html(task.title)}</h2><div>${statusBadge(task.status)} <span class="badge ${task.priority === 'Critical' ? 'b-red' : task.priority === 'High' ? 'b-amber' : 'b-gray'}">${html(task.priority)}</span></div></div><div class="task-head-actions">${canDeleteTask ? `<div class="task-menu-wrap"><button class="task-menu-button" type="button" id="taskActionMenuButton" aria-label="Task actions" aria-expanded="false">•••</button><div class="task-action-menu hidden" id="taskActionMenu"><button type="button" class="danger-option" data-delete-task="${task.dbId}">Delete Task</button></div></div>` : ''}<button class="close-btn" data-close>×</button></div></div>
+        <div class="drawer-body"><div class="summary-grid"><div class="summary-box"><span>Job</span><button type="button" class="task-job-link" data-task-job-link>${html(job?.title || task.jobTitle || task.job)}</button></div><div class="summary-box"><span>Assignee</span><b>${html(task.assignee)}</b></div><div class="summary-box"><span>Due Date</span><b class="${dueClass(task.due)}">${formatDate(task.due)}</b></div></div>${completedTaskLocked ? '<div class="source-note" style="margin-top:14px"><b>Completed task locked</b><div class="small muted" style="margin-top:4px">Only Admin or Super Admin can edit/update a completed Task. You can still view documents, comments and history.</div></div>' : ''}
+        <div class="form-grid" style="margin-top:18px"><div class="field full"><label>Task title</label><input id="taskUpdateTitle" value="${html(task.title || '')}" maxlength="255" ${canEdit ? '' : 'disabled'}></div>
+        <div class="field full"><label>Description</label><textarea id="taskUpdateDescription" rows="3" maxlength="5000" placeholder="Add clear sub task details, expected output or instructions…" ${canEdit ? '' : 'disabled'}>${html(task.description || '')}</textarea><div class="inline-help">Admins can update completed tasks. Before completion, authorised task owners can update their assigned work without changing the workflow template.</div></div>
+        <div class="field"><label>Status</label><select id="taskUpdateStatus" ${canEdit ? '' : 'disabled'}>${statuses.map((status) => `<option value="${status.id}" ${Number(status.id) === Number(selectedStatus?.id) ? 'selected' : ''}>${html(status.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Priority</label><select id="taskUpdatePriority" ${canEdit ? '' : 'disabled'}><option value="">Use job priority</option>${priorityOptions}</select></div>
         <div class="field"><label>Assignee</label><select id="taskUpdateAssignee" ${task.canAssign || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}><option value="">Unassigned</option>${users.map((user) => `<option value="${user.id}" ${Number(user.id) === Number(task.assigneeId) ? 'selected' : ''}>${html(user.name)}</option>`).join('')}</select></div>
-        <div class="field"><label>Due Date</label><input type="date" id="taskUpdateDueDate" value="${task.due ? task.due.split('T')[0] : ''}" ${task.canChangeDueDate || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}><div class="inline-help">Available for regular tasks and subtasks.</div></div>
-        <div class="field full"><label>Progress: <b id="progressValue">${task.progress}%</b></label><input id="taskProgress" type="range" min="0" max="100" value="${task.progress}" disabled><div class="inline-help">Progress is calculated automatically from the selected status.</div></div></div>
-        <div class="section-head"><h3>Checklist</h3><span class="small muted">${task.checklist.filter((item) => item.done).length}/${task.checklist.length} complete</span></div>
-        ${task.checklist.map((item, index) => `<label class="check-row"><input class="task-check" data-check="${index}" type="checkbox" ${item.done ? 'checked' : ''} ${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}> <span>${html(item.text)}</span></label>`).join('')}
-        <div class="field" style="margin-top:18px"><label>Update comment</label><textarea id="taskComment" rows="3" placeholder="Add progress, decision, blocker or next action…" ${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}></textarea></div>
-        <label class="check-row"><input id="taskAttention" type="checkbox" ${task.attention ? 'checked' : ''} ${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '' : 'disabled'}> <span>Mark as attention needed</span></label>
+        <div class="field"><label>Due Date</label><input type="date" id="taskUpdateDueDate" value="${task.due ? task.due.split('T')[0] : ''}" ${canChangeDue ? '' : 'disabled'}><div class="inline-help">Available for regular tasks and subtasks.</div></div>
+        <div class="field full"><label>Progress: <b id="progressValue">${progress}%</b></label><div class="task-progress-track" aria-label="Task progress"><span id="taskProgressFill" class="task-progress-fill ${progress >= 100 ? 'complete' : ''}" style="width:${progress}%"></span></div><div class="inline-help">Progress is calculated automatically from the selected status.</div></div></div>
+        ${documentSectionHtml}
+        <div class="field mention-wrap" style="margin-top:18px"><label>Update comment</label><textarea id="taskComment" rows="3" placeholder="Add progress, decision or next action. Type @ to mention a Job team member…" ${canEdit ? '' : 'disabled'}></textarea><div id="taskMentionMenu" class="mention-menu hidden"></div><div class="inline-help">Type @ and choose a person. They will receive a notification that opens this Task.</div></div>
+        <label class="check-row task-attention-row"><input id="taskAttention" type="checkbox" ${task.attention ? 'checked' : ''} ${canEdit && !initialCompleted ? '' : 'disabled'}><span class="task-attention-control" aria-hidden="true"></span><span class="task-attention-copy"><b>Mark as attention needed</b><small>Show this Task in Dashboard → Needs Attention until the flag is cleared.</small></span></label>
         <div class="section-head" style="margin-top:18px"><h3>Activity & Comments</h3></div>
-        ${(task.comments || []).map((comment) => `<div class="comment"><span class="avatar">${userInitials(comment.user)}</span><div><b>${html(comment.user)}</b><div style="margin-top:4px">${html(comment.text)}</div><div class="small muted" style="margin-top:4px">${html(comment.time)}</div></div></div>`).join('')}
-        ${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '' : '<div class="source-note" style="margin-top:18px"><b>Limited Task Access</b><div class="small muted" style="margin-top:4px">Everyone assigned to this Job can view its Tasks. Full updates remain limited to the assignee or an Administrator; authorised Job managers can still change the due date.</div></div>'}
-        <div class="actions" style="margin-top:18px">${task.canDelete || isFlowAdmin || isFlowSuperAdmin ? `<button class="danger-btn" data-delete-task="${task.dbId}">Delete Task</button>` : ''}${task.canChangeDueDate || isFlowAdmin || isFlowSuperAdmin ? '<button class="secondary" id="saveTaskDueDate">Save Due Date</button>' : ''}${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '<button class="primary" id="saveTaskUpdate" style="flex:1">Save Task Update</button>' : '<button class="ghost" data-close style="flex:1">Close</button>'}</div></div>`;
+        ${(task.comments || []).map((comment) => `<div class="comment"><span class="avatar">${userInitials(comment.user)}</span><div><b>${html(comment.user)}</b><div style="margin-top:4px">${html(comment.text)}</div><div class="small muted" style="margin-top:4px">${html(comment.time)}</div></div></div>`).join('') || '<div class="empty">No comments yet.</div>'}
+        <div class="section-head" style="margin-top:22px"><h3>History & Change Log</h3></div><div class="task-history">${historyHtml || '<div class="empty">No recorded changes yet.</div>'}</div>
+        ${canEdit ? '' : '<div class="source-note" style="margin-top:18px"><b>Limited Task Access</b><div class="small muted" style="margin-top:4px">Everyone assigned to this Job can view its Tasks. Full updates remain limited to the assignee or an Administrator; authorised Job managers can still change the due date.</div></div>'}
+        <div class="actions" style="margin-top:18px">${canChangeDue ? '<button class="secondary" id="saveTaskDueDate">Save Due Date</button>' : ''}${canEdit ? '<button class="primary" id="saveTaskUpdate" style="flex:1">Save Task Update</button>' : '<button class="ghost" data-close style="flex:1">Close</button>'}</div></div>`;
 
         openOverlay();
         $('#detailDrawer').classList.add('open');
         $$('[data-close]').forEach((button) => button.addEventListener('click', closeAll));
 
+        const openLinkedJob = () => {
+            closeAll();
+            setTimeout(() => {
+                if (job) openJob(job.id);
+                else if (task.jobDbId) flowtrackNavigateTo(`/flowtrack/jobs/${task.jobDbId}`);
+            }, 30);
+        };
+        $$('[data-task-job-link]').forEach((button) => button.addEventListener('click', openLinkedJob));
+
+        $('#taskActionMenuButton')?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const menu = $('#taskActionMenu');
+            menu?.classList.toggle('hidden');
+            $('#taskActionMenuButton')?.setAttribute('aria-expanded', menu?.classList.contains('hidden') ? 'false' : 'true');
+        });
+        const uploadSelectedTaskDocument = async () => {
+            const fileInput = $('#taskDocumentFile');
+            const file = fileInput?.files?.[0];
+            if (!file) return null;
+            if (!documentRequirement || !task.jobDbId) {
+                throw new Error('The exact document requirement could not be resolved.');
+            }
+            if (file.size > 20 * 1024 * 1024) {
+                throw new Error('The document must not be larger than 20 MB.');
+            }
+
+            const selectedDocumentCategoryId = genericTaskAttachment
+                ? Number($('#taskDocumentCategory')?.value || 0)
+                : Number(documentRequirement.categoryId || 0);
+            if (!selectedDocumentCategoryId) {
+                $('#taskDocumentCategory')?.focus();
+                throw new Error('Choose the document type before saving.');
+            }
+
+            const formData = new FormData();
+            formData.append('job_id', String(task.jobDbId));
+            formData.append('workflow_phase_id', String(documentRequirement.phaseId));
+            if (documentRequirement.taskPackItemId) {
+                formData.append('task_pack_item_id', String(documentRequirement.taskPackItemId));
+            }
+            formData.append('document_category_id', String(selectedDocumentCategoryId));
+            if (documentRequirement.taskId) formData.append('task_id', String(documentRequirement.taskId));
+            const existingDocument = taskDocuments[0];
+            if (existingDocument?.dbId) formData.append('document_id', String(existingDocument.dbId));
+            formData.append('file', file);
+            const notes = $('#taskDocumentNotes')?.value?.trim();
+            if (notes) formData.append('notes', notes);
+
+            const result = await api('/flowtrack/template-api/documents', { method: 'POST', body: formData });
+            const documentIndex = docs.findIndex((item) => Number(item.dbId) === Number(result.document?.dbId));
+            if (result.document && documentIndex >= 0) docs.splice(documentIndex, 1, result.document);
+            else if (result.document) docs.unshift(result.document);
+
+            if (result.job) {
+                const jobIndex = jobs.findIndex((item) => Number(item.dbId) === Number(result.job.dbId));
+                if (jobIndex >= 0) jobs.splice(jobIndex, 1, result.job);
+                if (Array.isArray(result.tasks)) replaceTasksForJob(result.job.id, result.tasks);
+            }
+
+            return result;
+        };
+
         const syncProgressPreview = () => {
             const status = taskStatusRecord($('#taskUpdateStatus').value);
-            const progress = taskProgressForStatus(status);
-            $('#taskProgress').value = String(progress);
-            $('#progressValue').textContent = `${progress}%`;
+            const nextProgress = taskProgressForStatus(status);
+            const completed = taskStatusMatches(status, ['CMP', 'COMPLETED', 'COMPLETE', 'DONE']);
+            $('#progressValue').textContent = `${nextProgress}%`;
+            $('#taskProgressFill').style.width = `${nextProgress}%`;
+            $('#taskProgressFill').classList.toggle('complete', nextProgress >= 100);
+            const attentionInput = $('#taskAttention');
+            if (completed) {
+                attentionInput.checked = false;
+                attentionInput.disabled = true;
+            } else {
+                attentionInput.disabled = !canEdit;
+            }
         };
         $('#taskUpdateStatus')?.addEventListener('change', syncProgressPreview);
         syncProgressPreview();
+
+        const selectedFilePreviewUrl = { value: null };
+        const renderSelectedTaskDocumentPreview = (file, state = 'ready') => {
+            const existingPreview = $('#taskDocumentSelectionPreview');
+            if (selectedFilePreviewUrl.value) {
+                URL.revokeObjectURL(selectedFilePreviewUrl.value);
+                selectedFilePreviewUrl.value = null;
+            }
+            if (!file) {
+                existingPreview?.remove();
+                return;
+            }
+
+            const safeSize = formatTaskFileSize(file.size);
+            const isImage = String(file.type || '').startsWith('image/');
+            const previewUrl = isImage ? URL.createObjectURL(file) : '';
+            if (previewUrl) selectedFilePreviewUrl.value = previewUrl;
+            const statusText = state === 'uploading'
+                ? 'Uploading on Save…'
+                : 'Selected in browser cache. It will be stored on the server only after Save Task Update.';
+            const progressWidth = state === 'uploading' ? 70 : 100;
+            const previewHtml = `<div id="taskDocumentSelectionPreview" class="task-document-selected-preview" aria-live="polite">
+                ${previewUrl ? `<img src="${previewUrl}" alt="Selected file preview">` : '<div class="doc-icon" style="flex:0 0 auto">FILE</div>'}
+                <div class="task-document-file-copy"><b class="task-document-file-name">${html(file.name)}</b><div class="small muted">${safeSize} · ${html(statusText)}</div><div class="task-upload-progress"><span style="width:${progressWidth}%"></span></div></div>
+            </div>`;
+            if (existingPreview) existingPreview.outerHTML = previewHtml;
+            else $('#taskDocumentFile')?.insertAdjacentHTML('afterend', previewHtml);
+        };
+        $('#taskDocumentFile')?.addEventListener('change', (event) => {
+            renderSelectedTaskDocumentPreview(event.target.files?.[0] || null);
+        });
+
+        const mentionedIds = new Set();
+        const commentBox = $('#taskComment');
+        const mentionMenu = $('#taskMentionMenu');
+        bindFlowtrackMentionInput(commentBox, mentionMenu, mentionableUsers, mentionedIds);
+
         $('[data-delete-task]')?.addEventListener('click', async () => {
+            $('#taskActionMenu')?.classList.add('hidden');
             if (!confirm(`Delete task ${task.id}?`)) return;
             try {
                 const result = await api(`/flowtrack/template-api/tasks/${task.dbId}`, { method: 'DELETE' });
@@ -1269,7 +1797,8 @@
         $('#saveTaskUpdate')?.addEventListener('click', async () => {
             const status = taskStatusRecord($('#taskUpdateStatus').value);
             const comment = $('#taskComment').value.trim();
-            const attention = $('#taskAttention').checked;
+            const completed = taskStatusMatches(status, ['CMP', 'COMPLETED', 'COMPLETE', 'DONE']);
+            const attention = completed ? false : $('#taskAttention').checked;
             const isBlocked = taskStatusMatches(status, ['BLK', 'BLOCKED', 'ATTN', 'ATTENTION', 'HOLD', 'ON HOLD']);
             if ((isBlocked || attention) && !comment && !task.blockerReason) {
                 showToast('Please add a short reason for the blocker or attention flag.');
@@ -1277,23 +1806,59 @@
                 return;
             }
 
+            const selectedFile = $('#taskDocumentFile')?.files?.[0] || null;
+            if (selectedFile && selectedFile.size > 20 * 1024 * 1024) {
+                showToast('The document must not be larger than 20 MB.');
+                $('#taskDocumentFile')?.focus();
+                return;
+            }
+            if (selectedFile && genericTaskAttachment && !Number($('#taskDocumentCategory')?.value || 0)) {
+                showToast('Choose the document type before saving.');
+                $('#taskDocumentCategory')?.focus();
+                return;
+            }
+
+            const activeMentionIds = flowtrackToArray(new Set(
+                flowtrackToArray(mentionedIds).concat(
+                    flowtrackToArray(mentionableUsers)
+                        .filter((user) => comment.toLowerCase().includes(`@${String(user.name || '').toLowerCase()}`))
+                        .map((user) => Number(user.id)),
+                ),
+            )).filter((userId) => Number.isFinite(Number(userId)));
             const button = $('#saveTaskUpdate');
             button.disabled = true;
-            button.textContent = 'Saving…';
+            button.textContent = selectedFile ? 'Saving & Uploading…' : 'Saving…';
             try {
-                const completed = $$('.task-check').filter((checkbox) => checkbox.checked).map((checkbox) => task.checklist[Number(checkbox.dataset.check)]?.id).filter(Boolean);
-                await persistTask(task, status, {
+                let uploadResult = null;
+                if (selectedFile) {
+                    renderSelectedTaskDocumentPreview(selectedFile, 'uploading');
+                    uploadResult = await uploadSelectedTaskDocument();
+                }
+
+                const completedStatus = taskStatusRecord('CMP') || taskStatusRecord('Completed') || taskStatusRecord('Complete') || taskStatusRecord('Done');
+                const statusToSave = selectedFile && documentRequirement && !genericTaskAttachment && completedStatus
+                    ? completedStatus
+                    : status;
+                const finalCompleted = taskStatusMatches(statusToSave, ['CMP', 'COMPLETED', 'COMPLETE', 'DONE']);
+                const taskResult = await persistTask(task, statusToSave, {
+                    title: $('#taskUpdateTitle')?.value?.trim() || task.title,
+                    description: $('#taskUpdateDescription')?.value?.trim() || null,
                     assignee_id: $('#taskUpdateAssignee').value ? Number($('#taskUpdateAssignee').value) : null,
+                    priority_id: $('#taskUpdatePriority')?.value ? Number($('#taskUpdatePriority').value) : null,
                     due_date: $('#taskUpdateDueDate').value || null,
-                    attention_required: attention,
-                    blocker_reason: (isBlocked || attention) ? (comment || task.blockerReason) : null,
-                    completed_checklist_ids: completed,
+                    attention_required: finalCompleted ? false : attention,
+                    blocker_reason: (!finalCompleted && (isBlocked || attention)) ? (comment || task.blockerReason) : null,
                     comment,
+                    mentioned_user_ids: activeMentionIds,
                 });
-                closeAll();
+
                 renderPage(currentPage);
                 updateBadges();
-                showToast('Task update saved. Progress recalculated automatically.');
+                showToast(uploadResult?.message || (selectedFile
+                    ? 'Task update and attachment saved successfully.'
+                    : 'Task update saved. Progress and history were updated.'));
+                const updatedTask = (uploadResult?.tasks || []).find((item) => Number(item.dbId) === Number(task.dbId));
+                openTask(updatedTask?.id || taskResult.task?.id || task.id);
             } catch (error) {
                 showToast(error.message);
             } finally {
@@ -1301,7 +1866,7 @@
                 button.textContent = 'Save Task Update';
             }
         });
-    };
+    });
 
     async function moveJobToPhase(job, phase, reason = null) {
         const result = await api(`/flowtrack/template-api/jobs/${job.dbId}/phase`, {
@@ -1314,8 +1879,7 @@
         return result;
     }
 
-    renderKanban = function () {
-        const area = $('#kanbanArea');
+    registerFlowtrackExtension('renderKanban', 'renderKanban-stage-1', function () {        const area = $('#kanbanArea');
         if (boardMode === 'tasks') {
             const configuredStatuses = (masterData.taskStatuses || [])
                 .filter((status) => String(status.status || 'Active').toLowerCase() === 'active')
@@ -1339,7 +1903,7 @@
                     });
                 }
             });
-            const columns = [...configuredStatuses, ...legacyStatuses];
+            const columns = flowtrackToArray(configuredStatuses).concat(flowtrackToArray(legacyStatuses));
             if (!columns.length) columns.push({ id: null, name: 'No task statuses configured', code: null, configured: false });
 
             const tasksForColumn = (column) => tasks.filter((task) => column.id !== null
@@ -1349,7 +1913,7 @@
             area.innerHTML = `<div class="kanban" style="grid-template-columns:repeat(${Math.max(1, columns.length)},minmax(230px,1fr))">${columns.map((column) => {
                 const columnTasks = tasksForColumn(column);
                 const dropValue = column.configured ? String(column.id) : '';
-                return `<div class="kanban-col"><div class="kanban-head"><span>${html(column.name)}${column.configured ? '' : ' · Legacy'}</span><span class="count">${columnTasks.length}</span></div><div class="kanban-list" ${dropValue ? `data-drop-status="${html(dropValue)}"` : 'data-readonly-status="true"'}>${columnTasks.map((task) => `<article class="kanban-card" draggable="${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? 'true' : 'false'}" data-task="${task.id}" data-task-updatable="${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '1' : '0'}"><span class="badge ${task.priority === 'Critical' ? 'b-red' : task.priority === 'High' ? 'b-amber' : 'b-gray'}">${html(task.priority)}</span><div class="kanban-card-title">${html(task.title)}</div><div class="kanban-job">${html(task.job)} · ${html(task.phase)}</div><div class="kanban-meta"><span class="avatar" style="width:25px;height:25px;font-size:9px">${userInitials(task.assignee)}</span><span class="due ${dueClass(task.due)} small">${formatDate(task.due)}</span></div><div class="progress" style="margin-top:9px"><span style="width:${task.progress}%"></span></div></article>`).join('')}</div></div>`;
+                return `<div class="kanban-col"><div class="kanban-head"><span>${html(column.name)}${column.configured ? '' : ' · Legacy'}</span><span class="count">${columnTasks.length}</span></div><div class="kanban-list" ${dropValue ? `data-drop-status="${html(dropValue)}"` : 'data-readonly-status="true"'}>${columnTasks.map((task) => `<article class="kanban-card" draggable="${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? 'true' : 'false'}" data-task="${task.id}" data-task-updatable="${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '1' : '0'}"><span class="badge ${task.priority === 'Critical' ? 'b-red' : task.priority === 'High' ? 'b-amber' : 'b-gray'}">${html(task.priority)}</span><div class="kanban-card-title">${html(task.title)}</div><div class="kanban-job"><button type="button" class="kanban-job-link" data-board-job-link="${html(task.job)}">${html(task.job)}</button> · ${html(task.phase)}</div><div class="kanban-meta"><span class="avatar" style="width:25px;height:25px;font-size:9px">${userInitials(task.assignee)}</span><span class="due ${dueClass(task.due)} small">${formatDate(task.due)}</span></div><div class="progress" style="margin-top:9px"><span class="${Number(task.progress) >= 100 ? 'complete' : ''}" style="width:${Math.max(0, Math.min(100, Number(task.progress) || 0))}%"></span></div></article>`).join('')}</div></div>`;
             }).join('')}</div>`;
         } else {
             const activeWorkflows = (workflowTemplates || []).filter((workflow) => workflow.active !== false);
@@ -1458,28 +2022,883 @@
             });
         });
         bindCommon();
+    });
+
+
+
+    let boardSearchValue = '';
+    let boardQuickFilter = 'all';
+    let boardFilters = { job: '', client: '', assignee: '', status: '', priority: '', due: '', more: '' };
+    const collapsedBoardJobs = new Set();
+    const expandedBoardJobCards = new Set();
+    let jobListFilters = { owner: '', delivery: '', invoice: '', more: '', saved: 'all' };
+
+    const operationsBoardStyles = document.createElement('style');
+    operationsBoardStyles.textContent = `
+        .ops-board-page .page-head{margin-bottom:16px}.ops-board-tabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin-bottom:16px}.ops-board-tabs .tab-btn{padding:11px 0 12px;font-weight:800;color:#536276;border:0;background:transparent;border-bottom:3px solid transparent}.ops-board-tabs .tab-btn.active{color:var(--blue);border-color:var(--blue)}.ops-board-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.ops-toolbar{display:grid;grid-template-columns:minmax(220px,260px) minmax(280px,1fr) repeat(7,minmax(105px,auto));gap:12px;align-items:stretch;margin-bottom:14px}.ops-view-box,.ops-search,.ops-filter,.ops-clear,.ops-group,.ops-view-icon{height:48px;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.02)}.ops-view-box{display:flex;align-items:center;gap:13px;padding:7px 12px;text-align:left}.ops-view-icon-box{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:#f7fafc;color:#42536b}.ops-view-title{font-weight:800;font-size:13px}.ops-view-sub{font-size:11px;color:var(--muted);margin-top:2px}.ops-search{display:flex;align-items:center;gap:8px;padding:0 12px}.ops-search svg{width:18px;color:#8a98aa}.ops-search input{border:0;outline:0;background:transparent;width:100%;font-size:13px}.ops-filter{padding:0 12px;font-weight:750;font-size:12px;color:#29364a;min-width:0}.ops-clear{font-weight:750;color:#5b687c}.ops-quick-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:4px 0 12px}.ops-quick-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.ops-quick-label{font-weight:750;color:#39485d;margin-right:4px}.ops-chip{height:38px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:0 15px;font-size:12px;font-weight:800;color:#526276;display:inline-flex;align-items:center;gap:9px}.ops-chip.active{border-color:#9dbaff;background:#edf4ff;color:#215ed5;box-shadow:0 0 0 2px rgba(37,99,235,.05)}.ops-chip.danger{background:#fff6f5;color:#a63b36}.ops-chip.warn{background:#fff9ed;color:#9a5b10}.ops-chip .count,.ops-count{background:#eef2f7;border-radius:999px;padding:2px 8px;font-size:11px;color:inherit}.ops-group-row{display:flex;align-items:center;gap:10px}.ops-group{display:flex;align-items:center;gap:7px;padding:0 13px;font-weight:750;font-size:12px}.ops-view-icon{width:54px;display:grid;place-items:center}.ops-status-summary{min-height:48px;border:1px solid var(--line);background:#fff;border-radius:11px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px;color:#526276;font-size:12px}.ops-status-summary b{color:#172235}.ops-board-canvas{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 2px 8px rgba(19,39,67,.025)}.ops-status-grid{display:grid;grid-template-columns:repeat(5,minmax(250px,1fr));min-width:1260px}.ops-status-head{min-height:46px;background:#fbfcff;border-bottom:1px solid var(--line);border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:9px;font-size:12px;font-weight:850;text-transform:uppercase;color:#29364a}.ops-status-head:last-child{border-right:0}.ops-status-head .warn-mark{color:#e0a008;font-size:15px}.ops-job-group{min-width:1260px;border-bottom:1px solid var(--line)}.ops-job-group:last-child{border-bottom:0}.ops-job-row-head{height:62px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;padding:0 18px;border-bottom:1px solid var(--line)}.ops-job-left{display:flex;align-items:center;gap:12px;min-width:0}.ops-collapse{border:0;background:transparent;width:26px;height:26px;border-radius:8px;font-size:18px;line-height:1}.ops-collapse:hover{background:#f1f5f9}.ops-job-title{font-weight:850;color:#172235}.ops-job-title button{border:0;background:transparent;padding:0;font:inherit;font-weight:850;color:#172235;cursor:pointer}.ops-client-pill{background:#f3f6fa;color:#5f6f83;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700}.ops-job-right{display:flex;align-items:center;gap:18px;color:#4f5e72;font-size:12px;white-space:nowrap}.ops-job-kebab{border:0;background:transparent;font-size:20px;color:#18253b;padding:5px 8px;border-radius:8px}.ops-job-kebab:hover{background:#f1f5f9}.ops-task-row{display:grid;grid-template-columns:repeat(5,minmax(250px,1fr))}.ops-task-cell{min-height:156px;padding:14px 10px;border-right:1px solid var(--line);background:#fff}.ops-task-cell:last-child{border-right:0}.ops-task-cell.drop-hover{background:#f8fbff}.ops-job-empty{min-height:86px;display:flex;align-items:center;justify-content:center;color:#9aa6b5;font-size:12px}.ops-task-card{position:relative;border:1px solid #dfe6ef;background:#fff;border-radius:12px;padding:14px;margin:0 0 10px;box-shadow:0 2px 7px rgba(15,35,65,.04);cursor:pointer;transition:.18s}.ops-task-card:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(15,35,65,.08);border-color:#cfd9e7}.ops-task-card.dragging{opacity:.48}.ops-task-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.ops-priority{border-radius:999px;padding:6px 10px;font-size:12px;font-weight:850}.ops-priority.high{background:#fff1d8;color:#a35405}.ops-priority.critical{background:#ffe9e8;color:#bb3029}.ops-priority.medium{background:#eef2f6;color:#526276}.ops-priority.low{background:#edf7ef;color:#137333}.ops-task-alerts{display:flex;align-items:center;gap:6px}.ops-overdue{background:#ffe9e8;color:#ba2f28;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:850}.ops-task-menu{border:0;background:transparent;color:#5d6a7c;font-size:24px;line-height:1;padding:0 2px;border-radius:7px}.ops-task-menu:hover{background:#f1f5f9}.ops-card-title{font-weight:900;font-size:16px;line-height:1.22;margin:0 0 10px;color:#101a2e}.ops-card-meta{font-size:13px;line-height:1.45;color:#5a687b}.ops-card-meta .job-link{border:0;background:transparent;color:#1565c0;font:inherit;font-weight:800;padding:0;cursor:pointer}.ops-card-phase{font-size:13px;color:#5f6e82;margin-top:3px}.ops-waiting-box{display:flex;align-items:center;gap:12px;margin:12px 0 0;padding:10px 12px;border:1px solid #f3daa4;background:#fffaf0;border-radius:10px;color:#111827}.ops-wait-icon{width:34px;height:34px;border-radius:50%;background:#ffecc4;display:grid;place-items:center;font-size:18px;flex:0 0 auto}.ops-wait-title{font-weight:850}.ops-wait-date{color:#5d6a7c;margin-top:2px}.ops-card-sep{height:1px;background:var(--line);margin:13px 0}.ops-assignee-row,.ops-card-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}.ops-assignee{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:750;min-width:0}.ops-assignee .avatar{width:34px;height:34px;font-size:12px}.ops-due{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:#111827}.ops-due.overdue{color:#dc2626}.ops-card-footer{font-size:13px;color:#536276}.ops-card-stats{display:flex;align-items:center;gap:16px}.ops-stat{display:inline-flex;align-items:center;gap:6px}.ops-updated{white-space:nowrap;color:#69778a}.ops-phase-kanban{display:grid;gap:12px;overflow:auto;grid-template-columns:repeat(var(--phase-cols,6),minmax(260px,1fr));padding-bottom:8px}.ops-phase-column{min-height:500px;background:#f1f5f9;border:1px solid var(--line);border-radius:14px;padding:12px}.ops-phase-column .kanban-list{min-height:420px}.ops-phase-card{border:1px solid #dfe6ef;border-radius:13px;background:#fff;padding:14px;margin-bottom:11px;box-shadow:0 2px 7px rgba(15,35,65,.04);cursor:pointer}.ops-phase-card.dragging{opacity:.48}.ops-phase-card h4{margin:10px 0 8px;font-size:15px;line-height:1.25}.ops-phase-meta{font-size:12px;color:#5b6b80;line-height:1.5}.ops-phase-card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px}.ops-progress{height:9px;border-radius:999px;background:#e8edf4;overflow:hidden;margin-top:10px}.ops-progress span{display:block;height:100%;background:#2563eb;border-radius:999px}.ops-progress span.complete{background:#16a34a}.ops-board-empty{padding:32px;text-align:center;color:#78869a}.ops-board-mobile-note{display:none;color:var(--muted);font-size:12px;margin:-6px 0 10px}@media(max-width:1320px){.ops-toolbar{grid-template-columns:minmax(220px,260px) minmax(260px,1fr) repeat(3,minmax(110px,auto));}.ops-toolbar .ops-filter:nth-of-type(n+5){display:none}}@media(max-width:820px){.ops-toolbar{grid-template-columns:1fr}.ops-quick-row{align-items:flex-start}.ops-group-row{width:100%;justify-content:flex-start}.ops-board-mobile-note{display:block}.ops-board-tabs{gap:18px}.ops-status-summary{align-items:flex-start;flex-direction:column}.ops-job-row-head{height:auto;align-items:flex-start;flex-direction:column;padding:14px}.ops-job-right{width:100%;justify-content:space-between;gap:8px}}
+    `;
+    document.head.appendChild(operationsBoardStyles);
+
+    const jobBoardRedesignStyles = document.createElement('style');
+    jobBoardRedesignStyles.textContent = `
+        .ops-board-page .page-head{margin-bottom:14px}.ops-board-tabs{gap:22px;margin-bottom:14px}.ops-board-tabs .tab-btn{font-size:13px}.ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(330px,1fr));gap:14px;align-items:start}.ops-phase-column{background:#edf3fb;border:1px solid #dce5f0;border-radius:18px;padding:16px;min-height:520px}.ops-phase-column>.kanban-head{border:0;background:transparent;padding:0 0 14px;margin:0;display:flex;align-items:center;justify-content:space-between;text-transform:uppercase;letter-spacing:.04em;font-size:13px;font-weight:900;color:#0f172a}.ops-phase-column>.kanban-head .count{width:38px;height:32px;display:inline-grid;place-items:center;border-radius:10px;background:#fff;border:1px solid #e4ebf4;color:#0f172a;font-size:14px}.ops-phase-column .kanban-list{min-height:440px}.ops-job-card{position:relative;border:1px solid #d7e1ec!important;border-left:5px solid #22c55e!important;border-radius:16px!important;background:#fff!important;padding:18px!important;margin-bottom:14px!important;box-shadow:0 8px 22px rgba(15,35,65,.08)!important;color:#0f172a;cursor:pointer;transition:.18s}.ops-job-card:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(15,35,65,.11)!important}.ops-job-card.health-risk,.ops-job-card.health-delayed{border-left-color:#ef4444!important}.ops-job-card.health-blocked{border-left-color:#7c3aed!important}.ops-job-card.health-waiting{border-left-color:#d97706!important}.ops-job-card.health-completed{border-left-color:#16a34a!important}.ops-job-card-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}.ops-health-pill{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;border:1px solid #bbf7d0;background:#f0fdf4;color:#15803d;font-weight:850;font-size:13px;line-height:1}.ops-health-pill:before{content:"";width:9px;height:9px;border-radius:50%;background:currentColor}.ops-health-pill.risk,.ops-health-pill.delayed{background:#fff1f2;border-color:#fecdd3;color:#be123c}.ops-health-pill.blocked{background:#f5f3ff;border-color:#ddd6fe;color:#6d28d9}.ops-health-pill.waiting{background:#fffbeb;border-color:#fde68a;color:#b45309}.ops-health-pill.completed{background:#ecfdf5;border-color:#bbf7d0;color:#15803d}.ops-phase-age{display:inline-flex;align-items:center;gap:6px;color:#526174;font-weight:700}.ops-job-card-toggle{margin-left:auto;border:0;background:transparent;color:#3f4d60;border-radius:9px;font-size:22px;line-height:1;padding:4px 8px;letter-spacing:2px}.ops-job-card-toggle:hover{background:#f1f5f9}.ops-job-card h4{margin:0 0 10px!important;font-size:22px!important;line-height:1.18!important;font-weight:900!important;letter-spacing:-.02em}.ops-job-card .ops-phase-meta{font-size:15px;line-height:1.45;color:#56657a}.ops-job-card .kanban-job-link{color:#1d6ed6;font-weight:850;text-decoration:none}.ops-product-row{display:flex;align-items:center;gap:10px;color:#334155;font-weight:700;margin:12px 0 18px;font-size:14px}.ops-product-row .cube{font-size:21px;color:#475569}.ops-job-progress-head{display:flex;align-items:center;justify-content:space-between;font-weight:850;margin-bottom:8px;font-size:14px}.ops-job-card .ops-progress{height:9px;margin:0 0 16px}.ops-job-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.ops-job-metric{height:42px;border:1px solid #dbe3ef;border-radius:12px;background:#f8fafc;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:850;color:#172235}.ops-job-metric.warn{background:#fffaf0;border-color:#f7dfa8;color:#a35a05}.ops-job-metric.ok{background:#f0fdf4;border-color:#bbf7d0;color:#15803d}.ops-next-action,.ops-phase-tasks-box{border:1px solid #cfe0f5;background:#eff6ff;border-radius:14px;margin-bottom:16px;overflow:hidden}.ops-next-action{padding:14px 16px}.ops-card-section-label{font-size:13px;letter-spacing:.06em;color:#1d6ed6;font-weight:850;text-transform:uppercase;margin-bottom:5px}.ops-next-title{font-size:19px;font-weight:900;margin-bottom:10px}.ops-next-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px}.ops-next-meta .avatar{width:34px;height:34px;font-size:12px}.ops-next-due{display:flex;align-items:center;gap:7px;color:#dc2626;font-weight:850}.ops-phase-tasks-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid #cfe0f5;background:#f8fbff}.ops-phase-tasks-head span:first-child{font-size:13px;letter-spacing:.06em;color:#1d6ed6;font-weight:900}.ops-phase-tasks-head b{font-size:13px}.ops-phase-task-row{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid #dce9f8;background:#fff;cursor:pointer}.ops-phase-task-row:last-child{border-bottom:0}.ops-phase-task-row:hover{background:#f8fbff}.ops-task-next-pill{background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:5px 9px;font-size:12px;font-weight:850}.ops-phase-task-title{font-weight:850;line-height:1.25}.ops-phase-task-person{display:flex;align-items:center;gap:8px;color:#334155;margin-top:6px;font-size:13px}.ops-phase-task-person .avatar{width:30px;height:30px;font-size:11px}.ops-task-status-pill{border:1px solid #bbf7d0;background:#f0fdf4;color:#15803d;border-radius:999px;padding:5px 11px;font-weight:800;font-size:12px}.ops-task-status-pill.done{background:#ecfdf5;color:#15803d}.ops-task-status-pill.waiting{background:#fffbeb;color:#b45309;border-color:#fde68a}.ops-task-status-pill.review{background:#fff1f2;color:#be123c;border-color:#fecdd3}.ops-task-date{font-weight:850;white-space:nowrap}.ops-team-row{display:flex;align-items:center;gap:11px;color:#475569;margin:13px 0 15px;font-size:14px}.ops-team-avatars{display:flex;align-items:center}.ops-team-avatars .avatar{width:34px;height:34px;font-size:12px;margin-left:-7px;border:2px solid #fff}.ops-team-avatars .avatar:first-child{margin-left:0}.ops-team-more{width:34px;height:34px;border-radius:50%;background:#e5eaf1;color:#334155;display:grid;place-items:center;font-weight:850;border:2px solid #fff;margin-left:-7px}.ops-lead{margin-left:2px;color:#64748b}.ops-job-bottom{display:grid;grid-template-columns:1fr 1fr;gap:14px;border-top:1px solid #dce3ed;padding-top:14px}.ops-bottom-item{display:flex;align-items:center;gap:12px;min-width:0}.ops-bottom-icon{font-size:24px;color:#475569}.ops-bottom-label{color:#64748b;font-size:13px}.ops-bottom-value{font-weight:900;font-size:15px;margin-top:2px}.ops-job-card-updated{color:#64748b;margin-top:13px;font-size:13px}.jobs-v2 .page-head{margin-bottom:12px}.jobs-v2-stats{font-size:12px;font-weight:800;color:#475569;margin-top:5px}.jobs-v2 .ft-top-actions,.jobs-v2-actions{display:flex;gap:10px;align-items:center}.jobs-v2-saved{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.jobs-v2-chip{border:1px solid #dbe3ef;background:#fff;border-radius:11px;padding:9px 13px;font-size:12px;font-weight:850;color:#334155}.jobs-v2-chip.active{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8}.jobs-v2-chip.danger{color:#b91c1c}.jobs-v2-chip.warn{color:#a35a05}.jobs-v2-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) repeat(7,minmax(105px,auto)) auto;gap:10px;align-items:center;padding:12px;margin-bottom:12px}.jobs-v2-search{height:42px;border:1px solid #dbe3ef;border-radius:10px;padding:0 13px;background:#fff}.jobs-v2-toolbar select,.jobs-v2-toolbar button{height:42px;border-radius:10px;border:1px solid #dbe3ef;background:#fff;padding:0 12px;font-weight:750;font-size:12px}.jobs-v2-table{overflow:auto}.jobs-v2-table .data-table{min-width:1320px}.jobs-v2-table .data-table th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;background:#f8fafc}.jobs-v2-table .data-table td{padding:11px 10px;font-size:12px}.jobs-v2-job-code{border:0;background:transparent;color:#1d6ed6;font-weight:900;padding:0;cursor:pointer}.jobs-v2-order{color:#64748b;margin-top:2px}.jobs-v2-client{font-weight:850}.jobs-v2-brief{color:#64748b;margin-top:2px;max-width:210px}.jobs-v2-product{font-weight:750}.jobs-v2-phase{display:inline-flex;border-radius:999px;padding:4px 8px;background:#eef2ff;color:#3154b8;font-weight:850;font-size:11px}.jobs-v2-next{font-weight:850}.jobs-v2-due-note{color:#dc2626;font-weight:800;margin-top:3px;font-size:11px}.jobs-v2-owner{display:flex;align-items:center;gap:8px;white-space:nowrap}.jobs-v2-owner .avatar{width:28px;height:28px;font-size:10px}.jobs-v2-progress{display:flex;align-items:center;gap:8px;min-width:112px}.jobs-v2-progress .progress{width:70px;height:6px}.jobs-v2-invoice{display:inline-flex;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:850}.jobs-v2-invoice.blue{background:#eaf1ff;color:#1d4ed8}.jobs-v2-invoice.green{background:#eaf8ef;color:#15803d}.jobs-v2-invoice.amber{background:#fff5df;color:#b45309}.jobs-v2-invoice.red{background:#ffedeb;color:#c2413a}.jobs-v2-menu{border:0!important;background:transparent!important;font-size:20px!important;line-height:1!important;padding:4px 6px!important}.jobs-v2-empty{padding:22px;text-align:center;color:#64748b}.jobs-v2-date.overdue{color:#dc2626;font-weight:850}@media(max-width:1100px){.jobs-v2-toolbar{grid-template-columns:1fr 1fr}.ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(310px,1fr))}.ops-job-card h4{font-size:19px!important}.ops-job-metrics{grid-template-columns:1fr}}@media(max-width:720px){.jobs-v2-toolbar{grid-template-columns:1fr}.ops-job-bottom{grid-template-columns:1fr}.ops-phase-column{padding:12px}.ops-job-card{padding:15px!important}}
+    `;
+    document.head.appendChild(jobBoardRedesignStyles);
+
+
+    const compactOperationsBoardStyles = document.createElement('style');
+    compactOperationsBoardStyles.textContent = `
+        /* Compact, lightweight Operations Board polish */
+        .ops-board-page .page-head{margin-bottom:10px!important}.ops-board-tabs{gap:18px;margin-bottom:12px!important}.ops-board-tabs .tab-btn{padding:8px 0 10px!important;font-size:12px!important;font-weight:750!important}.ops-board-actions{gap:8px!important}.ops-board-actions .ghost,.ops-board-actions .primary{height:36px!important;padding:0 12px!important;border-radius:9px!important;font-size:12px!important}.ops-toolbar{grid-template-columns:minmax(190px,230px) minmax(240px,1fr) repeat(7,minmax(94px,auto))!important;gap:8px!important;margin-bottom:10px!important}.ops-view-box,.ops-search,.ops-filter,.ops-clear,.ops-group,.ops-view-icon{height:38px!important;border-radius:9px!important;box-shadow:none!important}.ops-view-box{gap:9px!important;padding:6px 10px!important}.ops-view-icon-box{width:27px!important;height:27px!important;border-radius:7px!important}.ops-view-title{font-size:12px!important;font-weight:750!important}.ops-view-sub{font-size:10px!important}.ops-search input{font-size:12px!important}.ops-filter,.ops-clear,.ops-group{padding:0 9px!important;font-size:11px!important;font-weight:700!important}.ops-view-icon{width:42px!important}.ops-quick-row{margin:2px 0 10px!important;gap:8px!important}.ops-quick-left{gap:7px!important}.ops-quick-label{font-size:12px!important;font-weight:750!important}.ops-chip{height:32px!important;border-radius:9px!important;padding:0 11px!important;font-size:11px!important;font-weight:750!important;gap:7px!important}.ops-chip .count,.ops-count{padding:1px 7px!important;font-size:10px!important}.ops-status-summary{min-height:38px!important;border-radius:10px!important;padding:9px 13px!important;margin-bottom:10px!important;font-size:12px!important;box-shadow:none!important}.ops-board-canvas{border-radius:12px!important;box-shadow:none!important}.ops-status-grid,.ops-job-group{min-width:1120px!important}.ops-status-grid,.ops-task-row{grid-template-columns:repeat(5,minmax(220px,1fr))!important}.ops-status-head{min-height:38px!important;font-size:11px!important;font-weight:800!important;background:#fbfcff!important}.ops-job-row-head{height:48px!important;padding:0 14px!important}.ops-job-left{gap:9px!important}.ops-collapse{width:22px!important;height:22px!important;font-size:15px!important}.ops-job-title{font-size:13px!important;font-weight:800!important}.ops-client-pill{padding:3px 8px!important;font-size:10px!important;background:#f1f5f9!important}.ops-job-right{gap:12px!important;font-size:11px!important}.ops-job-kebab{font-size:18px!important;padding:3px 6px!important}.ops-task-cell{min-height:118px!important;padding:10px 8px!important;background:#fff!important}.ops-job-empty{min-height:62px!important;font-size:11px!important;color:#94a3b8!important}.ops-task-card{border-radius:10px!important;padding:10px!important;margin-bottom:8px!important;box-shadow:none!important;border-color:#e2e8f0!important}.ops-task-card:hover{transform:none!important;box-shadow:0 6px 18px rgba(15,35,65,.07)!important;border-color:#cbd5e1!important}.ops-task-card-top{margin-bottom:7px!important}.ops-priority,.ops-overdue{padding:4px 8px!important;font-size:11px!important;font-weight:750!important}.ops-task-menu{font-size:19px!important;padding:0 2px!important}.ops-card-title{font-size:14px!important;line-height:1.22!important;margin-bottom:7px!important;font-weight:850!important}.ops-card-meta{font-size:12px!important;line-height:1.35!important}.ops-card-meta .job-link{font-weight:800!important}.ops-card-phase{font-size:12px!important;margin-top:2px!important}.ops-waiting-box{gap:9px!important;margin-top:9px!important;padding:8px 9px!important;border-radius:9px!important}.ops-wait-icon{width:28px!important;height:28px!important;font-size:14px!important}.ops-wait-title{font-size:12px!important;line-height:1.22!important}.ops-wait-date{font-size:11px!important}.ops-card-sep{margin:9px 0!important}.ops-assignee,.ops-due{font-size:12px!important;gap:7px!important}.ops-assignee .avatar{width:28px!important;height:28px!important;font-size:10px!important}.ops-card-footer{font-size:11px!important}.ops-card-stats{gap:10px!important}.ops-updated{font-size:11px!important}.ops-task-card .avatar{box-shadow:none!important}
+        .ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(270px,1fr))!important;gap:10px!important;padding-bottom:6px!important}.ops-phase-column{background:#f7f9fc!important;border-color:#e2e8f0!important;border-radius:14px!important;padding:10px!important;min-height:420px!important}.ops-phase-column>.kanban-head{padding:0 1px 10px!important;font-size:12px!important;letter-spacing:.035em!important}.ops-phase-column>.kanban-head .count{width:30px!important;height:27px!important;border-radius:8px!important;font-size:12px!important}.ops-phase-column .kanban-list{min-height:340px!important}.ops-job-card{padding:12px!important;margin-bottom:10px!important;border-radius:12px!important;border-left-width:4px!important;box-shadow:none!important}.ops-job-card:hover{transform:none!important;box-shadow:0 8px 20px rgba(15,35,65,.07)!important}.ops-job-card-top{gap:8px!important;margin-bottom:9px!important}.ops-health-pill{padding:5px 9px!important;font-size:11px!important;font-weight:750!important;gap:6px!important}.ops-health-pill:before{width:7px!important;height:7px!important}.ops-phase-age{font-size:11px!important;font-weight:650!important;gap:4px!important}.ops-job-card-toggle{font-size:18px!important;padding:2px 5px!important;letter-spacing:2px!important}.ops-job-card h4{font-size:17px!important;line-height:1.18!important;margin:0 0 7px!important;font-weight:850!important;letter-spacing:-.01em!important}.ops-job-card .ops-phase-meta{font-size:12px!important;line-height:1.35!important}.ops-product-row{gap:7px!important;margin:8px 0 12px!important;font-size:12px!important;font-weight:650!important}.ops-product-row .cube{font-size:16px!important}.ops-job-progress-head{font-size:12px!important;margin-bottom:5px!important;font-weight:800!important}.ops-job-card .ops-progress{height:6px!important;margin:0 0 11px!important}.ops-job-metrics{gap:6px!important;margin-bottom:10px!important}.ops-job-metric{height:31px!important;border-radius:9px!important;font-size:12px!important;font-weight:750!important;gap:5px!important}.ops-next-action,.ops-phase-tasks-box{border-radius:10px!important;margin-bottom:11px!important;background:#f3f8ff!important}.ops-next-action{padding:10px 11px!important}.ops-card-section-label{font-size:11px!important;letter-spacing:.055em!important;margin-bottom:4px!important;font-weight:800!important}.ops-next-title{font-size:15px!important;line-height:1.18!important;margin-bottom:8px!important;font-weight:850!important}.ops-next-meta{gap:8px!important;font-size:12px!important}.ops-next-meta .avatar{width:28px!important;height:28px!important;font-size:10px!important}.ops-next-due{gap:5px!important;font-weight:800!important}.ops-phase-tasks-head{padding:9px 11px!important}.ops-phase-tasks-head span:first-child{font-size:11px!important;font-weight:850!important}.ops-phase-tasks-head b{font-size:11px!important;font-weight:750!important}.ops-phase-task-row{grid-template-columns:auto 1fr auto!important;gap:7px!important;padding:9px 11px!important}.ops-phase-task-row .ops-task-date{grid-column:3!important}.ops-task-next-pill{padding:3px 7px!important;border-radius:8px!important;font-size:10px!important}.ops-phase-task-title{font-size:12px!important;font-weight:800!important}.ops-phase-task-person{gap:6px!important;margin-top:4px!important;font-size:11px!important}.ops-phase-task-person .avatar{width:24px!important;height:24px!important;font-size:9px!important}.ops-task-status-pill{padding:3px 8px!important;font-size:10px!important;font-weight:750!important}.ops-task-date{font-size:11px!important;font-weight:800!important}.ops-team-row{gap:8px!important;margin:9px 0 11px!important;font-size:12px!important}.ops-team-avatars .avatar,.ops-team-more{width:27px!important;height:27px!important;font-size:10px!important;margin-left:-6px!important}.ops-team-avatars .avatar:first-child{margin-left:0!important}.ops-lead{font-size:11px!important;line-height:1.2!important}.ops-job-bottom{gap:10px!important;padding-top:10px!important}.ops-bottom-item{gap:8px!important}.ops-bottom-icon{font-size:17px!important}.ops-bottom-label{font-size:11px!important}.ops-bottom-value{font-size:12px!important;font-weight:850!important;margin-top:1px!important;line-height:1.15!important}.ops-job-card-updated{margin-top:9px!important;font-size:11px!important}.jobs-v2 .page-head{margin-bottom:9px!important}.jobs-v2-stats{font-size:11px!important}.jobs-v2-saved{gap:6px!important;margin:10px 0!important}.jobs-v2-chip{border-radius:9px!important;padding:7px 10px!important;font-size:11px!important;font-weight:750!important}.jobs-v2-toolbar{gap:7px!important;padding:9px!important;margin-bottom:10px!important}.jobs-v2-search,.jobs-v2-toolbar select,.jobs-v2-toolbar button{height:36px!important;border-radius:9px!important;font-size:11px!important}.jobs-v2-table .data-table{min-width:1180px!important}.jobs-v2-table .data-table th{font-size:9px!important}.jobs-v2-table .data-table td{padding:8px 8px!important;font-size:11px!important}.jobs-v2-owner .avatar{width:24px!important;height:24px!important;font-size:9px!important}.jobs-v2-progress .progress{height:5px!important}.jobs-v2-invoice,.jobs-v2-phase{font-size:10px!important;padding:3px 7px!important}.jobs-v2-menu{font-size:18px!important;padding:2px 5px!important}@media(max-width:1320px){.ops-toolbar{grid-template-columns:minmax(190px,230px) minmax(220px,1fr) repeat(3,minmax(92px,auto))!important}.ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(260px,1fr))!important}}@media(max-width:720px){.ops-task-row,.ops-status-grid{min-width:980px!important;grid-template-columns:repeat(5,minmax(196px,1fr))!important}.ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(245px,1fr))!important}.ops-job-card{padding:11px!important}.ops-job-metrics{grid-template-columns:repeat(3,1fr)!important}.ops-job-bottom{grid-template-columns:1fr 1fr!important}}
+    `;
+    document.head.appendChild(compactOperationsBoardStyles);
+
+    const denseWorkflowBoardStyles = document.createElement('style');
+    denseWorkflowBoardStyles.textContent = `
+        /* Final compact board pass: lighter typography, dynamic columns, less visual weight. */
+        .ops-board-page{--ops-card-radius:10px;--ops-soft:#f7f9fc;--ops-text:#172033;--ops-muted:#64748b;font-size:12px!important}.ops-board-page .page-head{margin-bottom:8px!important}.ops-board-page .page-head h1{font-size:21px!important;font-weight:750!important;letter-spacing:-.02em!important}.ops-board-page .page-head p{font-size:12px!important;margin-top:2px!important}.ops-board-actions{gap:7px!important}.ops-board-actions .ghost,.ops-board-actions .primary{height:34px!important;padding:0 12px!important;border-radius:9px!important;font-size:12px!important;font-weight:650!important}.ops-board-tabs{gap:18px!important;margin-bottom:9px!important}.ops-board-tabs .tab-btn{padding:7px 0 8px!important;font-size:12px!important;font-weight:650!important;border-bottom-width:2px!important}.ops-toolbar{grid-template-columns:minmax(170px,210px) minmax(230px,1fr) repeat(4,minmax(94px,auto)) 74px!important;gap:7px!important;margin-bottom:8px!important}.ops-view-box,.ops-search,.ops-filter,.ops-clear,.ops-group,.ops-view-icon{height:34px!important;border-radius:9px!important;box-shadow:none!important}.ops-view-box{padding:5px 9px!important;gap:8px!important}.ops-view-icon-box{width:24px!important;height:24px!important;border-radius:7px!important;font-size:12px!important}.ops-view-title{font-size:11px!important;font-weight:650!important}.ops-view-sub{display:none!important}.ops-search{padding:0 10px!important}.ops-search input,.ops-filter{font-size:11px!important;font-weight:500!important}.ops-filter{padding:0 8px!important}.ops-clear{font-size:11px!important;font-weight:650!important}.ops-toolbar .ops-filter[data-board-filter="assignee"],.ops-toolbar .ops-filter[data-board-filter="priority"]{display:none!important}.ops-quick-row{gap:8px!important;margin:0 0 8px!important}.ops-quick-left{gap:7px!important}.ops-quick-label{font-size:12px!important;font-weight:650!important}.ops-chip{height:32px!important;padding:0 10px!important;border-radius:9px!important;font-size:11px!important;font-weight:650!important;gap:6px!important}.ops-count,.ops-chip .count{padding:1px 6px!important;font-size:10px!important;font-weight:650!important}.ops-group-row{gap:7px!important}.ops-group{height:34px!important;padding:0 10px!important;font-size:11px!important;font-weight:650!important}.ops-view-icon{width:38px!important}.ops-status-summary{min-height:34px!important;padding:7px 11px!important;margin-bottom:8px!important;border-radius:9px!important;font-size:11px!important}.ops-board-canvas{border-radius:10px!important}.ops-board-canvas .ops-status-grid,.ops-board-canvas .ops-task-row{grid-template-columns:repeat(var(--task-status-cols,5),minmax(184px,1fr))!important;min-width:var(--task-board-min,940px)!important}.ops-board-canvas .ops-job-group{min-width:var(--task-board-min,940px)!important}.ops-status-head{min-height:32px!important;font-size:10.5px!important;font-weight:650!important;letter-spacing:.015em!important;text-transform:uppercase!important}.ops-status-head .count{font-size:10px!important;padding:1px 6px!important}.ops-status-head .warn-mark{font-size:12px!important}.ops-job-row-head{height:42px!important;padding:0 12px!important}.ops-job-title,.ops-job-title button{font-size:12px!important;font-weight:650!important}.ops-client-pill{padding:2px 7px!important;font-size:10px!important;font-weight:600!important}.ops-job-right{font-size:11px!important;gap:10px!important}.ops-task-cell{min-height:90px!important;padding:8px 7px!important}.ops-task-card{border-radius:9px!important;padding:9px 9px 8px!important;margin-bottom:7px!important}.ops-task-card-top{margin-bottom:5px!important}.ops-priority,.ops-overdue{padding:3px 7px!important;font-size:10.5px!important;font-weight:650!important}.ops-task-menu{font-size:17px!important}.ops-card-title{font-size:13px!important;line-height:1.2!important;font-weight:700!important;margin-bottom:5px!important;letter-spacing:-.005em!important}.ops-card-meta,.ops-card-phase{font-size:11.5px!important;line-height:1.3!important}.ops-card-meta .job-link{font-weight:650!important}.ops-waiting-box{padding:7px 8px!important;margin-top:7px!important;gap:7px!important;border-radius:8px!important}.ops-wait-icon{width:24px!important;height:24px!important;font-size:12px!important}.ops-wait-title{font-size:11.5px!important;font-weight:650!important}.ops-wait-date{font-size:10.5px!important}.ops-card-sep{margin:7px 0!important}.ops-assignee,.ops-due{font-size:11.5px!important;font-weight:650!important}.ops-assignee .avatar{width:24px!important;height:24px!important;font-size:9px!important}.ops-card-footer{font-size:10.5px!important}.ops-card-stats{gap:7px!important}.ops-updated{font-size:10.5px!important}.ops-job-empty{min-height:48px!important;font-size:11px!important}.ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(220px,1fr))!important;gap:8px!important}.ops-phase-column{border-radius:12px!important;padding:8px!important;min-height:340px!important;background:#f7faff!important}.ops-phase-column>.kanban-head{padding:0 0 8px!important;font-size:11px!important;font-weight:700!important;letter-spacing:.025em!important}.ops-phase-column>.kanban-head .count{width:27px!important;height:24px!important;font-size:11px!important;border-radius:8px!important;font-weight:650!important}.ops-phase-column .kanban-list{min-height:280px!important}.ops-job-card{border-radius:10px!important;border-left-width:3px!important;padding:10px!important;margin-bottom:8px!important}.ops-job-card-top{margin-bottom:7px!important}.ops-health-pill{padding:4px 8px!important;font-size:10.5px!important;font-weight:650!important}.ops-phase-age{font-size:10.5px!important;font-weight:550!important}.ops-job-card-toggle{font-size:16px!important;padding:0 4px!important}.ops-job-card h4{font-size:14px!important;line-height:1.18!important;font-weight:700!important;margin-bottom:5px!important;letter-spacing:-.01em!important}.ops-job-card .ops-phase-meta{font-size:11.5px!important;line-height:1.3!important}.ops-product-row{font-size:11.5px!important;font-weight:550!important;margin:6px 0 9px!important}.ops-product-row .cube{font-size:13px!important}.ops-job-progress-head{font-size:11px!important;font-weight:650!important;margin-bottom:4px!important}.ops-job-card .ops-progress{height:5px!important;margin-bottom:8px!important}.ops-job-metrics{gap:5px!important;margin-bottom:8px!important}.ops-job-metric{height:28px!important;font-size:11px!important;font-weight:650!important;border-radius:8px!important}.ops-next-action,.ops-phase-tasks-box{border-radius:9px!important;margin-bottom:8px!important}.ops-next-action{padding:8px!important}.ops-card-section-label{font-size:10px!important;font-weight:650!important;margin-bottom:3px!important}.ops-next-title{font-size:13px!important;line-height:1.18!important;font-weight:700!important;margin-bottom:6px!important}.ops-next-meta{font-size:11px!important;gap:6px!important}.ops-next-meta .avatar{width:24px!important;height:24px!important;font-size:9px!important}.ops-next-due{font-weight:650!important}.ops-phase-tasks-head{padding:7px 8px!important}.ops-phase-tasks-head span:first-child,.ops-phase-tasks-head b{font-size:10.5px!important;font-weight:650!important}.ops-phase-task-row{padding:7px 8px!important;gap:6px!important}.ops-phase-task-title{font-size:11.5px!important;font-weight:650!important}.ops-phase-task-person{font-size:10.5px!important}.ops-phase-task-person .avatar{width:22px!important;height:22px!important;font-size:8.5px!important}.ops-task-next-pill,.ops-task-status-pill{padding:2px 6px!important;font-size:9.5px!important;font-weight:650!important}.ops-task-date{font-size:10.5px!important;font-weight:650!important}.ops-team-row{margin:7px 0 8px!important;gap:6px!important;font-size:11px!important}.ops-team-avatars .avatar,.ops-team-more{width:23px!important;height:23px!important;font-size:8.5px!important;margin-left:-6px!important}.ops-lead{font-size:10.5px!important;line-height:1.15!important}.ops-job-bottom{gap:7px!important;padding-top:8px!important}.ops-bottom-item{gap:6px!important}.ops-bottom-icon{font-size:13px!important}.ops-bottom-label{font-size:10.5px!important}.ops-bottom-value{font-size:11.5px!important;font-weight:650!important}.ops-job-card-updated{font-size:10.5px!important;margin-top:7px!important;color:#64748b!important}@media(max-width:1320px){.ops-toolbar{grid-template-columns:minmax(160px,200px) minmax(220px,1fr) repeat(3,minmax(88px,auto))!important}.ops-toolbar .ops-filter[data-board-filter="more"]{display:none!important}.ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(210px,1fr))!important}}@media(max-width:820px){.ops-toolbar{grid-template-columns:1fr!important}.ops-toolbar .ops-filter{display:block!important}.ops-board-canvas .ops-status-grid,.ops-board-canvas .ops-task-row{grid-template-columns:repeat(var(--task-status-cols,5),minmax(170px,1fr))!important}.ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(205px,1fr))!important}}
+    `;
+    document.head.appendChild(denseWorkflowBoardStyles);
+
+
+    const boardScopeCorrectionStyles = document.createElement('style');
+    boardScopeCorrectionStyles.textContent = `
+        /* Requested correction: compact only the Job Board. Restore Task Board card sizing from Archive 5 while keeping dynamic Task Status columns from Master Data. */
+        .ops-board-page.ops-mode-tasks .ops-toolbar{grid-template-columns:minmax(190px,230px) minmax(240px,1fr) repeat(7,minmax(94px,auto))!important;gap:8px!important;margin-bottom:10px!important}
+        .ops-board-page.ops-mode-tasks .ops-view-box,.ops-board-page.ops-mode-tasks .ops-search,.ops-board-page.ops-mode-tasks .ops-filter,.ops-board-page.ops-mode-tasks .ops-clear,.ops-board-page.ops-mode-tasks .ops-group,.ops-board-page.ops-mode-tasks .ops-view-icon{height:38px!important;border-radius:9px!important;box-shadow:none!important}
+        .ops-board-page.ops-mode-tasks .ops-view-box{gap:9px!important;padding:6px 10px!important}.ops-board-page.ops-mode-tasks .ops-view-icon-box{width:27px!important;height:27px!important;border-radius:7px!important}.ops-board-page.ops-mode-tasks .ops-view-title{font-size:12px!important;font-weight:750!important}.ops-board-page.ops-mode-tasks .ops-view-sub{font-size:10px!important;display:block!important}.ops-board-page.ops-mode-tasks .ops-search input{font-size:12px!important}.ops-board-page.ops-mode-tasks .ops-filter,.ops-board-page.ops-mode-tasks .ops-clear,.ops-board-page.ops-mode-tasks .ops-group{padding:0 9px!important;font-size:11px!important;font-weight:700!important}.ops-board-page.ops-mode-tasks .ops-view-icon{width:42px!important}
+        .ops-board-page.ops-mode-tasks .ops-quick-row{margin:2px 0 10px!important;gap:8px!important}.ops-board-page.ops-mode-tasks .ops-quick-left{gap:7px!important}.ops-board-page.ops-mode-tasks .ops-quick-label{font-size:12px!important;font-weight:750!important}.ops-board-page.ops-mode-tasks .ops-chip{height:32px!important;border-radius:9px!important;padding:0 11px!important;font-size:11px!important;font-weight:750!important;gap:7px!important}.ops-board-page.ops-mode-tasks .ops-chip .count,.ops-board-page.ops-mode-tasks .ops-count{padding:1px 7px!important;font-size:10px!important}
+        .ops-board-page.ops-mode-tasks .ops-status-summary{min-height:38px!important;border-radius:10px!important;padding:9px 13px!important;margin-bottom:10px!important;font-size:12px!important;box-shadow:none!important}.ops-board-page.ops-mode-tasks .ops-board-canvas{border-radius:12px!important;box-shadow:none!important}.ops-board-page.ops-mode-tasks .ops-board-canvas .ops-status-grid,.ops-board-page.ops-mode-tasks .ops-board-canvas .ops-task-row{grid-template-columns:repeat(var(--task-status-cols,5),minmax(220px,1fr))!important;min-width:max(1120px,var(--task-board-min,1120px))!important}.ops-board-page.ops-mode-tasks .ops-board-canvas .ops-job-group{min-width:max(1120px,var(--task-board-min,1120px))!important}
+        .ops-board-page.ops-mode-tasks .ops-status-head{min-height:38px!important;font-size:11px!important;font-weight:800!important;background:#fbfcff!important}.ops-board-page.ops-mode-tasks .ops-job-row-head{height:48px!important;padding:0 14px!important}.ops-board-page.ops-mode-tasks .ops-job-title,.ops-board-page.ops-mode-tasks .ops-job-title button{font-size:13px!important;font-weight:800!important}.ops-board-page.ops-mode-tasks .ops-client-pill{padding:3px 8px!important;font-size:10px!important;background:#f1f5f9!important}.ops-board-page.ops-mode-tasks .ops-job-right{gap:12px!important;font-size:11px!important}.ops-board-page.ops-mode-tasks .ops-job-kebab{font-size:18px!important;padding:3px 6px!important}
+        .ops-board-page.ops-mode-tasks .ops-task-cell{min-height:118px!important;padding:10px 8px!important;background:#fff!important}.ops-board-page.ops-mode-tasks .ops-job-empty{min-height:62px!important;font-size:11px!important;color:#94a3b8!important}.ops-board-page.ops-mode-tasks .ops-task-card{border-radius:10px!important;padding:10px!important;margin-bottom:8px!important;box-shadow:none!important;border-color:#e2e8f0!important}.ops-board-page.ops-mode-tasks .ops-task-card:hover{transform:none!important;box-shadow:0 6px 18px rgba(15,35,65,.07)!important;border-color:#cbd5e1!important}.ops-board-page.ops-mode-tasks .ops-task-card-top{margin-bottom:7px!important}.ops-board-page.ops-mode-tasks .ops-priority,.ops-board-page.ops-mode-tasks .ops-overdue{padding:4px 8px!important;font-size:11px!important;font-weight:750!important}.ops-board-page.ops-mode-tasks .ops-task-menu{font-size:19px!important;padding:0 2px!important}.ops-board-page.ops-mode-tasks .ops-card-title{font-size:14px!important;line-height:1.22!important;margin-bottom:7px!important;font-weight:850!important}.ops-board-page.ops-mode-tasks .ops-card-meta{font-size:12px!important;line-height:1.35!important}.ops-board-page.ops-mode-tasks .ops-card-meta .job-link{font-weight:800!important}.ops-board-page.ops-mode-tasks .ops-card-phase{font-size:12px!important;margin-top:2px!important}.ops-board-page.ops-mode-tasks .ops-waiting-box{gap:9px!important;margin-top:9px!important;padding:8px 9px!important;border-radius:9px!important}.ops-board-page.ops-mode-tasks .ops-wait-icon{width:28px!important;height:28px!important;font-size:14px!important}.ops-board-page.ops-mode-tasks .ops-wait-title{font-size:12px!important;line-height:1.22!important;font-weight:850!important}.ops-board-page.ops-mode-tasks .ops-wait-date{font-size:11px!important}.ops-board-page.ops-mode-tasks .ops-card-sep{margin:9px 0!important}.ops-board-page.ops-mode-tasks .ops-assignee,.ops-board-page.ops-mode-tasks .ops-due{font-size:12px!important;gap:7px!important;font-weight:750!important}.ops-board-page.ops-mode-tasks .ops-assignee .avatar{width:28px!important;height:28px!important;font-size:10px!important}.ops-board-page.ops-mode-tasks .ops-card-footer{font-size:11px!important}.ops-board-page.ops-mode-tasks .ops-card-stats{gap:10px!important}.ops-board-page.ops-mode-tasks .ops-updated{font-size:11px!important}.ops-board-page.ops-mode-tasks .ops-task-card .avatar{box-shadow:none!important}
+        .ops-board-page.ops-mode-jobs .ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(285px,1fr))!important;gap:10px!important;padding-bottom:6px!important}.ops-board-page.ops-mode-jobs .ops-phase-column{background:#f7f9fc!important;border-color:#e2e8f0!important;border-radius:14px!important;padding:10px!important;min-height:420px!important}.ops-board-page.ops-mode-jobs .ops-phase-column>.kanban-head{padding:0 1px 10px!important;font-size:12px!important;font-weight:650!important;letter-spacing:.03em!important;color:#172033!important}.ops-board-page.ops-mode-jobs .ops-phase-column>.kanban-head .count{width:30px!important;height:27px!important;border-radius:8px!important;font-size:12px!important;font-weight:650!important}.ops-board-page.ops-mode-jobs .ops-phase-column .kanban-list{min-height:340px!important}.ops-board-page.ops-mode-jobs .ops-job-card{padding:11px!important;margin-bottom:9px!important;border-radius:12px!important;border-left-width:4px!important;box-shadow:none!important}.ops-board-page.ops-mode-jobs .ops-job-card:hover{transform:none!important;box-shadow:0 8px 18px rgba(15,35,65,.06)!important}.ops-board-page.ops-mode-jobs .ops-job-card-top{gap:8px!important;margin-bottom:8px!important}.ops-board-page.ops-mode-jobs .ops-health-pill{padding:4px 8px!important;font-size:10.5px!important;font-weight:650!important;gap:6px!important}.ops-board-page.ops-mode-jobs .ops-health-pill:before{width:6px!important;height:6px!important}.ops-board-page.ops-mode-jobs .ops-phase-age{font-size:10.5px!important;font-weight:500!important}.ops-board-page.ops-mode-jobs .ops-job-card-toggle{font-size:17px!important;padding:1px 5px!important;letter-spacing:1.5px!important}.ops-board-page.ops-mode-jobs .ops-job-card h4{font-size:15px!important;line-height:1.2!important;margin:0 0 6px!important;font-weight:650!important;letter-spacing:-.01em!important}.ops-board-page.ops-mode-jobs .ops-job-card .ops-phase-meta{font-size:11.5px!important;line-height:1.35!important}.ops-board-page.ops-mode-jobs .ops-product-row{gap:6px!important;margin:7px 0 10px!important;font-size:11.5px!important;font-weight:550!important}.ops-board-page.ops-mode-jobs .ops-product-row .cube{font-size:14px!important}.ops-board-page.ops-mode-jobs .ops-job-progress-head{font-size:11.5px!important;margin-bottom:5px!important;font-weight:650!important}.ops-board-page.ops-mode-jobs .ops-job-card .ops-progress{height:5px!important;margin:0 0 9px!important}.ops-board-page.ops-mode-jobs .ops-job-metrics{gap:5px!important;margin-bottom:9px!important}.ops-board-page.ops-mode-jobs .ops-job-metric{height:29px!important;border-radius:8px!important;font-size:11px!important;font-weight:600!important;gap:5px!important}.ops-board-page.ops-mode-jobs .ops-next-action,.ops-board-page.ops-mode-jobs .ops-phase-tasks-box{border-radius:9px!important;margin-bottom:9px!important;background:#f3f8ff!important}.ops-board-page.ops-mode-jobs .ops-next-action{padding:9px!important}.ops-board-page.ops-mode-jobs .ops-card-section-label{font-size:10px!important;letter-spacing:.055em!important;margin-bottom:3px!important;font-weight:650!important}.ops-board-page.ops-mode-jobs .ops-next-title{font-size:13.5px!important;line-height:1.2!important;margin-bottom:7px!important;font-weight:650!important}.ops-board-page.ops-mode-jobs .ops-next-meta{gap:7px!important;font-size:11.5px!important}.ops-board-page.ops-mode-jobs .ops-next-meta .avatar{width:25px!important;height:25px!important;font-size:9px!important}.ops-board-page.ops-mode-jobs .ops-next-due{font-weight:650!important}.ops-board-page.ops-mode-jobs .ops-phase-tasks-head{padding:8px 9px!important}.ops-board-page.ops-mode-jobs .ops-phase-tasks-head span:first-child,.ops-board-page.ops-mode-jobs .ops-phase-tasks-head b{font-size:10.5px!important;font-weight:650!important}.ops-board-page.ops-mode-jobs .ops-phase-task-row{padding:8px 9px!important;gap:6px!important}.ops-board-page.ops-mode-jobs .ops-phase-task-title{font-size:11.5px!important;font-weight:650!important}.ops-board-page.ops-mode-jobs .ops-phase-task-person{font-size:10.5px!important}.ops-board-page.ops-mode-jobs .ops-phase-task-person .avatar{width:23px!important;height:23px!important;font-size:8.5px!important}.ops-board-page.ops-mode-jobs .ops-task-next-pill,.ops-board-page.ops-mode-jobs .ops-task-status-pill{padding:2px 6px!important;font-size:9.5px!important;font-weight:600!important}.ops-board-page.ops-mode-jobs .ops-task-date{font-size:10.5px!important;font-weight:650!important}.ops-board-page.ops-mode-jobs .ops-team-row{margin:8px 0 9px!important;gap:7px!important;font-size:11px!important}.ops-board-page.ops-mode-jobs .ops-team-avatars .avatar,.ops-board-page.ops-mode-jobs .ops-team-more{width:24px!important;height:24px!important;font-size:8.5px!important;margin-left:-6px!important}.ops-board-page.ops-mode-jobs .ops-team-avatars .avatar:first-child{margin-left:0!important}.ops-board-page.ops-mode-jobs .ops-lead{font-size:10.5px!important;line-height:1.15!important}.ops-board-page.ops-mode-jobs .ops-job-bottom{gap:8px!important;padding-top:9px!important}.ops-board-page.ops-mode-jobs .ops-bottom-item{gap:6px!important}.ops-board-page.ops-mode-jobs .ops-bottom-icon{font-size:14px!important}.ops-board-page.ops-mode-jobs .ops-bottom-label{font-size:10.5px!important}.ops-board-page.ops-mode-jobs .ops-bottom-value{font-size:11.5px!important;font-weight:650!important;line-height:1.15!important}.ops-board-page.ops-mode-jobs .ops-job-card-updated{margin-top:8px!important;font-size:10.5px!important;color:#64748b!important}
+        @media(max-width:1320px){.ops-board-page.ops-mode-tasks .ops-toolbar{grid-template-columns:minmax(190px,230px) minmax(220px,1fr) repeat(3,minmax(92px,auto))!important}.ops-board-page.ops-mode-tasks .ops-board-canvas .ops-status-grid,.ops-board-page.ops-mode-tasks .ops-board-canvas .ops-task-row{grid-template-columns:repeat(var(--task-status-cols,5),minmax(210px,1fr))!important}.ops-board-page.ops-mode-jobs .ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(275px,1fr))!important}}
+        @media(max-width:720px){.ops-board-page.ops-mode-tasks .ops-board-canvas .ops-status-grid,.ops-board-page.ops-mode-tasks .ops-board-canvas .ops-task-row{grid-template-columns:repeat(var(--task-status-cols,5),minmax(196px,1fr))!important;min-width:max(980px,var(--task-board-min,980px))!important}.ops-board-page.ops-mode-tasks .ops-board-canvas .ops-job-group{min-width:max(980px,var(--task-board-min,980px))!important}.ops-board-page.ops-mode-jobs .ops-phase-kanban{grid-template-columns:repeat(var(--phase-cols,6),minmax(260px,1fr))!important}.ops-board-page.ops-mode-jobs .ops-job-card{padding:10px!important}.ops-board-page.ops-mode-jobs .ops-job-metrics{grid-template-columns:repeat(3,1fr)!important}.ops-board-page.ops-mode-jobs .ops-job-bottom{grid-template-columns:1fr 1fr!important}}
+    `;
+    document.head.appendChild(boardScopeCorrectionStyles);
+
+    try { if (typeof boardMode !== 'undefined' && !sessionStorage.getItem('flowtrackBoardModeTouched')) boardMode = 'jobs'; } catch (_) { boardMode = 'jobs'; }
+
+    function boardDateOnly(value) {
+        if (!value) return '';
+        const raw = String(value);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+        const parsed = new Date(raw);
+        if (Number.isNaN(parsed.getTime())) return '';
+        return localDateKey(parsed);
+    }
+
+    function boardShortDate(value) {
+        const key = boardDateOnly(value);
+        if (!key) return '—';
+        return new Date(`${key}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function boardDaysOverdue(value) {
+        const key = boardDateOnly(value);
+        if (!key || key >= today) return 0;
+        return Math.max(1, Math.round((new Date(`${today}T00:00:00`) - new Date(`${key}T00:00:00`)) / 86400000));
+    }
+
+    function boardDaysUntil(value) {
+        const key = boardDateOnly(value);
+        if (!key) return null;
+        return Math.round((new Date(`${key}T00:00:00`) - new Date(`${today}T00:00:00`)) / 86400000);
+    }
+
+    function boardJobForTask(task) {
+        return jobs.find((job) => String(job.id) === String(task.job) || Number(job.dbId) === Number(task.jobDbId)) || null;
+    }
+
+    function boardActiveJobs() {
+        return jobs.filter((job) => String(job.status || '').toLowerCase() !== 'completed' && String(job.health || '').toLowerCase() !== 'completed');
+    }
+
+    function boardActiveTaskStatuses() {
+        return (masterData.taskStatuses || [])
+            .filter((status) => String(status.status || 'Active').toLowerCase() === 'active')
+            .slice()
+            .sort((left, right) => {
+                const leftOrder = Number(left.sortOrder ?? left.sort_order ?? left.order ?? left.sequence ?? left.id ?? 0);
+                const rightOrder = Number(right.sortOrder ?? right.sort_order ?? right.order ?? right.sequence ?? right.id ?? 0);
+                if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+                return String(left.name || left.code || '').localeCompare(String(right.name || right.code || ''));
+            });
+    }
+
+    function boardColumnKeyForStatus(status) {
+        if (!status) return 'status-unassigned';
+        if (status.id !== undefined && status.id !== null && status.id !== '') return `status-${status.id}`;
+        const fallback = String(status.code || status.name || 'unassigned').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'unassigned';
+        return `status-${fallback}`;
+    }
+
+    function boardTaskStatusBucket(task) {
+        const statusRecord = taskStatusRecord(task.statusId || { code: task.statusCode, name: task.status });
+        const statusName = normalizedStatusValue(`${statusRecord?.name || ''} ${task.status || ''}`);
+        const statusCode = normalizedStatusValue(statusRecord?.code || task.statusCode || '');
+        if (['CMP', 'COMPLETED', 'COMPLETE', 'DONE'].includes(statusCode) || /COMPLET|DONE|PAID|APPROVED|DELIVERED/.test(statusName)) return 'done';
+        if (['REV', 'REVIEW', 'REVISION'].includes(statusCode) || /REVIEW|REVISION|REJECT|RETURN/.test(statusName)) return 'review';
+        if (['BLK', 'BLOCKED', 'ATTN', 'ATTENTION'].includes(statusCode) || /BLOCK|ATTENTION/.test(statusName)) return 'review';
+        if (['WC', 'WS', 'WP', 'WIA', 'WAIT', 'WAITING', 'HOLD'].includes(statusCode) || /WAIT|HOLD|CLIENT|SUPPLIER|PAYMENT|EXTERNAL|APPROVAL/.test(statusName)) return 'waiting';
+        if (['IP', 'IN_PROGRESS', 'PROGRESS'].includes(statusCode) || /IN PROGRESS|PROGRESS|STARTED|TRANSIT/.test(statusName)) return 'progress';
+        return 'ready';
+    }
+
+    function boardColumnDefinitions() {
+        const statuses = boardActiveTaskStatuses();
+        if (statuses.length) {
+            return statuses.map((status, index) => ({
+                key: boardColumnKeyForStatus(status),
+                label: status.name || status.code || `Status ${index + 1}`,
+                statusId: status.id ?? null,
+                statusRecord: status,
+                code: status.code || null,
+                bucket: boardTaskStatusBucket({ statusId: status.id, status: status.name, statusCode: status.code }),
+                configured: true,
+            }));
+        }
+        return [
+            { key: 'ready', label: 'Ready', target: ['READY', 'NOT STARTED', 'NEW'], bucket: 'ready', configured: false },
+            { key: 'progress', label: 'In Progress', target: ['IP', 'IN PROGRESS', 'PROGRESS'], bucket: 'progress', configured: false },
+            { key: 'waiting', label: 'Waiting', target: ['WS', 'WC', 'WAITING FOR SUPPLIER', 'WAITING FOR CLIENT', 'WAITING'], bucket: 'waiting', configured: false },
+            { key: 'review', label: 'Review', target: ['REV', 'REVISION REQUIRED', 'REVIEW', 'BLK', 'BLOCKED'], bucket: 'review', configured: false },
+            { key: 'done', label: 'Done', target: ['CMP', 'COMPLETED', 'DONE'], bucket: 'done', configured: false },
+        ];
+    }
+
+    function boardTaskColumnKey(task) {
+        const columns = boardColumnDefinitions();
+        const statusId = Number(task.statusId);
+        if (Number.isFinite(statusId) && statusId > 0) {
+            const byId = columns.find((column) => column.statusId !== undefined && column.statusId !== null && Number(column.statusId) === statusId);
+            if (byId) return byId.key;
+        }
+        const statusRecord = taskStatusRecord(task.statusId || { code: task.statusCode, name: task.status });
+        if (statusRecord) {
+            const key = boardColumnKeyForStatus(statusRecord);
+            if (columns.some((column) => column.key === key)) return key;
+        }
+        const normalizedName = normalizedStatusValue(task.status || '');
+        const normalizedCode = normalizedStatusValue(task.statusCode || '');
+        const byNameOrCode = columns.find((column) => normalizedStatusValue(column.label) === normalizedName || normalizedStatusValue(column.code) === normalizedCode || normalizedStatusValue(column.code) === normalizedName);
+        if (byNameOrCode) return byNameOrCode.key;
+        const bucket = boardTaskStatusBucket(task);
+        const fallback = columns.find((column) => column.bucket === bucket) || columns[0];
+        return fallback?.key || bucket;
+    }
+
+    function boardTargetStatusForColumn(columnKey) {
+        const column = boardColumnDefinitions().find((item) => item.key === columnKey);
+        if (!column) return null;
+        if (column.statusRecord) return column.statusRecord;
+        const statuses = boardActiveTaskStatuses();
+        for (const wanted of (column.target || [])) {
+            const normalizedWanted = normalizedStatusValue(wanted);
+            const found = statuses.find((status) => String(status.code || '').toUpperCase() === String(wanted).toUpperCase()
+                || normalizedStatusValue(status.name || '') === normalizedWanted
+                || normalizedStatusValue(status.code || '') === normalizedWanted);
+            if (found) return found;
+        }
+        return statuses[0] || null;
+    }
+
+    function boardPriorityClass(priority) {
+        const normalized = String(priority || 'Medium').toLowerCase();
+        if (normalized.includes('critical')) return 'critical';
+        if (normalized.includes('high')) return 'high';
+        if (normalized.includes('low')) return 'low';
+        return 'medium';
+    }
+
+    function boardWaitingLabel(task) {
+        const status = normalizedStatusValue(task.status || '');
+        if (status.includes('SUPPLIER')) return 'Supplier costing';
+        if (status.includes('CLIENT')) return 'Client approval';
+        if (status.includes('PAYMENT')) return 'Client payment';
+        if (status.includes('HOLD')) return 'External response';
+        return task.blockerReason || task.title || 'External dependency';
+    }
+
+    function boardTaskUpdatedText(task) {
+        const key = boardDateOnly(task.updatedAt || task.completedAt || task.createdAt);
+        if (!key) return 'Updated recently';
+        const days = boardDaysUntil(key);
+        if (days === 0) return 'Updated today';
+        if (days === -1) return 'Updated 1d ago';
+        if (days < 0) return `Updated ${Math.abs(days)}d ago`;
+        return `Updated ${boardShortDate(key)}`;
+    }
+
+    function boardChecklistCount(task) {
+        if (task.isDocumentTask) {
+            const uploaded = (task.documents || []).length;
+            return `${uploaded ? 1 : 0}/1`;
+        }
+        const checklist = Array.isArray(task.checklist) ? task.checklist : [];
+        if (!checklist.length) return '0/0';
+        return `${checklist.filter((item) => item.done).length}/${checklist.length}`;
+    }
+
+    function boardAttachmentCount(task) {
+        const explicit = Array.isArray(task.documents) ? task.documents.length : 0;
+        if (explicit) return explicit;
+        return docs.filter((doc) => String(doc.job) === String(task.job)).length;
+    }
+
+    function boardCommentCount(task) {
+        const comments = Array.isArray(task.comments) ? task.comments.length : 0;
+        const historyComments = Array.isArray(task.history) ? task.history.filter((entry) => entry.commentAdded).length : 0;
+        return comments + historyComments;
+    }
+
+    function boardFilteredTasks() {
+        let list = tasks.slice();
+        const search = boardSearchValue.trim().toLowerCase();
+        if (search) {
+            list = list.filter((task) => {
+                const job = boardJobForTask(task);
+                const haystack = [task.id, task.title, task.job, task.phase, task.assignee, task.priority, task.status, job?.title, clientName(job?.client)].join(' ').toLowerCase();
+                return haystack.includes(search);
+            });
+        }
+        if (boardFilters.job) list = list.filter((task) => String(task.job) === String(boardFilters.job));
+        if (boardFilters.client) list = list.filter((task) => String(boardJobForTask(task)?.client) === String(boardFilters.client));
+        if (boardFilters.assignee) list = list.filter((task) => String(task.assigneeId || task.assignee) === String(boardFilters.assignee));
+        if (boardFilters.status) list = list.filter((task) => boardTaskColumnKey(task) === boardFilters.status || String(task.statusId) === String(boardFilters.status));
+        if (boardFilters.priority) list = list.filter((task) => String(task.priorityId || task.priority) === String(boardFilters.priority));
+        if (boardFilters.due === 'overdue') list = list.filter((task) => boardDaysOverdue(task.due) > 0 && boardTaskStatusBucket(task) !== 'done');
+        if (boardFilters.due === 'today') list = list.filter((task) => boardDateOnly(task.due) === today);
+        if (boardFilters.due === 'week') list = list.filter((task) => {
+            const days = boardDaysUntil(task.due);
+            return days !== null && days >= 0 && days <= 7;
+        });
+        if (boardFilters.more === 'document') list = list.filter((task) => task.isDocumentTask);
+        if (boardFilters.more === 'attention') list = list.filter((task) => task.attention || task.blockerReason);
+        if (boardQuickFilter === 'mine') list = list.filter((task) => Number(task.assigneeId) === Number(currentUser?.id) || String(task.assignee) === String(currentUser?.name));
+        if (boardQuickFilter === 'overdue') list = list.filter((task) => boardDaysOverdue(task.due) > 0 && boardTaskStatusBucket(task) !== 'done');
+        if (boardQuickFilter === 'week') list = list.filter((task) => {
+            const days = boardDaysUntil(task.due);
+            return days !== null && days >= 0 && days <= 7;
+        });
+        if (boardQuickFilter === 'blocked') list = list.filter((task) => /BLOCK|ATTENTION|HOLD/.test(normalizedStatusValue(task.status || '')) || task.attention || task.blockerReason);
+        if (boardQuickFilter === 'waiting') list = list.filter((task) => boardTaskStatusBucket(task) === 'waiting');
+        if (boardQuickFilter === 'unassigned') list = list.filter((task) => !task.assigneeId && (!task.assignee || String(task.assignee).toLowerCase() === 'unassigned'));
+        return list;
+    }
+
+    function boardFilteredJobsForPhases() {
+        let list = boardActiveJobs();
+        const search = boardSearchValue.trim().toLowerCase();
+        if (search) {
+            list = list.filter((job) => [job.id, job.order, job.title, clientName(job.client), job.product, job.coordinator, job.owner, job.health, job.status].join(' ').toLowerCase().includes(search));
+        }
+        if (boardFilters.job) list = list.filter((job) => String(job.id) === String(boardFilters.job));
+        if (boardFilters.client) list = list.filter((job) => String(job.client) === String(boardFilters.client));
+        if (boardFilters.assignee) list = list.filter((job) => String(job.coordinatorId || job.coordinator) === String(boardFilters.assignee) || String(job.ownerId || job.owner) === String(boardFilters.assignee));
+        if (boardFilters.priority) list = list.filter((job) => String(job.priorityId || job.priority) === String(boardFilters.priority));
+        if (boardFilters.due === 'overdue') list = list.filter((job) => boardDaysOverdue(job.delivery) > 0);
+        if (boardFilters.due === 'today') list = list.filter((job) => boardDateOnly(job.delivery) === today);
+        if (boardFilters.due === 'week') list = list.filter((job) => {
+            const days = boardDaysUntil(job.delivery);
+            return days !== null && days >= 0 && days <= 7;
+        });
+        if (boardFilters.more === 'attention') list = list.filter((job) => job.attention || /RISK|BLOCK|DELAY|ATTENTION/.test(normalizedStatusValue(job.health || '')));
+        if (boardQuickFilter === 'mine') list = list.filter((job) => String(job.coordinator) === String(currentUser?.name) || String(job.owner) === String(currentUser?.name));
+        if (boardQuickFilter === 'overdue') list = list.filter((job) => boardDaysOverdue(job.delivery) > 0);
+        if (boardQuickFilter === 'week') list = list.filter((job) => {
+            const days = boardDaysUntil(job.delivery);
+            return days !== null && days >= 0 && days <= 7;
+        });
+        if (boardQuickFilter === 'blocked') list = list.filter((job) => /BLOCK|RISK|DELAY|ATTENTION/.test(normalizedStatusValue(job.health || '')) || job.attention);
+        if (boardQuickFilter === 'waiting') list = list.filter((job) => /WAIT/.test(normalizedStatusValue(job.status || '')));
+        if (boardQuickFilter === 'unassigned') list = list.filter((job) => !job.coordinator && !job.owner);
+        return list;
+    }
+
+    function boardColumnCounts(taskList) {
+        return boardColumnDefinitions().reduce((acc, column) => {
+            acc[column.key] = taskList.filter((task) => boardTaskColumnKey(task) === column.key).length;
+            return acc;
+        }, {});
+    }
+
+    function boardSelectOptions(items, getValue, getLabel, selected, allLabel) {
+        const seen = new Set();
+        const options = [`<option value="">${html(allLabel)}</option>`];
+        items.forEach((item) => {
+            const value = getValue(item);
+            if (value === undefined || value === null || value === '' || seen.has(String(value))) return;
+            seen.add(String(value));
+            options.push(`<option value="${html(value)}" ${String(selected) === String(value) ? 'selected' : ''}>${html(getLabel(item))}</option>`);
+        });
+        return options.join('');
+    }
+
+    function operationsBoardToolbar(filteredCount, filteredJobCount) {
+        const activeJobs = boardActiveJobs();
+        const activeTasks = tasks.filter((task) => boardActiveJobs().some((job) => String(job.id) === String(task.job)));
+        const jobOptions = boardSelectOptions(activeJobs, (job) => job.id, (job) => `${job.id} · ${clientName(job.client)}`, boardFilters.job, 'Job');
+        const clientOptions = boardSelectOptions(clients, (client) => client.id, (client) => client.name, boardFilters.client, 'Client');
+        const userOptions = boardSelectOptions(users, (user) => user.id || user.name, (user) => user.name, boardFilters.assignee, 'Assignee');
+        const priorityOptions = boardSelectOptions(masterData.priorities || [], (priority) => priority.id || priority.name, (priority) => priority.name, boardFilters.priority, 'Priority');
+        const quickCounts = {
+            mine: activeTasks.filter((task) => Number(task.assigneeId) === Number(currentUser?.id) || String(task.assignee) === String(currentUser?.name)).length,
+            overdue: activeTasks.filter((task) => boardDaysOverdue(task.due) > 0 && boardTaskStatusBucket(task) !== 'done').length,
+            week: activeTasks.filter((task) => { const days = boardDaysUntil(task.due); return days !== null && days >= 0 && days <= 7; }).length,
+            blocked: activeTasks.filter((task) => /BLOCK|ATTENTION|HOLD/.test(normalizedStatusValue(task.status || '')) || task.attention || task.blockerReason).length,
+            waiting: activeTasks.filter((task) => boardTaskStatusBucket(task) === 'waiting').length,
+            unassigned: activeTasks.filter((task) => !task.assigneeId && (!task.assignee || String(task.assignee).toLowerCase() === 'unassigned')).length,
+        };
+        return `<div class="ops-toolbar">
+            <button type="button" class="ops-view-box" data-board-view-menu><span class="ops-view-icon-box">▣</span><span><div class="ops-view-title">All active jobs</div><div class="ops-view-sub">${activeJobs.length} jobs · ${activeTasks.length} tasks</div></span><span style="margin-left:auto">⌄</span></button>
+            <label class="ops-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg><input id="opsBoardSearch" value="${html(boardSearchValue)}" placeholder="Search job ID, task or client"></label>
+            <select class="ops-filter" data-board-filter="job">${jobOptions}</select>
+            <select class="ops-filter" data-board-filter="client">${clientOptions}</select>
+            <select class="ops-filter" data-board-filter="assignee">${userOptions}</select>
+            <select class="ops-filter" data-board-filter="status"><option value="">Status</option>${boardColumnDefinitions().map((column) => `<option value="${column.key}" ${boardFilters.status === column.key ? 'selected' : ''}>${column.label}</option>`).join('')}</select>
+            <select class="ops-filter" data-board-filter="priority">${priorityOptions}</select>
+            <select class="ops-filter" data-board-filter="due"><option value="" ${!boardFilters.due ? 'selected' : ''}>Due date</option><option value="overdue" ${boardFilters.due === 'overdue' ? 'selected' : ''}>Overdue</option><option value="today" ${boardFilters.due === 'today' ? 'selected' : ''}>Due today</option><option value="week" ${boardFilters.due === 'week' ? 'selected' : ''}>Due this week</option></select>
+            <select class="ops-filter" data-board-filter="more"><option value="" ${!boardFilters.more ? 'selected' : ''}>More</option><option value="document" ${boardFilters.more === 'document' ? 'selected' : ''}>Document tasks</option><option value="attention" ${boardFilters.more === 'attention' ? 'selected' : ''}>Needs attention</option></select>
+            <button type="button" class="ops-clear" id="opsBoardClear">Clear</button>
+        </div>
+        <div class="ops-quick-row"><div class="ops-quick-left"><span class="ops-quick-label">Quick filters</span>${[
+            ['mine', 'My team', quickCounts.mine, ''],
+            ['overdue', 'Overdue', quickCounts.overdue, 'danger'],
+            ['week', 'Due this week', quickCounts.week, ''],
+            ['blocked', 'Blocked', quickCounts.blocked, 'danger'],
+            ['waiting', 'Waiting external', quickCounts.waiting, ''],
+            ['unassigned', 'Unassigned', quickCounts.unassigned, 'warn'],
+        ].map(([key, label, count, tone]) => `<button type="button" class="ops-chip ${tone} ${boardQuickFilter === key ? 'active' : ''}" data-board-quick="${key}">${label} <span class="ops-count">${count}</span></button>`).join('')}</div><div class="ops-group-row"><button type="button" class="ops-group">Group by: <b>${boardMode === 'tasks' ? 'Job' : 'Phase'}</b>⌄</button><button type="button" class="ops-view-icon">☷</button></div></div>
+        <div class="ops-status-summary"><span>Showing <b>${filteredCount}</b> ${boardMode === 'tasks' ? 'of ' + tasks.length + ' tasks' : 'Jobs'} across <b>${filteredJobCount}</b> ${filteredJobCount === 1 ? 'job' : 'jobs'}</span><button type="button" class="link-btn" data-board-save-view>▱ Save as view</button></div>`;
+    }
+
+    function boardTaskCardHtml(task) {
+        const job = boardJobForTask(task);
+        const overdueDays = boardTaskStatusBucket(task) !== 'done' ? boardDaysOverdue(task.due) : 0;
+        const attachments = boardAttachmentCount(task);
+        const comments = boardCommentCount(task);
+        const canDrag = task.canUpdate || isFlowAdmin || isFlowSuperAdmin;
+        const waiting = boardTaskStatusBucket(task) === 'waiting' || task.blockerReason;
+        return `<article class="ops-task-card" draggable="${canDrag ? 'true' : 'false'}" data-task="${html(task.id)}" data-task-updatable="${canDrag ? '1' : '0'}">
+            <div class="ops-task-card-top"><span class="ops-priority ${boardPriorityClass(task.priority)}">${html(task.priority || 'Medium')}</span><span class="ops-task-alerts">${overdueDays ? `<span class="ops-overdue">Overdue · ${overdueDays}d</span>` : ''}<span class="ops-board-card-menu-wrap"><button type="button" class="ops-task-menu" data-board-card-menu="${html(task.id)}" aria-label="Task actions" aria-expanded="false">⋮</button><span class="ops-board-card-action-menu hidden">${task.canDelete || isFlowAdmin || isFlowSuperAdmin ? `<button type="button" data-board-delete-task="${html(task.dbId)}" data-board-delete-task-code="${html(task.id)}">Delete Task</button>` : '<span class="ops-menu-disabled">No available actions</span>'}</span></span></span></div>
+            <h4 class="ops-card-title">${html(task.title)}</h4>
+            <div class="ops-card-meta"><button type="button" class="job-link" data-board-job-link="${html(task.job)}">${html(task.job)}</button> <span>· ${html(clientName(job?.client))}</span><div class="ops-card-phase">${html(task.phase || phaseNameFor(job || {}, job?.phase))}</div></div>
+            ${waiting ? `<div class="ops-waiting-box"><span class="ops-wait-icon">🔗</span><span><div class="ops-wait-title">Waiting on: ${html(boardWaitingLabel(task))}</div><div class="ops-wait-date">Since ${boardShortDate(task.updatedAt || task.createdAt || task.due)}</div></span></div>` : ''}
+            <div class="ops-card-sep"></div>
+            <div class="ops-assignee-row"><div class="ops-assignee"><span class="avatar">${userInitials(task.assignee || 'Unassigned')}</span><span class="truncate">${html(task.assignee || 'Unassigned')}</span></div><div class="ops-due ${overdueDays ? 'overdue' : ''}">▣ ${boardShortDate(task.due)}</div></div>
+            <div class="ops-card-sep"></div>
+            <div class="ops-card-footer"><div class="ops-card-stats"><span class="ops-stat">☑ ${html(boardChecklistCount(task))}</span><span class="ops-stat">📎 ${attachments}</span><span class="ops-stat">◯ ${comments}</span></div><span class="ops-updated">${html(boardTaskUpdatedText(task))}</span></div>
+        </article>`;
+    }
+
+    function renderOperationsTaskBoard(taskList) {
+        const columns = boardColumnDefinitions();
+        const counts = boardColumnCounts(taskList);
+        const jobsWithTasks = [];
+        const seen = new Set();
+        taskList.forEach((task) => {
+            const job = boardJobForTask(task);
+            const key = String(job?.id || task.job);
+            if (!seen.has(key)) {
+                seen.add(key);
+                jobsWithTasks.push(job || { id: task.job, title: task.jobTitle || task.job, client: null, delivery: task.due, coordinator: task.assignee });
+            }
+        });
+        jobsWithTasks.sort((a, b) => String(a.delivery || '').localeCompare(String(b.delivery || '')) || String(a.id).localeCompare(String(b.id)));
+        const header = `<div class="ops-status-grid">${columns.map((column) => `<div class="ops-status-head"><span>${html(column.label)}</span><span class="count">${counts[column.key] || 0}</span>${['progress','review'].includes(column.bucket || column.key) && (counts[column.key] || 0) ? '<span class="warn-mark">⚠</span>' : ''}</div>`).join('')}</div>`;
+        const body = jobsWithTasks.map((job) => {
+            const jobTasks = taskList.filter((task) => String(task.job) === String(job.id) || Number(task.jobDbId) === Number(job.dbId));
+            const completedCount = jobTasks.filter((task) => boardTaskStatusBucket(task) === 'done').length;
+            const totalCount = tasks.filter((task) => String(task.job) === String(job.id) || Number(task.jobDbId) === Number(job.dbId)).length || jobTasks.length;
+            const collapsed = collapsedBoardJobs.has(String(job.id));
+            return `<section class="ops-job-group" data-board-job-group="${html(job.id)}"><div class="ops-job-row-head"><div class="ops-job-left"><button type="button" class="ops-collapse" data-board-collapse="${html(job.id)}">${collapsed ? '›' : '⌄'}</button><span class="ops-job-title"><button type="button" data-board-job-link="${html(job.id)}">${html(job.id)}</button> · ${html(clientName(job.client))}</span><span class="ops-client-pill">${html(clientName(job.client))}</span></div><div class="ops-job-right"><span>${completedCount} of ${totalCount} tasks</span><span>▣ ${boardShortDate(job.delivery)}</span><button type="button" class="ops-job-kebab" data-board-row-menu>⋮</button></div></div>${collapsed ? '' : `<div class="ops-task-row">${columns.map((column) => {
+                const columnTasks = jobTasks.filter((task) => boardTaskColumnKey(task) === column.key);
+                return `<div class="ops-task-cell kanban-list" data-drop-column="${column.key}">${columnTasks.map(boardTaskCardHtml).join('') || '<div class="ops-job-empty">No tasks</div>'}</div>`;
+            }).join('')}</div>`}</section>`;
+        }).join('');
+        const minWidth = Math.max(900, columns.length * 190);
+        return `<div class="ops-board-mobile-note">Scroll horizontally to see all board columns.</div><div class="ops-board-canvas" style="--task-status-cols:${columns.length};--task-board-min:${minWidth}px">${header}${body || '<div class="ops-board-empty">No task cards match the selected board filters.</div>'}</div>`;
+    }
+
+    function boardJobAllTasks(job) {
+        return tasks.filter((task) => String(task.job) === String(job.id) || Number(task.jobDbId) === Number(job.dbId));
+    }
+
+    function boardJobPhaseTasks(job) {
+        const allTasks = boardJobAllTasks(job);
+        const phaseId = Number(job.phaseId || 0);
+        const phaseIndex = Number(job.phase || 0);
+        const currentPhaseName = normalizedStatusValue(phaseNameFor(job) || '');
+        const currentPhaseShort = normalizedStatusValue(phaseShortFor(job) || '');
+        const matched = allTasks.filter((task) => {
+            if (phaseId && Number(task.phaseId) === phaseId) return true;
+            if (Number.isFinite(phaseIndex) && Number(task.phaseIndex) === phaseIndex) return true;
+            const taskPhase = normalizedStatusValue(task.phase || '');
+            return Boolean(taskPhase && (taskPhase === currentPhaseName || taskPhase === currentPhaseShort || currentPhaseName.includes(taskPhase) || taskPhase.includes(currentPhaseShort)));
+        });
+        return matched.length ? matched : allTasks.filter((task) => !taskIsCompleted(task));
+    }
+
+    function boardJobHealthTone(job) {
+        const normalized = normalizedStatusValue(job.health || job.status || 'On Track');
+        if (/BLOCK/.test(normalized)) return 'blocked';
+        if (/RISK|ATTENTION/.test(normalized)) return 'risk';
+        if (/DELAY|OVERDUE/.test(normalized)) return 'delayed';
+        if (/WAIT|HOLD/.test(normalized)) return 'waiting';
+        if (/COMPLET|DONE|PAID/.test(normalized)) return 'completed';
+        return 'track';
+    }
+
+    function boardJobDaysInPhase(job) {
+        const key = boardDateOnly(job.phaseStartedAt || job.phase_started_at || job.updatedAt || job.createdAt);
+        if (!key) return '—';
+        const days = Math.max(0, Math.round((new Date(`${today}T00:00:00`) - new Date(`${key}T00:00:00`)) / 86400000));
+        return `${days || 1}d in phase`;
+    }
+
+    function boardJobUpdatedText(job) {
+        const key = boardDateOnly(job.updatedAt || job.createdAt);
+        if (!key) return 'Updated recently';
+        const days = boardDaysUntil(key);
+        if (days === 0) return `Updated today by ${html(job.coordinator || job.owner || 'FlowTrack')}`;
+        if (days === -1) return `Updated 1d ago by ${html(job.coordinator || job.owner || 'FlowTrack')}`;
+        if (days < 0) return `Updated ${Math.abs(days)}d ago by ${html(job.coordinator || job.owner || 'FlowTrack')}`;
+        return `Updated ${boardShortDate(key)} by ${html(job.coordinator || job.owner || 'FlowTrack')}`;
+    }
+
+    function boardJobCommercialLabel(job) {
+        if (!canSensitive('invoice_amount')) return 'Restricted';
+        const phaseText = normalizedStatusValue(`${phaseNameFor(job)} ${phaseShortFor(job)} ${job.status || ''}`);
+        if (Number(job.price || 0) > 0 && /PAID|COMPLETED/.test(phaseText)) return `Paid ${currency(job.price, job.currency)}`;
+        if (Number(job.price || 0) > 0 && /INVOICE|PAYMENT|COLLECT/.test(phaseText)) return `Invoice ${currency(job.price, job.currency)}`;
+        if (Number(job.price || 0) > 0) return `Draft ${currency(job.price, job.currency)}`;
+        return 'Quotation pending';
+    }
+
+    function boardPhaseTaskStatusClass(task) {
+        const key = boardTaskStatusBucket(task);
+        if (key === 'done') return 'done';
+        if (key === 'waiting') return 'waiting';
+        if (key === 'review') return 'review';
+        return 'ready';
+    }
+
+    function boardJobTeam(job, phaseTasks) {
+        const names = [];
+        [job.coordinator, job.owner].concat(flowtrackToArray(phaseTasks).map((task) => task.assignee)).forEach((name) => {
+            const clean = String(name || '').trim();
+            if (clean && clean.toLowerCase() !== 'unassigned' && !names.includes(clean)) names.push(clean);
+        });
+        return names.length ? names : ['Unassigned'];
+    }
+
+    function boardJobCardHtml(job) {
+        const phaseTasks = boardJobPhaseTasks(job);
+        const allJobTasks = boardJobAllTasks(job);
+        const expanded = expandedBoardJobCards.has(String(job.id));
+        const completedPhaseTasks = phaseTasks.filter(taskIsCompleted).length;
+        const openPhaseTasks = phaseTasks.filter((task) => !taskIsCompleted(task));
+        const nextTask = openPhaseTasks.slice().sort((left, right) => String(left.due || '').localeCompare(String(right.due || '')))[0] || phaseTasks[0] || null;
+        const overdueJob = boardDaysOverdue(job.delivery);
+        const dueSoon = phaseTasks.filter((task) => {
+            const days = boardDaysUntil(task.due);
+            return !taskIsCompleted(task) && days !== null && days >= 0 && days <= 7;
+        }).length;
+        const blockedCount = phaseTasks.filter((task) => taskIsBlocked(task) || /BLOCK|HOLD/.test(normalizedStatusValue(task.status || ''))).length;
+        const productCount = Number(job.productCount || (Array.isArray(job.products) ? job.products.length : (job.product ? 1 : 0)) || 0);
+        const unitCount = Number(job.qty || (Array.isArray(job.products) ? job.products.reduce((sum, item) => sum + Number(item.qty || item.quantity || 0), 0) : 0) || 0);
+        const progress = Math.max(0, Math.min(100, Number(job.progress) || 0));
+        const tone = boardJobHealthTone(job);
+        const team = boardJobTeam(job, phaseTasks);
+        const lead = job.coordinator || job.owner || team[0] || 'Unassigned';
+        const phaseRows = phaseTasks.slice(0, 5).map((task, index) => `<div class="ops-phase-task-row" data-task="${html(task.id)}">
+                <span>${index === 0 && !taskIsCompleted(task) ? '<span class="ops-task-next-pill">NEXT</span>' : ''}</span>
+                <div><div class="ops-phase-task-title">${html(task.title)}</div><div class="ops-phase-task-person"><span class="avatar">${userInitials(task.assignee || 'Unassigned')}</span><span>${html(task.assignee || 'Unassigned')}</span></div></div>
+                <span class="ops-task-status-pill ${boardPhaseTaskStatusClass(task)}">${html(task.status || 'Ready')}</span>
+                <span class="ops-task-date ${boardDaysOverdue(task.due) && !taskIsCompleted(task) ? 'due overdue' : ''}">${boardShortDate(task.due)}</span>
+            </div>`).join('');
+        const nextHtml = nextTask
+            ? `<div class="ops-next-action"><div class="ops-card-section-label">Next Action</div><div class="ops-next-title">${html(nextTask.title || job.next || 'Review current phase')}</div><div class="ops-next-meta"><span class="avatar">${userInitials(nextTask.assignee || lead)}</span><span>${html(nextTask.assignee || lead)}</span><span class="ops-next-due">▣ Due ${boardShortDate(nextTask.due || job.delivery)}</span></div></div>`
+            : `<div class="ops-next-action"><div class="ops-card-section-label">Next Action</div><div class="ops-next-title">${html(job.next || 'Review current phase')}</div><div class="ops-next-meta"><span class="avatar">${userInitials(lead)}</span><span>${html(lead)}</span><span class="ops-next-due">▣ Due ${boardShortDate(job.delivery)}</span></div></div>`;
+        const phaseTasksHtml = `<div class="ops-phase-tasks-box"><div class="ops-phase-tasks-head"><span>Phase Tasks</span><b>${completedPhaseTasks} of ${phaseTasks.length} complete</b><span>⌃</span></div>${phaseRows || '<div class="ops-job-empty">No current phase tasks</div>'}</div>`;
+        return `<article class="ops-phase-card ops-job-card health-${tone}" draggable="true" data-job="${html(job.id)}">
+            <div class="ops-job-card-top"><span class="ops-health-pill ${tone}">${html(job.health || 'On Track')}</span><span class="ops-phase-age">◷ ${html(boardJobDaysInPhase(job))}</span><button type="button" class="ops-job-card-toggle" data-board-job-card-toggle="${html(job.id)}" aria-label="${expanded ? 'Show next action' : 'Show phase tasks'}">•••</button></div>
+            <h4>${html(job.title)}</h4>
+            <div class="ops-phase-meta"><button type="button" class="kanban-job-link" data-board-job-link="${html(job.id)}">${html(job.id)}</button> <span>· ${html(clientName(job.client))}</span></div>
+            <div class="ops-product-row"><span class="cube">▧</span><span>${productCount || 1} product${(productCount || 1) === 1 ? '' : 's'} · ${unitCount.toLocaleString()} units</span></div>
+            <div class="ops-job-progress-head"><span>Overall progress</span><b>${progress}%</b></div><div class="ops-progress"><span class="${progress >= 100 ? 'complete' : ''}" style="width:${progress}%"></span></div>
+            <div class="ops-job-metrics"><div class="ops-job-metric">☷ ${openPhaseTasks.length} open</div><div class="ops-job-metric warn">◷ ${dueSoon} due soon</div><div class="ops-job-metric ok">✓ ${blockedCount} blocked</div></div>
+            ${expanded ? phaseTasksHtml : nextHtml}
+            <div class="ops-team-row"><span>Team</span><span class="ops-team-avatars">${team.slice(0, 3).map((name) => `<span class="avatar">${userInitials(name)}</span>`).join('')}${team.length > 3 ? `<span class="ops-team-more">+${team.length - 3}</span>` : ''}</span><span class="ops-lead">Lead: ${html(lead)}</span></div>
+            <div class="ops-job-bottom"><div class="ops-bottom-item"><span class="ops-bottom-icon">▣</span><span><div class="ops-bottom-label">Delivery</div><div class="ops-bottom-value ${overdueJob ? 'due overdue' : ''}">${boardShortDate(job.delivery)}</div></span></div><div class="ops-bottom-item"><span class="ops-bottom-icon">▤</span><span><div class="ops-bottom-label">Commercial</div><div class="ops-bottom-value">${html(boardJobCommercialLabel(job))}</div></span></div></div>
+            <div class="ops-job-card-updated">${boardJobUpdatedText(job)}</div>
+        </article>`;
+    }
+
+    function renderOperationsJobBoard(jobList) {
+        const activeWorkflows = (workflowTemplates || []).filter((workflow) => workflow.active !== false);
+        const selectedWorkflow = activeWorkflows.find((workflow) => Number(workflow.id) === Number(boardWorkflowId))
+            || activeWorkflows.find((workflow) => String(workflow.id) === String(boardWorkflowId))
+            || activeWorkflows[0]
+            || workflowTemplates[0];
+        if (selectedWorkflow) boardWorkflowId = selectedWorkflow.id;
+        const phases = (selectedWorkflow?.phases || []).filter((phase) => phase.active !== false).slice().sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
+        const workflowJobs = selectedWorkflow ? jobList.filter((job) => !job.workflow || String(job.workflow) === String(selectedWorkflow.id) || Number(job.workflow) === Number(selectedWorkflow.id)) : jobList;
+        const workflowOptions = activeWorkflows.map((workflow) => `<option value="${html(workflow.id)}" ${String(workflow.id) === String(selectedWorkflow?.id) ? 'selected' : ''}>${html(workflow.name)}</option>`).join('');
+        const board = `<div class="card" style="padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b>Workflow</b><select id="boardWorkflowSelect" style="min-width:240px">${workflowOptions}</select><span class="small muted">Job cards show current phase progress, next action and expandable phase tasks.</span></div>
+        <div class="ops-phase-kanban" style="--phase-cols:${Math.max(1, phases.length)}">${phases.map((phase, phaseIndex) => {
+            const phaseId = phase.id ?? phase.phaseId ?? phase.dbId ?? phaseIndex;
+            const phaseSequenceIndex = Number(phase.sequence ? phase.sequence - 1 : phaseIndex);
+            const phaseJobs = workflowJobs.filter((job) => Number(job.phaseId) === Number(phaseId) || (!job.phaseId && Number(job.phase) === phaseSequenceIndex));
+            return `<div class="ops-phase-column"><div class="kanban-head"><span>${html(phase.short || phase.shortName || phase.name)}</span><span class="count">${phaseJobs.length}</span></div><div class="kanban-list" data-drop-phase-id="${html(phaseId)}">${phaseJobs.map(boardJobCardHtml).join('') || '<div class="ops-job-empty">No Jobs</div>'}</div></div>`;
+        }).join('') || '<div class="card" style="padding:18px">No active phases are configured for this workflow.</div>'}</div>`;
+        setTimeout(() => {
+            $('#boardWorkflowSelect')?.addEventListener('change', (event) => { boardWorkflowId = event.target.value; renderKanban(); });
+        }, 0);
+        return board;
+    }
+
+    function jobListActiveJobs() {
+        return jobs.filter((job) => !jobIsCompleted(job));
+    }
+
+    function jobListHasWaitingClient(job) {
+        const jobText = normalizedStatusValue(`${job.health || ''} ${job.status || ''} ${job.next || ''}`);
+        if (/WAIT.*CLIENT|CLIENT.*WAIT|CLIENT APPROVAL/.test(jobText)) return true;
+        return boardJobAllTasks(job).some((task) => /CLIENT/.test(normalizedStatusValue(`${task.status || ''} ${task.title || ''} ${task.blockerReason || ''}`)) && !taskIsCompleted(task));
+    }
+
+    function jobListInvoiceState(job) {
+        const phaseText = normalizedStatusValue(`${phaseNameFor(job)} ${phaseShortFor(job)} ${job.status || ''}`);
+        if (!canSensitive('invoice_amount')) return { label: 'Restricted', tone: 'blue' };
+        if (/PAID|COMPLETED/.test(phaseText)) return { label: 'Paid', tone: 'green' };
+        if (boardDaysOverdue(job.delivery) > 0 && /INVOICE|PAYMENT|COLLECT/.test(phaseText)) return { label: `Overdue ${currency(Number(job.price || 0), job.currency)}`, tone: 'red' };
+        if (/INVOICE|PAYMENT|COLLECT/.test(phaseText)) return { label: `Pending ${currency(Number(job.price || 0), job.currency)}`, tone: 'amber' };
+        if (Number(job.price || 0) > 0) return { label: `Draft ${currency(Number(job.price || 0), job.currency)}`, tone: 'blue' };
+        return { label: 'Quotation pending', tone: 'amber' };
+    }
+
+    function jobListNextTask(job) {
+        const phaseTasks = boardJobPhaseTasks(job).filter((task) => !taskIsCompleted(task));
+        return phaseTasks.slice().sort((left, right) => String(left.due || '').localeCompare(String(right.due || '')))[0] || null;
+    }
+
+    function jobListFilteredJobs() {
+        let list = jobs.slice();
+        const search = String(jobFilter.search || '').trim().toLowerCase();
+        if (search) {
+            list = list.filter((job) => [job.id, job.order, job.title, clientName(job.client), job.product, job.coordinator, job.owner, job.next].join(' ').toLowerCase().includes(search));
+        }
+        if (jobFilter.phase) list = list.filter((job) => String(job.phaseId || job.phase) === String(jobFilter.phase) || String(job.phase) === String(jobFilter.phase));
+        if (jobFilter.health) list = list.filter((job) => String(job.health) === String(jobFilter.health) || normalizedStatusValue(job.health) === normalizedStatusValue(jobFilter.health));
+        if (jobFilter.client) list = list.filter((job) => String(job.client) === String(jobFilter.client));
+        if (jobListFilters.owner) list = list.filter((job) => String(job.coordinatorId || job.ownerId || job.coordinator || job.owner) === String(jobListFilters.owner));
+        if (jobListFilters.delivery === 'overdue') list = list.filter((job) => boardDaysOverdue(job.delivery) > 0 && !jobIsCompleted(job));
+        if (jobListFilters.delivery === 'week') list = list.filter((job) => { const days = boardDaysUntil(job.delivery); return days !== null && days >= 0 && days <= 7; });
+        if (jobListFilters.invoice === 'unpaid') list = list.filter((job) => /PENDING|OVERDUE|INVOICE/.test(normalizedStatusValue(jobListInvoiceState(job).label)));
+        if (jobListFilters.more === 'documents') list = list.filter((job) => jobDocumentRequirements(job).some((req) => !req.present));
+        if (jobListFilters.saved === 'all') list = list.filter((job) => !jobIsCompleted(job));
+        if (jobListFilters.saved === 'attention') list = list.filter((job) => job.attention || !['ON TRACK', 'COMPLETED'].includes(normalizedStatusValue(job.health || '')) || boardJobPhaseTasks(job).some(taskIsBlocked));
+        if (jobListFilters.saved === 'week') list = list.filter((job) => { const days = boardDaysUntil(job.delivery); return !jobIsCompleted(job) && days !== null && days >= 0 && days <= 7; });
+        if (jobListFilters.saved === 'waiting') list = list.filter(jobListHasWaitingClient);
+        if (jobListFilters.saved === 'unpaid') list = list.filter((job) => /PENDING|OVERDUE|INVOICE/.test(normalizedStatusValue(jobListInvoiceState(job).label)));
+        if (jobListFilters.saved === 'completed') list = list.filter(jobIsCompleted);
+        return list.slice().sort((left, right) => String(left.delivery || '').localeCompare(String(right.delivery || '')) || String(left.id).localeCompare(String(right.id)));
+    }
+
+    function jobListPhaseOptions() {
+        const options = [];
+        (workflowTemplates || []).forEach((workflow) => (workflow.phases || []).forEach((phase) => {
+            const value = phase.id ?? phase.phaseId ?? '';
+            if (value && !options.some((item) => String(item.value) === String(value))) options.push({ value, label: phase.name || phase.short || phase.shortName });
+        }));
+        if (!options.length && typeof phases !== 'undefined') phases.forEach((label, index) => options.push({ value: index, label }));
+        return options.map((phase) => `<option value="${html(phase.value)}" ${String(jobFilter.phase || '') === String(phase.value) ? 'selected' : ''}>${html(phase.label)}</option>`).join('');
+    }
+
+    function jobListOwnerOptions() {
+        return users.map((user) => `<option value="${html(user.id || user.name)}" ${String(jobListFilters.owner) === String(user.id || user.name) ? 'selected' : ''}>${html(user.name)}</option>`).join('');
+    }
+
+    function jobListRow(job) {
+        const nextTask = jobListNextTask(job);
+        const invoice = jobListInvoiceState(job);
+        const productCount = Number(job.productCount || (Array.isArray(job.products) ? job.products.length : (job.product ? 1 : 0)) || 0);
+        const unitCount = Number(job.qty || (Array.isArray(job.products) ? job.products.reduce((sum, item) => sum + Number(item.qty || item.quantity || 0), 0) : 0) || 0);
+        const progress = Math.max(0, Math.min(100, Number(job.progress) || 0));
+        const totalPhases = (getWorkflow(Number(job.workflow))?.phases || []).filter((phase) => phase.active !== false).length || 11;
+        const phaseNumber = Math.min(totalPhases, Math.max(1, Number(job.phase || 0) + 1));
+        const ownerName = job.coordinator || job.owner || 'Unassigned';
+        const overdue = boardDaysOverdue(job.delivery) > 0 && !jobIsCompleted(job);
+        return `<tr>
+            <td><input type="checkbox" aria-label="Select ${html(job.id)}"></td>
+            <td><button type="button" class="jobs-v2-job-code" data-board-job-link="${html(job.id)}">${html(job.id)}</button><div class="jobs-v2-order">${html(job.order || 'RFQ-' + String(job.id || '').slice(-5))}</div></td>
+            <td><div class="jobs-v2-client">${html(clientName(job.client))}</div><div class="jobs-v2-brief truncate">${html(job.title || '')}</div></td>
+            <td><div class="jobs-v2-product">${html(job.product || 'Unspecified product')}</div><div class="muted small">${productCount || 1} product${(productCount || 1) === 1 ? '' : 's'} · ${unitCount.toLocaleString()} units</div></td>
+            <td><span class="jobs-v2-phase">${html(phaseShortFor(job))}</span><div class="muted small" style="margin-top:4px">${phaseNumber} of ${totalPhases}</div></td>
+            <td><div class="jobs-v2-next">${html(nextTask?.title || job.next || 'Review current phase')}</div><div class="jobs-v2-due-note">${boardDaysOverdue(nextTask?.due || job.delivery) ? 'Overdue' : 'Due'} ${boardShortDate(nextTask?.due || job.delivery)}</div></td>
+            <td><div class="jobs-v2-owner"><span class="avatar">${userInitials(ownerName)}</span><span>${html(ownerName)}</span></div></td>
+            <td class="jobs-v2-date ${overdue ? 'overdue' : ''}">${boardShortDate(job.delivery)}</td>
+            <td><div class="jobs-v2-progress"><div class="progress"><span class="${progress >= 100 ? 'complete' : ''}" style="width:${progress}%"></span></div><span>${progress}%</span></div></td>
+            <td><span class="jobs-v2-invoice ${invoice.tone}">${html(invoice.label)}</span></td>
+            <td>${healthBadge(job.health, job.healthReason)}</td>
+            <td>${html(boardTaskUpdatedText({ updatedAt: job.updatedAt || job.createdAt }).replace('Updated ', ''))}</td>
+            <td><button type="button" class="jobs-v2-menu" data-job-list-menu="${html(job.id)}" aria-label="Job actions">•••</button></td>
+        </tr>`;
+    }
+
+    registerFlowtrackExtension('renderJobs', 'renderJobs-stage-1', function () {        const activeJobs = jobListActiveJobs();
+        const stats = {
+            active: activeJobs.length,
+            attention: activeJobs.filter((job) => job.attention || !['ON TRACK', 'COMPLETED'].includes(normalizedStatusValue(job.health || ''))).length,
+            week: activeJobs.filter((job) => { const days = boardDaysUntil(job.delivery); return days !== null && days >= 0 && days <= 7; }).length,
+            waiting: activeJobs.filter(jobListHasWaitingClient).length,
+            unpaid: activeJobs.filter((job) => /PENDING|OVERDUE|INVOICE/.test(normalizedStatusValue(jobListInvoiceState(job).label))).length,
+            completed: jobs.filter(jobIsCompleted).length,
+        };
+        const filtered = jobListFilteredJobs();
+        $('#page-jobs').innerHTML = `<div class="jobs-v2"><div class="page-head"><div><h1>Jobs</h1><p>Track every job from request to final collection</p><div class="jobs-v2-stats">${stats.active} active · ${stats.attention} need attention · ${stats.unpaid} unpaid</div></div><div class="jobs-v2-actions"><button class="ghost" id="jobExport">Export</button><button class="ghost" id="jobColumns">Columns</button><button class="primary" id="jobCreate">＋ New Job</button></div></div>
+        <div class="jobs-v2-saved">${[
+            ['all', 'All active', stats.active, ''], ['attention', 'Needs attention', stats.attention, 'danger'], ['week', 'Due this week', stats.week, ''], ['waiting', 'Waiting for client', stats.waiting, ''], ['unpaid', 'Unpaid invoices', stats.unpaid, 'warn'], ['completed', 'Completed', stats.completed, '']
+        ].map(([key, label, count, tone]) => `<button type="button" class="jobs-v2-chip ${tone} ${jobListFilters.saved === key ? 'active' : ''}" data-job-saved="${key}">${label} <span class="ops-count">${count}</span></button>`).join('')}</div>
+        <div class="card jobs-v2-toolbar"><input id="jobSearch" class="jobs-v2-search" placeholder="Search job ID, order, client or product" value="${html(jobFilter.search || '')}"><select id="jobPhase"><option value="">Phase</option>${jobListPhaseOptions()}</select><select id="jobHealth"><option value="">Health</option>${['On Track','Needs Attention','At Risk','Delayed','Blocked','Completed'].map((health) => `<option value="${html(health)}" ${normalizedStatusValue(jobFilter.health || '') === normalizedStatusValue(health) ? 'selected' : ''}>${html(health)}</option>`).join('')}</select><select id="jobOwner"><option value="">Owner</option>${jobListOwnerOptions()}</select><select id="jobClient"><option value="">Client</option>${clients.map((client) => `<option value="${html(client.id)}" ${String(jobFilter.client || '') === String(client.id) ? 'selected' : ''}>${html(client.name)}</option>`).join('')}</select><select id="jobDelivery"><option value="">Delivery</option><option value="week" ${jobListFilters.delivery === 'week' ? 'selected' : ''}>Due this week</option><option value="overdue" ${jobListFilters.delivery === 'overdue' ? 'selected' : ''}>Overdue</option></select><select id="jobInvoice"><option value="">Invoice</option><option value="unpaid" ${jobListFilters.invoice === 'unpaid' ? 'selected' : ''}>Unpaid</option></select><select id="jobMore"><option value="">More</option><option value="documents" ${jobListFilters.more === 'documents' ? 'selected' : ''}>Missing documents</option></select><button type="button" id="clearJobFilter">Clear</button></div>
+        <div class="card jobs-v2-table table-wrap"><table class="data-table"><thead><tr><th><input type="checkbox" aria-label="Select all jobs"></th><th>Job / Order</th><th>Client / Brief</th><th>Product / Qty</th><th>Phase</th><th>Next Action</th><th>Owner</th><th>Delivery ↓</th><th>Progress</th><th>Invoice</th><th>Health</th><th>Updated ↓</th><th></th></tr></thead><tbody>${filtered.map(jobListRow).join('') || '<tr><td colspan="13"><div class="jobs-v2-empty">No jobs match the selected filters.</div></td></tr>'}</tbody></table></div></div>`;
+        $('#jobCreate')?.addEventListener('click', openJobModal);
+        $('#jobExport')?.addEventListener('click', () => showToast('Job list export prepared.'));
+        $('#jobColumns')?.addEventListener('click', () => showToast('Compact columns are enabled for this view.'));
+        $('#jobSearch')?.addEventListener('input', (event) => {
+            const value = event.target.value;
+            const caret = event.target.selectionStart ?? value.length;
+            jobFilter.search = value;
+            renderJobs();
+            requestAnimationFrame(() => {
+                const input = $('#jobSearch');
+                if (!input) return;
+                input.focus({ preventScroll: true });
+                input.setSelectionRange(caret, caret);
+            });
+        });
+        $('#jobPhase')?.addEventListener('change', (event) => { jobFilter.phase = event.target.value; renderJobs(); });
+        $('#jobHealth')?.addEventListener('change', (event) => { jobFilter.health = event.target.value; renderJobs(); });
+        $('#jobOwner')?.addEventListener('change', (event) => { jobListFilters.owner = event.target.value; renderJobs(); });
+        $('#jobClient')?.addEventListener('change', (event) => { jobFilter.client = event.target.value; renderJobs(); });
+        $('#jobDelivery')?.addEventListener('change', (event) => { jobListFilters.delivery = event.target.value; renderJobs(); });
+        $('#jobInvoice')?.addEventListener('change', (event) => { jobListFilters.invoice = event.target.value; renderJobs(); });
+        $('#jobMore')?.addEventListener('change', (event) => { jobListFilters.more = event.target.value; renderJobs(); });
+        $('#clearJobFilter')?.addEventListener('click', () => { jobFilter = { search: '', phase: '', health: '', client: '' }; jobListFilters = { owner: '', delivery: '', invoice: '', more: '', saved: 'all' }; renderJobs(); });
+        $$('[data-job-saved]').forEach((button) => button.addEventListener('click', () => { jobListFilters.saved = button.dataset.jobSaved; renderJobs(); }));
+        $$('[data-job-list-menu]').forEach((button) => button.addEventListener('click', (event) => { event.stopPropagation(); openJob(button.dataset.jobListMenu); }));
+        bindCommon();
+        applyActionPermissions();
+    });
+
+    renderBoard = function () {
+        const taskList = boardFilteredTasks();
+        const jobList = boardMode === 'tasks' ? Array.from(new Set(taskList.map((task) => boardJobForTask(task)?.id || task.job))).map((id) => jobs.find((job) => String(job.id) === String(id)) || { id }).filter(Boolean) : boardFilteredJobsForPhases();
+        const filteredCount = boardMode === 'tasks' ? taskList.length : jobList.length;
+        const filteredJobCount = boardMode === 'tasks' ? jobList.length : jobList.length;
+        $('#page-board').innerHTML = `<div class="ops-board-page ops-mode-${boardMode === 'tasks' ? 'tasks' : 'jobs'}"><div class="page-head"><div><h1>Operations Board</h1><p>Track work across all active Jobs</p></div><div class="ops-board-actions"><button class="ghost" id="boardSavedViews">▱ Saved views</button><button class="ghost" id="boardViewSettings">⚙ View settings</button><button class="primary" id="boardCreate">＋ New Job</button></div></div><div class="ops-board-tabs"><button class="tab-btn ${boardMode === 'jobs' ? 'active' : ''}" data-boardmode="jobs">Job Board</button><button class="tab-btn ${boardMode === 'tasks' ? 'active' : ''}" data-boardmode="tasks">Task Board</button></div>${operationsBoardToolbar(filteredCount, filteredJobCount)}<div id="kanbanArea"></div></div>`;
+        renderKanban();
+        $$('[data-boardmode]').forEach((button) => button.addEventListener('click', () => { boardMode = button.dataset.boardmode; try { sessionStorage.setItem('flowtrackBoardModeTouched', '1'); } catch (_) {} renderBoard(); }));
+        $('#boardCreate')?.addEventListener('click', openJobModal);
+        $('#boardSavedViews')?.addEventListener('click', () => showToast('Saved views are ready for this board layout.'));
+        $('#boardViewSettings')?.addEventListener('click', () => showToast('Use filters and grouping controls to adjust this board.'));
+        $('#opsBoardSearch')?.addEventListener('input', (event) => {
+            const value = event.target.value;
+            const caret = event.target.selectionStart ?? value.length;
+            boardSearchValue = value;
+            renderBoard();
+            requestAnimationFrame(() => {
+                const input = $('#opsBoardSearch');
+                if (!input) return;
+                input.focus({ preventScroll: true });
+                input.setSelectionRange(caret, caret);
+            });
+        });
+        $$('[data-board-filter]').forEach((select) => select.addEventListener('change', () => { boardFilters[select.dataset.boardFilter] = select.value; renderBoard(); }));
+        $$('[data-board-quick]').forEach((button) => button.addEventListener('click', () => { boardQuickFilter = boardQuickFilter === button.dataset.boardQuick ? 'all' : button.dataset.boardQuick; renderBoard(); }));
+        $('#opsBoardClear')?.addEventListener('click', () => { boardSearchValue = ''; boardQuickFilter = 'all'; boardFilters = { job: '', client: '', assignee: '', status: '', priority: '', due: '', more: '' }; renderBoard(); });
+        $('[data-board-save-view]')?.addEventListener('click', () => showToast('Board view saved for quick access.'));
+        applyActionPermissions();
     };
+
+    registerFlowtrackExtension('renderKanban', 'renderKanban-stage-2', function () {        const area = $('#kanbanArea');
+        if (!area) return;
+        if (boardMode === 'tasks') {
+            area.innerHTML = renderOperationsTaskBoard(boardFilteredTasks());
+        } else {
+            area.innerHTML = renderOperationsJobBoard(boardFilteredJobsForPhases());
+        }
+
+        let dragged = null;
+        $$('.ops-task-card,.ops-phase-card').forEach((card) => {
+            card.addEventListener('dragstart', (event) => {
+                if (card.dataset.task && card.dataset.taskUpdatable === '0') {
+                    event.preventDefault();
+                    showToast('Only the assigned user, an Administrator, or the Super Admin can update this Task.');
+                    return;
+                }
+                dragged = card;
+                card.classList.add('dragging');
+            });
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+                dragged = null;
+            });
+        });
+
+        $$('.ops-task-cell').forEach((cell) => {
+            cell.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                cell.classList.add('drop-hover');
+            });
+            cell.addEventListener('dragleave', () => cell.classList.remove('drop-hover'));
+            cell.addEventListener('drop', async () => {
+                cell.classList.remove('drop-hover');
+                if (!dragged?.dataset.task) return;
+                try {
+                    const task = tasks.find((item) => item.id === dragged.dataset.task);
+                    if (!task) throw new Error('The selected task is no longer available.');
+                    const targetStatus = boardTargetStatusForColumn(cell.dataset.dropColumn);
+                    if (!targetStatus) throw new Error('The selected task status is not available in this workspace.');
+                    if (taskStatusMatches(targetStatus, ['BLK', 'ATTN', 'BLOCKED', 'ATTENTION', 'HOLD', 'ON HOLD'])) {
+                        showToast('Open the task and add a blocker reason before marking it blocked.');
+                        openTask(task.id);
+                        return;
+                    }
+                    await persistTask(task, targetStatus);
+                    renderBoard();
+                    updateBadges();
+                    showToast('Task status updated on the board.');
+                } catch (error) {
+                    showToast(error.message);
+                    renderBoard();
+                }
+            });
+        });
+
+        $$('.ops-phase-column .kanban-list').forEach((list) => {
+            list.addEventListener('dragover', (event) => event.preventDefault());
+            list.addEventListener('drop', async () => {
+                if (!dragged?.dataset.job) return;
+                try {
+                    const job = jobs.find((item) => item.id === dragged.dataset.job);
+                    if (!job) throw new Error('The selected Job is no longer available.');
+                    const workflow = getWorkflow(Number(job.workflow)) || getWorkflow(job.workflow);
+                    const phaseId = Number(list.dataset.dropPhaseId);
+                    const excludedPhaseIds = new Set((job.excludedPhaseIds || []).map((id) => Number(id)));
+                    const phase = (workflow?.phases || []).find((item) => Number(item.id) === phaseId && item.active !== false && !excludedPhaseIds.has(Number(item.id)));
+                    if (!phase) throw new Error('The selected workflow phase is not configured for this Job.');
+                    const activePhases = (workflow.phases || []).filter((item) => item.active !== false && !excludedPhaseIds.has(Number(item.id))).slice().sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
+                    const currentIndex = activePhases.findIndex((item) => Number(item.id) === Number(job.phaseId));
+                    const targetIndex = activePhases.findIndex((item) => Number(item.id) === Number(phase.id));
+                    let reason = null;
+                    if (currentIndex >= 0 && targetIndex > currentIndex + 1) {
+                        reason = window.prompt('Enter the authorised reason for skipping workflow phases:')?.trim() || '';
+                        if (!reason) {
+                            showToast('A reason is required when skipping workflow phases.');
+                            renderBoard();
+                            return;
+                        }
+                    }
+                    await moveJobToPhase(job, phase, reason);
+                    renderBoard();
+                    updateBadges();
+                    showToast('Job phase updated on the board.');
+                } catch (error) {
+                    showToast(error.message);
+                    renderBoard();
+                }
+            });
+        });
+
+        $$('[data-board-collapse]').forEach((button) => button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const id = button.dataset.boardCollapse;
+            if (collapsedBoardJobs.has(id)) collapsedBoardJobs.delete(id); else collapsedBoardJobs.add(id);
+            renderKanban();
+        }));
+        $$('[data-board-job-card-toggle]').forEach((button) => button.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const id = button.dataset.boardJobCardToggle;
+            if (expandedBoardJobCards.has(id)) expandedBoardJobCards.delete(id); else expandedBoardJobCards.add(id);
+            renderKanban();
+        }));
+        $$('[data-board-card-menu]').forEach((button) => button.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const currentMenu = button.closest('.ops-board-card-menu-wrap')?.querySelector('.ops-board-card-action-menu');
+            $$('.ops-board-card-action-menu').forEach((menu) => {
+                if (menu !== currentMenu) menu.classList.add('hidden');
+            });
+            currentMenu?.classList.toggle('hidden');
+            button.setAttribute('aria-expanded', currentMenu?.classList.contains('hidden') ? 'false' : 'true');
+        }));
+        $$('[data-board-row-menu]').forEach((button) => button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            showToast('Open the Job to manage its actions.');
+        }));
+        $$('[data-board-delete-task]').forEach((button) => button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const taskCode = button.dataset.boardDeleteTaskCode || 'this Task';
+            if (!window.confirm(`Delete ${taskCode}?`)) return;
+            button.disabled = true;
+            try {
+                const result = await api(`/flowtrack/template-api/tasks/${button.dataset.boardDeleteTask}`, { method: 'DELETE' });
+                if (result.job) {
+                    const jobIndex = jobs.findIndex((item) => Number(item.dbId) === Number(result.job.dbId));
+                    if (jobIndex >= 0) jobs.splice(jobIndex, 1, result.job);
+                    replaceTasksForJob(result.job.id, result.tasks || []);
+                }
+                renderBoard();
+                updateBadges();
+                showToast(result.message || 'Task deleted successfully.');
+            } catch (error) {
+                button.disabled = false;
+                showToast(error.message);
+            }
+        }));
+        bindCommon();
+    });
+
+    const flowtrackBoundHandlers = new WeakMap();
+    function flowtrackBindOnce(element, key, eventName, handler, options) {
+        if (!element) return;
+        const keys = flowtrackBoundHandlers.get(element) || new Set();
+        if (keys.has(key)) return;
+        keys.add(key);
+        flowtrackBoundHandlers.set(element, keys);
+        element.addEventListener(eventName, handler, options);
+    }
 
     bindCommon = function () {
         const newClientJob = $('[data-new-client-job]');
-        if (newClientJob) newClientJob.addEventListener('click', () => {
+        flowtrackBindOnce(newClientJob, 'new-client-job', 'click', () => {
             const id = newClientJob.dataset.newClientJob;
             closeAll();
             setTimeout(() => openJobModal(id), 50);
         });
-        $$('[data-go]').forEach((button) => button.addEventListener('click', () => navigate(button.dataset.go)));
-        $$('[data-job]').forEach((element) => element.addEventListener('click', (event) => {
+        $$('[data-go]').forEach((button) => flowtrackBindOnce(button, 'go', 'click', () => navigate(button.dataset.go)));
+        $$('[data-job]').forEach((element) => flowtrackBindOnce(element, 'open-job', 'click', (event) => {
             event.stopPropagation();
             openJob(element.dataset.job);
         }));
-        $$('[data-task]').forEach((element) => element.addEventListener('click', (event) => {
+        $$('[data-task]').forEach((element) => flowtrackBindOnce(element, 'open-task', 'click', (event) => {
             if (element.classList.contains('dragging')) return;
             event.stopPropagation();
             openTask(element.dataset.task);
         }));
-        $$('[data-client]').forEach((element) => element.addEventListener('click', () => openClient(element.dataset.client)));
-        $$('[data-doc]').forEach((element) => element.addEventListener('click', () => openDoc(element.dataset.doc)));
-        $$('[data-metric]').forEach((metricElement) => metricElement.addEventListener('click', () => {
+        $$('[data-board-job-link]').forEach((button) => flowtrackBindOnce(button, 'board-job-link', 'click', (event) => {
+            event.stopPropagation();
+            openJob(button.dataset.boardJobLink);
+        }));
+        $$('[data-client]').forEach((element) => flowtrackBindOnce(element, 'open-client', 'click', () => openClient(element.dataset.client)));
+        $$('[data-doc]').forEach((element) => flowtrackBindOnce(element, 'open-document', 'click', () => openDoc(element.dataset.doc)));
+        $$('[data-metric]').forEach((metricElement) => flowtrackBindOnce(metricElement, 'metric', 'click', () => {
             const filter = metricElement.dataset.metric;
             navigate(filter === 'done' ? 'reports' : filter === 'blocked' || filter === 'overdue' ? 'mywork' : 'jobs');
             if (filter === 'risk') { jobFilter.health = 'At Risk'; renderJobs(); }
@@ -1487,16 +2906,10 @@
             if (filter === 'payment') { jobFilter.phase = '9'; renderJobs(); }
         }));
 
-        const next = $('[data-next-phase]');
-        if (next) next.addEventListener('click', async () => {
+        $$('[data-next-phase]').forEach((next) => flowtrackBindOnce(next, 'next-phase', 'click', async () => {
             const job = jobs.find((item) => item.id === next.dataset.nextPhase);
             if (!job) return;
-            const workflow = getWorkflow(Number(job.workflow));
-            const excludedPhaseIds = new Set((job.excludedPhaseIds || []).map((phaseId) => Number(phaseId)));
-            const phases = (workflow?.phases || [])
-                .filter((phase) => phase.active !== false && !excludedPhaseIds.has(Number(phase.id)))
-                .slice()
-                .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
+            const phases = flowtrackActivePhases(job);
             const currentIndex = phases.findIndex((phase) => Number(phase.id) === Number(job.phaseId));
             const target = currentIndex >= 0 ? phases[currentIndex + 1] : null;
             if (!target) {
@@ -1513,9 +2926,25 @@
             } finally {
                 next.disabled = false;
             }
-        });
-        const viewTasks = $('[data-open-job-tasks]');
-        if (viewTasks) viewTasks.addEventListener('click', () => $('[data-detailtab="2"]')?.click());
+        }));
+        $$('[data-flow-phase]').forEach((button) => flowtrackBindOnce(button, 'flow-phase-history', 'click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const job = flowtrackFindJob(button.dataset.flowJob);
+            if (!job) return;
+            try {
+                await flowtrackRefreshJobTasks(job);
+            } catch (error) {
+                // Keep the current in-memory data visible if the refresh fails.
+            }
+            flowtrackOpenPhaseHistory(button.dataset.flowJob, button.dataset.flowPhase, button);
+        }));
+        $$('[data-add-task]').forEach((button) => flowtrackBindOnce(button, 'add-job-task', 'click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openJobTaskModal(button.dataset.addTask, button.dataset.addTaskPhase || null);
+        }));
+        $$('[data-open-job-tasks]').forEach((viewTasks) => flowtrackBindOnce(viewTasks, 'view-job-tasks', 'click', () => $('[data-detailtab="2"]')?.click()));
     };
 
     function metricDateKey(value = new Date()) {
@@ -1539,12 +2968,23 @@
         return !taskIsCompleted(task) && (Boolean(task.attention) || Boolean(task.blockerReason) || status === 'blocked');
     }
 
+    function jobNeedsAttentionFromTasks(job) {
+        return tasks.some((task) => {
+            const sameJob = String(task.job) === String(job?.id) || Number(task.jobDbId) === Number(job?.dbId);
+            if (!sameJob || taskIsCompleted(task)) return false;
+            const status = normalizedStatusValue(task.status || task.statusCode || '');
+            return Boolean(task.attention)
+                || Boolean(task.blockerReason)
+                || ['BLOCKED', 'BLK', 'ATTENTION', 'ATTN', 'HOLD', 'ON HOLD', 'REVISION REQUIRED'].includes(status);
+        });
+    }
+
     function dynamicDashboardMetrics() {
         const date = summaryMetrics.asOf?.date || metricDateKey();
         const activeJobs = jobs.filter((job) => !jobIsCompleted(job));
         return {
             activeJobs: activeJobs.length,
-            needsAttention: activeJobs.filter((job) => job.attention || ['needs attention', 'at risk', 'delayed', 'blocked'].includes(String(job.health || '').toLowerCase())).length,
+            needsAttention: activeJobs.filter((job) => jobNeedsAttentionFromTasks(job) || job.attention || ['needs attention', 'at risk', 'delayed', 'blocked'].includes(String(job.health || '').toLowerCase())).length,
             overdueTasks: tasks.filter((task) => !taskIsCompleted(task) && task.due && task.due < date).length,
             blockedTasks: tasks.filter(taskIsBlocked).length,
             shippingNow: activeJobs.filter((job) => /ship/i.test(phaseNameFor(job)) || /ship/i.test(phaseShortFor(job))).length,
@@ -1558,7 +2998,7 @@
             ...item,
             createdAt: item.createdAt || item.created_at || '',
         }));
-        const derivedActivities = [...tasks]
+        const derivedActivities = tasks.slice()
             .filter((task) => task.createdAt)
             .map((task) => ({
                 id: `task-created-${task.dbId || task.id}`,
@@ -1573,7 +3013,7 @@
             }));
 
         const seenTasks = new Set();
-        return [...apiActivities, ...derivedActivities]
+        return flowtrackToArray(apiActivities).concat(flowtrackToArray(derivedActivities))
             .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
             .filter((item) => {
                 const key = String(item.task || item.id || '');
@@ -1588,7 +3028,7 @@
         const metrics = { ...(summaryMetrics.dashboard || {}), ...dynamicDashboardMetrics() };
         const activeJobs = jobs.filter((job) => !jobIsCompleted(job));
         const attentionJobs = activeJobs
-            .filter((job) => job.attention || ['needs attention', 'at risk', 'delayed', 'blocked'].includes(String(job.health || '').toLowerCase()))
+            .filter((job) => jobNeedsAttentionFromTasks(job) || job.attention || ['needs attention', 'at risk', 'delayed', 'blocked'].includes(String(job.health || '').toLowerCase()))
             .sort((a, b) => String(a.delivery || '9999-12-31').localeCompare(String(b.delivery || '9999-12-31')))
             .slice(0, 6);
         const phaseMap = new Map();
@@ -1596,15 +3036,20 @@
             const label = phaseShortFor(job) || phaseNameFor(job) || 'Unassigned';
             phaseMap.set(label, (phaseMap.get(label) || 0) + 1);
         });
-        const phaseCounts = [...phaseMap.entries()].sort((a, b) => b[1] - a[1]);
-        const maxPhase = Math.max(1, ...phaseCounts.map(([, count]) => count));
+        const phaseCounts = Array.from(phaseMap.entries())
+            .filter((entry) => Array.isArray(entry) && entry.length >= 2)
+            .sort((left, right) => Number(right[1] || 0) - Number(left[1] || 0));
+        const maxPhase = Math.max(1, ...phaseCounts.map((entry) => Number(entry?.[1] || 0)));
         const workloadMap = new Map();
         tasks.filter((task) => !taskIsCompleted(task)).forEach((task) => {
             const assignee = task.assignee || 'Unassigned';
             workloadMap.set(assignee, (workloadMap.get(assignee) || 0) + 1);
         });
-        const workload = [...workloadMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
-        const maxWorkload = Math.max(1, ...workload.map(([, count]) => count));
+        const workload = Array.from(workloadMap.entries())
+            .filter((entry) => Array.isArray(entry) && entry.length >= 2)
+            .sort((left, right) => Number(right[1] || 0) - Number(left[1] || 0))
+            .slice(0, 6);
+        const maxWorkload = Math.max(1, ...workload.map((entry) => Number(entry?.[1] || 0)));
         const displayDate = summaryMetrics.asOf?.displayDate || new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
         const outstandingValue = metrics.canViewFinancials ? currency(metrics.outstanding || 0) : 'Restricted';
         const recentActivities = recentTaskActivities();
@@ -1612,9 +3057,9 @@
         $('#page-dashboard').innerHTML = `<div class="page-head"><div><h1>Management Dashboard</h1><p>${html(displayDate)} · Exceptions, workload and delivery health</p></div><div class="actions"><button class="ghost" data-dashboard-action="export">Export summary</button><button class="primary" data-dashboard-action="create">＋ New Job</button></div></div>
         <div class="metrics">${metric('Active Jobs', metrics.activeJobs, 'Across visible workflow phases', 'jobs')}${metric('Needs Attention', metrics.needsAttention, 'Risk, delay or blocker', 'risk')}${metric('Overdue Tasks', metrics.overdueTasks, 'Require immediate update', 'overdue')}${metric('Blocked Tasks', metrics.blockedTasks, 'Require resolution', 'blocked')}${metric('Shipping Now', metrics.shippingNow, 'Ready or in transit', 'shipment')}${metric('Outstanding', outstandingValue, metrics.canViewFinancials ? 'Open client balance' : 'Financial access required', 'payment')}</div>
         <div class="grid-2"><div class="card section-card"><div class="section-head"><h3>Needs Attention</h3><button class="link-btn" data-go="jobs">View all Jobs</button></div><div class="attention-list">${attentionJobs.map((job) => `<div class="attention-item" data-job="${job.id}"><span class="signal ${String(job.health).toLowerCase() === 'blocked' ? 'purple' : String(job.health).toLowerCase() === 'needs attention' ? 'amber' : 'red'}"></span><div><div class="item-title">${html(job.next || job.title)}</div><div class="item-meta">${html(job.id)} · ${html(clientName(job.client))} · ${html(phaseShortFor(job))}</div></div>${healthBadge(job.health)}</div>`).join('') || '<div class="empty-state">No visible Jobs currently require attention.</div>'}</div></div>
-        <div class="card section-card"><div class="section-head"><h3>Jobs by Phase</h3><button class="link-btn" data-go="board">Open board</button></div><div class="phase-list">${phaseCounts.map(([label, count]) => `<div class="phase-row"><span>${html(label)}</span><div class="progress"><span style="width:${Math.max(8, count / maxPhase * 100)}%"></span></div><b>${count}</b></div>`).join('') || '<div class="empty-state">No active Jobs are visible.</div>'}</div></div></div>
-        <div class="grid-3"><div class="card section-card"><div class="section-head"><h3>Team Workload</h3><button class="link-btn" data-go="reports">Details</button></div>${workload.map(([name, count]) => `<div class="workload-row"><div class="person"><span class="avatar">${html(userInitials(name))}</span>${html(name)}</div><div class="progress"><span style="width:${Math.max(8, count / maxWorkload * 100)}%"></span></div><b>${count}</b></div>`).join('') || '<div class="empty-state">No open Tasks are visible.</div>'}</div>
-        <div class="card section-card"><div class="section-head"><h3>Upcoming Deliveries</h3><button class="link-btn" data-go="jobs">View Jobs</button></div><table class="mini-table"><thead><tr><th>Job</th><th>Client</th><th>Delivery</th></tr></thead><tbody>${activeJobs.filter((job) => job.delivery).sort((a, b) => a.delivery.localeCompare(b.delivery)).slice(0, 6).map((job) => `<tr data-job="${job.id}" style="cursor:pointer"><td><b>${html(String(job.id).slice(-5))}</b><div class="muted small truncate" style="max-width:125px">${html(job.title)}</div></td><td>${html(clientName(job.client).split(' ')[0])}</td><td class="${job.delivery < (summaryMetrics.asOf?.date || metricDateKey()) ? 'due overdue' : ''}">${formatDate(job.delivery)}</td></tr>`).join('') || '<tr><td colspan="3"><div class="empty-state">No upcoming deliveries.</div></td></tr>'}</tbody></table></div>
+        <div class="card section-card"><div class="section-head"><h3>Jobs by Phase</h3><button class="link-btn" data-go="board">Open board</button></div><div class="phase-list">${phaseCounts.map((entry) => { const label = entry?.[0] ?? 'Unassigned'; const count = Number(entry?.[1] || 0); return `<div class="phase-row"><span>${html(label)}</span><div class="progress"><span style="width:${Math.max(8, count / maxPhase * 100)}%"></span></div><b>${count}</b></div>`; }).join('') || '<div class="empty-state">No active Jobs are visible.</div>'}</div></div></div>
+        <div class="grid-3"><div class="card section-card"><div class="section-head"><h3>Team Workload</h3><button class="link-btn" data-go="reports">Details</button></div>${workload.map((entry) => { const name = String(entry?.[0] || 'Unassigned'); const count = Number(entry?.[1] || 0); return `<div class="workload-row"><div class="person"><span class="avatar">${html(userInitials(name))}</span>${html(name)}</div><div class="progress"><span style="width:${Math.max(8, count / maxWorkload * 100)}%"></span></div><b>${count}</b></div>`; }).join('') || '<div class="empty-state">No open Tasks are visible.</div>'}</div>
+        <div class="card section-card"><div class="section-head"><h3>Upcoming Deliveries</h3><button class="link-btn" data-go="jobs">View Jobs</button></div><table class="mini-table"><thead><tr><th>Job</th><th>Client</th><th>Delivery</th></tr></thead><tbody>${activeJobs.filter((job) => job.delivery).sort((a, b) => a.delivery.localeCompare(b.delivery)).slice(0, 6).map((job) => `<tr data-job="${job.id}" style="cursor:pointer"><td><b>${html(String(job.id).slice(-5))}</b><div class="muted small truncate" style="max-width:125px">${html(job.title)}</div></td><td>${html(String(clientName(job.client) || '—').trim().split(/\s+/).filter(Boolean)[0] || '—')}</td><td class="${job.delivery < (summaryMetrics.asOf?.date || metricDateKey()) ? 'due overdue' : ''}">${formatDate(job.delivery)}</td></tr>`).join('') || '<tr><td colspan="3"><div class="empty-state">No upcoming deliveries.</div></td></tr>'}</tbody></table></div>
         <div class="card section-card"><div class="section-head"><h3>Recent Activity</h3><button class="link-btn" data-go="mywork">View Tasks</button></div>${recentActivities.map((item) => `<div class="activity" ${item.task ? `data-task="${html(item.task)}"` : item.job ? `data-job="${html(item.job)}"` : ''} style="cursor:pointer"><span class="avatar">${html(item.user?.initials || userInitials(item.user?.name || 'System'))}</span><div><div class="activity-text"><b>${html(item.title || 'Task created')}</b><br>${html(item.text || '')}</div><div class="activity-time">${html(item.time || '')}</div></div></div>`).join('') || '<div class="empty-state">No recently created tasks.</div>'}</div></div>`;
         bindCommon();
         $$('[data-dashboard-action="create"]').forEach((button) => button.addEventListener('click', openJobModal));
@@ -1667,10 +3112,10 @@
             const label = phaseShortFor(job) || phaseNameFor(job) || 'Unassigned';
             phaseMap.set(label, (phaseMap.get(label) || 0) + 1);
         });
-        const phaseData = [...phaseMap.entries()].map(([label, value]) => ({ label, value }));
+        const phaseData = flowtrackToArray(phaseMap).map(([label, value]) => ({ label, value }));
         const workloadMap = new Map();
         tasks.filter((task) => !taskIsCompleted(task)).forEach((task) => workloadMap.set(task.assignee || 'Unassigned', (workloadMap.get(task.assignee || 'Unassigned') || 0) + 1));
-        const workload = [...workloadMap.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 10);
+        const workload = flowtrackToArray(workloadMap).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 10);
         const maxPhase = Math.max(1, ...phaseData.map((item) => item.value));
         const maxWorkload = Math.max(1, ...workload.map((item) => item.value));
         const ageing = Array.isArray(report.ageing) ? report.ageing : [];
@@ -1868,6 +3313,40 @@
         });
     };
 
+    function rebuildTaskPackDerivedState() {
+        for (const key of Object.keys(taskTemplates)) delete taskTemplates[key];
+        taskPacks.forEach((pack) => {
+            taskTemplates[pack.name] = flowtrackToArray(pack.items).map((item) => item.title);
+        });
+
+        workflowTemplates.forEach((workflow) => {
+            flowtrackToArray(workflow.phases).forEach((phase) => {
+                if (!phase?.taskPackId) return;
+                const pack = taskPacks.find((item) => Number(item.id) === Number(phase.taskPackId));
+                if (!pack) return;
+                phase.taskPack = pack.name;
+                phase.taskCount = flowtrackToArray(pack.items).length;
+            });
+        });
+    }
+
+    function upsertTaskPack(taskPack) {
+        if (!taskPack || typeof taskPack !== 'object' || !taskPack.id) return null;
+
+        const normalized = {
+            ...taskPack,
+            active: Boolean(taskPack.active ?? taskPack.is_active ?? true),
+            is_active: Boolean(taskPack.is_active ?? taskPack.active ?? true),
+            items: flowtrackToArray(taskPack.items).filter((item) => item && typeof item === 'object'),
+        };
+        const index = taskPacks.findIndex((item) => Number(item.id) === Number(normalized.id));
+        if (index >= 0) taskPacks.splice(index, 1, normalized);
+        else taskPacks.push(normalized);
+        taskPacks.sort((left, right) => String(left.name || '').localeCompare(String(right.name || '')));
+        rebuildTaskPackDerivedState();
+        return normalized;
+    }
+
     function blankTaskPackItem() {
         return {
             id: null,
@@ -1877,7 +3356,7 @@
             default_department_id: null,
             priority_id: null,
             document_category_id: null,
-            due_offset_days: 1,
+            due_offset_days: 0,
             is_required: true,
         };
     }
@@ -1895,7 +3374,6 @@
                 <div class="field"><label>Default department</label><select data-pack-field="default_department_id" data-pack-index="${index}"><option value="">No department default</option>${departments.map((department) => `<option value="${department.id}" ${Number(item.default_department_id) === Number(department.id) ? 'selected' : ''}>${html(department.name)}</option>`).join('')}</select></div>
                 <div class="field"><label>Priority</label><select data-pack-field="priority_id" data-pack-index="${index}"><option value="">Use Job priority</option>${priorities.map((priority) => `<option value="${priority.id}" ${Number(item.priority_id) === Number(priority.id) ? 'selected' : ''}>${html(priority.name)}</option>`).join('')}</select></div>
                 <div class="field"><label>Required document</label><select data-pack-field="document_category_id" data-pack-index="${index}"><option value="">No task-specific file</option>${documentCategories.map((category) => `<option value="${category.id}" ${Number(item.document_category_id) === Number(category.id) ? 'selected' : ''}>${html(category.name)}</option>`).join('')}</select><div class="inline-help">The file must be attached to the Job before this task can be completed.</div></div>
-                <div class="field"><label>Due after phase starts</label><input data-pack-field="due_offset_days" data-pack-index="${index}" type="number" min="0" max="365" value="${Number(item.due_offset_days ?? 1)}"></div>
             </div>
             <label class="check-row"><input data-pack-field="is_required" data-pack-index="${index}" type="checkbox" ${item.is_required ? 'checked' : ''}> <span>Required task</span></label>
         </div>`).join('');
@@ -1912,7 +3390,6 @@
                     const field = control.dataset.packField;
                     let value = control.type === 'checkbox' ? control.checked : control.value;
                     if (['default_assignee_id', 'default_department_id', 'priority_id', 'document_category_id'].includes(field)) value = value ? Number(value) : null;
-                    if (field === 'due_offset_days') value = Number(value || 0);
                     items[index][field] = value;
                 });
             });
@@ -1975,7 +3452,7 @@
                 button.disabled = true;
                 button.textContent = 'Saving…';
                 try {
-                    await api(existing ? `/flowtrack/template-api/task-packs/${existing.id}` : '/flowtrack/template-api/task-packs', {
+                    const result = await api(existing ? `/flowtrack/template-api/task-packs/${existing.id}` : '/flowtrack/template-api/task-packs', {
                         method: existing ? 'PUT' : 'POST',
                         body: {
                             name,
@@ -1994,10 +3471,24 @@
                             })),
                         },
                     });
-                    await loadBootstrap();
+                    const savedTaskPack = upsertTaskPack(result?.taskPack);
+                    if (!savedTaskPack) throw new Error('The Task Pack was saved, but the server returned an invalid response.');
+
                     closeAll();
                     renderTaskPackSetup();
                     showToast(existing ? 'Task Pack updated successfully.' : 'Task Pack and its task sequence created successfully.');
+
+                    // Refresh related generated tasks and workflow data without hiding the
+                    // authoritative Task Pack that was just returned by the save request.
+                    void loadBootstrap()
+                        .then(() => {
+                            upsertTaskPack(savedTaskPack);
+                            if (currentPage === 'taskpacksetup') renderTaskPackSetup();
+                        })
+                        .catch(() => {
+                            // The local save response is already authoritative; a temporary
+                            // refresh failure must not make the new Task Pack disappear.
+                        });
                 } catch (error) {
                     showToast(error.message);
                 } finally {
@@ -2023,7 +3514,7 @@
         const mappedPhases = workflowTemplates.reduce((sum, workflow) => sum + (workflow.phases || []).filter((phase) => phase.taskPackId).length, 0);
         page.innerHTML = `<div class="page-head"><div><h1>Task Pack Setup</h1><p>Create reusable task sequences that activate when a Job enters a workflow phase</p></div><div class="actions"><button class="primary" id="addTaskPack">＋ Add Task Pack</button></div></div>
         <div class="config-summary"><div class="card config-stat"><span>Total Task Packs</span><b>${taskPacks.length}</b></div><div class="card config-stat"><span>Active Task Packs</span><b>${taskPacks.filter((pack) => pack.active).length}</b></div><div class="card config-stat"><span>Configured Tasks</span><b>${configuredTasks}</b></div><div class="card config-stat"><span>Mapped Phases</span><b>${mappedPhases}</b></div></div>
-        <div id="taskPackSetupContent"><div class="pack-list">${taskPacks.map((pack) => `<div class="card pack"><div class="section-head"><div><h4>${html(pack.name)} Task Pack</h4><div class="small muted">${html(pack.code)} · ${(pack.items || []).length} predefined tasks · ${pack.active ? 'Active' : 'Inactive'}</div></div><button class="mini-btn" data-edit-pack-id="${pack.id}">Edit</button></div><div class="small muted">${html(pack.description || 'No description')}</div><ul class="pack-tasks">${(pack.items || []).map((item, index) => `<li><div><span>${index + 1}. ${html(item.title)}</span><div class="small muted" style="margin-top:3px">${html(item.default_assignee_name || item.default_department_name || 'Job coordinator')} · Due +${item.due_offset_days} day(s)${item.priority_name ? ` · ${html(item.priority_name)}` : ''}${item.document_category_name ? ` · Required file: ${html(item.document_category_name)}` : ''}</div></div><span class="badge ${item.is_required ? 'b-blue' : 'b-gray'}">${item.is_required ? 'Mandatory' : 'Optional'}</span></li>`).join('') || '<li><span class="muted">No tasks configured</span></li>'}</ul></div>`).join('') || '<div class="card empty-state">No Task Packs have been created.</div>'}</div></div>`;
+        <div id="taskPackSetupContent"><div class="pack-list">${taskPacks.map((pack) => `<div class="card pack"><div class="section-head"><div><h4>${html(pack.name)} Task Pack</h4><div class="small muted">${html(pack.code)} · ${(pack.items || []).length} predefined tasks · ${pack.active ? 'Active' : 'Inactive'}</div></div><button class="mini-btn" data-edit-pack-id="${pack.id}">Edit</button></div><div class="small muted">${html(pack.description || 'No description')}</div><ul class="pack-tasks">${(pack.items || []).map((item, index) => `<li><div><span>${index + 1}. ${html(item.title)}</span><div class="small muted" style="margin-top:3px">${html(item.default_assignee_name || item.default_department_name || 'Job coordinator')} · Due set from Task details${item.priority_name ? ` · ${html(item.priority_name)}` : ''}${item.document_category_name ? ` · Required file: ${html(item.document_category_name)}` : ''}</div></div><span class="badge ${item.is_required ? 'b-blue' : 'b-gray'}">${item.is_required ? 'Mandatory' : 'Optional'}</span></li>`).join('') || '<li><span class="muted">No tasks configured</span></li>'}</ul></div>`).join('') || '<div class="card empty-state">No Task Packs have been created.</div>'}</div></div>`;
         $('#addTaskPack')?.addEventListener('click', () => openTaskPackModal());
         $$('[data-edit-pack-id]').forEach((button) => button.addEventListener('click', () => {
             const pack = taskPacks.find((item) => Number(item.id) === Number(button.dataset.editPackId));
@@ -2050,8 +3541,7 @@
         const defaultClient = clients.find((client) => Number(client.id) === Number(prefillClient)) || clients[0];
         const defaultPriority = (masterData.priorities || []).find((item) => item.code === 'MED') || activeMaster('priorities')[0];
         const defaultCurrency = (masterData.currencies || []).find((item) => item.code === 'USD') || activeMaster('currencies')[0];
-        const salesUsers = users.filter((user) => user.dept === 'Sales');
-        const ownerUsers = canFlow('jobs', 'assign') ? (salesUsers.length ? salesUsers : users) : users.filter((user) => Number(user.id) === Number(currentUser?.id));
+        const ownerUsers = canFlow('jobs', 'assign') ? users : users.filter((user) => Number(user.id) === Number(currentUser?.id));
 
         $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>Create New Job</h2><div class="small muted" style="margin-top:5px">Enter the Job details in order and add every requested product.</div></div><button class="close-btn" data-close>×</button></div>
         <div class="modal-body"><div class="form-grid job-form-stack">
@@ -2069,10 +3559,9 @@
         <div class="field full"><label>Priority</label>${jobPriorityOptions('newJobPriority', defaultPriority?.id)}</div>
         <div class="field full"><label>Job assignee</label><select id="newJobOwner" data-searchable data-search-placeholder="Search assignees…" ${canFlow('jobs', 'assign') ? '' : 'disabled'}>${ownerUsers.map((user) => `<option value="${user.id}" ${Number(user.id) === Number(currentUser?.id) ? 'selected' : ''}>${html(user.name)}</option>`).join('')}</select></div>
         <div class="field full"><label>Workflow template *</label><select id="newJobWorkflow" data-searchable data-search-placeholder="Search workflow templates…">${workflowTemplates.filter((workflow) => workflow.active).map((workflow) => `<option value="${workflow.id}">${html(workflow.name)}</option>`).join('')}</select><div class="inline-help">The selected workflow controls available starting stages and Task Packs.</div></div>
-        <div class="field full"><label>Start Job from stage *</label><select id="newJobStartPhase" data-searchable data-search-placeholder="Search starting stages…"></select><div class="inline-help">Use this when earlier stages happened outside the system or do not apply.</div></div>
-        <div id="skipHandlingWrap" class="field full hidden"><label>How should earlier phases be recorded? *</label><select id="newJobSkipHandling" data-searchable data-search-placeholder="Search phase handling options…"><option>Completed outside FlowTrack</option><option>Not applicable for this Job</option><option>Migrated from an existing process</option><option>Manager-authorized skip</option></select></div>
-        <div id="skipReasonWrap" class="field full hidden"><label>Reason / reference *</label><textarea id="newJobStartReason" rows="2" placeholder="Explain why the Job begins at this stage, and add any external reference."></textarea></div>
-        </div><div id="jobStagePreview" class="stage-preview"></div></div>
+        <div class="field full"><label>Start Job from stage *</label><select id="newJobStartPhase" data-searchable data-search-placeholder="Search starting stages…"></select><div class="inline-help">Choose the first Workflow stage that should be activated for this Job.</div></div>
+        <div class="field full"><label>Attachments</label><div id="newJobAttachmentDrop" class="job-attachment-drop" tabindex="0"><input id="newJobAttachments" type="file" multiple hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.zip,.txt,.csv"><b>Drop files here or click to browse</b><div class="inline-help" style="margin-top:6px">Up to 10 files. Maximum 20 MB per file.</div></div><div id="newJobAttachmentList" class="job-attachment-list"></div></div>
+        </div></div>
         <div class="modal-foot"><button class="ghost" data-close>Cancel</button><button class="secondary" id="saveDraftJob">Save Draft</button><button class="primary" id="createJob">Create</button></div>`;
 
         openOverlay();
@@ -2080,6 +3569,10 @@
         $$('[data-close]').forEach((button) => button.addEventListener('click', closeAll));
 
         let productRows = [{ product_category_id: '', product_id: '', quantity: 1000 }];
+        let attachmentFiles = [];
+        const attachmentLimit = 10;
+        const maxAttachmentBytes = 20 * 1024 * 1024;
+        const supportedAttachmentExtensions = ['pdf','doc','docx','xls','xlsx','ppt','pptx','png','jpg','jpeg','webp','zip','txt','csv'];
         const productsForCategory = (categoryId) => activeMaster('products').filter((product) => Number(product.parent_id) === Number(categoryId));
         const categoryOptions = (selectedId) => `<option value="">Select category</option>${categories.map((item) => `<option value="${item.id}" ${Number(item.id) === Number(selectedId) ? 'selected' : ''}>${html(item.name)}</option>`).join('')}`;
 
@@ -2130,40 +3623,84 @@
             renderProductRows();
         });
 
-        const refreshStagePreview = () => {
-            const workflow = getWorkflow(Number($('#newJobWorkflow').value));
-            const phaseId = Number($('#newJobStartPhase').value || 0);
-            const index = workflow.phases.findIndex((phase) => Number(phase.id) === phaseId);
-            const phase = workflow.phases[index];
-            const skipped = workflow.phases.slice(0, Math.max(0, index));
-            $('#skipHandlingWrap').classList.toggle('hidden', index <= 0);
-            $('#skipReasonWrap').classList.toggle('hidden', index <= 0);
-            $('#jobStagePreview').innerHTML = `<b>Workflow activation preview</b><div class="stage-preview-grid"><div class="stage-preview-box"><span>Job will start at</span><b>${html(phase?.name || '—')}</b></div><div class="stage-preview-box"><span>Task Pack to activate</span><b>${html(phase?.taskPack || 'No tasks at this stage')}</b></div></div>${index > 0 ? `<div class="skip-warning"><b>${skipped.length} earlier phase${skipped.length === 1 ? '' : 's'} will not generate tasks.</b><ul>${skipped.map((item) => `<li>${html(item.name)}</li>`).join('')}</ul><div class="small" style="margin-top:6px">The reason and selected handling will be saved in the Job activity history.</div></div>` : '<div class="small muted" style="margin-top:9px">The Job starts normally from the first stage.</div>'}`;
-        };
         const refreshStages = () => {
             const workflow = getWorkflow(Number($('#newJobWorkflow').value));
             const select = $('#newJobStartPhase');
-            select.innerHTML = workflow.phases.filter((phase) => phase.allowStart && phase.active !== false).map((phase) => `<option value="${phase.id}">${phase.sequence || workflow.phases.indexOf(phase) + 1}. ${html(phase.name)}</option>`).join('');
+            select.innerHTML = (workflow?.phases || []).filter((phase) => phase.allowStart && phase.active !== false).map((phase) => `<option value="${phase.id}">${phase.sequence || workflow.phases.indexOf(phase) + 1}. ${html(phase.name)}</option>`).join('');
             window.FlowtrackSearchableDropdown?.refresh(select);
-            refreshStagePreview();
         };
+
+        const formatFileSize = (bytes) => {
+            if (bytes < 1024) return `${bytes} B`;
+            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        };
+        const renderAttachments = () => {
+            $('#newJobAttachmentList').innerHTML = attachmentFiles.map((file, index) => `<div class="job-attachment-row"><div><b>${html(file.name)}</b><div class="small muted">${formatFileSize(file.size)}</div></div><button type="button" data-remove-attachment="${index}">Remove</button></div>`).join('');
+        };
+        const addAttachments = (incomingFiles) => {
+            const next = flowtrackToArray(attachmentFiles);
+            for (const file of Array.from(incomingFiles || [])) {
+                const extension = String(file.name || '').split('.').pop().toLowerCase();
+                if (!supportedAttachmentExtensions.includes(extension)) {
+                    showToast(`${file.name} is not a supported attachment type.`);
+                    continue;
+                }
+                if (file.size > maxAttachmentBytes) {
+                    showToast(`${file.name} is larger than 20 MB.`);
+                    continue;
+                }
+                if (next.some((item) => item.name === file.name && item.size === file.size && item.lastModified === file.lastModified)) continue;
+                if (next.length >= attachmentLimit) {
+                    showToast('You can attach up to 10 files.');
+                    break;
+                }
+                next.push(file);
+            }
+            attachmentFiles = next;
+            renderAttachments();
+        };
+        const attachmentDrop = $('#newJobAttachmentDrop');
+        const attachmentInput = $('#newJobAttachments');
+        attachmentDrop.addEventListener('click', () => attachmentInput.click());
+        attachmentDrop.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                attachmentInput.click();
+            }
+        });
+        attachmentInput.addEventListener('change', (event) => {
+            addAttachments(event.target.files);
+            event.target.value = '';
+        });
+        ['dragenter', 'dragover'].forEach((name) => attachmentDrop.addEventListener(name, (event) => {
+            event.preventDefault();
+            attachmentDrop.classList.add('dragging');
+        }));
+        ['dragleave', 'drop'].forEach((name) => attachmentDrop.addEventListener(name, (event) => {
+            event.preventDefault();
+            attachmentDrop.classList.remove('dragging');
+        }));
+        attachmentDrop.addEventListener('drop', (event) => addAttachments(event.dataTransfer?.files));
+        $('#newJobAttachmentList').addEventListener('click', (event) => {
+            const button = event.target.closest('[data-remove-attachment]');
+            if (!button) return;
+            attachmentFiles.splice(Number(button.dataset.removeAttachment), 1);
+            renderAttachments();
+        });
 
         $('#newJobClient').addEventListener('change', (event) => {
             const client = clients.find((item) => Number(item.id) === Number(event.target.value));
             $('#newJobContact').value = client?.contact || '';
         });
         $('#newJobWorkflow').addEventListener('change', refreshStages);
-        $('#newJobStartPhase').addEventListener('change', refreshStagePreview);
         renderProductRows();
         refreshStages();
         window.FlowtrackSearchableDropdown?.enhance($('#jobModal'));
 
         const submit = async (draft) => {
             const title = $('#newJobTitle').value.trim();
-            const workflow = getWorkflow(Number($('#newJobWorkflow').value));
             const phaseId = Number($('#newJobStartPhase').value);
-            const phaseIndex = workflow.phases.findIndex((phase) => Number(phase.id) === phaseId);
-            const reason = $('#newJobStartReason')?.value.trim() || '';
             syncProductRows();
 
             const normalizedProducts = productRows.map((row) => ({
@@ -2177,39 +3714,55 @@
             if (normalizedProducts.some((item) => !item.product_category_id || !item.product_id || item.quantity < 1)) return showToast('Select a category, product and valid quantity in every product row.');
             if (new Set(productIds).size !== productIds.length) return showToast('The same product cannot be added more than once.');
             if (!$('#newJobDelivery').value) return showToast('Please select the required delivery date.');
-            if (phaseIndex > 0 && !reason) return showToast('Please explain why earlier workflow phases are being skipped.');
 
             const button = draft ? $('#saveDraftJob') : $('#createJob');
             button.disabled = true;
             const initialText = button.textContent;
             button.textContent = draft ? 'Saving…' : 'Creating…';
             try {
+                const formData = new FormData();
+                formData.append('client_id', String(Number($('#newJobClient').value)));
+                formData.append('workflow_template_id', String(Number($('#newJobWorkflow').value)));
+                formData.append('start_phase_id', String(phaseId));
+                normalizedProducts.forEach((item, index) => {
+                    formData.append(`products[${index}][product_id]`, String(item.product_id));
+                    formData.append(`products[${index}][product_category_id]`, String(item.product_category_id));
+                    formData.append(`products[${index}][quantity]`, String(item.quantity));
+                });
+                if (defaultCurrency?.id) formData.append('currency_id', String(defaultCurrency.id));
+                const priorityId = Number(document.querySelector('input[name="newJobPriority"]:checked')?.value || 0);
+                if (priorityId) formData.append('priority_id', String(priorityId));
+                const ownerId = Number($('#newJobOwner').value) || Number(currentUser?.id || 0);
+                if (ownerId) formData.append('owner_id', String(ownerId));
+                if (currentUser?.id) formData.append('coordinator_id', String(currentUser.id));
+                formData.append('title', title);
+                const requestDescription = $('#newJobDesc').value.trim();
+                if (requestDescription) formData.append('request_description', requestDescription);
+                formData.append('quoted_amount', '0');
+                formData.append('delivery_date', $('#newJobDelivery').value || '');
+                formData.append('draft', draft ? '1' : '0');
+                attachmentFiles.forEach((file) => formData.append('attachments[]', file));
                 const result = await api('/flowtrack/template-api/jobs', {
                     method: 'POST',
-                    body: {
-                        client_id: Number($('#newJobClient').value),
-                        workflow_template_id: Number($('#newJobWorkflow').value),
-                        start_phase_id: phaseId,
-                        products: normalizedProducts,
-                        currency_id: defaultCurrency?.id || null,
-                        priority_id: Number(document.querySelector('input[name="newJobPriority"]:checked')?.value || 0) || null,
-                        owner_id: Number($('#newJobOwner').value) || currentUser?.id,
-                        coordinator_id: currentUser?.id || null,
-                        title,
-                        request_description: $('#newJobDesc').value.trim() || null,
-                        quoted_amount: 0,
-                        delivery_date: $('#newJobDelivery').value || null,
-                        start_reason: reason || null,
-                        member_ids: [],
-                        draft,
-                    },
+                    body: formData,
                 });
                 jobs.unshift(result.job);
                 replaceTasksForJob(result.job.id, result.tasks);
                 closeAll();
                 navigate('jobs');
                 updateBadges();
-                showToast(draft ? 'Draft Job saved.' : `${result.job.id} created with ${result.job.productCount || normalizedProducts.length} product line${(result.job.productCount || normalizedProducts.length) === 1 ? '' : 's'}.`);
+                const attachmentText = attachmentFiles.length ? ` and ${attachmentFiles.length} attachment${attachmentFiles.length === 1 ? '' : 's'}` : '';
+                showToast(draft ? 'Draft Job saved. Opening details…' : `${result.job.id} created with ${result.job.productCount || normalizedProducts.length} product line${(result.job.productCount || normalizedProducts.length) === 1 ? '' : 's'}${attachmentText}. Opening details…`);
+                setTimeout(() => {
+                    openJob(result.job.id);
+                    setTimeout(() => {
+                        const page = document.querySelector(`#page-record-job-${flowtrackRecordSlug(result.job.id)} .standalone-record-content`);
+                        if (page) {
+                            activateScopedDetailTab(page, 2);
+                            flowtrackOpenPhaseHistory(result.job.id, result.job.phaseId, page);
+                        }
+                    }, 50);
+                }, 40);
             } catch (error) {
                 showToast(error.message);
             } finally {
@@ -2477,7 +4030,7 @@
             }
         }));
         const reorder = async (index, direction) => {
-            const reordered = [...phases];
+            const reordered = flowtrackToArray(phases);
             const target = index + direction;
             if (target < 0 || target >= reordered.length) return;
             [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
@@ -2748,7 +4301,7 @@
         selectedAccessRoleId = role.id;
         const administratorRole = isAdministratorRole(role);
         const locked = administratorRole || !canManageAccess;
-        const groups = [...new Set(accessCatalog.modules.map((module) => module.group))];
+        const groups = flowtrackToArray(new Set(flowtrackToArray(accessCatalog.modules).map((module) => module.group)));
         element.innerHTML = `<div class="section-head"><div><h3>Permission Matrix</h3><div class="small muted">Set module actions, record scope and sensitive-field visibility for each role.</div></div><div class="actions"><button class="ghost" id="resetAccessMatrix">Reset Unsaved</button>${canManageAccess ? '<button class="primary" id="saveAccessMatrix">Save Permissions</button>' : ''}</div></div>
         <div class="access-toolbar"><div class="field"><label>Role</label><select id="accessMatrixRole">${accessRoles.filter((item) => item.active || Number(item.id) === Number(role.id)).map((item) => `<option value="${item.id}" ${Number(item.id) === Number(role.id) ? 'selected' : ''}>${html(item.name)}</option>`).join('')}</select></div><div class="field"><label>Module group</label><select id="accessModuleGroup"><option value="">All groups</option>${groups.map((group) => `<option>${html(group)}</option>`).join('')}</select></div><div class="field grow"><label>Find module</label><input id="accessMatrixSearch" placeholder="Search module"></div>${!locked ? '<div><label class="small muted">Bulk action</label><div class="access-segmented"><button id="accessGrantView">Grant view</button><button id="accessClearVisible">Clear</button></div></div>' : ''}</div>
         <div class="access-info"><b>Editing: ${html(role.name)}</b><div class="small" style="margin-top:4px">${administratorRole ? 'Administrator roles are permanently unrestricted and cannot lose access.' : (!canManageAccess ? 'This permission matrix is read only for your account.' : `${html(role.description || 'Reusable workspace role.')} Default scope: <strong>${html(scopeLabel(role.defaultScope))}</strong>.`)}</div></div>
@@ -2776,7 +4329,7 @@
             const modules = accessCatalog.modules.map((module) => ({
                 module_code: module.code,
                 scope: document.querySelector(`[data-access-scope="${module.code}"]`).value,
-                actions: [...document.querySelectorAll(`[data-access-module="${module.code}"]:checked`)].map((checkbox) => checkbox.dataset.accessAction),
+                actions: flowtrackToArray(document.querySelectorAll(`[data-access-module="${module.code}"]:checked`)).map((checkbox) => checkbox.dataset.accessAction),
             }));
             const sensitive_fields = $$('.access-sensitive-toggle:checked').map((checkbox) => checkbox.value);
             const button = $('#saveAccessMatrix');
@@ -3053,6 +4606,570 @@
         applyActionPermissions();
     };
 
+    const recordPagePolishStyles = document.createElement('style');
+    recordPagePolishStyles.textContent = `
+        .standalone-record-host{background:#f5f7fb!important}.standalone-record-page{max-width:1280px!important;margin:0 auto!important;padding:0 0 30px!important}.standalone-record-head{align-items:center!important;margin:0 0 12px!important}.standalone-record-title h1{font-size:22px!important;font-weight:720!important;letter-spacing:-.018em!important}.standalone-record-title p{font-size:12px!important}.standalone-record-shell{border-radius:16px!important;box-shadow:0 8px 22px rgba(15,23,42,.045)!important;border-color:#dde6f2!important}.standalone-record-content .drawer-head,.standalone-record-content .modal-head{padding:16px 18px!important;align-items:flex-start!important;gap:14px!important}.standalone-record-content .drawer-head h2,.standalone-record-content .modal-head h2{font-size:21px!important;font-weight:720!important;line-height:1.15!important}.standalone-record-content .drawer-body,.standalone-record-content .modal-body{padding:18px!important}.standalone-record-content .detail-tabs{margin:0 0 16px!important;padding:0 4px!important;border-bottom:1px solid #e2e8f0!important;gap:2px!important}.standalone-record-content .detail-tab{padding:9px 13px!important;border-radius:9px 9px 0 0!important;font-size:13px!important;font-weight:620!important;color:#334155!important}.standalone-record-content .detail-tab.active{background:#edf4ff!important;color:#1d5fd8!important;border-color:#2563eb!important}.standalone-record-content .summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}.standalone-record-content .summary-box{padding:12px!important;border-radius:12px!important;background:#fff!important}.standalone-record-content .summary-box span{font-size:11px!important}.standalone-record-content .summary-box b{font-size:15px!important;font-weight:700!important}.standalone-record-content .section-head{align-items:center!important;margin-bottom:10px!important}.standalone-record-content .section-head h3{font-size:18px!important;font-weight:720!important}.standalone-record-content .attention-item{border-radius:12px!important;padding:11px 12px!important}.standalone-record-content .modal-foot{justify-content:flex-end!important;gap:10px!important}.standalone-record-content .modal-foot button,.standalone-record-content .modal-foot .primary,.standalone-record-content .modal-foot .secondary,.standalone-record-content .modal-foot .ghost{flex:0 0 auto!important;min-width:148px!important;width:auto!important;height:42px!important;white-space:nowrap!important}.standalone-save-actions{justify-content:flex-end!important;gap:10px!important;align-items:center!important}.standalone-save-actions button{flex:0 0 168px!important;width:168px!important;height:42px!important;min-height:42px!important;padding:0 16px!important}.standalone-save-actions #saveTaskUpdate{flex:0 0 168px!important;width:168px!important}.job-doc-list{display:grid;gap:10px}.job-doc-row{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid #dfe7f1;border-radius:12px;background:#fff;padding:12px;cursor:pointer}.job-doc-row:hover{border-color:#b9cae3;background:#fbfdff}.job-doc-main b{font-size:14px;font-weight:700;color:#172033}.job-doc-meta{font-size:12px;color:#64748b;margin-top:4px}.job-doc-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.job-doc-empty{border:1px dashed #cbd5e1;border-radius:12px;background:#f8fafc;padding:18px;text-align:center;color:#64748b}.job-detail-doc-summary{margin-bottom:13px;color:#64748b;font-size:12px}.workflow-card-clean{padding:14px!important}.workflow-readiness-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.workflow-readiness-grid .check-row{border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#fff}.standalone-record-content .timeline{border:1px solid #e2e8f0;border-radius:13px;background:#f8fafc;padding:14px 10px 18px}.standalone-record-content .step-label{font-size:11px;line-height:1.35}.standalone-record-content .job-header-actions{display:flex!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important}.standalone-record-content .job-header-actions button{height:40px!important;min-width:128px!important}.standalone-record-content .task-head-actions{margin-left:auto!important;display:flex!important;align-items:center!important;gap:8px!important}.standalone-record-form .modal-foot{position:sticky!important;bottom:0!important;background:rgba(255,255,255,.98)!important}.standalone-record-form .job-form-stack,.standalone-record-form .client-form-stack{max-width:980px!important}.standalone-record-form .modal-body{padding-bottom:12px!important}.standalone-record-form .field{margin-bottom:10px!important}.standalone-record-form .field label{font-weight:650!important}.standalone-record-content .task-document-upload{border-radius:12px!important;background:#f8fbff!important;border:1px solid #dbeafe!important;padding:13px!important}.standalone-record-content .task-document-upload button{width:auto!important;min-width:188px!important;height:42px!important}
+        @media(max-width:900px){.standalone-record-content .summary-grid,.workflow-readiness-grid{grid-template-columns:1fr!important}.job-doc-row{grid-template-columns:36px minmax(0,1fr)}.job-doc-actions{grid-column:1/-1;justify-content:flex-start}.standalone-save-actions button{flex:1 1 0!important;width:auto!important}.standalone-record-content .modal-foot button{min-width:0!important}.standalone-record-content .detail-tab{font-size:12px!important;padding:8px 10px!important}}
+    `;
+    document.head.appendChild(recordPagePolishStyles);
+
+    function jobDocsFor(job) {
+        return (docs || [])
+            .filter((documentRecord) => String(documentRecord.job || '') === String(job?.id || ''))
+            .slice()
+            .sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')) || String(right.id || '').localeCompare(String(left.id || '')));
+    }
+
+    function documentMatchesKeywords(documentRecord, keywords) {
+        const haystack = normalizedStatusValue([
+            documentRecord.type,
+            documentRecord.name,
+            documentRecord.phase,
+            documentRecord.taskRequirement,
+            documentRecord.categoryName,
+            documentRecord.version,
+        ].join(' '));
+        return keywords.some((keyword) => haystack.includes(normalizedStatusValue(keyword)));
+    }
+
+    function currentDocumentCardsHtml(documentRows, emptyLabel) {
+        if (!documentRows.length) return `<div class="job-doc-empty">${html(emptyLabel || 'No documents uploaded yet.')}</div>`;
+        const seen = new Set();
+        const rows = documentRows.filter((documentRecord) => {
+            const key = String(documentRecord.dbId || documentRecord.id || documentRecord.name || Math.random());
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+        return `<div class="job-doc-list">${rows.map((documentRecord) => {
+            const preview = documentRecord.previewUrl ? `<a class="mini-btn" href="${html(documentRecord.previewUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Preview</a>` : '';
+            const download = documentRecord.downloadUrl ? `<a class="mini-btn" href="${html(documentRecord.downloadUrl)}" onclick="event.stopPropagation()">Download</a>` : '';
+            return `<div class="job-doc-row" data-doc="${html(documentRecord.id)}"><div class="doc-icon" style="width:40px;height:40px">FILE</div><div class="job-doc-main"><b>${html(documentRecord.name || 'Document')}</b><div class="job-doc-meta">${html(documentRecord.type || 'Document')} · ${html(documentRecord.version || 'Current')} · ${documentRecord.date ? formatDate(documentRecord.date) : 'No date'} · ${html(documentRecord.uploadedBy || 'System')}</div>${documentRecord.phase ? `<div class="job-doc-meta">${html(documentRecord.phase)}${documentRecord.taskRequirement ? ` · ${html(documentRecord.taskRequirement)}` : ''}</div>` : ''}</div><div class="job-doc-actions">${documentRecord.final ? '<span class="badge b-green">Final</span>' : '<span class="badge b-gray">Current</span>'}${preview}${download}</div></div>`;
+        }).join('')}</div>`;
+    }
+
+    function documentPanelFor(job, label, keywords) {
+        const matching = jobDocsFor(job).filter((documentRecord) => documentMatchesKeywords(documentRecord, keywords));
+        return `<div class="section-head"><div><h3>${html(label)}</h3><div class="job-detail-doc-summary">Showing the latest uploaded version for each ${html(label.toLowerCase())} document linked to this Job.</div></div><button class="primary" data-upload-job="${html(job.id)}">＋ Upload</button></div>${currentDocumentCardsHtml(matching, `No ${label.toLowerCase()} document has been uploaded for this Job yet.`)}`;
+    }
+
+    function jobCurrentPhaseTasks(job, jobTasks) {
+        const current = (typeof boardJobPhaseTasks === 'function') ? boardJobPhaseTasks(job) : [];
+        if (current.length) return current;
+        const currentPhaseName = normalizedStatusValue(phaseNameFor(job));
+        return jobTasks.filter((task) => Number(task.phaseId) === Number(job.phaseId) || normalizedStatusValue(task.phase || '') === currentPhaseName);
+    }
+
+    function flowtrackFindJob(jobId) {
+        return jobs.find((item) => String(item.id) === String(jobId) || Number(item.dbId) === Number(jobId));
+    }
+
+    function flowtrackActivePhases(job) {
+        const workflow = getWorkflow(job?.workflow || 'standard') || { phases: [] };
+        const excludedPhaseIds = new Set((job?.excludedPhaseIds || []).map((phaseId) => Number(phaseId)));
+        return (workflow.phases || [])
+            .filter((phase) => phase.active !== false && !excludedPhaseIds.has(Number(phase.id)))
+            .slice()
+            .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
+    }
+
+    function flowtrackPhaseFor(job, phaseId) {
+        const activePhases = flowtrackActivePhases(job);
+        return activePhases.find((phase) => Number(phase.id) === Number(phaseId))
+            || activePhases.find((phase) => Number(phase.sequence) === Number(phaseId))
+            || activePhases[0]
+            || null;
+    }
+
+    function flowtrackTasksForJob(job) {
+        return tasks.filter((task) => String(task.job) === String(job?.id || '') || Number(task.jobDbId) === Number(job?.dbId || 0));
+    }
+
+    function flowtrackTasksForPhase(job, phaseId, sourceTasks = null) {
+        const phase = flowtrackPhaseFor(job, phaseId);
+        const all = Array.isArray(sourceTasks) ? sourceTasks : flowtrackTasksForJob(job);
+        if (!phase) return all;
+        const phaseName = normalizedStatusValue(phase.name || phase.short || '');
+        return all.filter((task) => Number(task.phaseId) === Number(phase.id) || normalizedStatusValue(task.phase || '') === phaseName);
+    }
+
+    function flowtrackFormatDateTime(value) {
+        if (!value) return 'Not recorded';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return date.toLocaleString([], { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function flowtrackPhaseHistoryFor(job, phase) {
+        const rows = Array.isArray(job?.phaseHistory) ? job.phaseHistory : [];
+        return rows.find((row) => Number(row.phaseId) === Number(phase?.id))
+            || rows.find((row) => Number(row.phaseIndex) === Math.max(0, Number(phase?.sequence || 1) - 1))
+            || null;
+    }
+
+    function flowtrackPhaseTimelineStep(job, phase, index, currentPhase, skippedIndexes) {
+        const workflow = getWorkflow(job?.workflow || 'standard') || { phases: [] };
+        const originalIndex = (workflow.phases || []).findIndex((item) => Number(item.id) === Number(phase.id));
+        const skippedPhase = skippedIndexes.includes(originalIndex);
+        const beforeCurrent = currentPhase ? Number(phase.sequence) < Number(currentPhase.sequence) : index < Number(job?.phase || 0);
+        const isCurrent = Number(phase.id) === Number(job?.phaseId) || (!job?.phaseId && index === Number(job?.phase || 0));
+        const state = skippedPhase ? 'skipped' : beforeCurrent ? 'done' : isCurrent ? 'current' : '';
+        const dot = skippedPhase ? '↷' : beforeCurrent ? '✓' : Number(phase.sequence || index + 1);
+        return `<button type="button" class="step workflow-phase-step ${state}" data-flow-phase="${html(phase.id)}" data-flow-job="${html(job?.id || '')}" title="View ${html(phase.name)} task history"><div class="step-dot">${dot}</div><div class="step-label">${html(phase.name)}${skippedPhase ? '<br><small>Skipped / external</small>' : ''}</div></button>`;
+    }
+
+    function flowtrackRenderPhaseActivityEvent(task, entry) {
+        const occurredAt = entry.occurredAt ? flowtrackFormatDateTime(entry.occurredAt) : html(entry.time || 'Not recorded');
+        const changes = Array.isArray(entry.changes) ? entry.changes : [];
+        const changeRows = changes.length
+            ? `<ul class="task-change-list phase-change-list">${changes.map((change) => `<li><b>${html(change.field || 'Update')}:</b> ${html(change.from || '—')} → ${html(change.to || '—')}</li>`).join('')}</ul>`
+            : '';
+        const fileRow = entry.fileName
+            ? `<div class="phase-event-detail"><span>Uploaded file</span><b>${html(entry.fileName)}</b></div>`
+            : '';
+        const commentRow = entry.commentAdded
+            ? '<div class="phase-event-detail"><span>Comment</span><b>Comment added with this update</b></div>'
+            : '';
+        const requirementRow = entry.documentRequirement
+            ? `<div class="phase-event-detail"><span>Document requirement</span><b>${html(entry.documentRequirement)}</b></div>`
+            : '';
+        const eventLabel = entry.eventLabel || String(entry.event || 'Task update').replace(/[._-]/g, ' ');
+        const completionBadge = entry.isCompletionEvent
+            ? '<span class="badge b-green">Completion record</span>'
+            : `<span class="badge b-gray">${html(eventLabel)}</span>`;
+
+        return `<div class="phase-history-event ${entry.isCompletionEvent ? 'is-completion' : ''}">
+            <span class="avatar">${html(entry.actorInitials || userInitials(entry.actor || 'System'))}</span>
+            <div class="phase-event-body">
+                <div class="phase-event-head"><b>${html(entry.actor || 'System')}</b>${completionBadge}</div>
+                <div class="phase-event-description">${html(entry.description || `Updated ${task.id}`)}</div>
+                <div class="phase-event-grid">
+                    <div class="phase-event-detail"><span>Task</span><b>${html(task.id)} · ${html(task.title || '')}</b></div>
+                    <div class="phase-event-detail"><span>Time</span><b>${occurredAt}</b></div>
+                    <div class="phase-event-detail"><span>Status now</span><b>${html(task.status || 'Not recorded')}</b></div>
+                    ${fileRow}${commentRow}${requirementRow}
+                </div>
+                ${changeRows}
+            </div>
+        </div>`;
+    }
+
+    function flowtrackRenderPhaseHistoryPanel(job, phaseId, sourceTasks = null) {
+        const phase = flowtrackPhaseFor(job, phaseId);
+        if (!phase) return '<div class="empty-state">No workflow phase selected.</div>';
+        const phaseTasks = flowtrackTasksForPhase(job, phase.id, sourceTasks);
+        const history = flowtrackPhaseHistoryFor(job, phase);
+        const completedTasks = phaseTasks.filter((task) => taskIsCompleted(task));
+        const taskRows = phaseTasks.map((task) => {
+            const completed = taskIsCompleted(task);
+            const latestCompletion = (task.history || []).find((entry) => entry.isCompletionEvent) || null;
+            const uploadedFile = latestCompletion?.fileName ? ` · Uploaded: ${html(latestCompletion.fileName)}` : '';
+            const completedMeta = completed
+                ? `${html(task.completedBy || latestCompletion?.actor || task.assignee || 'System')} · ${flowtrackFormatDateTime(task.completedAt || latestCompletion?.occurredAt)}${uploadedFile}`
+                : `${html(task.assignee || 'Unassigned')} · ${task.due ? formatDate(task.due) : 'No due date'}`;
+            return `<div class="phase-history-task-row" data-task="${html(task.id)}"><span class="signal ${completed ? 'green' : task.attention ? 'red' : 'amber'}"></span><div><b>${html(task.title)}</b><div class="small muted" style="margin-top:3px">${completed ? 'Completed by ' : 'Assigned to '}${completedMeta}</div></div>${statusBadge(task.status)}</div>`;
+        }).join('');
+        const taskChangeRows = phaseTasks.flatMap((task) => (task.history || []).map((entry) => ({ task, entry })))
+            .sort((left, right) => String(right.entry.occurredAt || '').localeCompare(String(left.entry.occurredAt || '')))
+            .map(({ task, entry }) => flowtrackRenderPhaseActivityEvent(task, entry))
+            .join('');
+        return `<div class="phase-history-panel" data-current-phase="${html(phase.id)}"><div class="section-head"><div><h3>${html(phase.name)} Task History</h3><div class="small muted" style="margin-top:4px">Click a task to open its full update and change log.</div></div><span class="badge ${history?.status === 'completed' ? 'b-green' : history?.status === 'skipped' ? 'b-amber' : Number(phase.id) === Number(job.phaseId) ? 'b-blue' : 'b-gray'}">${html(history?.statusLabel || (Number(phase.id) === Number(job.phaseId) ? 'Current' : 'Pending'))}</span></div><div class="phase-history-summary"><div><span>Entered</span><b>${flowtrackFormatDateTime(history?.enteredAt)}</b></div><div><span>Completed</span><b>${flowtrackFormatDateTime(history?.completedAt)}</b></div><div><span>Completed Tasks</span><b>${completedTasks.length}/${phaseTasks.length}</b></div><div><span>Last Actor</span><b>${html(history?.changedBy || 'System')}</b></div></div><div class="phase-history-task-list">${taskRows || '<div class="empty-state">No tasks were generated for this phase yet.</div>'}</div><div class="section-head" style="margin-top:16px"><div><h3>Phase Activity</h3><div class="small muted" style="margin-top:4px">Full audit of task updates, completions, document uploads, comments, actor and time for this phase.</div></div></div><div class="phase-history-events">${taskChangeRows || '<div class="empty-state">No task history has been recorded for this phase yet.</div>'}</div></div>`;
+    }
+
+    function flowtrackOpenPhaseHistory(jobId, phaseId, root = document) {
+        const job = flowtrackFindJob(jobId);
+        if (!job) return;
+        const scope = root?.closest?.('.drawer-body') || root?.closest?.('.standalone-record-content') || root || document;
+        const panel = scope.querySelector('#flowtrackPhaseHistoryPanel');
+        if (panel) panel.innerHTML = flowtrackRenderPhaseHistoryPanel(job, phaseId);
+        scope.querySelectorAll('[data-flow-phase]').forEach((button) => button.classList.toggle('selected', Number(button.dataset.flowPhase) === Number(phaseId)));
+        bindCommon();
+    }
+
+    async function flowtrackRefreshJobTasks(job) {
+        if (!job?.dbId) return null;
+        const result = await api(`/flowtrack/template-api/jobs/${job.dbId}/tasks`);
+        if (result.job) {
+            const jobIndex = jobs.findIndex((item) => Number(item.dbId) === Number(result.job.dbId));
+            if (jobIndex >= 0) jobs.splice(jobIndex, 1, result.job);
+        }
+        if (result.job && Array.isArray(result.tasks)) replaceTasksForJob(result.job.id, result.tasks);
+        return result;
+    }
+
+    function openJobTaskModal(jobId, phaseId = null) {
+        const job = flowtrackFindJob(jobId);
+        if (!job) return;
+        const activePhases = flowtrackActivePhases(job);
+        const defaultPhase = flowtrackPhaseFor(job, phaseId || job.phaseId) || activePhases[0];
+        const phaseOptions = activePhases.map((phase) => `<option value="${html(phase.id)}" ${Number(phase.id) === Number(defaultPhase?.id) ? 'selected' : ''}>${html(phase.name)}</option>`).join('');
+        const priorityOptions = (masterData.priorities || [])
+            .filter((priority) => String(priority.status || 'Active').toLowerCase() === 'active')
+            .map((priority) => `<option value="${html(priority.id)}" ${Number(priority.id) === Number(job.priorityId) ? 'selected' : ''}>${html(priority.name)}</option>`)
+            .join('');
+        $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>Add Sub Task</h2><div class="small muted">${html(job.id)} · ${html(job.title || '')}</div></div><button class="close-btn" data-close>×</button></div><div class="modal-body"><div class="form-grid"><div class="field full"><label>Sub task title *</label><input id="newJobTaskTitle" maxlength="255" placeholder="e.g. Verify client artwork version"></div><div class="field full"><label>Description</label><textarea id="newJobTaskDescription" rows="3" maxlength="5000" placeholder="Instruction, expected result, or handover details…"></textarea></div><div class="field"><label>Workflow phase *</label><select id="newJobTaskPhase">${phaseOptions}</select></div><div class="field"><label>Assignee</label><select id="newJobTaskAssignee"><option value="">Unassigned</option>${users.map((user) => `<option value="${html(user.id)}">${html(user.name)}</option>`).join('')}</select></div><div class="field"><label>Priority</label><select id="newJobTaskPriority"><option value="">Use job priority</option>${priorityOptions}</select></div><div class="field"><label>Due date</label><input type="date" id="newJobTaskDueDate"></div><div class="field full"><label>Checklist items</label><textarea id="newJobTaskChecklist" rows="3" placeholder="One checklist item per line"></textarea></div></div></div><div class="modal-foot"><button class="ghost" data-close>Cancel</button><button class="primary" id="createJobSubTask">Create Sub Task</button></div>`;
+        openOverlay();
+        $('#jobModal').classList.add('open');
+        $$('[data-close]').forEach((button) => button.addEventListener('click', closeAll));
+        $('#createJobSubTask')?.addEventListener('click', async () => {
+            const title = $('#newJobTaskTitle')?.value.trim();
+            if (!title) { showToast('Enter a sub task title.'); $('#newJobTaskTitle')?.focus(); return; }
+            const button = $('#createJobSubTask');
+            button.disabled = true;
+            button.textContent = 'Creating…';
+            try {
+                const checklist = String($('#newJobTaskChecklist')?.value || '').split('\n').map((line) => line.trim()).filter(Boolean);
+                const result = await api(`/flowtrack/template-api/jobs/${job.dbId}/tasks`, {
+                    method: 'POST',
+                    body: {
+                        workflow_phase_id: Number($('#newJobTaskPhase')?.value || defaultPhase?.id || job.phaseId),
+                        title,
+                        description: $('#newJobTaskDescription')?.value.trim() || null,
+                        assignee_id: $('#newJobTaskAssignee')?.value ? Number($('#newJobTaskAssignee').value) : null,
+                        priority_id: $('#newJobTaskPriority')?.value ? Number($('#newJobTaskPriority').value) : null,
+                        due_date: $('#newJobTaskDueDate')?.value || null,
+                        checklist,
+                    },
+                });
+                if (result.job) {
+                    const jobIndex = jobs.findIndex((item) => Number(item.dbId) === Number(result.job.dbId));
+                    if (jobIndex >= 0) jobs.splice(jobIndex, 1, result.job);
+                    replaceTasksForJob(result.job.id, result.tasks || []);
+                }
+                closeAll();
+                renderPage(currentPage);
+                updateBadges();
+                showToast(result.message || 'Sub task created successfully.');
+                setTimeout(() => {
+                    openJob(result.job?.id || job.id);
+                    setTimeout(() => {
+                        const page = document.querySelector(`#page-record-job-${flowtrackRecordSlug(result.job?.id || job.id)} .standalone-record-content`);
+                        if (page) {
+                            activateScopedDetailTab(page, 2);
+                            flowtrackOpenPhaseHistory(result.job?.id || job.id, $('#newJobTaskPhase')?.value || defaultPhase?.id, page);
+                        }
+                    }, 40);
+                }, 30);
+            } catch (error) {
+                showToast(error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Create Sub Task';
+            }
+        });
+    }
+
+    function compactJobTaskRows(taskRows, emptyLabel = 'No Tasks are configured for this phase yet.') {
+        return taskRows.map((task) => `<button type="button" class="attention-item subtask-row-button" data-task="${html(task.id)}"><span class="signal ${task.attention ? 'red' : taskIsCompleted(task) ? 'green' : 'amber'}"></span><div><div class="item-title">${html(task.title)}</div><div class="item-meta">${html(task.assignee || 'Unassigned')} · ${task.due ? formatDate(task.due) : 'No due date'} · ${Number(task.progress || 0)}% · ${html(task.phase || '')}</div></div>${statusBadge(task.status)}</button>`).join('') || `<div class="empty-state">${html(emptyLabel)}</div>`;
+    }
+
+    const flowtrackOriginalJobPanels = jobPanels;
+    jobPanels = function (j, jt, jd) {
+        const wf = getWorkflow(j.workflow || 'standard') || { phases: [], name: 'Workflow' };
+        const skipped = j.skippedPhases || [];
+        const activity = j.activity || [];
+        const currentTasks = jobCurrentPhaseTasks(j, jt || []);
+        const openCurrentTasks = currentTasks.filter((task) => !taskIsCompleted(task));
+        const activePhases = (wf.phases || []).filter((phase) => phase.active !== false && !(j.excludedPhaseIds || []).map(Number).includes(Number(phase.id))).slice().sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
+        const currentPhase = activePhases.find((phase) => Number(phase.id) === Number(j.phaseId));
+        const totalQty = Number(j.qty || jobProductItems(j).reduce((sum, item) => sum + Number(item.qty || 0), 0));
+        const allJobDocs = jobDocsFor(j);
+        const latestUpdate = activity[0];
+        const readiness = j.phaseReadinessDetails || {};
+        return `<section id="detailPanel0" class="detail-panel active"><div class="summary-grid"><div class="summary-box"><span>Current Phase</span><b>${html(phaseNameFor(j))}</b></div><div class="summary-box"><span>Next Required Action</span><b>${html(j.next || 'Review current phase')}</b></div><div class="summary-box"><span>Delivery Deadline</span><b class="${j.delivery < today ? 'due overdue' : ''}">${formatDate(j.delivery)}</b></div><div class="summary-box"><span>Workflow Template</span><b>${html(wf.name || 'Workflow')}</b></div><div class="summary-box"><span>Job Started At</span><b>${html(phaseNameFor(j, j.createdFromPhase ?? 0))}</b></div><div class="summary-box"><span>Commercial Value</span><b>${j.price ? currency(j.price, j.currency) : 'Not recorded'}</b></div></div>${j.requestDescription ? `<div class="source-note" style="margin-top:14px"><b>Request description</b><div class="small muted" style="margin-top:5px;white-space:pre-wrap">${safeHtml(j.requestDescription)}</div></div>` : ''}${jobProductSummary(j)}${skipped.length ? `<div class="source-note"><b>Started after earlier phases</b><div class="small muted" style="margin-top:4px">${skipped.length} phase${skipped.length === 1 ? ' was' : 's were'} recorded as “${html(j.startHandling || 'Skipped')}”. ${html(j.startReason || '')}</div></div>` : ''}<div style="margin-top:16px"><div class="section-head"><h3>Overall Progress</h3><b>${Number(j.progress || 0)}%</b></div><div class="progress" style="height:9px"><span class="${Number(j.progress || 0) >= 100 ? 'complete' : ''}" style="width:${Math.max(0, Math.min(100, Number(j.progress || 0)))}%"></span></div></div><div class="card" style="margin-top:16px;padding:13px;background:#f8faff"><b>Latest update</b><div class="muted" style="margin-top:5px">${latestUpdate ? `${html(latestUpdate.title || 'Updated')}${latestUpdate.text ? ` · ${html(latestUpdate.text)}` : ''} · ${html(latestUpdate.time || '')}` : `${html(j.next || 'No update recorded yet.')}`}</div></div><div class="section-head" style="margin-top:18px"><h3>Current Phase Tasks</h3><button class="link-btn" data-open-job-tasks>View all</button></div>${compactJobTaskRows(openCurrentTasks.slice(0, 5), 'No open tasks in the current phase.')}</section>
+<section id="detailPanel1" class="detail-panel"><div class="timeline clickable-workflow-timeline">${activePhases.map((phase, index) => flowtrackPhaseTimelineStep(j, phase, index, currentPhase, skipped)).join('') || '<div class="empty-state">No workflow phases configured.</div>'}</div><div id="flowtrackPhaseHistoryPanel" style="margin-top:14px">${flowtrackRenderPhaseHistoryPanel(j, currentPhase?.id || activePhases[0]?.id, jt || [])}</div>${skipped.length ? `<div class="skip-warning"><b>Historical phase handling</b><div style="margin-top:5px">${html(j.startHandling || '')}: ${html(j.startReason || '')}</div></div>` : ''}<div class="card section-card workflow-card-clean" style="margin-top:14px"><div class="section-head"><h3>Current Phase Controls</h3><div><span class="badge b-blue">${html(phasePackFor(j.workflow || 'standard', j.phase) || 'No Task Pack')}</span> <span class="badge ${j.phaseReadiness === 'ready' ? 'b-green' : j.phaseReadiness === 'blocked' ? 'b-red' : 'b-amber'}">${html(j.phaseReadinessLabel || 'In Progress')}</span></div></div><div class="source-note"><b>Phase readiness</b><div class="small muted" style="margin-top:4px">${html((readiness.blockers || []).join(' ') || 'All configured task, document and blocker gates are satisfied.')}</div></div><div class="workflow-readiness-grid"><label class="check-row"><input type="checkbox" disabled ${readiness.task_gate?.met ? 'checked' : ''}> <span>Required tasks completed (${Number(readiness.task_gate?.completed || 0)}/${Number(readiness.task_gate?.required || 0)})</span></label>${readiness.document_gate?.required ? `<label class="check-row"><input type="checkbox" disabled ${readiness.document_gate?.met ? 'checked' : ''}> <span>Required document(s) uploaded</span></label>` : ''}</div><div class="actions standalone-save-actions" style="margin-top:14px"><button class="secondary" data-open-job-tasks>View Phase Tasks</button>${j.phase < (wf.phases || []).length - 1 ? `<button class="primary" data-next-phase="${html(j.id)}" ${j.phaseReadiness === 'ready' ? '' : 'disabled'}>${j.phaseReadiness === 'ready' ? 'Complete Phase' : 'Complete Required Work'}</button>` : '<span class="badge b-green">Workflow completed</span>'}</div></div></section>
+<section id="detailPanel2" class="detail-panel"><div class="section-head"><div><h3>Current Phase Tasks</h3><div class="small muted" style="margin-top:4px">${html(currentPhase?.name || phaseNameFor(j) || 'Current phase')}</div></div><button class="primary" data-add-task="${html(j.id)}">＋ Add Task</button></div>${compactJobTaskRows(currentTasks, `No Tasks are configured for ${currentPhase?.name || 'the current phase'} yet.`)}</section>
+<section id="detailPanel3" class="detail-panel">${documentPanelFor(j, 'Quotation', ['quotation', 'quote', 'rfq', 'pricing', 'commercial'])}</section>
+<section id="detailPanel4" class="detail-panel">${documentPanelFor(j, 'Artwork', ['artwork', 'art proof', 'proof', 'design', 'logo'])}</section>
+<section id="detailPanel5" class="detail-panel"><div class="summary-grid"><div class="summary-box"><span>Quantity Ordered</span><b>${totalQty.toLocaleString()} units</b></div><div class="summary-box"><span>Progress</span><b>${Number(j.progress || 0)}%</b></div><div class="summary-box"><span>Current Phase</span><b>${html(phaseNameFor(j))}</b></div></div><div style="margin-top:18px">${documentPanelFor(j, 'Production Documents', ['production', 'inspection', 'quality', 'packing', 'sample', 'proof'])}</div></section>
+<section id="detailPanel6" class="detail-panel"><div class="summary-grid"><div class="summary-box"><span>Delivery Deadline</span><b class="${j.delivery < today ? 'due overdue' : ''}">${formatDate(j.delivery)}</b></div><div class="summary-box"><span>Shipment Phase</span><b>${html(phaseNameFor(j))}</b></div><div class="summary-box"><span>Status</span><b>${html(j.status || 'Not started')}</b></div></div><div style="margin-top:18px">${documentPanelFor(j, 'Shipment Documents', ['shipment', 'shipping', 'delivery', 'tracking', 'packing list', 'bill of lading', 'air waybill'])}</div></section>
+<section id="detailPanel7" class="detail-panel"><div class="summary-grid"><div class="summary-box"><span>Invoice Amount</span><b>${j.price ? currency(j.price, j.currency) : 'Not recorded'}</b></div><div class="summary-box"><span>Commercial Status</span><b>${html(boardJobCommercialLabel(j))}</b></div><div class="summary-box"><span>Client</span><b>${html(clientName(j.client))}</b></div></div><div style="margin-top:18px">${documentPanelFor(j, 'Invoice Documents', ['invoice', 'payment', 'receipt', 'commercial'])}</div></section>
+<section id="detailPanel8" class="detail-panel"><div class="section-head"><div><h3>Documents</h3><div class="job-detail-doc-summary">All files currently linked to this Job.</div></div><button class="primary" data-upload-job="${html(j.id)}">＋ Upload</button></div>${currentDocumentCardsHtml(allJobDocs, 'No documents have been uploaded for this Job yet.')}</section>
+<section id="detailPanel9" class="detail-panel">${activity.map((a) => `<div class="comment"><span class="avatar">${userInitials(a.actor || 'System')}</span><div><b>${html(a.title || 'Activity')}</b><div style="margin-top:4px">${html(a.text || '')}</div><div class="small muted" style="margin-top:4px">${html(a.actor || 'System')} · ${html(a.time || '')}</div></div></div>`).join('') || '<div class="empty-state">No Activity recorded yet.</div>'}</section>`;
+    };
+
+    function activateScopedDetailTab(root, index) {
+        const scope = root?.closest('.drawer-body') || root?.closest('.standalone-record-content') || root || document;
+        scope.querySelectorAll('[data-detailtab]').forEach((tab) => tab.classList.toggle('active', String(tab.dataset.detailtab) === String(index)));
+        scope.querySelectorAll('.detail-panel').forEach((panel) => panel.classList.toggle('active', panel.id === `detailPanel${index}`));
+    }
+
+    function bindStandaloneDetailTabs(content) {
+        if (!content) return;
+        content.querySelectorAll('[data-detailtab]').forEach((button) => {
+            if (button.dataset.scopedStandaloneTab === '1') return;
+            button.dataset.scopedStandaloneTab = '1';
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                activateScopedDetailTab(button, button.dataset.detailtab);
+            }, true);
+        });
+        content.querySelectorAll('[data-open-job-tasks]').forEach((button) => {
+            if (button.dataset.scopedOpenTasks === '1') return;
+            button.dataset.scopedOpenTasks = '1';
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                activateScopedDetailTab(button, 2);
+            }, true);
+        });
+        content.querySelectorAll('[data-flow-phase]').forEach((button) => {
+            if (button.dataset.scopedFlowPhase === '1') return;
+            button.dataset.scopedFlowPhase = '1';
+            button.addEventListener('click', async (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                const job = flowtrackFindJob(button.dataset.flowJob);
+                if (job) {
+                    try { await flowtrackRefreshJobTasks(job); } catch (error) {}
+                    flowtrackOpenPhaseHistory(button.dataset.flowJob, button.dataset.flowPhase, button);
+                }
+            }, true);
+        });
+        content.querySelectorAll('[data-add-task]').forEach((button) => {
+            if (button.dataset.scopedAddTask === '1') return;
+            button.dataset.scopedAddTask = '1';
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                openJobTaskModal(button.dataset.addTask, button.dataset.addTaskPhase || null);
+            }, true);
+        });
+    }
+
+    function polishStandaloneContent(content) {
+        if (!content) return;
+        ['saveTaskUpdate', 'saveTaskDueDate', 'createJob', 'saveDraftJob', 'saveClient', 'createClient', 'saveWorkflow', 'saveTaskPack'].forEach((id) => {
+            const element = content.querySelector(`#${id}`);
+            const parent = element?.closest('.actions,.modal-foot,.task-document-upload');
+            if (parent) parent.classList.add('standalone-save-actions');
+        });
+        const updateButton = content.querySelector('#saveTaskUpdate');
+        if (updateButton) updateButton.removeAttribute('style');
+    }
+
+
+
+
+
+
+    const flowtrackClickablePhaseStyles = document.createElement('style');
+    flowtrackClickablePhaseStyles.textContent = `
+        .clickable-workflow-timeline .step,.workflow-phase-step{border:0;background:transparent;font:inherit;color:inherit;cursor:pointer;padding:0}.workflow-phase-step:hover .step-dot,.workflow-phase-step.selected .step-dot{box-shadow:0 0 0 6px rgba(37,99,235,.12)}.workflow-phase-step.done.selected .step-dot{box-shadow:0 0 0 6px rgba(21,128,61,.14)}.workflow-phase-step.selected .step-label{color:#2563eb;font-weight:750}.phase-history-panel{border:1px solid #dbe3ef;border-radius:16px;background:#fff;padding:16px;box-shadow:0 8px 24px rgba(15,23,42,.04)}.phase-history-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}.phase-history-summary>div{border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;padding:11px}.phase-history-summary span{display:block;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}.phase-history-summary b{font-size:12px}.phase-history-task-list{display:grid;gap:8px}.phase-history-task-row,.subtask-row-button{width:100%;border:1px solid #e2e8f0;background:#fff;text-align:left}.phase-history-task-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:12px;cursor:pointer}.phase-history-task-row:hover,.subtask-row-button:hover{background:#f8faff;border-color:#bfd4ff}.phase-history-events{display:grid;gap:10px}.phase-history-event{display:flex;gap:10px;align-items:flex-start;border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#fff}.phase-history-event.is-completion{border-color:#bbf7d0;background:#f7fff9}.phase-event-body{min-width:0;flex:1}.phase-event-head{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}.phase-event-description{margin-top:4px;color:#0f172a}.phase-event-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}.phase-event-detail{border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:8px;min-width:0}.phase-event-detail span{display:block;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}.phase-event-detail b{display:block;font-size:12px;font-weight:650;overflow-wrap:anywhere}.phase-change-list{padding-left:20px!important;margin-top:9px!important}.signal.green{background:#16a34a}.task-history-entry{border:1px solid #e2e8f0;border-radius:12px;padding:11px;margin-bottom:9px;background:#fff}.task-history-head{display:flex;gap:10px}.task-change-list{margin:9px 0 0;padding-left:38px;color:#475569;font-size:12px}.task-menu-wrap{position:relative}.task-action-menu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 16px 40px rgba(15,23,42,.16);padding:6px;z-index:10;min-width:150px}.task-action-menu button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:9px}.task-action-menu .danger-option{color:#b91c1c}.task-action-menu button:hover{background:#f8fafc}@media(max-width:760px){.phase-history-summary{grid-template-columns:1fr 1fr}.phase-event-grid{grid-template-columns:1fr}.phase-history-task-row{grid-template-columns:auto 1fr}.phase-history-task-row .badge{grid-column:2}}
+    `;
+    document.head.appendChild(flowtrackClickablePhaseStyles);
+
+    const standalonePageStyles = document.createElement('style');
+    standalonePageStyles.textContent = `
+        .standalone-record-page{max-width:1180px;margin:0 auto;padding:0 0 28px}.standalone-record-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:0 0 14px}.standalone-record-title{min-width:0}.standalone-record-title h1{margin:3px 0 4px;font-size:24px;line-height:1.15;font-weight:760;letter-spacing:-.02em}.standalone-record-title p{margin:0;color:#64748b;font-size:13px}.standalone-record-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.standalone-record-shell{background:#fff;border:1px solid #dbe3ef;border-radius:18px;box-shadow:0 10px 28px rgba(15,23,42,.06);overflow:hidden}.standalone-record-content .drawer-head,.standalone-record-content .modal-head{position:relative;top:auto;border-bottom:1px solid #e2e8f0;padding:18px 20px;background:#fff}.standalone-record-content .drawer-head h2,.standalone-record-content .modal-head h2{font-size:22px;line-height:1.14;font-weight:760;letter-spacing:-.02em}.standalone-record-content .drawer-body,.standalone-record-content .modal-body{padding:18px 20px}.standalone-record-content .modal-foot{position:sticky;bottom:0;padding:12px 20px;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border-top:1px solid #e2e8f0}.standalone-record-content .summary-grid{gap:12px}.standalone-record-content .summary-box{border-radius:13px;padding:14px}.standalone-record-content .detail-tabs{margin-bottom:16px}.standalone-record-content .section-head h3{font-size:18px;font-weight:750}.standalone-record-content .card{box-shadow:none}.standalone-record-content .modal-head>.close-btn,.standalone-record-content .drawer-head>.close-btn,.standalone-record-content .job-header-actions>.close-btn{display:none!important}.standalone-record-content .job-header-actions{margin-left:auto}.standalone-record-form .modal-body{padding-bottom:8px}.standalone-record-form .form-grid{gap:14px}.standalone-record-form .field label{font-size:12px;font-weight:700;color:#334155}.standalone-record-form input,.standalone-record-form select,.standalone-record-form textarea{border-radius:12px}.standalone-record-form .job-form-stack,.standalone-record-form .client-form-stack{max-width:920px}.standalone-record-form .task-pack-items-editor{display:grid;gap:12px}.standalone-back-btn{border:1px solid #dbe3ef;background:#fff;color:#0f172a;border-radius:12px;padding:10px 13px;font-weight:700;cursor:pointer}.standalone-back-btn:hover{background:#f8fafc}.standalone-record-content .flow-hidden-source{display:none!important}@media(max-width:900px){.standalone-record-page{padding:0 10px 20px}.standalone-record-head{flex-direction:column}.standalone-record-actions{width:100%}.standalone-record-actions button{flex:1}.standalone-record-content .summary-grid,.standalone-record-content .form-grid{grid-template-columns:1fr}.standalone-record-content .form-grid .full{grid-column:auto}.standalone-record-content .drawer-head,.standalone-record-content .modal-head,.standalone-record-content .drawer-body,.standalone-record-content .modal-body,.standalone-record-content .modal-foot{padding-left:14px;padding-right:14px}}`;
+    document.head.appendChild(standalonePageStyles);
+
+    let standaloneBackPage = 'dashboard';
+    let standaloneActivePageId = null;
+    const baseCloseAllForStandalone = closeAll;
+    closeAll = function () {
+        baseCloseAllForStandalone();
+        if (standaloneActivePageId && currentPage === standaloneActivePageId) {
+            const destination = standaloneBackPage || 'dashboard';
+            standaloneActivePageId = null;
+            setTimeout(() => navigate(destination), 0);
+        }
+    };
+
+    function standaloneSourcePage(fallback = 'dashboard') {
+        const page = currentPage && !String(currentPage).startsWith('record-') ? currentPage : standaloneBackPage;
+        return page || fallback;
+    }
+
+    function ensureStandalonePage(pageId) {
+        let page = document.getElementById(`page-${pageId}`);
+        if (!page) {
+            page = document.createElement('section');
+            page.id = `page-${pageId}`;
+            page.className = 'page standalone-record-host';
+            document.querySelector('.content')?.appendChild(page);
+        }
+        return page;
+    }
+
+    function activateStandalonePage(pageId, backPage) {
+        const page = ensureStandalonePage(pageId);
+        standaloneActivePageId = pageId;
+        standaloneBackPage = backPage || standaloneBackPage || 'dashboard';
+        $$('.page').forEach((section) => section.classList.remove('active'));
+        page.classList.add('active');
+        $$('[data-page]').forEach((button) => button.classList.toggle('active', button.dataset.page === standaloneBackPage));
+        $('#sidebar')?.classList.remove('open');
+        $('#sidebarShade')?.classList.remove('open');
+        currentPage = pageId;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return page;
+    }
+
+    function standaloneBackButton(label = 'Back') {
+        return `<button type="button" class="standalone-back-btn" data-standalone-back>← ${html(label)}</button>`;
+    }
+
+    function bindStandaloneBack(page) {
+        page.querySelectorAll('[data-standalone-back]').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const destination = standaloneBackPage || 'dashboard';
+                standaloneActivePageId = null;
+                navigate(destination);
+            });
+        });
+        page.querySelectorAll('[data-close]').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                if (!standaloneActivePageId || currentPage !== standaloneActivePageId) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                const destination = standaloneBackPage || 'dashboard';
+                standaloneActivePageId = null;
+                navigate(destination);
+            }, true);
+        });
+    }
+
+    function moveChildren(from, to) {
+        while (from.firstChild) to.appendChild(from.firstChild);
+    }
+
+    function renderMovedRecordPage({ pageId, backPage, eyebrow, title, subtitle, sourceSelector, form = false }) {
+        const source = document.querySelector(sourceSelector);
+        if (!source || !source.childNodes.length) return false;
+        document.querySelectorAll('.standalone-record-host').forEach((recordPage) => {
+            if (recordPage.id !== `page-${pageId}`) recordPage.innerHTML = '';
+        });
+        const page = activateStandalonePage(pageId, backPage);
+        page.innerHTML = `<div class="standalone-record-page ${form ? 'standalone-record-form' : ''}"><div class="standalone-record-head"><div class="standalone-record-title"><p>${html(eyebrow || 'FlowTrack')}</p><h1>${html(title || 'Details')}</h1>${subtitle ? `<p>${html(subtitle)}</p>` : ''}</div><div class="standalone-record-actions">${standaloneBackButton(`Back to ${backPageLabel(backPage)}`)}</div></div><div class="standalone-record-shell"><div class="standalone-record-content"></div></div></div>`;
+        const content = page.querySelector('.standalone-record-content');
+        moveChildren(source, content);
+        source.classList.remove('open', 'document-job-chooser');
+        source.innerHTML = '';
+        $('#overlay')?.classList.remove('open');
+        bindStandaloneBack(page);
+        bindStandaloneDetailTabs(content);
+        polishStandaloneContent(content);
+        applyActionPermissions();
+        window.FlowtrackSearchableDropdown?.enhance(page);
+        return true;
+    }
+
+    function backPageLabel(page) {
+        const map = { dashboard: 'Dashboard', mywork: 'My Work', jobs: 'Jobs', clients: 'Clients', board: 'Board', documents: 'Documents', workflowsetup: 'Workflow Setup', taskpacksetup: 'Task Pack Setup', masterdata: 'Master Data', setup: 'Setup' };
+        return map[page] || 'Previous Page';
+    }
+
+    function detailSubtitleForJob(job) {
+        if (!job) return '';
+        return `${job.id}${job.order ? ` · ${job.order}` : ''} · ${clientName(job.client)} · ${phaseNameFor(job)}`;
+    }
+
+    function detailSubtitleForTask(task) {
+        const job = tasks && task ? jobs.find((item) => item.id === task.job || Number(item.dbId) === Number(task.jobDbId)) : null;
+        return `${task?.id || ''}${task?.job ? ` · ${task.job}` : ''}${job ? ` · ${job.title}` : ''}`;
+    }
+
+    const drawerJobDetailPage = currentFlowtrackImplementation('openJob');
+    const drawerTaskDetailPage = currentFlowtrackImplementation('openTask');
+    const drawerClientDetailPage = openClient;
+    const modalClientFormPage = openClientModal;
+    const modalJobFormPage = openJobModal;
+    const modalEditJobFormPage = openEditJobModal;
+    const modalWorkflowFormPage = openWorkflowModal;
+    const modalTaskPackFormPage = openTaskPackModal;
+
+    registerFlowtrackExtension('openJob', 'openJob-stage-2', function (id) {        const backPage = standaloneSourcePage('jobs');
+        const job = jobs.find((item) => String(item.id) === String(id) || Number(item.dbId) === Number(id));
+        if (!job) return;
+        drawerJobDetailPage(job.id);
+        const moved = renderMovedRecordPage({ pageId: `record-job-${String(job.id).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`, backPage, eyebrow: 'Job Details', title: job.title || job.id, subtitle: detailSubtitleForJob(job), sourceSelector: '#detailDrawer' });
+        if (moved) {
+            const content = document.querySelector(`#page-record-job-${String(job.id).replace(/[^a-z0-9]+/gi, '-').toLowerCase()} .standalone-record-content`);
+            if (content && !content.querySelector('#jobDetailPanels')) {
+                const drawerBody = content.querySelector('.drawer-body');
+                if (drawerBody) drawerBody.insertAdjacentHTML('beforeend', sanitizeFlowtrackHtml(`<div id="jobDetailPanels">${jobPanels(job, tasks.filter((task) => String(task.job) === String(job.id) || Number(task.jobDbId) === Number(job.dbId)), docs.filter((documentRecord) => String(documentRecord.job) === String(job.id)))}</div>`));
+                bindStandaloneDetailTabs(content);
+                activateScopedDetailTab(content, 0);
+            }
+        }
+    });
+
+    registerFlowtrackExtension('openTask', 'openTask-stage-2', function (id) {        const backPage = standaloneSourcePage('mywork');
+        const task = tasks.find((item) => item.id === id || Number(item.dbId) === Number(id));
+        drawerTaskDetailPage(id);
+        if (!task) return;
+        renderMovedRecordPage({ pageId: `record-task-${String(task.id).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`, backPage, eyebrow: 'Task Details', title: task.title || task.id, subtitle: detailSubtitleForTask(task), sourceSelector: '#detailDrawer' });
+    });
+
+    openClient = function (id) {
+        const backPage = standaloneSourcePage('clients');
+        const client = clients.find((item) => Number(item.id) === Number(id));
+        drawerClientDetailPage(id);
+        if (!client) return;
+        renderMovedRecordPage({ pageId: `record-client-${client.id}`, backPage, eyebrow: 'Client Details', title: client.name || 'Client', subtitle: client.country || '', sourceSelector: '#detailDrawer' });
+    };
+
+    openClientModal = function (existing = null) {
+        const backPage = standaloneSourcePage('clients');
+        modalClientFormPage(existing);
+        renderMovedRecordPage({ pageId: existing ? `record-client-edit-${existing.id}` : 'record-client-new', backPage, eyebrow: existing ? 'Edit Client' : 'Add Client', title: existing ? `Edit ${existing.name}` : 'Add Client', subtitle: 'Client information is saved as a full page, not a drawer.', sourceSelector: '#jobModal', form: true });
+    };
+
+    openJobModal = function (prefillClient) {
+        const backPage = standaloneSourcePage('jobs');
+        modalJobFormPage(prefillClient);
+        renderMovedRecordPage({ pageId: 'record-job-new', backPage, eyebrow: 'New Job', title: 'Create New Job', subtitle: 'Enter the job details, products, workflow stage and attachments.', sourceSelector: '#jobModal', form: true });
+    };
+
+    openEditJobModal = function (job) {
+        if (!job) return;
+        const backPage = standaloneSourcePage('jobs');
+        modalEditJobFormPage(job);
+        renderMovedRecordPage({ pageId: `record-job-edit-${String(job.id).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`, backPage, eyebrow: 'Edit Job', title: `Edit ${job.title || job.id}`, subtitle: detailSubtitleForJob(job), sourceSelector: '#jobModal', form: true });
+    };
+
+    openWorkflowModal = function (existing = null, duplicate = false) {
+        const backPage = standaloneSourcePage('workflowsetup');
+        modalWorkflowFormPage(existing, duplicate);
+        const title = existing && !duplicate ? `Edit ${existing.name}` : duplicate ? `Duplicate ${existing?.name || 'Workflow'}` : 'Create New Workflow';
+        renderMovedRecordPage({ pageId: existing && !duplicate ? `record-workflow-edit-${existing.id}` : duplicate ? `record-workflow-copy-${existing?.id || 'new'}` : 'record-workflow-new', backPage, eyebrow: existing && !duplicate ? 'Edit Workflow' : duplicate ? 'Duplicate Workflow' : 'New Workflow', title, subtitle: 'Configure workflow identity on a dedicated page.', sourceSelector: '#jobModal', form: true });
+    };
+
+    openTaskPackModal = function (existing = null) {
+        const backPage = standaloneSourcePage('taskpacksetup');
+        modalTaskPackFormPage(existing);
+        const moveWhenReady = () => {
+            const moved = renderMovedRecordPage({ pageId: existing ? `record-task-pack-edit-${existing.id}` : 'record-task-pack-new', backPage, eyebrow: existing ? 'Edit Task Pack' : 'Add Task Pack', title: existing ? `Edit ${existing.name}` : 'Add Task Pack', subtitle: 'Build the task sequence on a full page for easier editing.', sourceSelector: '#jobModal', form: true });
+            if (moved) {
+                const addButton = $('#addTaskPackItem');
+                if (addButton && !addButton.dataset.pageScrollBound) {
+                    addButton.dataset.pageScrollBound = '1';
+                    addButton.addEventListener('click', () => setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 30));
+                }
+            }
+            return moved;
+        };
+        if (!moveWhenReady() && !existing) {
+            const start = Date.now();
+            const timer = setInterval(() => {
+                if (moveWhenReady() || Date.now() - start > 4000) clearInterval(timer);
+            }, 50);
+        }
+    };
+
+    const standaloneRenderJobsBase = currentFlowtrackImplementation('renderJobs');
+    registerFlowtrackExtension('renderJobs', 'renderJobs-stage-2', function () {        standaloneRenderJobsBase();
+        $('#newJob')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            openJobModal();
+        }, true);
+    });
+
     const permissionObserver = new MutationObserver(() => applyActionPermissions());
     ['.content', '#jobModal', '#detailDrawer'].forEach((selector) => {
         const target = document.querySelector(selector);
@@ -3067,6 +5184,487 @@
     window.addEventListener('pageshow', (event) => {
         if (event.persisted) window.location.reload();
     });
+
+
+    const flowtrackFinalPolishStyles = document.createElement('style');
+    flowtrackFinalPolishStyles.textContent = `
+        html,body,#appScreen,.app,.main{max-width:100%;overflow-x:hidden!important}.content{width:100%;box-sizing:border-box;overflow-x:hidden}.page{max-width:100%}.standalone-record-page{max-width:1360px!important;width:100%!important}.standalone-record-form .standalone-record-page,.standalone-record-form{width:100%!important}.standalone-record-form .job-form-stack,.standalone-record-form .client-form-stack,.standalone-record-content .job-form-stack,.standalone-record-content .client-form-stack{max-width:none!important;width:100%!important}.standalone-record-content .form-grid{grid-template-columns:1fr!important;width:100%!important}.standalone-record-content .form-grid .field,.standalone-record-content .form-grid .full{grid-column:1/-1!important;min-width:0!important}.standalone-record-content input,.standalone-record-content select,.standalone-record-content textarea,.standalone-record-content .searchable-select{width:100%!important;box-sizing:border-box}.standalone-record-content .job-product-row{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(110px,.4fr) 42px!important;width:100%;box-sizing:border-box}.standalone-record-content .job-product-labels{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(110px,.4fr) 42px!important}.standalone-record-content .modal-foot,.standalone-record-content .actions.standalone-save-actions{justify-content:flex-end!important;align-items:center!important;gap:10px!important}.standalone-record-content .modal-foot button,.standalone-record-content .actions.standalone-save-actions button,.standalone-record-content #saveTaskDueDate,.standalone-record-content #saveTaskUpdate{flex:0 0 158px!important;width:158px!important;min-width:158px!important;height:40px!important;min-height:40px!important;padding:0 14px!important;border-radius:11px!important}.standalone-record-content #saveTaskUpdate{flex-basis:158px!important}.standalone-record-content .drawer-head,.standalone-record-content .modal-head{align-items:flex-start!important}.standalone-record-content .task-head-actions,.standalone-record-content .job-header-actions{margin-left:auto!important;display:flex!important;gap:8px!important;align-items:center!important;justify-content:flex-end!important}.standalone-record-content .detail-panel{display:none}.standalone-record-content .detail-panel.active{display:block}.standalone-record-content #jobDetailPanels{min-height:220px}.standalone-record-content .summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}.standalone-record-content .attention-item{min-width:0}.standalone-record-content .attention-item .item-title,.standalone-record-content .attention-item .item-meta{overflow-wrap:anywhere}.standalone-record-content .job-doc-row{grid-template-columns:38px minmax(0,1fr) auto!important}.standalone-record-content .job-doc-actions{min-width:0;flex-wrap:wrap}.drawer,.modal{max-width:100vw!important}.searchable-options{max-width:min(620px,calc(100vw - 36px))!important}
+        @media(max-width:920px){.standalone-record-content .summary-grid{grid-template-columns:1fr!important}.standalone-record-content .job-product-row,.standalone-record-content .job-product-labels{grid-template-columns:1fr!important}.standalone-record-content .job-product-labels{display:none!important}.standalone-record-content .modal-foot button,.standalone-record-content .actions.standalone-save-actions button,.standalone-record-content #saveTaskDueDate,.standalone-record-content #saveTaskUpdate{flex:1 1 0!important;width:auto!important;min-width:0!important}}
+    `;
+    document.head.appendChild(flowtrackFinalPolishStyles);
+
+    const flowtrackPolishMovedRecordPage = renderMovedRecordPage;
+    renderMovedRecordPage = function (options) {
+        const moved = flowtrackPolishMovedRecordPage(options);
+        if (!moved) return false;
+        const page = document.getElementById(`page-${options.pageId}`);
+        const content = page?.querySelector('.standalone-record-content');
+        if (content) {
+            bindStandaloneDetailTabs(content);
+            const activeTab = content.querySelector('[data-detailtab].active');
+            activateScopedDetailTab(content, activeTab?.dataset.detailtab || 0);
+            content.querySelectorAll('.modal-foot,.actions').forEach((actions) => {
+                if (actions.querySelector('#saveTaskUpdate,#saveTaskDueDate,#createJob,#saveDraftJob,#saveEditJob,#saveClient,#createClient,#saveWorkflow,#saveTaskPack')) {
+                    actions.classList.add('standalone-save-actions');
+                }
+            });
+        }
+        return moved;
+    };
+
+    const flowtrackPolishOpenJobModal = openJobModal;
+    openJobModal = function (prefillClient) {
+        flowtrackPolishOpenJobModal(prefillClient);
+        queueMicrotask(() => {
+            const owner = document.querySelector('#newJobOwner');
+            if (!owner || !canFlow('jobs', 'assign')) return;
+            const selected = owner.value || String(currentUser?.id || '');
+            owner.innerHTML = users.map((user) => `<option value="${html(user.id)}" ${String(user.id) === String(selected) ? 'selected' : ''}>${html(user.name)}</option>`).join('');
+            window.FlowtrackSearchableDropdown?.enhance(owner.closest('.standalone-record-host') || document);
+        });
+    };
+
+    const flowtrackPolishOpenEditJobModal = openEditJobModal;
+    openEditJobModal = function (job) {
+        flowtrackPolishOpenEditJobModal(job);
+        queueMicrotask(() => {
+            if (!job || !canFlow('jobs', 'assign')) return;
+            ['#editJobOwner', '#editJobCoordinator'].forEach((selector) => {
+                const select = document.querySelector(selector);
+                if (!select) return;
+                const selected = select.value;
+                select.innerHTML = users.map((user) => `<option value="${html(user.id)}" ${String(user.id) === String(selected) ? 'selected' : ''}>${html(user.name)}</option>`).join('');
+            });
+            window.FlowtrackSearchableDropdown?.enhance(document.querySelector('.standalone-record-host.active') || document);
+        });
+    };
+
+
+    const flowtrackFinalFixStyles = document.createElement('style');
+    flowtrackFinalFixStyles.textContent = `
+        @media (min-width:901px){
+            #appScreen.app:not(.hidden){display:block!important;min-height:100vh!important}
+            #sidebar.sidebar{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:248px!important;height:100dvh!important;overflow-y:auto!important;overscroll-behavior:contain!important;z-index:45!important}
+            #appScreen .main{margin-left:248px!important;min-width:0!important;width:calc(100% - 248px)!important}
+            #appScreen .topbar{position:sticky!important;top:0!important;z-index:30!important}
+        }
+        .standalone-record-content .task-menu-button,.standalone-record-content .close-btn{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;padding:0!important;display:inline-grid!important;place-items:center!important;line-height:1!important;border-radius:10px!important;font-size:18px!important}
+        .standalone-record-content .task-menu-button{font-size:20px!important;letter-spacing:1px!important;background:#fff!important;border:1px solid #dbe3ef!important}
+        .standalone-record-content .close-btn{background:#f1f5f9!important;border:0!important;color:#0f172a!important}
+        .standalone-record-content .task-head-actions,.standalone-record-content .job-header-actions{align-items:flex-start!important;gap:8px!important}
+        .workflow-card-clean .workflow-readiness-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+        .workflow-card-clean .workflow-readiness-grid .check-row{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;min-height:52px!important;padding:12px!important;border:1px solid #dbe3ef!important;border-radius:12px!important;background:#fff!important}
+        .workflow-card-clean .workflow-readiness-grid .check-row input{width:16px!important;height:16px!important;flex:0 0 16px!important;margin:0!important;accent-color:#2563eb!important}
+        .workflow-card-clean .workflow-readiness-grid .check-row span{font-size:13px!important;line-height:1.35!important;color:#243247!important;font-weight:600!important}
+        .workflow-card-clean .standalone-save-actions{justify-content:flex-end!important;flex-wrap:wrap!important;gap:10px!important}
+        .workflow-card-clean .standalone-save-actions button{flex:0 0 218px!important;width:218px!important;min-width:218px!important;height:42px!important;min-height:42px!important;padding:0 14px!important;border-radius:12px!important;font-size:14px!important;font-weight:700!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+        .standalone-record-content .task-pack-editor-item .form-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;width:100%!important}
+        .standalone-record-content .task-pack-editor-item .form-grid .full{grid-column:1/-1!important}
+        .standalone-record-content .task-pack-editor-item .field{min-width:0!important;margin-bottom:0!important}
+        .standalone-record-content .task-pack-editor-item .check-row{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;width:100%!important;border:1px solid #e2e8f0!important;border-radius:10px!important;padding:10px 12px!important;margin-top:12px!important;background:#fff!important}
+        .standalone-record-content .task-pack-editor-item .check-row input{width:16px!important;height:16px!important;flex:0 0 16px!important;margin:0!important;accent-color:#2563eb!important}
+        .standalone-record-content .task-pack-editor-item .row-actions{display:flex!important;align-items:center!important;gap:6px!important;flex-wrap:wrap!important;justify-content:flex-end!important}
+        .standalone-record-content .task-pack-editor-item .mini-btn{height:32px!important;min-height:32px!important;padding:0 10px!important;border-radius:8px!important;font-size:12px!important}
+        .standalone-record-content .job-product-row,.standalone-record-content .job-product-labels{max-width:100%!important;overflow:hidden!important}
+        .standalone-record-content .job-form-stack,.standalone-record-content .client-form-stack{max-width:100%!important;width:100%!important}
+        .standalone-record-content .modal-body,.standalone-record-content .drawer-body{overflow-x:hidden!important}
+        .standalone-record-content .form-grid .field.full{width:100%!important;max-width:100%!important}
+        @media(max-width:920px){
+            .workflow-card-clean .workflow-readiness-grid{grid-template-columns:1fr!important}
+            .workflow-card-clean .standalone-save-actions button{flex:1 1 100%!important;width:100%!important;min-width:0!important}
+            .standalone-record-content .task-pack-editor-item .form-grid{grid-template-columns:1fr!important}
+        }
+    `;
+    document.head.appendChild(flowtrackFinalFixStyles);
+
+    function flowtrackRecordSlug(value) {
+        return String(value ?? 'record').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+    }
+
+    function flowtrackClearStandalonePage(pageId) {
+        const page = document.getElementById(`page-${pageId}`);
+        if (!page) return;
+        page.innerHTML = '';
+    }
+
+    function flowtrackClearRecordFor(prefix, id) {
+        flowtrackClearStandalonePage(`${prefix}-${flowtrackRecordSlug(id)}`);
+    }
+
+    function flowtrackEnsureJobPanels(job, preferredTab = null) {
+        if (!job) return;
+        const page = document.getElementById(`page-record-job-${flowtrackRecordSlug(job.id)}`);
+        const content = page?.querySelector('.standalone-record-content');
+        if (!content) return;
+        let panels = content.querySelector('#jobDetailPanels');
+        const body = content.querySelector('.drawer-body') || content;
+        if (!panels) {
+            panels = document.createElement('div');
+            panels.id = 'jobDetailPanels';
+            body.appendChild(panels);
+        }
+        panels.innerHTML = jobPanels(
+            job,
+            tasks.filter((task) => String(task.job) === String(job.id) || Number(task.jobDbId) === Number(job.dbId)),
+            docs.filter((documentRecord) => String(documentRecord.job) === String(job.id) || Number(documentRecord.jobDbId) === Number(job.dbId))
+        );
+        bindStandaloneDetailTabs(content);
+        const activeTab = preferredTab ?? content.querySelector('[data-detailtab].active')?.dataset.detailtab ?? 0;
+        activateScopedDetailTab(content, activeTab);
+        bindCommon();
+        applyActionPermissions();
+    }
+
+    function flowtrackRefreshStartStages(root = document) {
+        const scope = root || document;
+        const workflowSelect = scope.querySelector('#newJobWorkflow');
+        const stageSelect = scope.querySelector('#newJobStartPhase');
+        if (!workflowSelect || !stageSelect) return;
+        const workflow = getWorkflow(Number(workflowSelect.value));
+        const phases = (workflow?.phases || [])
+            .filter((phase) => phase.active !== false)
+            .slice()
+            .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0));
+        const allowed = phases.filter((phase) => phase.allowStart !== false);
+        const options = (allowed.length ? allowed : phases).map((phase, index) => {
+            const sequence = Number(phase.sequence || index + 1);
+            return `<option value="${html(phase.id)}">${sequence}. ${html(phase.name)}</option>`;
+        }).join('');
+        stageSelect.innerHTML = options || '<option value="">No active workflow stage configured</option>';
+        stageSelect.disabled = !options;
+        window.FlowtrackSearchableDropdown?.refresh?.(stageSelect);
+    }
+
+    const flowtrackStableOpenTask = currentFlowtrackImplementation('openTask');
+    registerFlowtrackExtension('openTask', 'openTask-stage-3', function (id) {        const task = tasks.find((item) => item.id === id || Number(item.dbId) === Number(id));
+        if (task) flowtrackClearRecordFor('record-task', task.id);
+        return flowtrackStableOpenTask(id);
+    });
+
+    const flowtrackStableOpenJob = currentFlowtrackImplementation('openJob');
+    registerFlowtrackExtension('openJob', 'openJob-stage-3', function (id) {        const job = jobs.find((item) => String(item.id) === String(id) || Number(item.dbId) === Number(id));
+        if (job) flowtrackClearRecordFor('record-job', job.id);
+        const result = flowtrackStableOpenJob(id);
+        if (job) {
+            flowtrackEnsureJobPanels(job);
+            setTimeout(() => flowtrackEnsureJobPanels(job, document.querySelector('.standalone-record-content [data-detailtab].active')?.dataset.detailtab ?? null), 0);
+        }
+        return result;
+    });
+
+    const flowtrackStableOpenClient = openClient;
+    openClient = function (id) {
+        flowtrackClearRecordFor('record-client', id);
+        return flowtrackStableOpenClient(id);
+    };
+
+    const flowtrackStableOpenClientModal = openClientModal;
+    openClientModal = function (existing = null) {
+        flowtrackClearStandalonePage(existing ? `record-client-edit-${existing.id}` : 'record-client-new');
+        return flowtrackStableOpenClientModal(existing);
+    };
+
+    const flowtrackStableOpenJobModal = openJobModal;
+    openJobModal = function (prefillClient) {
+        flowtrackClearStandalonePage('record-job-new');
+        const result = flowtrackStableOpenJobModal(prefillClient);
+        queueMicrotask(() => {
+            const host = document.querySelector('#page-record-job-new') || document;
+            const owner = host.querySelector('#newJobOwner');
+            if (owner && canFlow('jobs', 'assign')) {
+                const selected = owner.value || String(currentUser?.id || '');
+                owner.innerHTML = users.map((user) => `<option value="${html(user.id)}" ${String(user.id) === String(selected) ? 'selected' : ''}>${html(user.name)}</option>`).join('');
+            }
+            flowtrackRefreshStartStages(host);
+            host.querySelector('#newJobWorkflow')?.addEventListener('change', () => flowtrackRefreshStartStages(host));
+            window.FlowtrackSearchableDropdown?.enhance(host);
+        });
+        return result;
+    };
+
+    const flowtrackStableOpenEditJobModal = openEditJobModal;
+    openEditJobModal = function (job) {
+        if (job) flowtrackClearStandalonePage(`record-job-edit-${flowtrackRecordSlug(job.id)}`);
+        const result = flowtrackStableOpenEditJobModal(job);
+        queueMicrotask(() => {
+            if (!job || !canFlow('jobs', 'assign')) return;
+            const host = document.querySelector(`#page-record-job-edit-${flowtrackRecordSlug(job.id)}`) || document;
+            ['#editJobOwner', '#editJobCoordinator'].forEach((selector) => {
+                const select = host.querySelector(selector);
+                if (!select) return;
+                const selected = select.value;
+                select.innerHTML = users.map((user) => `<option value="${html(user.id)}" ${String(user.id) === String(selected) ? 'selected' : ''}>${html(user.name)}</option>`).join('');
+            });
+            window.FlowtrackSearchableDropdown?.enhance(host);
+        });
+        return result;
+    };
+
+    const flowtrackStableOpenWorkflowModal = openWorkflowModal;
+    openWorkflowModal = function (existing = null, duplicate = false) {
+        flowtrackClearStandalonePage(existing && !duplicate ? `record-workflow-edit-${existing.id}` : duplicate ? `record-workflow-copy-${existing?.id || 'new'}` : 'record-workflow-new');
+        return flowtrackStableOpenWorkflowModal(existing, duplicate);
+    };
+
+    const flowtrackStableOpenTaskPackModal = openTaskPackModal;
+    openTaskPackModal = function (existing = null) {
+        flowtrackClearStandalonePage(existing ? `record-task-pack-edit-${existing.id}` : 'record-task-pack-new');
+        return flowtrackStableOpenTaskPackModal(existing);
+    };
+
+    const flowtrackStablePersistTask = persistTask;
+    persistTask = async function (task, status, extras = {}) {
+        const result = await flowtrackStablePersistTask(task, status, extras);
+        try { await loadBootstrap(); } catch (_) { /* local result is already applied */ }
+        return result;
+    };
+
+
+    const flowtrackEmergencyFormFixStyles = document.createElement('style');
+    flowtrackEmergencyFormFixStyles.textContent = `
+        #appScreen.hidden{display:none!important}
+        @media (min-width:901px){#appScreen.app.hidden{display:none!important}#appScreen.app:not(.hidden){display:block!important}}
+        .standalone-record-content .job-products-field{overflow:visible!important;background:#f8fbff!important}
+        .standalone-record-content .job-product-list{overflow:visible!important}
+        .standalone-record-content .job-product-row,.standalone-record-content .job-product-labels{display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(260px,1.25fr) minmax(120px,.42fr) 42px!important;gap:10px!important;align-items:start!important;overflow:visible!important}
+        .standalone-record-content .job-product-row .flow-searchable,.standalone-record-content .job-product-row input{min-width:0!important;width:100%!important}
+        .standalone-record-content .job-product-row .flow-searchable-panel{z-index:800!important;max-width:none!important}
+        .standalone-record-content .job-remove-product{width:40px!important;height:40px!important;min-width:40px!important;display:inline-grid!important;place-items:center!important;align-self:start!important}
+        .standalone-record-content .modal-foot,.standalone-record-content .standalone-save-actions{display:flex!important;justify-content:flex-end!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important}
+        .standalone-record-content .modal-foot button,.standalone-record-content .standalone-save-actions button{height:40px!important;min-height:40px!important;border-radius:11px!important;padding:0 16px!important;font-size:13px!important;line-height:1!important}
+        .standalone-record-content .task-menu-button,.standalone-record-content .close-btn{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;display:inline-grid!important;place-items:center!important;text-align:center!important;line-height:1!important}
+        .standalone-record-content .workflow-readiness-grid .check-row{justify-content:flex-start!important;text-align:left!important}
+        .standalone-record-content .workflow-readiness-grid .check-row input{margin:0!important;align-self:center!important}
+        @media(max-width:920px){.standalone-record-content .job-product-row{grid-template-columns:1fr 1fr 112px 40px!important}.standalone-record-content .job-product-labels{display:none!important}}
+        @media(max-width:640px){.standalone-record-content .job-product-row{grid-template-columns:1fr 40px!important}.standalone-record-content .job-product-row>:nth-child(1),.standalone-record-content .job-product-row>:nth-child(2),.standalone-record-content .job-product-row>:nth-child(3){grid-column:1!important}.standalone-record-content .job-product-row>:nth-child(4){grid-column:2!important;grid-row:1!important}}
+    `;
+    document.head.appendChild(flowtrackEmergencyFormFixStyles);
+
+    document.addEventListener('click', (event) => {
+        if (event.target.closest('#createJob,#saveDraftJob,#saveEditJob,#saveTaskUpdate,#saveTaskDueDate,#saveClient,#createClient,#saveWorkflow,#saveTaskPack')) {
+            sessionActivityPending = true;
+        }
+    }, true);
+
+
+    const flowtrackTaskInteractionStyles = document.createElement('style');
+    flowtrackTaskInteractionStyles.textContent = `
+        .ops-board-page.ops-mode-tasks .ops-board-canvas{overflow-x:auto!important;overflow-y:visible!important}
+        .ops-board-page.ops-mode-tasks .ops-board-canvas .ops-status-grid,
+        .ops-board-page.ops-mode-tasks .ops-board-canvas .ops-task-row{
+            grid-template-columns:repeat(var(--task-status-cols,5),minmax(270px,1fr))!important;
+            min-width:max(100%,calc(var(--task-status-cols,5) * 270px))!important;
+        }
+        .ops-board-page.ops-mode-tasks .ops-board-canvas .ops-job-group{min-width:max(100%,calc(var(--task-status-cols,5) * 270px))!important}
+        .ops-board-page.ops-mode-tasks .ops-task-cell{padding:10px!important}
+        .ops-board-page.ops-mode-tasks .ops-task-card{width:100%!important;min-width:0!important}
+        .ops-board-card-menu-wrap{position:relative;display:inline-flex;align-items:center}
+        .ops-board-card-action-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:900;min-width:142px;padding:5px;background:#fff;border:1px solid #dbe3ef;border-radius:10px;box-shadow:0 14px 30px rgba(15,23,42,.16)}
+        .ops-board-card-action-menu.hidden{display:none!important}
+        .ops-board-card-action-menu button{width:100%;border:0;background:transparent;color:#c0392b;text-align:left;padding:9px 10px;border-radius:7px;font-size:12px;font-weight:650;cursor:pointer}
+        .ops-board-card-action-menu button:hover{background:#fff1f0}
+        .ops-menu-disabled{display:block;padding:8px 9px;color:#94a3b8;font-size:11px;white-space:nowrap}
+        .standalone-record-shell{overflow:visible!important}
+        .standalone-record-content{position:relative;overflow:visible!important;border-radius:18px;background:#fff}
+        .standalone-record-content .drawer-head,.standalone-record-content .modal-head{border-radius:18px 18px 0 0}
+        .standalone-record-content .drawer-body,.standalone-record-content .modal-body{overflow:visible!important}
+        .task-menu-wrap{z-index:1000}
+        .task-action-menu{z-index:1100!important;min-width:160px!important}
+        .mention-wrap{z-index:40}
+        .mention-menu{z-index:1200!important;max-height:220px!important;overflow-y:auto!important;border-color:#b9c8dc!important}
+        .mention-option b{font-weight:650}
+        .task-attention-row{position:relative;display:flex!important;align-items:flex-start!important;justify-content:flex-start!important;gap:11px!important;width:100%!important;margin-top:16px!important;padding:12px 14px!important;border:1px solid #dbe3ef!important;border-radius:12px!important;background:#fbfdff!important;cursor:pointer!important;text-align:left!important}
+        .task-attention-row>input{position:absolute!important;opacity:0!important;pointer-events:none!important}
+        .task-attention-control{width:20px;height:20px;flex:0 0 20px;border:1.5px solid #a9b7ca;border-radius:6px;background:#fff;display:grid;place-items:center;margin-top:1px;transition:.15s}
+        .task-attention-row>input:checked+.task-attention-control{background:#2563eb;border-color:#2563eb}
+        .task-attention-row>input:checked+.task-attention-control:after{content:'✓';color:#fff;font-size:13px;font-weight:800;line-height:1}
+        .task-attention-copy{display:grid;gap:3px;min-width:0;color:#172033}
+        .task-attention-copy b{font-size:13px;font-weight:650}
+        .task-attention-copy small{font-size:11px;line-height:1.35;color:#64748b}
+        .task-attention-row:has(input:focus-visible){outline:3px solid rgba(37,99,235,.18);border-color:#6d95ff!important}
+        .task-attention-row:has(input:disabled){opacity:.58;cursor:not-allowed!important;background:#f8fafc!important}
+        .task-document-section{overflow:visible!important}
+        .task-document-upload{grid-template-columns:minmax(0,1fr)!important}
+        .task-document-upload-actions{justify-content:flex-end!important;margin-top:0!important}
+        .task-document-upload-actions button{width:auto!important;min-width:170px!important}
+        @media(max-width:760px){
+            .ops-board-page.ops-mode-tasks .ops-board-canvas .ops-status-grid,
+            .ops-board-page.ops-mode-tasks .ops-board-canvas .ops-task-row{grid-template-columns:repeat(var(--task-status-cols,5),minmax(250px,1fr))!important;min-width:calc(var(--task-status-cols,5) * 250px)!important}
+            .ops-board-page.ops-mode-tasks .ops-board-canvas .ops-job-group{min-width:calc(var(--task-status-cols,5) * 250px)!important}
+            .task-document-upload-actions button{width:100%!important}
+        }
+    `;
+    document.head.appendChild(flowtrackTaskInteractionStyles);
+
+    let flowtrackRouteSyncSuppressed = false;
+
+    function flowtrackRoutePath(pageId) {
+        const page = String(pageId || 'dashboard');
+        const base = '/flowtrack/view';
+        if (page.startsWith('record-task-')) return `${base}/tasks/${encodeURIComponent(page.slice('record-task-'.length))}`;
+        if (page.startsWith('record-job-edit-')) return `${base}/jobs/${encodeURIComponent(page.slice('record-job-edit-'.length))}/edit`;
+        if (page === 'record-job-new') return `${base}/jobs/new`;
+        if (page.startsWith('record-job-')) return `${base}/jobs/${encodeURIComponent(page.slice('record-job-'.length))}`;
+        if (page.startsWith('record-client-edit-')) return `${base}/clients/${encodeURIComponent(page.slice('record-client-edit-'.length))}/edit`;
+        if (page === 'record-client-new') return `${base}/clients/new`;
+        if (page.startsWith('record-client-')) return `${base}/clients/${encodeURIComponent(page.slice('record-client-'.length))}`;
+        if (page === 'record-workflow-new') return `${base}/workflows/new`;
+        if (page.startsWith('record-workflow-edit-')) return `${base}/workflows/${encodeURIComponent(page.slice('record-workflow-edit-'.length))}/edit`;
+        if (page === 'record-task-pack-new') return `${base}/task-packs/new`;
+        if (page.startsWith('record-task-pack-edit-')) return `${base}/task-packs/${encodeURIComponent(page.slice('record-task-pack-edit-'.length))}/edit`;
+        return `${base}/${encodeURIComponent(page)}`;
+    }
+
+    function flowtrackSyncRoute(pageId, replace = false) {
+        if (flowtrackRouteSyncSuppressed || !window.history?.pushState) return;
+        const path = flowtrackRoutePath(pageId);
+        if (window.location.pathname === path) return;
+        window.history[replace ? 'replaceState' : 'pushState']({ flowtrackPage: pageId }, '', path);
+    }
+
+    function flowtrackInitialRoute() {
+        const prefix = '/flowtrack/view/';
+        if (!window.location.pathname.startsWith(prefix)) return null;
+        const parts = window.location.pathname.slice(prefix.length).split('/').filter(Boolean).map(decodeURIComponent);
+        if (!parts.length) return { type: 'page', page: 'dashboard' };
+        if (parts[0] === 'tasks' && parts[1]) return { type: 'task', slug: parts[1] };
+        if (parts[0] === 'jobs' && parts[1] === 'new') return { type: 'job-new' };
+        if (parts[0] === 'jobs' && parts[1] && parts[2] === 'edit') return { type: 'job-edit', slug: parts[1] };
+        if (parts[0] === 'jobs' && parts[1]) return { type: 'job', slug: parts[1] };
+        if (parts[0] === 'clients' && parts[1] === 'new') return { type: 'client-new' };
+        if (parts[0] === 'clients' && parts[1] && parts[2] === 'edit') return { type: 'client-edit', slug: parts[1] };
+        if (parts[0] === 'clients' && parts[1]) return { type: 'client', slug: parts[1] };
+        if (parts[0] === 'workflows' && parts[1] === 'new') return { type: 'workflow-new' };
+        if (parts[0] === 'workflows' && parts[1] && parts[2] === 'edit') return { type: 'workflow-edit', slug: parts[1] };
+        if (parts[0] === 'task-packs' && parts[1] === 'new') return { type: 'task-pack-new' };
+        if (parts[0] === 'task-packs' && parts[1] && parts[2] === 'edit') return { type: 'task-pack-edit', slug: parts[1] };
+        return { type: 'page', page: parts[0] };
+    }
+
+    function flowtrackFindBySlug(collection, slug) {
+        return (collection || []).find((item) => flowtrackRecordSlug(item.id ?? item.code ?? item.name) === flowtrackRecordSlug(slug)
+            || String(item.dbId ?? item.id) === String(slug));
+    }
+
+    function flowtrackOpenInitialRoute(route) {
+        if (!route) return false;
+        flowtrackRouteSyncSuppressed = true;
+        try {
+            if (route.type === 'page') {
+                const page = canOpenPage(route.page) ? route.page : 'dashboard';
+                navigate(page);
+                flowtrackRouteSyncSuppressed = false;
+                flowtrackSyncRoute(page, true);
+                return true;
+            }
+            if (route.type === 'task') {
+                const task = flowtrackFindBySlug(tasks, route.slug);
+                navigate('board');
+                if (task) openTask(task.id);
+            } else if (route.type === 'job') {
+                const job = flowtrackFindBySlug(jobs, route.slug);
+                navigate('jobs');
+                if (job) openJob(job.id);
+            } else if (route.type === 'job-new') {
+                navigate('jobs');
+                openJobModal();
+            } else if (route.type === 'job-edit') {
+                const job = flowtrackFindBySlug(jobs, route.slug);
+                navigate('jobs');
+                if (job) openEditJobModal(job);
+            } else if (route.type === 'client') {
+                const client = flowtrackFindBySlug(clients, route.slug);
+                navigate('clients');
+                if (client) openClient(client.id);
+            } else if (route.type === 'client-new') {
+                navigate('clients');
+                openClientModal();
+            } else if (route.type === 'client-edit') {
+                const client = flowtrackFindBySlug(clients, route.slug);
+                navigate('clients');
+                if (client) openClientModal(client);
+            } else if (route.type === 'workflow-new') {
+                navigate('workflowsetup');
+                openWorkflowModal();
+            } else if (route.type === 'workflow-edit') {
+                const workflow = flowtrackFindBySlug(workflowTemplates, route.slug);
+                navigate('workflowsetup');
+                if (workflow) openWorkflowModal(workflow);
+            } else if (route.type === 'task-pack-new') {
+                navigate('taskpacksetup');
+                openTaskPackModal();
+            } else if (route.type === 'task-pack-edit') {
+                const pack = flowtrackFindBySlug(taskPacks, route.slug);
+                navigate('taskpacksetup');
+                if (pack) openTaskPackModal(pack);
+            }
+        } finally {
+            flowtrackRouteSyncSuppressed = false;
+        }
+        flowtrackSyncRoute(currentPage || 'dashboard', true);
+        return true;
+    }
+
+    const flowtrackHistoryNavigate = navigate;
+    navigate = function (page) {
+        const result = flowtrackHistoryNavigate(page);
+        if (currentPage === page) flowtrackSyncRoute(page);
+        return result;
+    };
+
+    const flowtrackHistoryActivateStandalonePage = activateStandalonePage;
+    activateStandalonePage = function (pageId, backPage) {
+        const page = flowtrackHistoryActivateStandalonePage(pageId, backPage);
+        flowtrackSyncRoute(pageId);
+        return page;
+    };
+
+    const flowtrackHistoryShowApplication = showApplication;
+    showApplication = function () {
+        const initialRoute = flowtrackInitialRoute();
+        flowtrackRouteSyncSuppressed = true;
+        flowtrackHistoryShowApplication();
+        flowtrackRouteSyncSuppressed = false;
+        if (!flowtrackOpenInitialRoute(initialRoute)) {
+            flowtrackSyncRoute(currentPage || currentUser?.defaultLandingPage || 'dashboard', true);
+        }
+    };
+
+    window.addEventListener('popstate', () => window.location.reload());
+
+    const expectedFlowtrackStages = {
+        openJob: ['openJob-stage-1', 'openJob-stage-2', 'openJob-stage-3'],
+        openTask: ['openTask-stage-1', 'openTask-stage-2', 'openTask-stage-3'],
+        renderJobs: ['renderJobs-stage-1', 'renderJobs-stage-2'],
+        renderKanban: ['renderKanban-stage-1', 'renderKanban-stage-2'],
+    };
+    const actualFlowtrackStages = Object.fromEntries(
+        flowtrackToArray(flowtrackExtensionRegistry).map(([name, stages]) => [name, stages.map((entry) => entry.stage)]),
+    );
+    Object.entries(expectedFlowtrackStages).forEach(([name, expected]) => {
+        const actual = actualFlowtrackStages[name] || [];
+        if (actual.length !== expected.length || actual.some((stage, index) => stage !== expected[index])) {
+            throw new Error(`Invalid FlowTrack extension chain for ${name}: ${actual.join(', ')}`);
+        }
+    });
+
+    // Freeze the final public implementations after all deterministic stages have
+    // been installed. This preserves the existing UI result while preventing any
+    // later script from silently replacing core behavior.
+    const flowtrackFinalImplementations = { openJob, openTask, renderJobs, renderKanban, bindCommon };
+    Object.entries(flowtrackFinalImplementations).forEach(([name, implementation]) => {
+        try {
+            Object.defineProperty(window, name, {
+                value: implementation,
+                writable: false,
+                configurable: false,
+            });
+        } catch (error) {
+            if (window[name] !== implementation) throw error;
+        }
+    });
+    window.__FLOWTRACK_FINALIZED__ = true;
+    window.__FLOWTRACK_EXTENSION_STAGES__ = actualFlowtrackStages;
 
     if (window.FLOWTRACK_AUTHENTICATED) {
         loadBootstrap()

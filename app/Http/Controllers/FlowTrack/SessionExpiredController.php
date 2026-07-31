@@ -25,7 +25,9 @@ class SessionExpiredController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
+        $minutes = (int) config('session.flowtrack_idle_lifetime', config('session.flowtrack_absolute_lifetime', 30));
+
         return redirect()->route('login', ['session' => 'expired'])
-            ->with('error', 'Your 30-minute session has expired. Please sign in again.');
+            ->with('error', "Your session expired after {$minutes} minutes without activity. Please sign in again.");
     }
 }

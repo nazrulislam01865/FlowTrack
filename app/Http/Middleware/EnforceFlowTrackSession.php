@@ -22,7 +22,8 @@ class EnforceFlowTrackSession
 
         $sessionToken = (string) $request->session()->get('flowtrack.active_session_token', '');
         $startedAt = (int) $request->session()->get('flowtrack.session_started_at', 0);
-        $minutes = (int) config('session.flowtrack_absolute_lifetime', 30);
+        $expiresAt = (int) $request->session()->get('flowtrack.session_expires_at', 0);
+        $minutes = (int) config('session.flowtrack_idle_lifetime', config('session.flowtrack_absolute_lifetime', 30));
 
         // Safely adopt sessions that existed before this feature was deployed.
         if ($sessionToken === '' && blank($user->active_session_token)) {
@@ -39,10 +40,15 @@ class EnforceFlowTrackSession
             ])->saveQuietly();
         }
 
-        if ($startedAt <= 0 || now()->timestamp >= ($startedAt + ($minutes * 60))) {
+        if ($expiresAt <= 0 && $startedAt > 0) {
+            $expiresAt = $startedAt + ($minutes * 60);
+            $request->session()->put('flowtrack.session_expires_at', $expiresAt);
+        }
+
+        if ($expiresAt <= 0 || now()->timestamp >= $expiresAt) {
             return $this->logoutResponse(
                 $request,
-                'Your 30-minute session has expired. Please sign in again.',
+                "Your session expired after {$minutes} minutes without activity. Please sign in again.",
                 'expired',
             );
         }
@@ -55,7 +61,37 @@ class EnforceFlowTrackSession
             );
         }
 
+        if ($this->shouldRefreshActivity($request)) {
+            $this->refreshActivity($request, $minutes);
+        }
+
         return $next($request);
+    }
+
+    private function refreshActivity(Request $request, int $minutes): void
+    {
+        $now = now();
+        $request->session()->put([
+            'flowtrack.session_started_at' => $now->timestamp,
+            'flowtrack.session_expires_at' => $now->copy()->addMinutes($minutes)->timestamp,
+        ]);
+
+        $request->user()?->forceFill([
+            'active_session_started_at' => $now,
+        ])->saveQuietly();
+    }
+
+    private function shouldRefreshActivity(Request $request): bool
+    {
+        if ($request->headers->get('X-FlowTrack-Activity') === '1') {
+            return true;
+        }
+
+        if ($request->is('flowtrack/session/status') || $request->is('flowtrack/notifications/status')) {
+            return false;
+        }
+
+        return ! $request->isMethod('GET');
     }
 
     private function logoutResponse(Request $request, string $message, string $reason): JsonResponse|RedirectResponse

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\FlowTrack;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FlowTrack\StoreDocumentRequest;
+use App\Modules\OrderFlow\Application\Actions\DeleteDocumentAction;
 use App\Modules\OrderFlow\Application\Actions\UploadDocumentAction;
 use App\Modules\OrderFlow\Application\Queries\FlowTrackOptionsQuery;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
@@ -19,66 +20,61 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class DocumentController extends Controller
 {
-    public function index(Request $request, JobRepository $jobs, FlowTrackOptionsQuery $options, FlowAuthorizationService $authorization, JobDocumentRequirementService $requirements): Response
+    public function index(Request $request)
     {
-        abort_unless($authorization->allows($request->user(), 'documents', 'view'), 403);
-        $workspaceId = $request->user()->currentWorkspaceId();
-        $search = (string) $request->query('search', '');
-        $category = $request->query('category');
-        $client = $request->query('client');
-
-        $documents = $authorization->applyDocumentVisibility(FlowDocument::query(), $request->user())
-            ->with(['job.client', 'phase:id,name,short_name,sequence', 'taskPackItem:id,title', 'category', 'uploader', 'linker', 'versions.uploader'])
-            ->when($search, fn (Builder $query) => $query->where(fn (Builder $nested) => $nested->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%")->orWhereHas('job', fn (Builder $job) => $job->where('code', 'like', "%{$search}%"))))
-            ->when($category, fn (Builder $query) => $query->where('document_category_id', $category))
-            ->when($client, fn (Builder $query) => $query->whereHas('job', fn (Builder $job) => $job->where('client_id', $client)))
-            ->latest()
-            ->paginate(24)
-            ->withQueryString();
-
-        $documents->getCollection()->each(fn (FlowDocument $document) => $document->job?->makeHidden(['quoted_amount', 'currency_id']));
-
-        return Inertia::render('flowtrack/Documents/Index', [
-            'documents' => $documents,
-            'jobs' => $jobs->visibleQuery($request->user())
-                ->with(['client:id,name', 'currentPhase.documentCategory', 'currentPhase.taskPack.items.documentCategory'])
-                ->orderBy('code')
-                ->get(['id', 'workspace_id', 'client_id', 'workflow_template_id', 'current_phase_id', 'code', 'title'])
-                ->map(fn ($job): array => [
-                    'id' => $job->id,
-                    'client_id' => $job->client_id,
-                    'code' => $job->code,
-                    'title' => $job->title,
-                    'client' => $job->client,
-                    'current_phase_id' => $job->current_phase_id,
-                    'current_phase_name' => $job->currentPhase?->name,
-                    'document_requirements' => $requirements->requirements($job)->values()->all(),
-                ])
-                ->values(),
-            'options' => $options->forWorkspace($request->user()),
-            'filters' => compact('search', 'category', 'client'),
-            'selectedJobId' => $request->integer('job') ?: null,
-            'openUpload' => $request->boolean('upload'),
-            'canLinkDocuments' => $authorization->allows($request->user(), 'documents', 'link'),
-            'canUploadDocuments' => $authorization->allows($request->user(), 'documents', 'create')
-                && $authorization->allows($request->user(), 'documents', 'link'),
-            'documentType' => MasterDataType::DocumentCategory->value,
-        ]);
+        return redirect('/flowtrack/view/documents');
     }
+
 
     public function download(Request $request, FlowDocumentVersion $version, JobRepository $jobs, FlowAuthorizationService $authorization): StreamedResponse
     {
         $version->loadMissing('document.job');
+        abort_unless($version->document, 404);
         $job = $jobs->findVisible($request->user(), $version->document->flow_job_id);
         abort_unless($authorization->allows($request->user(), 'documents', 'export', $version->document), 403);
         abort_unless(Storage::disk($version->disk)->exists($version->path), 404);
 
         return Storage::disk($version->disk)->download($version->path, $version->original_name);
+    }
+
+    public function preview(Request $request, FlowDocumentVersion $version, JobRepository $jobs, FlowAuthorizationService $authorization): StreamedResponse
+    {
+        $version->loadMissing('document.job');
+        abort_unless($version->document, 404);
+        $jobs->findVisible($request->user(), $version->document->flow_job_id);
+        abort_unless($authorization->allows($request->user(), 'documents', 'view', $version->document), 403);
+
+        $disk = Storage::disk($version->disk);
+        abort_unless($disk->exists($version->path), 404);
+
+        $mimeType = strtolower((string) ($version->mime_type ?: $disk->mimeType($version->path)));
+        $previewableMimeTypes = [
+            'application/pdf',
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'image/bmp',
+            'image/x-ms-bmp',
+        ];
+
+        abort_unless(in_array($mimeType, $previewableMimeTypes, true), 415);
+
+        return $disk->response(
+            $version->path,
+            $version->original_name,
+            [
+                'Content-Type' => $mimeType,
+                'Cache-Control' => 'private, max-age=300',
+                'X-Content-Type-Options' => 'nosniff',
+                'X-Frame-Options' => 'SAMEORIGIN',
+            ],
+            'inline',
+        );
     }
 
     public function store(StoreDocumentRequest $request, JobRepository $jobs, FlowAuthorizationService $authorization, UploadDocumentAction $action): RedirectResponse
@@ -92,36 +88,39 @@ class DocumentController extends Controller
             $job,
             $request->file('file'),
             isset($data['document_category_id']) ? (int) $data['document_category_id'] : null,
-            (bool) ($data['is_final'] ?? false),
+            true,
             $request->user(),
             isset($data['document_id']) ? (int) $data['document_id'] : null,
             $data['notes'] ?? null,
             (int) $data['workflow_phase_id'],
             isset($data['task_pack_item_id']) ? (int) $data['task_pack_item_id'] : null,
-            (bool) ($data['advance_phase'] ?? false),
+            false,
         );
 
         $result = $action->workflowResult();
-        $message = 'Document uploaded and linked to the current Workflow Phase.';
+        $message = 'Document uploaded and linked to the required Task.';
         if ($result['moved'] ?? false) {
-            $message = 'Document uploaded, linked, and the Job moved to the next Workflow Phase.';
-        } elseif ((bool) ($data['advance_phase'] ?? false) && ! ($result['ready'] ?? false) && ! empty($result['blockers'])) {
-            $message = 'Document uploaded and linked. The Job remains in its current Phase: '.implode(' ', $result['blockers']);
+            $message = 'Document uploaded, the required Task was completed, and the Job moved to the next Workflow Phase.';
         }
 
         return back()->with('success', $message);
     }
-    public function destroy(Request $request, FlowDocument $document, FlowAuthorizationService $authorization, WorkflowAutomationService $automation): RedirectResponse
-    {
+    public function destroy(
+        Request $request,
+        FlowDocument $document,
+        FlowAuthorizationService $authorization,
+        WorkflowAutomationService $automation,
+        DeleteDocumentAction $action,
+    ): RedirectResponse {
         abort_unless($document->workspace_id === $request->user()->currentWorkspaceId(), 404);
         abort_unless($authorization->allows($request->user(), 'documents', 'delete', $document), 403);
-        $job = $document->job;
-        $document->delete();
+
+        $job = $action->execute($document, $request->user());
         if ($job) {
-            $automation->synchronize($job, $request->user(), 'document_deletion', false);
+            $automation->synchronize($job->fresh(), $request->user(), 'document_deletion', false);
         }
 
-        return back()->with('success', 'Document deleted successfully.');
+        return back()->with('success', 'Document and all stored versions deleted successfully.');
     }
 
 }

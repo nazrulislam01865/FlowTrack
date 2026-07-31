@@ -55,18 +55,34 @@ class FlowTrackSeeder extends Seeder
             ['Manage master data', 'master-data.manage', 'Administration'],
             ['Manage administration', 'administration.manage', 'Administration'],
         ])->mapWithKeys(function (array $permission) {
-            $model = Permission::create(['name' => $permission[0], 'slug' => $permission[1], 'group' => $permission[2]]);
+            // Some feature migrations register permissions before the demo data
+            // seeder runs (for example documents.link). Updating by slug keeps
+            // a fresh migration followed by seeding collision-free.
+            $model = Permission::query()->updateOrCreate(
+                ['slug' => $permission[1]],
+                ['name' => $permission[0], 'group' => $permission[2]],
+            );
+
             return [$model->slug => $model];
         });
 
         $roles = collect([
+            'super-admin' => ['Super Admin', $permissions->keys()->all()],
             'administrator' => ['Administrator', $permissions->keys()->all()],
             'operations-manager' => ['Operations Manager', $permissions->keys()->all()],
             'sales-manager' => ['Sales Manager', ['dashboard.view', 'jobs.view-all', 'jobs.create', 'jobs.manage-all', 'tasks.view-all', 'clients.manage', 'documents.manage', 'reports.view', 'financials.view']],
             'member' => ['Member', ['dashboard.view', 'jobs.view-assigned', 'tasks.view-assigned', 'documents.manage', 'documents.link']],
             'document-uploader-workflow-linker' => ['Document Uploader & Workflow Linker', ['dashboard.view', 'jobs.view-assigned', 'tasks.view-assigned', 'documents.manage', 'documents.link']],
         ])->mapWithKeys(function (array $definition, string $slug) use ($workspace, $permissions) {
-            $role = Role::create(['workspace_id' => $workspace->id, 'name' => $definition[0], 'slug' => $slug, 'is_system' => true]);
+            $role = Role::create([
+                'workspace_id' => $workspace->id,
+                'name' => $definition[0],
+                'slug' => $slug,
+                'code' => str($slug)->upper()->replace('-', '_')->toString(),
+                'default_scope' => $slug === 'super-admin' ? 'all_records' : 'assigned_jobs',
+                'is_system' => true,
+                'is_active' => true,
+            ]);
             $role->permissions()->sync($permissions->only($definition[1])->pluck('id'));
             return [$slug => $role];
         });
@@ -177,28 +193,30 @@ class FlowTrackSeeder extends Seeder
     private function seedUsers(int $workspaceId, $roles, array $departments): array
     {
         $rows = [
-            ['Li Wei', 'LW', 'manager@flowtrack.cn', 'Operations Manager', 'MGT', 'operations-manager'],
-            ['Chen Mei', 'CM', 'chen.mei@flowtrack.cn', 'Sales Manager', 'SAL', 'sales-manager'],
-            ['Zhang Min', 'ZM', 'zhang.min@flowtrack.cn', 'Sales Executive', 'SAL', 'member'],
-            ['Liu Fang', 'LF', 'liu.fang@flowtrack.cn', 'Senior Designer', 'DES', 'member'],
-            ['Wang Jun', 'WJ', 'wang.jun@flowtrack.cn', 'Sourcing Coordinator', 'SRC', 'member'],
-            ['Zhao Lin', 'ZL', 'zhao.lin@flowtrack.cn', 'Production Coordinator', 'PRO', 'member'],
-            ['Sun Hao', 'SH', 'sun.hao@flowtrack.cn', 'Quality Inspector', 'QTY', 'member'],
-            ['Xu Na', 'XN', 'xu.na@flowtrack.cn', 'Shipping Executive', 'SHP', 'member'],
-            ['Yang Lei', 'YL', 'yang.lei@flowtrack.cn', 'Accounts Officer', 'ACC', 'member'],
-            ['He Ping', 'HP', 'he.ping@flowtrack.cn', 'Sample Coordinator', 'SAM', 'member'],
-            ['Tang Rui', 'TR', 'tang.rui@flowtrack.cn', 'Designer', 'DES', 'member'],
-            ['Gao Yu', 'GY', 'gao.yu@flowtrack.cn', 'Factory Supervisor', 'PRO', 'member'],
+            ['FlowTrack Super Admin', 'SA', 'superadmin@flowtrack.cn', 'Super Administrator', 'MGT', 'super-admin', true],
+            ['Li Wei', 'LW', 'manager@flowtrack.cn', 'Operations Manager', 'MGT', 'operations-manager', false],
+            ['Chen Mei', 'CM', 'chen.mei@flowtrack.cn', 'Sales Manager', 'SAL', 'sales-manager', false],
+            ['Zhang Min', 'ZM', 'zhang.min@flowtrack.cn', 'Sales Executive', 'SAL', 'member', false],
+            ['Liu Fang', 'LF', 'liu.fang@flowtrack.cn', 'Senior Designer', 'DES', 'member', false],
+            ['Wang Jun', 'WJ', 'wang.jun@flowtrack.cn', 'Sourcing Coordinator', 'SRC', 'member', false],
+            ['Zhao Lin', 'ZL', 'zhao.lin@flowtrack.cn', 'Production Coordinator', 'PRO', 'member', false],
+            ['Sun Hao', 'SH', 'sun.hao@flowtrack.cn', 'Quality Inspector', 'QTY', 'member', false],
+            ['Xu Na', 'XN', 'xu.na@flowtrack.cn', 'Shipping Executive', 'SHP', 'member', false],
+            ['Yang Lei', 'YL', 'yang.lei@flowtrack.cn', 'Accounts Officer', 'ACC', 'member', false],
+            ['He Ping', 'HP', 'he.ping@flowtrack.cn', 'Sample Coordinator', 'SAM', 'member', false],
+            ['Tang Rui', 'TR', 'tang.rui@flowtrack.cn', 'Designer', 'DES', 'member', false],
+            ['Gao Yu', 'GY', 'gao.yu@flowtrack.cn', 'Factory Supervisor', 'PRO', 'member', false],
         ];
 
         $result = [];
-        foreach ($rows as [$name, $initials, $email, $title, $department, $role]) {
+        foreach ($rows as [$name, $initials, $email, $title, $department, $role, $isSuperAdmin]) {
             $user = User::create([
                 'name' => $name,
                 'initials' => $initials,
                 'email' => $email,
                 'email_verified_at' => now(),
-                'password' => Hash::make('demo123'),
+                'password' => Hash::make($isSuperAdmin ? 'SuperAdmin12345' : 'demo123'),
+                'is_super_admin' => (bool) $isSuperAdmin,
             ]);
             WorkspaceMembership::create([
                 'workspace_id' => $workspaceId,
@@ -449,6 +467,7 @@ class FlowTrackSeeder extends Seeder
                     'task_pack_item_id' => $item->id,
                     'created_by' => $users['Li Wei']->id,
                     'assignee_id' => $item->default_assignee_id ?: $users[$coordinator]->id,
+                    'setup_assignee_id' => $item->default_assignee_id ?: $users[$coordinator]->id,
                     'task_status_id' => $master['task_status'][$statusCodes]->id,
                     'priority_id' => $master['priority'][$priority]->id,
                     'code' => 'TSK-'.str_pad((string) (301 + $jobIndex * 10 + $taskIndex), 6, '0', STR_PAD_LEFT),

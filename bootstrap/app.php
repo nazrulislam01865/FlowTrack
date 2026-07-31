@@ -1,11 +1,12 @@
 <?php
 
+use App\Http\Middleware\AddFlowTrackSecurityHeaders;
 use App\Http\Middleware\HandleAppearance;
-use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\FlowPermissionMiddleware;
 use App\Http\Middleware\EnsureFlowWorkspaceMembership;
 use App\Http\Middleware\FlowActionMiddleware;
 use App\Http\Middleware\EnforceFlowTrackSession;
+use App\Http\Middleware\InvalidateFlowTrackBootstrapCache;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -25,11 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'flow.permission' => FlowPermissionMiddleware::class,
             'flow.action' => FlowActionMiddleware::class,
             'flow.workspace' => EnsureFlowWorkspaceMembership::class,
+            'flow.bootstrap.invalidate' => InvalidateFlowTrackBootstrapCache::class,
         ]);
 
         $middleware->web(append: [
+            AddFlowTrackSecurityHeaders::class,
             HandleAppearance::class,
-            HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             EnforceFlowTrackSession::class,
         ]);

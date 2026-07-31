@@ -40,7 +40,7 @@ class WorkflowAutomationService
 
                 // Self-heal Jobs whose current Task Pack was assigned, edited or
                 // partially deleted after the Job entered this Phase.
-                $this->taskPackActivator->activate($locked, $locked->currentPhase);
+                $this->taskPackActivator->activate($locked, $locked->currentPhase, $actor, $source);
                 $locked->unsetRelation('tasks');
 
                 $this->health->synchronize($locked, $actor, $source);

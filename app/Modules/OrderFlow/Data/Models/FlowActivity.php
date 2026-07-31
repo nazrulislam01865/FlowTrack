@@ -25,6 +25,7 @@ class FlowActivity extends Model
     }
 
     public function workspace(): BelongsTo { return $this->belongsTo(Workspace::class); }
+    public function job(): BelongsTo { return $this->belongsTo(FlowJob::class, 'flow_job_id'); }
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
     public function subject(): MorphTo { return $this->morphTo(); }
 }

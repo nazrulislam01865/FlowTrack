@@ -55,7 +55,7 @@ class WorkflowEngine
                 'progress' => 0,
             ]);
 
-            $created = $this->taskPackActivator->activate($job, $startPhase);
+            $created = $this->taskPackActivator->activate($job, $startPhase, $actor, 'job_creation');
             $this->progressCalculator->recalculateJob($job);
             $this->health->synchronize($job, $actor, 'job_creation');
             $this->readiness->synchronize($job, $startPhase, $actor, 'job_creation');
@@ -175,7 +175,7 @@ class WorkflowEngine
                 'milestone' => $targetPhase->exit_condition,
             ]);
 
-            $created = $this->taskPackActivator->activate($job, $targetPhase);
+            $created = $this->taskPackActivator->activate($job, $targetPhase, $actor, $source);
             $job->refresh();
             $this->progressCalculator->recalculateJob($job);
             $this->health->synchronize($job, $actor, $source);

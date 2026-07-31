@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
 
@@ -51,4 +52,5 @@ class FlowJob extends Model
     public function phaseHistory(): HasMany { return $this->hasMany(FlowJobPhaseHistory::class); }
     public function documents(): HasMany { return $this->hasMany(FlowDocument::class); }
     public function transitionEvents(): HasMany { return $this->hasMany(FlowTransitionEvent::class, 'flow_job_id')->latest('occurred_at'); }
+    public function activities(): MorphMany { return $this->morphMany(FlowActivity::class, 'subject')->latest(); }
 }

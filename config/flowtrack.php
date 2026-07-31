@@ -14,6 +14,18 @@ return [
         'password' => env('FLOWTRACK_SUPER_ADMIN_PASSWORD'),
     ],
 
+
+    // Cache the user-specific bootstrap payload briefly. Mutating FlowTrack
+    // requests increment the workspace cache version immediately.
+    'bootstrap_cache_seconds' => (int) env('FLOWTRACK_BOOTSTRAP_CACHE_SECONDS', 45),
+
+    // Operational datasets are delivered in bounded pages to avoid one huge
+    // bootstrap query/response while preserving the same client-side data model.
+    'bootstrap_segment_per_page' => (int) env('FLOWTRACK_BOOTSTRAP_SEGMENT_PER_PAGE', 100),
+
+    // The completed Blade Task Card interface is the only mounted FlowTrack UI.
+    'ui_driver' => env('FLOWTRACK_UI_DRIVER', 'template'),
+
     'notification_rules' => [
         ['name' => 'Job created or assigned', 'trigger' => 'Immediately', 'recipients' => 'Assigned Job users + Authorities', 'active' => true],
         ['name' => 'Task assigned', 'trigger' => 'Immediately', 'recipients' => 'Task assignee + Authorities', 'active' => true],

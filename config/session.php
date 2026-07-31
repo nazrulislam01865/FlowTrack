@@ -34,7 +34,10 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 30),
 
-    // Absolute FlowTrack login duration. Activity does not extend this window.
+    // FlowTrack idle duration. Verified user activity extends this window.
+    'flowtrack_idle_lifetime' => (int) env('FLOWTRACK_SESSION_MINUTES', 30),
+
+    // Backward-compatible alias for older deployments and cached configuration.
     'flowtrack_absolute_lifetime' => (int) env('FLOWTRACK_SESSION_MINUTES', 30),
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),

@@ -73,7 +73,7 @@ class CreateJobAction
                 'quantity' => $totalQuantity,
                 'quoted_amount' => $data->quotedAmount,
                 'delivery_date' => $data->deliveryDate,
-                'status' => $data->draft ? 'draft' : 'new',
+                'status' => $data->draft ? 'draft' : ($phase->sequence > 1 ? 'in_progress' : 'new'),
                 'health' => 'on_track',
                 'next_action' => $phase->entry_condition,
                 'milestone' => $phase->exit_condition,

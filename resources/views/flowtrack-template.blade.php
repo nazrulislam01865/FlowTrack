@@ -1,7 +1,26 @@
-@php($flowtrackAuthenticated = auth()->check())
-@php($flowtrackSessionReason = request()->query('session'))
-@php($flowtrackLoginError = session('error') ?: ($flowtrackSessionReason === 'expired' ? 'Your 30-minute session has expired. Please sign in again.' : ($flowtrackSessionReason === 'replaced' ? 'This account was signed in from another browser or device. Your previous session has been logged out.' : null)))
-@php($flowtrackSessionExpiresAt = session('flowtrack.session_expires_at') ? \Illuminate\Support\Carbon::createFromTimestamp((int) session('flowtrack.session_expires_at'))->toIso8601String() : null)
+@php
+    // Runtime values are supplied by TemplatePageController. The fallbacks keep
+    // the view safe when rendered directly by tests, previews, or cached views.
+    $flowtrackAuthenticated = $flowtrackAuthenticated ?? auth()->check();
+    $flowtrackSessionReason = $flowtrackSessionReason ?? request()->query('session');
+    $flowtrackSessionMinutes = $flowtrackSessionMinutes ?? max(1, (int) config('session.flowtrack_idle_lifetime', config('session.flowtrack_absolute_lifetime', 30)));
+    $flowtrackSessionExpiresAt = $flowtrackSessionExpiresAt ?? null;
+    $flowtrackLoginError = $flowtrackLoginError ?? session('error') ?? null;
+    $flowtrackSessionConfig = $flowtrackSessionConfig ?? [
+        'minutes' => $flowtrackSessionMinutes,
+        'expiresAt' => $flowtrackSessionExpiresAt,
+        'statusEndpoint' => route('flowtrack.session.status'),
+        'expiredEndpoint' => route('flowtrack.session.expired'),
+    ];
+    $flowtrackPusherConfig = $flowtrackPusherConfig ?? [
+        'enabled' => auth()->check() && filled(config('services.pusher.key')),
+        'key' => config('services.pusher.key'),
+        'cluster' => config('services.pusher.cluster', 'ap2'),
+        'authEndpoint' => route('flowtrack.pusher.auth'),
+        'userId' => auth()->id(),
+        'csrfToken' => csrf_token(),
+    ];
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,7 +100,7 @@
       <div class="field"><label>Email</label><input id="loginEmail" placeholder="name@company.com" autocomplete="username" type="email"></div>
       <div class="field"><label>Password</label><input id="loginPassword" placeholder="Enter your password" autocomplete="current-password" type="password"></div>
       <button id="loginBtn" class="primary">Sign in</button>
-      <div class="demo-note"><b>Secure access:</b> Each account allows one active login. The session automatically ends after 30 minutes.</div>
+      <div class="demo-note"><b>Secure access:</b> Each account allows one active login. The session ends after {{ $flowtrackSessionMinutes }} minutes without activity.</div>
     </div>
   </section>
 </div>
@@ -246,8 +265,8 @@ let notifications=[
 {id:7,title:'Payment received',text:'USD 12,240 recorded against JOB-2026-00112.',time:'Yesterday',read:true,type:'payment',job:'JOB-2026-00112'}
 ];
 const translations={en:{workspace:'Workspace',dashboard:'Dashboard',myWork:'My Work',jobs:'Jobs',clients:'Clients',board:'Board',documents:'Documents',reports:'Reports',administration:'Administration',notifications:'Notifications',setup:'Setup',workflowsetup:'Workflow Setup',masterdata:'Master Data',newJob:'New Job'},zh:{workspace:'工作区',dashboard:'管理仪表板',myWork:'我的工作',jobs:'工作订单',clients:'客户',board:'看板',documents:'文件档案',reports:'报告',administration:'管理',notifications:'通知',setup:'系统设置',newJob:'新建工作'}};
-let lang='en',currentPage='dashboard',boardMode='tasks',jobFilter={search:'',phase:'',health:'',client:''};
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+let lang='en',currentPage='dashboard',boardMode='jobs',jobFilter={search:'',phase:'',health:'',client:''};
+const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
 const safeHtml=value=>String(value??'')
  .replaceAll('&','&amp;')
  .replaceAll('<','&lt;')
@@ -255,7 +274,7 @@ const safeHtml=value=>String(value??'')
  .replaceAll('\"','&quot;')
  .replaceAll("'",'&#039;');
 const clientName=id=>(clients.find(c=>c.id===Number(id))||{}).name||'—';
-const userInitials=name=>(users.find(u=>u.name===name)||{initials:name.split(' ').map(x=>x[0]).join('').slice(0,2)}).initials;
+const userInitials=name=>{const label=String(name||'').trim();const matched=users.find(u=>u.name===label);if(matched?.initials)return matched.initials;const initials=label.split(/\s+/).filter(Boolean).map(part=>part.charAt(0)).join('').slice(0,2);return initials||'FT'};
 const currency=(n,c='USD')=>new Intl.NumberFormat('en-US',{style:'currency',currency:c,maximumFractionDigits:0}).format(n||0);
 const localDateKey=(value=new Date())=>{const d=value instanceof Date?value:new Date(value),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`};
 const today=localDateKey();
@@ -263,12 +282,13 @@ function dueClass(d){return d<today?'overdue':d===today?'today':''}
 function healthBadge(h,reason=''){const map={'On Track':'b-green','Needs Attention':'b-amber','At Risk':'b-red','Delayed':'b-red','Blocked':'b-purple','Completed':'b-gray'};return `<span class="badge ${map[h]||'b-gray'} health"${reason?` title="${String(reason).replaceAll('&','&amp;').replaceAll('\"','&quot;')}"`:''}>${h}</span>`}
 function statusBadge(s){let c=/Completed|Approved|Paid|Delivered/.test(s)?'b-green':/Blocked|Critical|Overdue|Revision/.test(s)?'b-red':/Waiting|Negotiation|Partially/.test(s)?'b-amber':/In Progress|Submitted|Ready|Transit/.test(s)?'b-blue':'b-gray';return `<span class="badge ${c}">${s}</span>`}
 
-function getWorkflow(id='standard'){return workflowTemplates.find(w=>w.id===id)||workflowTemplates[0]}
-function phasePackFor(workflowId,phaseIndex){const wf=getWorkflow(workflowId),phase=wf.phases[phaseIndex];return phase?phase.taskPack:''}
-function phaseNameFor(j,index=j.phase){const wf=getWorkflow(j.workflow||'standard');return (wf.phases[index]||{}).name||phases[index]||'—'}
-function phaseShortFor(j,index=j.phase){const wf=getWorkflow(j.workflow||'standard');return (wf.phases[index]||{}).short||phaseShort[index]||'—'}
-function milestoneForPhase(workflowId,phaseIndex){const wf=getWorkflow(workflowId),next=wf.phases[Math.min(phaseIndex+1,wf.phases.length-1)];return next?next.exit:'Job Completed'}
-function nextActionForPhase(workflowId,phaseIndex){const phase=getWorkflow(workflowId).phases[phaseIndex];if(!phase)return 'Review Job';const map={'Quotation':'Review client specifications','Order Confirmation':'Confirm order details and upload PO','Artwork':'Prepare or review artwork','Swatch':'Prepare and submit sample','Production':'Update production milestone','Shipment':'Prepare shipment and tracking','Invoice':'Prepare invoice and payment follow-up'};return map[phase.taskPack]||'Review current phase'}
+function getWorkflow(id='standard'){const found=workflowTemplates.find(w=>String(w?.id)===String(id));return found||workflowTemplates.find(w=>Array.isArray(w?.phases))||workflowTemplates[0]||{id:null,name:'Unavailable workflow',phases:[]}}
+function workflowPhaseList(workflow){return Array.isArray(workflow?.phases)?workflow.phases:workflow?.phases&&typeof workflow.phases==='object'?Object.values(workflow.phases).filter(Boolean):[]}
+function phasePackFor(workflowId,phaseIndex){const wf=getWorkflow(workflowId),phase=workflowPhaseList(wf)[Number(phaseIndex)];return phase?phase.taskPack:''}
+function phaseNameFor(j,index=j?.phase){const wf=getWorkflow(j?.workflow||'standard'),phase=workflowPhaseList(wf)[Number(index)];return phase?.name||(Array.isArray(phases)?phases[Number(index)]:null)||'—'}
+function phaseShortFor(j,index=j?.phase){const wf=getWorkflow(j?.workflow||'standard'),phase=workflowPhaseList(wf)[Number(index)];return phase?.short||phase?.shortName||(Array.isArray(phaseShort)?phaseShort[Number(index)]:null)||'—'}
+function milestoneForPhase(workflowId,phaseIndex){const list=workflowPhaseList(getWorkflow(workflowId));const next=list[Math.min(Number(phaseIndex)+1,Math.max(0,list.length-1))];return next?.exit||'Job Completed'}
+function nextActionForPhase(workflowId,phaseIndex){const phase=workflowPhaseList(getWorkflow(workflowId))[Number(phaseIndex)];if(!phase)return 'Review Job';const map={'Quotation':'Review client specifications','Order Confirmation':'Confirm order details and upload PO','Artwork':'Prepare or review artwork','Swatch':'Prepare and submit sample','Production':'Update production milestone','Shipment':'Prepare shipment and tracking','Invoice':'Prepare invoice and payment follow-up'};return map[phase.taskPack]||'Review current phase'}
 function activateTaskPackForJob(j,phaseIndex,source='Phase activation'){
  const pack=phasePackFor(j.workflow||'standard',phaseIndex);if(!pack||!taskTemplates[pack])return 0;
  const existing=tasks.some(t=>t.job===j.id&&t.phase===pack&&t.activationPhase===phaseIndex);if(existing)return 0;
@@ -291,7 +311,7 @@ function renderDashboard(){
  <div class="card section-card"><div class="section-head"><h3>Jobs by Phase</h3><button class="link-btn" data-go="board">Open board</button></div><div class="phase-list">${['Quotation','Artwork','Swatch','Production','Shipment','Invoice'].map((p,i)=>{const indexes=[[0,1,2,3],[5],[6],[7],[8],[9]][i];const n=jobs.filter(j=>indexes.includes(j.phase)).length;return `<div class="phase-row"><span>${p}</span><div class="progress"><span style="width:${Math.max(8,n/6*100)}%"></span></div><b>${n}</b></div>`}).join('')}</div></div></div>
  <div class="grid-3"><div class="card section-card"><div class="section-head"><h3>Team Workload</h3><button class="link-btn" data-go="reports">Details</button></div>${['Chen Mei','Liu Fang','Zhao Lin','Xu Na','Yang Lei'].map(n=>{const c=tasks.filter(t=>t.assignee===n&&t.status!=='Completed').length;return `<div class="workload-row"><div class="person"><span class="avatar">${userInitials(n)}</span>${n}</div><div class="progress"><span style="width:${Math.min(100,c*12)}%"></span></div><b>${c}</b></div>`}).join('')}</div>
  <div class="card section-card"><div class="section-head"><h3>Upcoming Deliveries</h3><button class="link-btn" data-go="jobs">View calendar</button></div><table class="mini-table"><thead><tr><th>Job</th><th>Client</th><th>Delivery</th></tr></thead><tbody>${jobs.filter(j=>j.phase<10).sort((a,b)=>a.delivery.localeCompare(b.delivery)).slice(0,6).map(j=>`<tr data-job="${j.id}" style="cursor:pointer"><td><b>${j.id.slice(-5)}</b><div class="muted small truncate" style="max-width:125px">${j.title}</div></td><td>${clientName(j.client).split(' ')[0]}</td><td class="${j.delivery<today?'due overdue':''}">${formatDate(j.delivery)}</td></tr>`).join('')}</tbody></table></div>
- <div class="card section-card"><div class="section-head"><h3>Recent Activity</h3><button class="link-btn" data-go="mywork">View Tasks</button></div>${[...tasks].reverse().slice(0,5).map(t=>`<div class="activity" data-task="${t.id}" style="cursor:pointer"><span class="avatar">${userInitials(t.assignee||'System')}</span><div><div class="activity-text"><b>Task created</b><br>${t.id} · ${t.title}${t.job?` · ${t.job}`:''}</div><div class="activity-time">${t.createdAt?new Date(t.createdAt).toLocaleString():'Recently created'}</div></div></div>`).join('')||'<div class="empty-state">No recently created tasks.</div>'}</div></div>`;
+ <div class="card section-card"><div class="section-head"><h3>Recent Activity</h3><button class="link-btn" data-go="mywork">View Tasks</button></div>${tasks.slice().reverse().slice(0,5).map(t=>`<div class="activity" data-task="${t.id}" style="cursor:pointer"><span class="avatar">${userInitials(t.assignee||'System')}</span><div><div class="activity-text"><b>Task created</b><br>${t.id} · ${t.title}${t.job?` · ${t.job}`:''}</div><div class="activity-time">${t.createdAt?new Date(t.createdAt).toLocaleString():'Recently created'}</div></div></div>`).join('')||'<div class="empty-state">No recently created tasks.</div>'}</div></div>`;
  bindCommon();$$('[data-dashboard-action="create"]').forEach(b=>b.addEventListener('click',openJobModal));
 }
 function metric(label,value,foot,filter){return `<div class="card metric" data-metric="${filter}"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-foot">${foot}</div><div class="metric-icon">◎</div></div>`}
@@ -313,7 +333,7 @@ function renderMyWork(){
 }
 function renderTaskCards(arr){return arr.map(t=>`<div class="card task-card" data-task="${t.id}"><div class="task-top"><span class="badge b-gray">${t.id}</span>${statusBadge(t.status)}</div><h4>${t.title}</h4><p>${t.job} · ${clientName((jobs.find(j=>j.id===t.job)||{}).client)}</p><div style="margin-top:12px"><div class="progress"><span style="width:${t.progress}%"></span></div></div><div class="task-footer"><div class="person"><span class="avatar">${userInitials(t.assignee)}</span>${t.assignee}</div><span class="due ${dueClass(t.due)} small">${formatDate(t.due)}</span></div></div>`).join('')||'<div class="card empty">No tasks found.</div>'}
 function renderClients(){
- $('#page-clients').innerHTML=`<div class="page-head"><div><h1>Clients</h1><p>Contacts, active Jobs, documents and outstanding balances</p></div><div class="actions"><button class="primary" id="newClient">＋ New Client</button></div></div><div class="card toolbar"><input id="clientSearch" class="search-small" placeholder="Search client, country or manager…"><select id="clientCountry"><option value="">All countries</option>${[...new Set(clients.map(c=>c.country))].map(c=>`<option>${c}</option>`).join('')}</select></div><div id="clientGrid" class="client-grid">${clientCards(clients)}</div>`;
+ $('#page-clients').innerHTML=`<div class="page-head"><div><h1>Clients</h1><p>Contacts, active Jobs, documents and outstanding balances</p></div><div class="actions"><button class="primary" id="newClient">＋ New Client</button></div></div><div class="card toolbar"><input id="clientSearch" class="search-small" placeholder="Search client, country or manager…"><select id="clientCountry"><option value="">All countries</option>${Array.from(new Set(clients.map(c=>c.country))).map(c=>`<option>${c}</option>`).join('')}</select></div><div id="clientGrid" class="client-grid">${clientCards(clients)}</div>`;
  const filter=()=>{const q=$('#clientSearch').value.toLowerCase(),country=$('#clientCountry').value;$('#clientGrid').innerHTML=clientCards(clients.filter(c=>(!q||`${c.name} ${c.country} ${c.manager}`.toLowerCase().includes(q))&&(!country||c.country===country)));bindCommon()};$('#clientSearch').addEventListener('input',filter);$('#clientCountry').addEventListener('change',filter);$('#newClient').addEventListener('click',()=>showToast('Client creation form is available in the production build.'));bindCommon();
 }
 function clientCards(arr){return arr.map(c=>{const cj=jobs.filter(j=>j.client===c.id);return `<div class="card client-card" data-client="${c.id}"><div class="client-head"><div class="company-logo">${c.code}</div><div><h3>${c.name}</h3><div class="small muted">${c.country} · ${c.contact}</div></div></div><div class="client-stats"><div class="client-stat"><b>${cj.filter(j=>j.phase<10).length}</b><span>Active Jobs</span></div><div class="client-stat"><b>${cj.filter(j=>j.attention).length}</b><span>Attention</span></div><div class="client-stat"><b>${currency(c.outstanding).replace('$','')}</b><span>Outstanding</span></div></div><div class="small muted" style="margin-top:12px">Account manager: ${c.manager}</div></div>`}).join('')}
@@ -325,8 +345,8 @@ function renderKanban(){const area=$('#kanbanArea');if(boardMode==='tasks'){cons
  let dragged=null;$$('.kanban-card').forEach(c=>{c.addEventListener('dragstart',()=>{dragged=c;c.classList.add('dragging')});c.addEventListener('dragend',()=>c.classList.remove('dragging'))});$$('.kanban-list').forEach(l=>{l.addEventListener('dragover',e=>e.preventDefault());l.addEventListener('drop',()=>{if(!dragged)return;if(boardMode==='tasks'){const t=tasks.find(x=>x.id===dragged.dataset.task);t.status=l.dataset.dropStatus;t.progress=t.status==='Completed'?100:Math.max(t.progress,35)}else{const j=jobs.find(x=>x.id===dragged.dataset.job);const newPhase=Number(l.dataset.dropPhase);if(newPhase>j.phase+1){showToast('Complete required phase controls before skipping ahead.');return}j.phase=newPhase;j.progress=Math.max(j.progress,Math.round(newPhase/10*100))}renderKanban();showToast('Board updated successfully.')})});bindCommon();
 }
 function renderDocuments(){
- $('#page-documents').innerHTML=`<div class="page-head"><div><h1>Document Archive</h1><p>Files remain connected to their client, Job, phase and version</p></div><div class="actions"><button class="primary" id="uploadBtn">＋ Upload Document</button></div></div><label class="upload-zone" id="uploadZone"><input id="fileInput" type="file" multiple><b>Drop documents here or click to upload</b><div class="muted small" style="margin-top:5px">The document category will be suggested from the selected Job and phase.</div></label><div class="card toolbar"><input id="docSearch" class="search-small" placeholder="Search file name, Job or client…"><select id="docType"><option value="">All categories</option>${[...new Set(docs.map(d=>d.type))].map(t=>`<option>${t}</option>`).join('')}</select><select id="docClient"><option value="">All clients</option>${clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}</select></div><div id="docGrid" class="doc-grid">${docCards(docs)}</div>`;
- const filter=()=>{const q=$('#docSearch').value.toLowerCase(),t=$('#docType').value,c=$('#docClient').value;$('#docGrid').innerHTML=docCards(docs.filter(d=>(!q||`${d.name} ${d.job} ${clientName(d.client)}`.toLowerCase().includes(q))&&(!t||d.type===t)&&(!c||String(d.client)===c)));bindCommon()};$('#docSearch').addEventListener('input',filter);$('#docType').addEventListener('change',filter);$('#docClient').addEventListener('change',filter);$('#uploadBtn').addEventListener('click',()=>$('#fileInput').click());$('#fileInput').addEventListener('change',e=>{[...e.target.files].forEach((f,i)=>docs.unshift({id:'DOC-'+(900+docs.length+i),name:f.name,type:'Other',job:jobs[0].id,client:jobs[0].client,version:'v1',uploadedBy:'Li Wei',date:today,final:false}));renderDocuments();showToast(`${e.target.files.length} document(s) added to this demo.`)});bindCommon();
+ $('#page-documents').innerHTML=`<div class="page-head"><div><h1>Document Archive</h1><p>Files remain connected to their client, Job, phase and version</p></div><div class="actions"><button class="primary" id="uploadBtn">＋ Upload Document</button></div></div><label class="upload-zone" id="uploadZone"><input id="fileInput" type="file" multiple><b>Drop documents here or click to upload</b><div class="muted small" style="margin-top:5px">The document category will be suggested from the selected Job and phase.</div></label><div class="card toolbar"><input id="docSearch" class="search-small" placeholder="Search file name, Job or client…"><select id="docType"><option value="">All categories</option>${Array.from(new Set(docs.map(d=>d.type))).map(t=>`<option>${t}</option>`).join('')}</select><select id="docClient"><option value="">All clients</option>${clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}</select></div><div id="docGrid" class="doc-grid">${docCards(docs)}</div>`;
+ const filter=()=>{const q=$('#docSearch').value.toLowerCase(),t=$('#docType').value,c=$('#docClient').value;$('#docGrid').innerHTML=docCards(docs.filter(d=>(!q||`${d.name} ${d.job} ${clientName(d.client)}`.toLowerCase().includes(q))&&(!t||d.type===t)&&(!c||String(d.client)===c)));bindCommon()};$('#docSearch').addEventListener('input',filter);$('#docType').addEventListener('change',filter);$('#docClient').addEventListener('change',filter);$('#uploadBtn').addEventListener('click',()=>$('#fileInput').click());$('#fileInput').addEventListener('change',e=>{Array.from(e.target.files || []).forEach((f,i)=>docs.unshift({id:'DOC-'+(900+docs.length+i),name:f.name,type:'Other',job:jobs[0].id,client:jobs[0].client,version:'v1',uploadedBy:'Li Wei',date:today,final:false}));renderDocuments();showToast(`${e.target.files.length} document(s) added to this demo.`)});bindCommon();
 }
 function docCards(arr){return arr.map(d=>`<div class="card doc-card" data-doc="${d.id}"><div class="doc-icon">${d.name.endsWith('.pdf')?'PDF':'FILE'}</div><h4 class="truncate">${d.name}</h4><div class="doc-meta">${d.type} ${d.final?'<span class="badge b-green">Final</span>':''}<br>${d.job} · ${clientName(d.client)}<br>${d.version} · ${formatDate(d.date)} · ${d.uploadedBy}</div></div>`).join('')||'<div class="card empty">No documents found.</div>'}
 function renderReports(){
@@ -343,7 +363,7 @@ function renderTaskPackSetup(){
  $$('[data-edit-pack]').forEach(b=>b.addEventListener('click',()=>showToast(`${b.dataset.editPack} Task Pack opened for editing.`)));
 }
 function renderSetup(){
- $('#page-setup').innerHTML=`<div class="page-head"><div><h1>Administration</h1><p>Users, roles, permissions and notification rules</p></div><div class="actions"><button class="primary" id="saveSetup">Save Changes</button></div></div><div class="config-summary"><div class="card config-stat"><span>Active Users</span><b>${users.length}</b></div><div class="card config-stat"><span>Operational Roles</span><b>${[...new Set(users.map(user=>user.role))].length}</b></div><div class="card config-stat"><span>Departments</span><b>${[...new Set(users.map(user=>user.dept))].length}</b></div><div class="card config-stat"><span>Notification Rules</span><b>5</b></div></div><div class="setup-layout"><div class="card setup-menu"><button class="active" data-setup="users">Users</button><button data-setup="roles">Roles & Permissions</button><button data-setup="notification">Notification Rules</button></div><div id="setupContent"></div></div>`;
+ $('#page-setup').innerHTML=`<div class="page-head"><div><h1>Administration</h1><p>Users, roles, permissions and notification rules</p></div><div class="actions"><button class="primary" id="saveSetup">Save Changes</button></div></div><div class="config-summary"><div class="card config-stat"><span>Active Users</span><b>${users.length}</b></div><div class="card config-stat"><span>Operational Roles</span><b>${Array.from(new Set(users.map(user=>user.role))).length}</b></div><div class="card config-stat"><span>Departments</span><b>${Array.from(new Set(users.map(user=>user.dept))).length}</b></div><div class="card config-stat"><span>Notification Rules</span><b>5</b></div></div><div class="setup-layout"><div class="card setup-menu"><button class="active" data-setup="users">Users</button><button data-setup="roles">Roles & Permissions</button><button data-setup="notification">Notification Rules</button></div><div id="setupContent"></div></div>`;
  renderSetupContent('users');
  $$('[data-setup]').forEach(b=>b.addEventListener('click',()=>{$$('[data-setup]').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderSetupContent(b.dataset.setup)}));
  $('#saveSetup').addEventListener('click',()=>showToast('Administration settings saved.'));
@@ -454,22 +474,10 @@ function applyLanguage(){lang=lang==='en'?'zh':'en';$$('[data-i18n]').forEach(el
 $('#loginBtn').addEventListener('click',()=>{$('#loginScreen').classList.add('hidden');$('#appScreen').classList.remove('hidden');renderDashboard();updateBadges()});$('#loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')$('#loginBtn').click()});$$('.nav-btn,.mobile-bottom button').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.page)));$$('[data-page-jump]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.pageJump)));$('#quickCreateBtn')?.addEventListener('click',openJobModal);$('#languageBtn').addEventListener('click',applyLanguage);$('#overlay').addEventListener('click',closeAll);$('#mobileMenu').addEventListener('click',()=>{$('#sidebar').classList.add('open');$('#sidebarShade').classList.add('open')});$('#sidebarShade').addEventListener('click',()=>{$('#sidebar').classList.remove('open');$('#sidebarShade').classList.remove('open')});$('#globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){jobFilter.search=e.target.value;navigate('jobs')}});
 </script>
 <script>
-window.FLOWTRACK_AUTHENTICATED = @json(auth()->check());
-
-window.FLOWTRACK_SESSION = {!! json_encode([
-    'minutes' => (int) config('session.flowtrack_absolute_lifetime', 30),
-    'expiresAt' => $flowtrackSessionExpiresAt,
-    'statusEndpoint' => route('flowtrack.session.status'),
-    'expiredEndpoint' => route('flowtrack.session.expired'),
-]) !!};
-window.FLOWTRACK_PUSHER = {!! json_encode([
-    'enabled' => filled(config('services.pusher.key')),
-    'key' => config('services.pusher.key'),
-    'cluster' => config('services.pusher.cluster', 'ap2'),
-    'authEndpoint' => route('flowtrack.pusher.auth'),
-    'userId' => auth()->id(),
-    'csrfToken' => csrf_token(),
-]) !!};
+window.FLOWTRACK_AUTHENTICATED = {{ Illuminate\Support\Js::from((bool) $flowtrackAuthenticated) }};
+window.FLOWTRACK_SESSION = {{ Illuminate\Support\Js::from($flowtrackSessionConfig ?? []) }};
+window.FLOWTRACK_PUSHER = {{ Illuminate\Support\Js::from($flowtrackPusherConfig ?? []) }};
+window.FLOWTRACK_INITIAL_PATH = {{ Illuminate\Support\Js::from($flowtrackInitialPath ?? ('/'.ltrim(request()->path(), '/'))) }};
 </script>
 @if(filled(config('services.pusher.key')))
 <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>

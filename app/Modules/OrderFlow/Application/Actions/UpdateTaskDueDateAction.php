@@ -32,15 +32,26 @@ class UpdateTaskDueDateAction
                 $task,
                 'task.due_date_changed',
                 "Task {$task->code} due date changed",
-                ['from' => $before, 'to' => $after, 'source' => $source],
+                [
+                    'from' => $before,
+                    'to' => $after,
+                    'source' => $source,
+                    'changes' => [[
+                        'field' => 'Due date',
+                        'from' => $before ?: 'Not set',
+                        'to' => $after ?: 'Not set',
+                    ]],
+                ],
             );
 
             $this->automation->synchronize($task->job, $actor, $source, false);
             DB::afterCommit(fn () => $this->notifications->taskDueDateChanged($task->id, $actor->id, $before, $after));
 
             return $task->fresh([
-                'job.client', 'phase', 'parent', 'dependency', 'creator', 'assignee',
+                'job.client', 'job.owner:id,name,initials', 'job.coordinator:id,name,initials', 'job.members.user:id,name,initials',
+                'phase', 'parent', 'dependency', 'creator', 'assignee',
                 'status', 'priority', 'checklistItems', 'comments.user',
+                'activities.user:id,name,initials', 'transitionEvents.actor:id,name,initials',
             ]);
         });
     }

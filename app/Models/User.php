@@ -11,9 +11,6 @@ use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
-use Laravel\Fortify\Contracts\PasskeyUser;
-use Laravel\Fortify\PasskeyAuthenticatable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
 use App\Modules\OrderFlow\Data\Models\FlowJobMember;
 use App\Modules\OrderFlow\Data\Models\WorkspaceMembership;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
@@ -34,10 +31,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 #[Fillable(['name', 'initials', 'email', 'email_verified_at', 'phone', 'locale', 'status', 'default_landing_page', 'default_task_view', 'avatar_path', 'notification_preferences', 'is_super_admin', 'password', 'active_session_token', 'active_session_started_at'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'active_session_token'])]
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, MustVerifyEmailTrait, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, MustVerifyEmailTrait, Notifiable;
 
     /**
      * Get the attributes that should be cast.

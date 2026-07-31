@@ -8,19 +8,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class NotificationController extends Controller
 {
-    public function index(Request $request, NotificationFeedService $feed): Response
-    {
-        return Inertia::render('flowtrack/Notifications/Index', [
-            'notifications' => $feed->paginate($request->user(), 30),
-            'authorityView' => $feed->isAuthority($request->user()),
-        ]);
-    }
-
     public function status(Request $request, NotificationFeedService $feed): JsonResponse
     {
         return response()->json([
