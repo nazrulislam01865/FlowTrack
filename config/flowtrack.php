@@ -23,6 +23,12 @@ return [
     // bootstrap query/response while preserving the same client-side data model.
     'bootstrap_segment_per_page' => (int) env('FLOWTRACK_BOOTSTRAP_SEGMENT_PER_PAGE', 100),
 
+    // Lightweight list pages. Full details are fetched only when a record opens.
+    'list_per_page' => (int) env('FLOWTRACK_LIST_PER_PAGE', 50),
+
+    // User/workspace dashboard calculations are cached for 1-5 minutes.
+    'metrics_cache_seconds' => (int) env('FLOWTRACK_METRICS_CACHE_SECONDS', 120),
+
     // The completed Blade Task Card interface is the only mounted FlowTrack UI.
     'ui_driver' => env('FLOWTRACK_UI_DRIVER', 'template'),
 

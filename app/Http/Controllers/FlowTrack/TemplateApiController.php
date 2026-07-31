@@ -124,6 +124,37 @@ class TemplateApiController extends Controller
     }
 
     /**
+     * Board assignee filter members. Admin and Super Admin receive all active
+     * workspace users; regular users receive only their own account. This is
+     * kept fresh outside the cached bootstrap so role changes and newly added
+     * members appear in the Board filter immediately after optimize/cache clear.
+     *
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     */
+    private function boardAssigneeUsers(User $user, FlowAuthorizationService $authorization): Collection
+    {
+        $workspaceId = (int) $user->currentWorkspaceId();
+
+        return WorkspaceMembership::query()
+            ->where('workspace_id', $workspaceId)
+            ->where('status', 'active')
+            ->when(! $authorization->isAdministrator($user), fn (Builder $query) => $query->where('user_id', $user->id))
+            ->with(['user:id,name,initials,email,locale', 'role:id,name', 'department:id,name'])
+            ->get()
+            ->filter(fn (WorkspaceMembership $membership): bool => $membership->user !== null)
+            ->map(fn (WorkspaceMembership $membership): array => [
+                'id' => $membership->user->id,
+                'name' => $membership->user->name,
+                'initials' => $membership->user->initials ?: $this->initials($membership->user->name),
+                'email' => $authorization->isAdministrator($user) ? $membership->user->email : null,
+                'role' => $membership->role?->name ?? 'Member',
+                'dept' => $membership->department?->name ?? 'Unassigned',
+                'language' => $membership->user->locale ?: 'en',
+            ])
+            ->values();
+    }
+
+    /**
      * Return the small, rapidly changing bootstrap collections directly from
      * the database. Keeping these outside the cached core prevents an older
      * concurrent response from making Notifications, Workflow Setup, or Task
@@ -230,6 +261,7 @@ class TemplateApiController extends Controller
                 'authorityView' => $authorityNotificationView,
                 'statusEndpoint' => route('flowtrack.notifications.status'),
             ],
+            'boardAssigneeUsers' => $this->boardAssigneeUsers($user, $authorization),
             'activities' => $recentActivities,
             'workflows' => $workflows->map(fn (WorkflowTemplate $workflow) => $this->mapWorkflow($workflow)),
             'taskPacks' => $taskPacks->map(fn (TaskPack $taskPack) => $this->mapTaskPack($taskPack)),
@@ -259,15 +291,20 @@ class TemplateApiController extends Controller
             || $authorization->allows($user, 'documents', 'create')
             || $canViewWorkflowSetup;
 
-        $canViewUsers = $user->hasFlowAction('users', 'view');
-        $canUseAssignments = collect([
+        $canViewUsers = $user->hasFlowAction('users', 'view') || $user->isFlowAdministrator();
+        $canUseAssignments = $user->isFlowAdministrator() || collect([
             ['jobs', 'assign'], ['jobs', 'create'], ['tasks', 'assign'], ['tasks', 'create'], ['clients', 'assign'],
         ])->contains(fn (array $permission): bool => $user->hasFlowAction($permission[0], $permission[1]));
 
+        // Keep the global user collection aligned with the Board assignee rule:
+        // Admin/Super Admin can filter and assign against every active workspace
+        // member; regular users receive only their own account in Board filters.
+        // Other assignment flows still force the current user when the role cannot
+        // assign records, so this does not broaden non-admin visibility.
         $memberships = WorkspaceMembership::query()
             ->where('workspace_id', $workspaceId)
             ->where('status', 'active')
-            ->when(! $canViewUsers && ! $canUseAssignments, fn (Builder $query) => $query->where('user_id', $user->id))
+            ->when(! $authorization->isAdministrator($user), fn (Builder $query) => $query->where('user_id', $user->id))
             ->with(['user:id,name,initials,email,locale', 'role:id,name', 'department:id,name'])
             ->get();
 
@@ -424,13 +461,14 @@ class TemplateApiController extends Controller
         return [
             'currentUser' => $currentUserPresenter->toArray($user),
             'segments' => [
-                'clients' => route('flowtrack.template-api.bootstrap.segment', ['segment' => 'clients'], false),
-                'jobs' => route('flowtrack.template-api.bootstrap.segment', ['segment' => 'jobs'], false),
-                'tasks' => route('flowtrack.template-api.bootstrap.segment', ['segment' => 'tasks'], false),
-                'documents' => route('flowtrack.template-api.bootstrap.segment', ['segment' => 'documents'], false),
-                'perPage' => max(25, min(250, (int) config('flowtrack.bootstrap_segment_per_page', 100))),
+                'clients' => route('flowtrack.template-api.lists.index', ['segment' => 'clients'], false),
+                'jobs' => route('flowtrack.template-api.lists.index', ['segment' => 'jobs'], false),
+                'tasks' => route('flowtrack.template-api.lists.index', ['segment' => 'tasks'], false),
+                'documents' => route('flowtrack.template-api.lists.index', ['segment' => 'documents'], false),
+                'perPage' => max(20, min(100, (int) config('flowtrack.list_per_page', 50))),
             ],
             'users' => $users,
+            'boardAssigneeUsers' => $this->boardAssigneeUsers($user, $authorization),
             'clients' => $clients,
             'jobs' => $jobs->map(fn (FlowJob $job) => $this->mapJob($job, $canViewFinancials)),
             'boardJobIds' => $boardJobIds,
@@ -458,7 +496,22 @@ class TemplateApiController extends Controller
     
     }
 
+    /**
+     * Backward-compatible alias for older cached clients.
+     */
     public function bootstrapSegment(
+        Request $request,
+        string $segment,
+        FlowAuthorizationService $authorization,
+    ): JsonResponse {
+        return $this->listSegment($request, $segment, $authorization);
+    }
+
+    /**
+     * Lightweight paginated operational lists. Detail-only relationships are
+     * intentionally excluded and fetched by the dedicated show endpoints.
+     */
+    public function listSegment(
         Request $request,
         string $segment,
         FlowAuthorizationService $authorization,
@@ -467,9 +520,9 @@ class TemplateApiController extends Controller
         abort_unless($user, 401);
 
         $workspaceId = (int) $user->currentWorkspaceId();
-        $perPage = max(25, min(250, (int) $request->integer(
+        $perPage = max(20, min(100, (int) $request->integer(
             'per_page',
-            (int) config('flowtrack.bootstrap_segment_per_page', 100),
+            (int) config('flowtrack.list_per_page', 50),
         )));
         $canViewFinancials = $authorization->allows($user, 'invoice', 'view')
             && $authorization->canViewSensitiveField($user, 'invoice_amount');
@@ -486,71 +539,242 @@ class TemplateApiController extends Controller
                     ])
                     ->orderBy('name')
                     ->orderBy('id')
-                    ->paginate($perPage)
-                : Client::query()->whereRaw('1 = 0')->paginate($perPage),
+                    ->simplePaginate($perPage)
+                : Client::query()->whereRaw('1 = 0')->simplePaginate($perPage),
             'jobs' => $authorization->allows($user, 'jobs', 'view')
                 ? FlowJob::query()
                     ->visibleTo($user)
                     ->with([
-                    'client:id,name,code', 'workflow.phases', 'currentPhase.documentCategory', 'currentPhase.taskPack.items.documentCategory', 'startedPhase',
-                    'product:id,name,code', 'productCategory:id,name,code', 'items.product:id,name,code', 'items.productCategory:id,name,code', 'currency:id,name,code',
-                    'priority:id,name,code', 'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
-                    'members.user:id,name,initials', 'excludedPhases.phase:id,name,short_name,sequence',
-                    'phaseHistory.phase:id,name,short_name,sequence', 'phaseHistory.changedBy:id,name,initials',
-                    'transitionEvents.actor:id,name,initials', 'transitionEvents.phase:id,name,short_name', 'transitionEvents.task:id,code,title',
+                        'client:id,name,code', 'currentPhase:id,name,short_name,sequence', 'startedPhase:id,name,short_name,sequence',
+                        'product:id,name,code', 'productCategory:id,name,code',
+                        'items.product:id,name,code', 'items.productCategory:id,name,code',
+                        'currency:id,name,code', 'priority:id,name,code',
+                        'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
                     ])
                     ->latest('id')
-                    ->paginate($perPage)
-                : FlowJob::query()->whereRaw('1 = 0')->paginate($perPage),
+                    ->simplePaginate($perPage)
+                : FlowJob::query()->whereRaw('1 = 0')->simplePaginate($perPage),
             'tasks' => $authorization->allows($user, 'tasks', 'view')
                 ? $authorization->applyTaskVisibility(FlowTask::query(), $user)
                     ->with([
-                        'job:id,workspace_id,code,title,client_id,current_phase_id,workflow_template_id,progress,created_by,owner_id,coordinator_id', 'job.client:id,name',
-                        'job.owner:id,name,initials', 'job.coordinator:id,name,initials', 'job.members.user:id,name,initials',
-                        'job.documents.category:id,name', 'job.documents.uploader:id,name,initials', 'job.documents.versions.uploader:id,name,initials',
+                        'job:id,workspace_id,code,title,client_id,current_phase_id,workflow_template_id,progress,created_by,owner_id,coordinator_id',
+                        'job.client:id,name', 'job.members:id,flow_job_id,user_id,can_manage_tasks',
                         'phase:id,name,short_name,sequence,task_pack_id', 'phase.taskPack:id,name',
                         'packItem:id,task_pack_id,title,document_category_id,is_required', 'packItem.documentCategory:id,name',
-                        'documentCategory:id,name', 'creator:id,name,initials',
-                        'assignee:id,name,initials', 'assignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $workspaceId)->with('department:id,name'),
-                        'status:id,name,code', 'priority:id,name,code', 'checklistItems', 'comments.user:id,name,initials',
-                        'activities.user:id,name,initials', 'transitionEvents.actor:id,name,initials',
+                        'documentCategory:id,name', 'assignee:id,name,initials', 'setupAssignee:id,name,initials',
+                        'setupAssignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $workspaceId)->with('department:id,name'),
+                        'assignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $workspaceId)->with('department:id,name'),
+                        'status:id,name,code', 'priority:id,name,code',
                     ])
                     ->orderByRaw('due_date is null')
                     ->orderBy('due_date')
                     ->orderBy('id')
-                    ->paginate($perPage)
-                : FlowTask::query()->whereRaw('1 = 0')->paginate($perPage),
+                    ->simplePaginate($perPage)
+                : FlowTask::query()->whereRaw('1 = 0')->simplePaginate($perPage),
             'documents' => $authorization->allows($user, 'documents', 'view')
                 ? $authorization->applyDocumentVisibility(FlowDocument::query(), $user)
-                    ->with(['job:id,code,client_id,current_phase_id', 'job.client:id,name', 'phase:id,name,short_name,sequence', 'taskPackItem:id,title', 'category:id,name', 'uploader:id,name', 'currentVersion'])
+                    ->with([
+                        'job:id,code,client_id,current_phase_id', 'job.client:id,name',
+                        'phase:id,name,short_name,sequence', 'taskPackItem:id,title',
+                        'category:id,name', 'uploader:id,name', 'currentVersion',
+                    ])
                     ->latest('id')
-                    ->paginate($perPage)
-                : FlowDocument::query()->whereRaw('1 = 0')->paginate($perPage),
+                    ->simplePaginate($perPage)
+                : FlowDocument::query()->whereRaw('1 = 0')->simplePaginate($perPage),
             default => abort(404),
         };
 
-        if ($segment === 'jobs') {
-            $this->primeJobActivityCache(collect($paginator->items()));
-        }
-
-        $mapped = collect($paginator->items())->map(fn ($record) => match ($segment) {
-            'clients' => $this->mapClient($record, $canViewFinancials, $canViewClientContacts),
-            'jobs' => $this->mapJob($record, $canViewFinancials),
-            'tasks' => $this->mapTask($record),
-            'documents' => $this->mapDocument($record),
+        $records = collect($paginator->items());
+        $mapped = $records->map(fn ($record) => match ($segment) {
+            'clients' => [...$this->mapClient($record, $canViewFinancials, $canViewClientContacts), '_detailLoaded' => false],
+            'jobs' => $this->mapJobList($record, $canViewFinancials),
+            'tasks' => $this->mapTaskList($record),
+            'documents' => [...$this->mapDocument($record), '_detailLoaded' => false],
         })->values();
+
+        // Lists are paginated independently. Return only the bounded related
+        // Job/Client lookups needed by the current page so Board grouping and
+        // labels stay complete without loading the full workspace dataset.
+        $relatedJobIds = (match ($segment) {
+            'tasks', 'documents' => $records->pluck('flow_job_id'),
+            default => collect(),
+        })->filter()->map(fn ($id): int => (int) $id)->unique()->values();
+
+        $relatedJobModels = $relatedJobIds->isEmpty()
+            ? collect()
+            : FlowJob::query()
+                ->visibleTo($user)
+                ->whereKey($relatedJobIds)
+                ->with([
+                    'client:id,name,code', 'currentPhase:id,name,short_name,sequence', 'startedPhase:id,name,short_name,sequence',
+                    'product:id,name,code', 'productCategory:id,name,code',
+                    'items.product:id,name,code', 'items.productCategory:id,name,code',
+                    'currency:id,name,code', 'priority:id,name,code',
+                    'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
+                ])
+                ->get();
+
+        $relatedClientIds = (match ($segment) {
+            'jobs' => $records->pluck('client_id'),
+            'tasks', 'documents' => $relatedJobModels->pluck('client_id'),
+            default => collect(),
+        })->filter()->map(fn ($id): int => (int) $id)->unique()->values();
+
+        $relatedClients = $relatedClientIds->isEmpty()
+            ? collect()
+            : Client::query()
+                ->where('workspace_id', $workspaceId)
+                ->whereKey($relatedClientIds)
+                ->get(['id', 'name', 'code'])
+                ->map(fn (Client $client): array => [
+                    'id' => $client->id,
+                    'name' => $client->name,
+                    'code' => $client->code,
+                ])
+                ->values();
 
         return response()->json([
             'segment' => $segment,
             'data' => $mapped,
+            'relatedJobs' => $relatedJobModels
+                ->map(fn (FlowJob $job): array => $this->mapJobList($job, $canViewFinancials))
+                ->values(),
+            'relatedClients' => $relatedClients,
             'pagination' => [
                 'currentPage' => $paginator->currentPage(),
-                'lastPage' => $paginator->lastPage(),
                 'perPage' => $paginator->perPage(),
-                'total' => $paginator->total(),
+                'hasMorePages' => $paginator->hasMorePages(),
                 'nextPageUrl' => $paginator->nextPageUrl(),
             ],
         ])->header('Cache-Control', 'private, no-cache, must-revalidate');
+    }
+
+    public function showClient(
+        Request $request,
+        string $record,
+        FlowAuthorizationService $authorization,
+    ): JsonResponse {
+        $user = $request->user();
+        abort_unless($user && $authorization->allows($user, 'clients', 'view'), 403);
+
+        $client = $this->whereRecordIdentifier(
+            $authorization->applyClientVisibility(Client::query(), $user),
+            $record,
+        )
+            ->with('accountManager:id,name,initials')
+            ->withCount([
+                'jobs as active_jobs_count' => fn (Builder $query) => $authorization->applyJobVisibility($query, $user)->where('status', '!=', 'completed'),
+                'jobs as attention_jobs_count' => fn (Builder $query) => $authorization->applyJobVisibility($query, $user)->where('attention_required', true),
+            ])
+            ->firstOrFail();
+
+        $jobs = $authorization->applyJobVisibility(FlowJob::query(), $user)
+            ->where('client_id', $client->id)
+            ->with([
+                'client:id,name,code', 'currentPhase:id,name,short_name,sequence', 'startedPhase:id,name,short_name,sequence',
+                'product:id,name,code', 'productCategory:id,name,code', 'items.product:id,name,code',
+                'items.productCategory:id,name,code', 'currency:id,name,code', 'priority:id,name,code',
+                'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
+            ])
+            ->latest('id')
+            ->limit(100)
+            ->get();
+
+        return response()->json([
+            'client' => [...$this->mapClient(
+                $client,
+                $this->canViewFinancials($user),
+                $authorization->canViewSensitiveField($user, 'client_contact_details'),
+            ), '_detailLoaded' => true],
+            'jobs' => $jobs->map(fn (FlowJob $job) => $this->mapJobList($job, $this->canViewFinancials($user))),
+        ]);
+    }
+
+    public function showJob(
+        Request $request,
+        string $record,
+        FlowAuthorizationService $authorization,
+    ): JsonResponse {
+        $user = $request->user();
+        abort_unless($user && $authorization->allows($user, 'jobs', 'view'), 403);
+
+        $job = $this->whereRecordIdentifier(FlowJob::query()->visibleTo($user), $record)->firstOrFail();
+        $job = $this->loadJob($job);
+        $this->primeJobActivityCache(collect([$job]));
+        $tasks = $this->loadJobTasks($job, $user);
+        $documents = $authorization->applyDocumentVisibility(FlowDocument::query(), $user)
+            ->where('flow_job_id', $job->id)
+            ->with([
+                'job:id,code,client_id,current_phase_id', 'job.client:id,name',
+                'phase:id,name,short_name,sequence', 'taskPackItem:id,title',
+                'category:id,name', 'uploader:id,name', 'currentVersion',
+            ])
+            ->latest('id')
+            ->get();
+
+        return response()->json([
+            'job' => [...$this->mapJob($job, $this->canViewFinancials($user)), '_detailLoaded' => true],
+            'tasks' => $tasks->map(fn (FlowTask $task) => [...$this->mapTask($task), '_detailLoaded' => true]),
+            'documents' => $documents->map(fn (FlowDocument $document) => [...$this->mapDocument($document), '_detailLoaded' => true]),
+        ]);
+    }
+
+    public function showTask(
+        Request $request,
+        string $record,
+        FlowAuthorizationService $authorization,
+    ): JsonResponse {
+        $user = $request->user();
+        abort_unless($user && $authorization->allows($user, 'tasks', 'view'), 403);
+
+        $baseTask = $this->whereRecordIdentifier(
+            $authorization->applyTaskVisibility(FlowTask::query(), $user),
+            $record,
+        )->firstOrFail();
+        $task = $this->loadTask($baseTask, $user);
+        $job = $this->loadJob($task->job);
+        $this->primeJobActivityCache(collect([$job]));
+
+        return response()->json([
+            'task' => [...$this->mapTask($task), '_detailLoaded' => true],
+            'job' => [...$this->mapJob($job, $this->canViewFinancials($user)), '_detailLoaded' => true],
+        ]);
+    }
+
+    public function showDocument(
+        Request $request,
+        string $record,
+        FlowAuthorizationService $authorization,
+    ): JsonResponse {
+        $user = $request->user();
+        abort_unless($user && $authorization->allows($user, 'documents', 'view'), 403);
+
+        $document = $this->whereRecordIdentifier(
+            $authorization->applyDocumentVisibility(FlowDocument::query(), $user),
+            $record,
+        )
+            ->with([
+                'job:id,code,client_id,current_phase_id', 'job.client:id,name',
+                'phase:id,name,short_name,sequence', 'taskPackItem:id,title',
+                'category:id,name', 'uploader:id,name', 'currentVersion', 'versions.uploader:id,name,initials',
+            ])
+            ->firstOrFail();
+
+        return response()->json([
+            'document' => [...$this->mapDocument($document), '_detailLoaded' => true],
+        ]);
+    }
+
+    private function whereRecordIdentifier(Builder $query, string $record, string $codeColumn = 'code'): Builder
+    {
+        return $query->where(function (Builder $identifier) use ($record, $codeColumn): void {
+            if (ctype_digit($record)) {
+                $identifier->whereKey((int) $record)->orWhere($codeColumn, $record);
+                return;
+            }
+
+            $identifier->where($codeColumn, $record);
+        });
     }
 
     public function storeClient(StoreClientRequest $request, CreateClientAction $action): JsonResponse
@@ -606,6 +830,95 @@ class TemplateApiController extends Controller
         return response()->json(['message' => 'Job, Tasks, documents and stored files were deleted successfully.']);
     }
 
+    public function bulkJobs(Request $request, DeleteJobAction $deleteJob): JsonResponse
+    {
+        $user = $request->user();
+        abort_unless($user, 401);
+
+        $data = $request->validate([
+            'action' => ['required', Rule::in(['deactivate', 'delete'])],
+            'job_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'job_ids.*' => ['required', 'integer'],
+        ]);
+
+        $jobs = FlowJob::query()
+            ->with(['tasks:id,flow_job_id', 'documents:id,flow_job_id'])
+            ->where('workspace_id', $user->currentWorkspaceId())
+            ->whereIn('id', collect($data['job_ids'])->map(fn ($id) => (int) $id)->unique()->values())
+            ->get();
+
+        abort_if($jobs->isEmpty(), 404, 'No matching Jobs were found.');
+
+        if ($data['action'] === 'delete') {
+            abort_unless(app(FlowAuthorizationService::class)->isAdministrator($user), 403);
+
+            foreach ($jobs as $job) {
+                abort_unless($user->hasFlowAction('jobs', 'delete', $job), 403);
+            }
+
+            $deleted = [];
+            foreach ($jobs as $job) {
+                $deleted[] = ['dbId' => (int) $job->id, 'id' => $job->code];
+                $deleteJob->execute($job);
+            }
+
+            return response()->json([
+                'message' => count($deleted).' Job'.(count($deleted) === 1 ? '' : 's').' deleted successfully.',
+                'deleted' => $deleted,
+            ]);
+        }
+
+        foreach ($jobs as $job) {
+            abort_unless(
+                $user->hasFlowAction('jobs', 'edit_all', $job)
+                    || $user->hasFlowAction('jobs', 'override', $job)
+                    || $user->hasFlowAction('jobs', 'manage', $job),
+                403
+            );
+        }
+
+        $deactivated = [];
+
+        DB::transaction(function () use ($jobs, $user, &$deactivated): void {
+            foreach ($jobs as $job) {
+                $oldStatus = $job->status;
+                $job->forceFill([
+                    'status' => 'inactive',
+                    'health' => $job->health === 'completed' ? 'completed' : 'inactive',
+                    'attention_required' => false,
+                    'next_action' => 'Deactivated by bulk action',
+                ])->save();
+
+                FlowActivity::query()->create([
+                    'workspace_id' => $job->workspace_id,
+                    'user_id' => $user->id,
+                    'flow_job_id' => $job->id,
+                    'subject_type' => FlowJob::class,
+                    'subject_id' => $job->id,
+                    'event' => 'job.bulk_deactivated',
+                    'description' => 'Job '.$job->code.' deactivated by bulk action',
+                    'properties' => [
+                        'from_status' => $oldStatus,
+                        'to_status' => 'inactive',
+                    ],
+                ]);
+
+                $deactivated[] = [
+                    'dbId' => (int) $job->id,
+                    'id' => $job->code,
+                    'status' => 'Inactive',
+                    'health' => $job->health === 'completed' ? 'Completed' : 'Inactive',
+                    'active' => false,
+                ];
+            }
+        });
+
+        return response()->json([
+            'message' => count($deactivated).' Job'.(count($deactivated) === 1 ? '' : 's').' deactivated successfully.',
+            'deactivated' => $deactivated,
+        ]);
+    }
+
     public function destroyTask(
         Request $request,
         FlowTask $task,
@@ -620,8 +933,8 @@ class TemplateApiController extends Controller
 
         return response()->json([
             'message' => 'Task deleted successfully.',
+            'deletedTask' => ['dbId' => (int) $task->id, 'id' => $task->code],
             'job' => $this->mapJob($this->loadJob($job), $this->canViewFinancials($request->user())),
-            'tasks' => $this->loadJobTasks($job, $request->user())->map(fn (FlowTask $jobTask) => $this->mapTask($jobTask)),
         ]);
     }
 
@@ -858,7 +1171,6 @@ class TemplateApiController extends Controller
         $updated = $this->loadJob($updated);
         return response()->json([
             'job' => $this->mapJob($updated, $this->canViewFinancials($request->user())),
-            'tasks' => $this->loadJobTasks($updated, $request->user())->map(fn (FlowTask $task) => $this->mapTask($task)),
         ]);
     }
 
@@ -894,17 +1206,15 @@ class TemplateApiController extends Controller
         }
 
         $updatedJob = $this->loadJob($created->job);
-        $jobTasks = $this->loadJobTasks($updatedJob, $request->user());
 
         return response()->json([
             'message' => "Task {$created->code} created successfully.",
             'task' => $this->mapTask($created->loadMissing([
                 'job.client', 'job.owner:id,name,initials', 'job.coordinator:id,name,initials', 'job.members.user:id,name,initials',
-                'phase.taskPack', 'packItem.documentCategory', 'documentCategory', 'assignee.workspaceMemberships.department',
+                'phase.taskPack', 'packItem.documentCategory', 'documentCategory', 'assignee.workspaceMemberships.department', 'setupAssignee:id,name,initials', 'setupAssignee.workspaceMemberships.department',
                 'status', 'priority', 'checklistItems', 'comments.user', 'activities.user:id,name,initials', 'transitionEvents.actor:id,name,initials',
             ])),
             'job' => $this->mapJob($updatedJob, $this->canViewFinancials($request->user())),
-            'tasks' => $jobTasks->map(fn (FlowTask $task) => $this->mapTask($task)),
         ], 201);
     }
 
@@ -937,16 +1247,13 @@ class TemplateApiController extends Controller
         $job = $this->loadJob($updated->job);
         $updated->load([
             'job.client', 'job.owner:id,name,initials', 'job.coordinator:id,name,initials', 'job.members.user:id,name,initials',
-            'phase.taskPack', 'assignee.workspaceMemberships.department', 'status', 'priority', 'checklistItems', 'comments.user',
+            'phase.taskPack', 'assignee.workspaceMemberships.department', 'setupAssignee:id,name,initials', 'setupAssignee.workspaceMemberships.department', 'status', 'priority', 'checklistItems', 'comments.user',
             'activities.user:id,name,initials', 'transitionEvents.actor:id,name,initials',
         ]);
-
-        $jobTasks = $this->loadJobTasks($job, $request->user());
 
         return response()->json([
             'task' => $this->mapTask($updated),
             'job' => $this->mapJob($job, $this->canViewFinancials($request->user())),
-            'tasks' => $jobTasks->map(fn (FlowTask $jobTask) => $this->mapTask($jobTask)),
         ]);
     }
 
@@ -972,7 +1279,6 @@ class TemplateApiController extends Controller
             'message' => 'Task due date updated.',
             'task' => $this->mapTask($updated),
             'job' => $this->mapJob($job, $this->canViewFinancials($request->user())),
-            'tasks' => $this->loadJobTasks($job, $request->user())->map(fn (FlowTask $jobTask) => $this->mapTask($jobTask)),
         ]);
     }
 
@@ -1052,13 +1358,197 @@ class TemplateApiController extends Controller
                 'phase:id,name,short_name,sequence,task_pack_id', 'phase.taskPack:id,name',
                 'packItem:id,task_pack_id,title,document_category_id,is_required', 'packItem.documentCategory:id,name',
                 'documentCategory:id,name',
-                'assignee:id,name,initials', 'assignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $job->workspace_id)->with('department:id,name'),
+                'assignee:id,name,initials', 'setupAssignee:id,name,initials', 'setupAssignee.workspaceMemberships.department', 'assignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $job->workspace_id)->with('department:id,name'),
                 'status:id,name,code', 'priority:id,name,code', 'checklistItems', 'comments.user:id,name,initials',
                 'activities.user:id,name,initials', 'transitionEvents.actor:id,name,initials',
             ])
-            ->orderBy('due_date')
+            ->orderBy(
+                WorkflowPhase::query()
+                    ->select('sequence')
+                    ->whereColumn('workflow_phases.id', 'flow_tasks.workflow_phase_id')
+                    ->limit(1)
+            )
+            ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
+    }
+
+    private function loadTask(FlowTask $task, User $user): FlowTask
+    {
+        $workspaceId = (int) $user->currentWorkspaceId();
+
+        return $task->fresh([
+            'job:id,workspace_id,code,title,client_id,current_phase_id,workflow_template_id,progress,created_by,owner_id,coordinator_id',
+            'job.client:id,name', 'job.owner:id,name,initials', 'job.coordinator:id,name,initials',
+            'job.members.user:id,name,initials', 'job.documents.category:id,name',
+            'job.documents.uploader:id,name,initials', 'job.documents.versions.uploader:id,name,initials',
+            'phase:id,name,short_name,sequence,task_pack_id', 'phase.taskPack:id,name',
+            'packItem:id,task_pack_id,title,document_category_id,is_required', 'packItem.documentCategory:id,name',
+            'documentCategory:id,name', 'creator:id,name,initials', 'assignee:id,name,initials',
+            'setupAssignee:id,name,initials',
+            'setupAssignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $workspaceId)->with('department:id,name'),
+            'assignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $workspaceId)->with('department:id,name'),
+            'status:id,name,code', 'priority:id,name,code', 'checklistItems', 'comments.user:id,name,initials',
+            'activities.user:id,name,initials', 'transitionEvents.actor:id,name,initials',
+        ]);
+    }
+
+    private function mapJobList(FlowJob $job, bool $canViewFinancials = false): array
+    {
+        $productItems = $job->items->map(fn ($item): array => [
+            'id' => $item->id,
+            'productId' => $item->product_id,
+            'product' => $item->product?->name ?? 'Deleted product',
+            'productCode' => $item->product?->code ?? '',
+            'categoryId' => $item->product_category_id,
+            'category' => $item->productCategory?->name ?? '',
+            'qty' => (int) $item->quantity,
+        ])->values();
+
+        if ($productItems->isEmpty() && $job->product_id) {
+            $productItems->push([
+                'id' => null,
+                'productId' => $job->product_id,
+                'product' => $job->product?->name ?? 'Deleted product',
+                'productCode' => $job->product?->code ?? '',
+                'categoryId' => $job->product_category_id,
+                'category' => $job->productCategory?->name ?? '',
+                'qty' => (int) $job->quantity,
+            ]);
+        }
+
+        $productSummary = match (true) {
+            $productItems->isEmpty() => 'Unspecified product',
+            $productItems->count() === 1 => $productItems->first()['product'],
+            default => $productItems->first()['product'].' + '.($productItems->count() - 1).' more',
+        };
+        $categoryNames = $productItems->pluck('category')->filter()->unique()->values();
+
+        return [
+            'dbId' => $job->id,
+            'id' => $job->code,
+            'order' => $job->order_code ?? '',
+            'title' => $job->title,
+            'requestDescription' => $job->request_description ?? '',
+            'client' => $job->client_id,
+            'product' => $productSummary,
+            'productId' => $productItems->first()['productId'] ?? $job->product_id,
+            'products' => $productItems->all(),
+            'productCount' => $productItems->count(),
+            'category' => $categoryNames->count() > 1 ? 'Multiple categories' : ($categoryNames->first() ?? ''),
+            'categoryId' => $productItems->first()['categoryId'] ?? $job->product_category_id,
+            'qty' => (int) $job->quantity,
+            'price' => $canViewFinancials ? (float) $job->quoted_amount : null,
+            'currency' => $job->currency?->code ?? 'USD',
+            'currencyId' => $job->currency_id,
+            'phase' => max(0, ((int) ($job->currentPhase?->sequence ?? 1)) - 1),
+            'phaseId' => $job->current_phase_id,
+            'status' => $this->label($job->status),
+            'active' => ! in_array(strtolower((string) $job->status), ['inactive', 'deactivated', 'archived'], true),
+            'createdAt' => $job->created_at?->toIso8601String(),
+            'updatedAt' => $job->updated_at?->toIso8601String(),
+            'health' => $this->label($job->health),
+            'healthReason' => $job->health_reason ?? '',
+            'progress' => (int) $job->progress,
+            'owner' => $job->owner?->name ?? 'Unassigned',
+            'ownerId' => $job->owner_id,
+            'coordinator' => $job->coordinator?->name ?? 'Unassigned',
+            'coordinatorId' => $job->coordinator_id,
+            'createdById' => $job->created_by,
+            'createdBy' => $job->creator?->name ?? 'Unknown',
+            'canDeletePhases' => false,
+            'excludedPhaseIds' => [],
+            'delivery' => $job->delivery_date?->toDateString() ?? '',
+            'priority' => $job->priority?->name ?? 'Medium',
+            'priorityId' => $job->priority_id,
+            'next' => $job->next_action ?? 'Review current phase',
+            'milestone' => $job->milestone ?? '',
+            'attention' => (bool) $job->attention_required,
+            'phaseReadiness' => 'pending',
+            'phaseReadinessLabel' => 'Pending',
+            'phaseReadinessDetails' => [],
+            'phaseHistory' => [],
+            'documentRequirements' => [],
+            'workflow' => $job->workflow_template_id,
+            'createdFromPhase' => max(0, ((int) ($job->startedPhase?->sequence ?? 1)) - 1),
+            'skippedPhases' => [],
+            'startHandling' => $this->label($job->start_handling),
+            'startReason' => $job->start_reason ?? '',
+            'activity' => [],
+            '_detailLoaded' => false,
+        ];
+    }
+
+    private function mapTaskList(FlowTask $task): array
+    {
+        $effectiveAssignee = $task->assignee
+            ?: ((! $task->assignee_overridden_at && $task->setup_assignee_id) ? $task->setupAssignee : null);
+        $effectiveAssigneeId = $task->assignee_id
+            ?: ((! $task->assignee_overridden_at && $task->setup_assignee_id) ? $task->setup_assignee_id : null);
+        $membership = $effectiveAssignee?->workspaceMemberships?->first();
+        $actor = request()->user();
+        $authorization = app(FlowAuthorizationService::class);
+        $documentCategory = $task->documentCategory ?: $task->packItem?->documentCategory;
+        $documentSource = $task->document_requirement_source
+            ?: ($task->packItem?->document_category_id ? 'task_pack_item' : null);
+        $isDocumentTask = (bool) ($documentCategory && in_array($documentSource, ['workflow_phase', 'task_pack_item'], true))
+            || $this->looksLikeDocumentTask($task);
+
+        return [
+            'dbId' => $task->id,
+            'id' => $task->code,
+            'job' => $task->job?->code,
+            'jobDbId' => $task->flow_job_id,
+            'jobTitle' => $task->job?->title,
+            'title' => $task->title,
+            'description' => $task->description ?? '',
+            'status' => $task->status?->name ?? 'Not Started',
+            'statusId' => $task->task_status_id,
+            'statusCode' => $task->status?->code,
+            'createdAt' => $task->created_at?->toIso8601String(),
+            'updatedAt' => $task->updated_at?->toIso8601String(),
+            'completedAt' => $task->completed_at?->toIso8601String(),
+            'completedBy' => $task->completed_at ? ($effectiveAssignee?->name ?? 'System') : null,
+            'completedByInitials' => $task->completed_at ? $this->initials($effectiveAssignee?->name ?? 'System') : null,
+            'assignee' => $effectiveAssignee?->name ?? 'Unassigned',
+            'assigneeId' => $effectiveAssigneeId ? (int) $effectiveAssigneeId : null,
+            'setupAssigneeId' => $task->setup_assignee_id ? (int) $task->setup_assignee_id : null,
+            'setupAssignee' => $task->setupAssignee?->name,
+            'assigneeOverridden' => (bool) $task->assignee_overridden_at,
+            'canUpdate' => $actor ? $authorization->canUpdateTask($actor, $task) : false,
+            'canAssign' => $actor ? $authorization->canAssignExistingTask($actor, $task) : false,
+            'canDelete' => $actor ? $authorization->canDeleteTask($actor, $task) : false,
+            'canChangeDueDate' => $actor ? $authorization->canChangeTaskDueDate($actor, $task) : false,
+            'dept' => $membership?->department?->name ?? 'Unassigned',
+            'due' => $task->due_date?->toDateString() ?? '',
+            'priority' => $task->priority?->name ?? 'Medium',
+            'priorityId' => $task->priority_id,
+            'progress' => (int) $task->progress,
+            'phase' => $task->phase?->taskPack?->name ?? $task->phase?->short_name ?? 'General',
+            'phaseIndex' => max(0, ((int) ($task->phase?->sequence ?? 1)) - 1),
+            'phaseId' => $task->workflow_phase_id,
+            'sortOrder' => (int) $task->sort_order,
+            'taskPackItemId' => $task->task_pack_item_id ? (int) $task->task_pack_item_id : null,
+            'taskPackItemTitle' => $task->packItem?->title,
+            'attention' => (bool) $task->attention_required,
+            'blockerReason' => $task->blocker_reason ?? '',
+            'isDocumentTask' => $isDocumentTask,
+            'documentRequirement' => $documentCategory ? [
+                'source' => $documentSource ?: 'task_attachment',
+                'phaseId' => (int) $task->workflow_phase_id,
+                'taskPackItemId' => $task->task_pack_item_id ? (int) $task->task_pack_item_id : null,
+                'taskId' => (int) $task->id,
+                'categoryId' => (int) $documentCategory->id,
+                'categoryName' => $documentCategory->name,
+            ] : null,
+            'documents' => [],
+            'canUploadDocument' => false,
+            'mentionableUsers' => [],
+            'history' => [],
+            'checklist' => [],
+            'comments' => [],
+            '_detailLoaded' => false,
+        ];
     }
 
     private function mapClient(Client $client, bool $canViewFinancials = false, bool $canViewContacts = false): array
@@ -1142,6 +1632,7 @@ class TemplateApiController extends Controller
             'phase' => max(0, ((int) ($job->currentPhase?->sequence ?? 1)) - 1),
             'phaseId' => $job->current_phase_id,
             'status' => $this->label($job->status),
+            'active' => ! in_array(strtolower((string) $job->status), ['inactive', 'deactivated', 'archived'], true),
             'createdAt' => $job->created_at?->toIso8601String(),
             'updatedAt' => $job->updated_at?->toIso8601String(),
             'health' => $this->label($job->health),
@@ -1198,13 +1689,16 @@ class TemplateApiController extends Controller
             'startHandling' => $this->label($job->start_handling),
             'startReason' => $job->start_reason ?? '',
             'activity' => $this->jobActivity($job),
+            '_detailLoaded' => true,
         ];
     }
 
     private function mapTask(FlowTask $task): array
     {
-        $task->loadMissing(['packItem.documentCategory', 'documentCategory']);
-        $membership = $task->assignee?->workspaceMemberships?->first();
+        $task->loadMissing(['packItem.documentCategory', 'documentCategory', 'setupAssignee.workspaceMemberships.department']);
+        $effectiveAssignee = $task->assignee ?: ((! $task->assignee_overridden_at && $task->setup_assignee_id) ? $task->setupAssignee : null);
+        $effectiveAssigneeId = $task->assignee_id ?: ((! $task->assignee_overridden_at && $task->setup_assignee_id) ? $task->setup_assignee_id : null);
+        $membership = $effectiveAssignee?->workspaceMemberships?->first() ?: $task->assignee?->workspaceMemberships?->first();
         $actor = request()->user();
         $authorization = app(FlowAuthorizationService::class);
         $documentCategory = $task->documentCategory ?: $task->packItem?->documentCategory;
@@ -1292,7 +1786,7 @@ class TemplateApiController extends Controller
         $mentionableUsers = collect([
             $task->job?->owner,
             $task->job?->coordinator,
-            $task->assignee,
+            $effectiveAssignee,
         ])->merge($task->job?->members?->pluck('user') ?? collect())
             ->filter()
             ->unique('id')
@@ -1365,7 +1859,7 @@ class TemplateApiController extends Controller
             ->first(fn ($event): bool => in_array(strtoupper(trim((string) $event->to_value)), ['CMP', 'COMPLETED', 'COMPLETE', 'DONE'], true));
         $completedByName = $completionActivity?->user?->name
             ?? $completionEvent?->actor?->name
-            ?? ($task->completed_at ? ($task->assignee?->name ?? 'System') : null);
+            ?? ($task->completed_at ? ($effectiveAssignee?->name ?? 'System') : null);
 
         return [
             'dbId' => $task->id,
@@ -1383,8 +1877,11 @@ class TemplateApiController extends Controller
             'completedAt' => $task->completed_at?->toIso8601String(),
             'completedBy' => $completedByName,
             'completedByInitials' => $completedByName ? $this->initials($completedByName) : null,
-            'assignee' => $task->assignee?->name ?? 'Unassigned',
-            'assigneeId' => $task->assignee_id,
+            'assignee' => $effectiveAssignee?->name ?? 'Unassigned',
+            'assigneeId' => $effectiveAssigneeId ? (int) $effectiveAssigneeId : null,
+            'setupAssigneeId' => $task->setup_assignee_id ? (int) $task->setup_assignee_id : null,
+            'setupAssignee' => $task->setupAssignee?->name ?? null,
+            'assigneeOverridden' => (bool) $task->assignee_overridden_at,
             'canUpdate' => $actor ? $authorization->canUpdateTask($actor, $task) : false,
             'canAssign' => $actor ? $authorization->canAssignExistingTask($actor, $task) : false,
             'canDelete' => $actor ? $authorization->canDeleteTask($actor, $task) : false,
@@ -1397,6 +1894,9 @@ class TemplateApiController extends Controller
             'phase' => $task->phase?->taskPack?->name ?? $task->phase?->short_name ?? 'General',
             'phaseIndex' => max(0, ((int) ($task->phase?->sequence ?? 1)) - 1),
             'phaseId' => $task->workflow_phase_id,
+            'sortOrder' => (int) $task->sort_order,
+            'taskPackItemId' => $task->task_pack_item_id ? (int) $task->task_pack_item_id : null,
+            'taskPackItemTitle' => $task->packItem?->title,
             'attention' => (bool) $task->attention_required,
             'blockerReason' => $task->blocker_reason ?? '',
             'isDocumentTask' => (bool) $isAttachmentTask,
@@ -1434,6 +1934,7 @@ class TemplateApiController extends Controller
                 'text' => $comment->body,
                 'time' => $comment->created_at?->diffForHumans() ?? '',
             ])->values()->all(),
+            '_detailLoaded' => true,
         ];
     }
 

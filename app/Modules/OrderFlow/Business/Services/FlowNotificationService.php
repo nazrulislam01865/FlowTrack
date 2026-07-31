@@ -3,6 +3,7 @@
 namespace App\Modules\OrderFlow\Business\Services;
 
 use App\Models\User;
+use App\Jobs\DeliverPusherEvent;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
@@ -15,10 +16,7 @@ use Throwable;
 
 class FlowNotificationService
 {
-    public function __construct(
-        private readonly PusherChannelsClient $pusher,
-        private readonly FlowAuthorizationService $authorization,
-    ) {}
+    public function __construct(private readonly FlowAuthorizationService $authorization) {}
 
     public function jobCreated(int $jobId, int $actorId): void
     {
@@ -496,15 +494,24 @@ class FlowNotificationService
         // low-latency transport; the clients also poll the status endpoint so a
         // bad or missing Pusher configuration cannot hide notifications.
         if ($channels->isNotEmpty()) {
-            $this->pusher->trigger(
-                $channels->unique()->values()->all(),
-                'notification.created',
-                [
-                    ...$payload,
-                    'read' => false,
-                    'time' => 'Just now',
-                ],
-            );
+            try {
+                DeliverPusherEvent::dispatch(
+                    $channels->unique()->values()->all(),
+                    'notification.created',
+                    [
+                        ...$payload,
+                        'read' => false,
+                        'time' => 'Just now',
+                    ],
+                )->afterCommit();
+            } catch (Throwable $exception) {
+                // Realtime delivery is optional and must never fail a business
+                // mutation if the queue connection is temporarily unavailable.
+                Log::warning('FlowTrack realtime notification queue dispatch failed.', [
+                    'event' => $payload['event'] ?? null,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
         }
     }
 

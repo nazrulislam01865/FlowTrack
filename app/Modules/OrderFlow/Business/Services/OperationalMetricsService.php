@@ -4,6 +4,7 @@ namespace App\Modules\OrderFlow\Business\Services;
 
 use App\Models\User;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
+use App\Modules\OrderFlow\Application\Support\FlowTrackMetricsCache;
 use App\Modules\OrderFlow\Data\Models\Client;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowJobPhaseHistory;
@@ -20,11 +21,18 @@ use Illuminate\Support\Collection;
 
 class OperationalMetricsService
 {
-    public function __construct(private readonly FlowAuthorizationService $authorization)
-    {
+    public function __construct(
+        private readonly FlowAuthorizationService $authorization,
+        private readonly FlowTrackMetricsCache $metricsCache,
+    ) {
     }
 
     public function forUser(User $user): array
+    {
+        return $this->metricsCache->remember($user, fn (): array => $this->calculateForUser($user));
+    }
+
+    private function calculateForUser(User $user): array
     {
         $workspaceId = $user->currentWorkspaceId();
         $jobs = $this->authorization->applyJobVisibility(FlowJob::query(), $user);

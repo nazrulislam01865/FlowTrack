@@ -36,6 +36,11 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasFactory, MustVerifyEmailTrait, Notifiable;
 
+    /** Request-lifetime cache: prevents repeated membership/role/permission queries. */
+    private bool $flowWorkspaceMembershipResolved = false;
+
+    private ?WorkspaceMembership $flowWorkspaceMembershipCache = null;
+
     /**
      * Get the attributes that should be cast.
      *
@@ -53,7 +58,33 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function currentWorkspaceMembership(): ?WorkspaceMembership
     {
-        return $this->workspaceMemberships()->with(['workspace', 'role.permissions', 'role.moduleAccess', 'department'])->where('status', 'active')->first();
+        if ($this->flowWorkspaceMembershipResolved) {
+            return $this->flowWorkspaceMembershipCache;
+        }
+
+        $this->flowWorkspaceMembershipResolved = true;
+        $this->flowWorkspaceMembershipCache = $this->workspaceMemberships()
+            ->with(['workspace', 'role.permissions', 'role.moduleAccess', 'department'])
+            ->where('status', 'active')
+            ->first();
+
+        return $this->flowWorkspaceMembershipCache;
+    }
+
+    /**
+     * Prime or reset the request-lifetime membership cache. Useful for
+     * middleware and tests that already resolved the active membership.
+     */
+    public function setCurrentWorkspaceMembership(?WorkspaceMembership $membership): void
+    {
+        $this->flowWorkspaceMembershipResolved = true;
+        $this->flowWorkspaceMembershipCache = $membership;
+    }
+
+    public function forgetCurrentWorkspaceMembership(): void
+    {
+        $this->flowWorkspaceMembershipResolved = false;
+        $this->flowWorkspaceMembershipCache = null;
     }
 
     public function currentWorkspaceId(): int

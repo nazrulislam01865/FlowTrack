@@ -185,8 +185,8 @@ class UploadDocumentAction
         }
 
         // The Documents page can be used before the Task Board has been opened.
-        // Reconcile the current Phase first so its required-document Task exists
-        // and can be completed by this upload in the same request.
+        // Reconcile the current Phase so configured Task Pack document Tasks
+        // are updated by this upload in the same request.
         $job->loadMissing('currentPhase');
         if ($job->currentPhase && (int) $job->current_phase_id === (int) $requirement['workflow_phase_id']) {
             $this->taskPackActivator->activate($job, $job->currentPhase, $actor, 'document_upload');

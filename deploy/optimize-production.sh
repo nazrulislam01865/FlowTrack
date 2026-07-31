@@ -39,6 +39,20 @@ sudo -u "$PHP_USER" php artisan optimize:clear
 sudo -u "$PHP_USER" php artisan optimize
 sudo -u "$PHP_USER" php artisan queue:restart >/dev/null 2>&1 || true
 
+# When Redis/Supervisor have already been enabled, keep the persistent queue
+# workers synchronized with the deployed code without making Redis a hard
+# requirement for local/XAMPP installations.
+if command -v redis-cli >/dev/null 2>&1 \
+  && redis-cli ping 2>/dev/null | grep -q PONG \
+  && command -v supervisorctl >/dev/null 2>&1 \
+  && [[ -f deploy/flowtrack-worker.conf ]]; then
+  sudo cp deploy/flowtrack-worker.conf /etc/supervisor/conf.d/flowtrack-worker.conf
+  sudo sed -i "s|/var/www/flowtrack|$APP_DIR|g" /etc/supervisor/conf.d/flowtrack-worker.conf
+  sudo supervisorctl reread >/dev/null
+  sudo supervisorctl update >/dev/null
+  sudo supervisorctl restart 'flowtrack-worker:*' >/dev/null 2>&1 || true
+fi
+
 sudo -u "$PHP_USER" php artisan up
 SITE_DOWN=0
 trap - EXIT

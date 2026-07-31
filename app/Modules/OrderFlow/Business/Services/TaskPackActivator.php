@@ -21,9 +21,9 @@ class TaskPackActivator
     ) {}
 
     /**
-     * Reconcile the exact current Phase Task Pack and document requirement with
-     * the Job Tasks. Document requirements are represented by real Tasks so
-     * users can upload the required file directly from the Task drawer.
+     * Reconcile the exact current Phase Task Pack with the Job Tasks.
+     * Phase-level document requirements remain in the Documents panel and do
+     * not create extra Tasks outside Task Pack Setup.
      */
     public function activate(
         FlowJob $job,
@@ -57,15 +57,13 @@ class TaskPackActivator
         $phaseDocuments = $job->documents()
             ->where('workflow_phase_id', $phase->id)
             ->get(['id', 'task_pack_item_id', 'document_category_id', 'created_at']);
-        $createdOrRestored = $this->synchronizePhaseDocumentTask(
-            $job,
-            $phase,
-            $initialStatusId,
-            $completedStatusId,
-            $phaseDocuments,
-            $actor,
-            $source,
-        );
+
+        // Workflow Phase document requirements stay in the Documents panel only.
+        // The Job task table must contain only Task Pack Setup items (plus any
+        // true user-created subtasks), so remove legacy auto-generated phase
+        // document upload tasks such as "Upload Client Requirement".
+        $this->removeWorkflowPhaseDocumentTasks($job, $phase, $actor, $source);
+        $createdOrRestored = 0;
 
         if (! $phase->taskPack || ! $phase->taskPack->is_active || (int) $phase->taskPack->workspace_id !== (int) $job->workspace_id) {
             return $createdOrRestored;
@@ -192,126 +190,28 @@ class TaskPackActivator
         return $createdOrRestored;
     }
 
-    private function synchronizePhaseDocumentTask(
+    private function removeWorkflowPhaseDocumentTasks(
         FlowJob $job,
         WorkflowPhase $phase,
-        ?int $initialStatusId,
-        ?int $completedStatusId,
-        $phaseDocuments,
         ?User $actor,
         string $source,
-    ): int
-    {
-        $generated = $job->tasks()
-            ->withTrashed()
+    ): void {
+        $job->tasks()
             ->where('workflow_phase_id', $phase->id)
+            ->whereNull('task_pack_item_id')
             ->where('document_requirement_source', 'workflow_phase')
-            ->orderBy('id')
-            ->get();
-
-        if (! $phase->document_category_id || ! $phase->documentCategory) {
-            $generated->filter(fn (FlowTask $task) => ! $task->removed_from_job_at && ! $task->trashed())
-                ->each(function (FlowTask $task) use ($job, $actor, $source): void {
-                    $this->activities->log(
-                        (int) $job->workspace_id,
-                        $actor,
-                        $job,
-                        'job.task_removed_by_setup',
-                        "Task {$task->code} removed because the phase document requirement was removed",
-                        ['task_id' => $task->id, 'source' => $source],
-                    );
-                    $task->delete();
-                });
-
-            return 0;
-        }
-
-        $matching = $generated->first(fn (FlowTask $task) => (int) $task->document_category_id === (int) $phase->document_category_id);
-
-        $generated
-            ->reject(fn (FlowTask $task) => $matching && (int) $task->id === (int) $matching->id)
-            ->filter(fn (FlowTask $task) => ! $task->removed_from_job_at && ! $task->trashed())
+            ->get()
             ->each(function (FlowTask $task) use ($job, $actor, $source): void {
                 $this->activities->log(
                     (int) $job->workspace_id,
                     $actor,
                     $job,
                     'job.task_removed_by_setup',
-                    "Task {$task->code} removed because the phase document requirement changed",
+                    "Task {$task->code} removed because Workflow Phase document requirements are no longer generated as Tasks",
                     ['task_id' => $task->id, 'source' => $source],
                 );
                 $task->delete();
             });
-
-        if ($matching?->removed_from_job_at) {
-            return 0;
-        }
-
-        $title = 'Upload '.$phase->documentCategory->name;
-        $description = "Upload the required {$phase->documentCategory->name} document for the {$phase->name} phase. The task is completed automatically after the file is uploaded and linked.";
-        $hasRequiredDocument = $phaseDocuments->contains(fn ($document): bool =>
-            $document->task_pack_item_id === null
-            && (int) $document->document_category_id === (int) $phase->document_category_id
-        );
-        $setupAssigneeId = $job->coordinator_id ?: $job->owner_id;
-        $assignmentAttributes = ['setup_assignee_id' => $setupAssigneeId];
-        if (! $matching?->assignee_overridden_at) {
-            $assignmentAttributes['assignee_id'] = $setupAssigneeId;
-        }
-
-        if ($matching) {
-            $restored = false;
-            if ($matching->trashed()) {
-                $matching->restore();
-                $matching->forceFill([
-                    'task_status_id' => $matching->task_status_id ?: $initialStatusId,
-                    'progress' => $matching->task_status_id ? $matching->progress : $this->initialProgress($initialStatusId),
-                    'completed_at' => null,
-                    'attention_required' => false,
-                    'blocker_reason' => null,
-                    ...$this->documentTaskState($matching, $hasRequiredDocument, $initialStatusId, $completedStatusId),
-                    ...$assignmentAttributes,
-                ])->save();
-                $restored = true;
-                $this->logTaskAdded($job, $matching, $actor, $source, true);
-            }
-
-            $previousAssigneeId = $matching->assignee_id ? (int) $matching->assignee_id : null;
-            $matching->forceFill([
-                'title' => $title,
-                'description' => $description,
-                'document_category_id' => $phase->document_category_id,
-                'document_requirement_source' => 'workflow_phase',
-                ...$this->documentTaskState($matching, $hasRequiredDocument, $initialStatusId, $completedStatusId),
-                ...$assignmentAttributes,
-            ])->saveQuietly();
-            $this->logSetupAssignmentChange($job, $matching, $previousAssigneeId, $actor, $source);
-
-            return $restored ? 1 : 0;
-        }
-
-        $createdTask = FlowTask::create([
-            'flow_job_id' => $job->id,
-            'workflow_phase_id' => $phase->id,
-            'task_pack_item_id' => null,
-            'document_category_id' => $phase->document_category_id,
-            'document_requirement_source' => 'workflow_phase',
-            'created_by' => $actor?->id ?: $job->coordinator_id ?: $job->owner_id,
-            'assignee_id' => $setupAssigneeId,
-            'setup_assignee_id' => $setupAssigneeId,
-            'task_status_id' => $hasRequiredDocument && $completedStatusId ? $completedStatusId : $initialStatusId,
-            'priority_id' => $job->priority_id,
-            'code' => $this->identifiers->task(),
-            'title' => $title,
-            'description' => $description,
-            'due_date' => null, // Required document task due dates are set manually from Task details.
-            'progress' => $hasRequiredDocument && $completedStatusId ? 100 : $this->initialProgress($initialStatusId),
-            'completed_at' => $hasRequiredDocument && $completedStatusId ? now() : null,
-            'sort_order' => 999,
-        ]);
-        $this->logTaskAdded($job, $createdTask, $actor, $source);
-
-        return 1;
     }
 
     private function logTaskAdded(FlowJob $job, FlowTask $task, ?User $actor, string $source, bool $restored = false): void

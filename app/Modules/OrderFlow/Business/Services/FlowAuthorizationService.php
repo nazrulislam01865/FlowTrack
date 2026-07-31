@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class FlowAuthorizationService
 {
+    /** @var array<string, bool> */
+    private array $jobAssignmentCache = [];
+
+    /** @var array<string, bool> */
+    private array $jobTaskManagementCache = [];
+
     public function isSuperAdmin(User $user): bool
     {
         return (bool) $user->is_super_admin;
@@ -326,19 +332,52 @@ class FlowAuthorizationService
 
     private function isAssignedToJob(User $user, FlowJob $job): bool
     {
-        return $job->created_by === $user->id
-            || $job->owner_id === $user->id
-            || $job->coordinator_id === $user->id
-            || $job->members()->where('user_id', $user->id)->exists()
-            || $job->tasks()->where('assignee_id', $user->id)->exists();
+        $cacheKey = $user->id.':'.$job->id;
+        if (array_key_exists($cacheKey, $this->jobAssignmentCache)) {
+            return $this->jobAssignmentCache[$cacheKey];
+        }
+
+        $directlyAssigned = (int) $job->created_by === (int) $user->id
+            || (int) $job->owner_id === (int) $user->id
+            || (int) $job->coordinator_id === (int) $user->id;
+
+        if ($directlyAssigned) {
+            return $this->jobAssignmentCache[$cacheKey] = true;
+        }
+
+        $memberAssigned = $job->relationLoaded('members')
+            ? $job->members->contains(fn ($member): bool => (int) $member->user_id === (int) $user->id)
+            : $job->members()->where('user_id', $user->id)->exists();
+
+        if ($memberAssigned) {
+            return $this->jobAssignmentCache[$cacheKey] = true;
+        }
+
+        return $this->jobAssignmentCache[$cacheKey] = $job->tasks()
+            ->where('assignee_id', $user->id)
+            ->exists();
     }
 
     private function canManageTasksForJob(User $user, FlowJob $job): bool
     {
-        return (int) $job->created_by === (int) $user->id
+        $cacheKey = $user->id.':'.$job->id;
+        if (array_key_exists($cacheKey, $this->jobTaskManagementCache)) {
+            return $this->jobTaskManagementCache[$cacheKey];
+        }
+
+        $directlyManages = (int) $job->created_by === (int) $user->id
             || (int) $job->owner_id === (int) $user->id
-            || (int) $job->coordinator_id === (int) $user->id
-            || $job->members()->where('user_id', $user->id)->where('can_manage_tasks', true)->exists();
+            || (int) $job->coordinator_id === (int) $user->id;
+
+        if ($directlyManages) {
+            return $this->jobTaskManagementCache[$cacheKey] = true;
+        }
+
+        $canManage = $job->relationLoaded('members')
+            ? $job->members->contains(fn ($member): bool => (int) $member->user_id === (int) $user->id && (bool) $member->can_manage_tasks)
+            : $job->members()->where('user_id', $user->id)->where('can_manage_tasks', true)->exists();
+
+        return $this->jobTaskManagementCache[$cacheKey] = $canManage;
     }
 
     private function applyDepartmentJobVisibility(Builder $query, User $user): Builder

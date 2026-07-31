@@ -76,6 +76,13 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])
             Route::get('/bootstrap/segments/{segment}', [TemplateApiController::class, 'bootstrapSegment'])
                 ->whereIn('segment', ['clients', 'jobs', 'tasks', 'documents'])
                 ->name('bootstrap.segment');
+            Route::get('/lists/{segment}', [TemplateApiController::class, 'listSegment'])
+                ->whereIn('segment', ['clients', 'jobs', 'tasks', 'documents'])
+                ->name('lists.index');
+            Route::get('/clients/{record}', [TemplateApiController::class, 'showClient'])->name('clients.show');
+            Route::get('/jobs/{record}', [TemplateApiController::class, 'showJob'])->name('jobs.show');
+            Route::get('/tasks/{record}', [TemplateApiController::class, 'showTask'])->name('tasks.show');
+            Route::get('/documents/{record}', [TemplateApiController::class, 'showDocument'])->name('documents.show');
             Route::patch('/profile', [TemplateProfileController::class, 'update'])->name('profile.update');
             Route::put('/profile/password', [TemplateProfileController::class, 'updatePassword'])->name('profile.password.update');
             Route::post('/profile/avatar', [TemplateProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
@@ -86,6 +93,7 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])
             Route::delete('/clients/{client}', [TemplateApiController::class, 'destroyClient'])->name('clients.destroy');
 
             Route::post('/jobs', [TemplateApiController::class, 'storeJob'])->name('jobs.store');
+            Route::patch('/jobs/bulk', [TemplateApiController::class, 'bulkJobs'])->name('jobs.bulk');
             Route::put('/jobs/{job}', [TemplateApiController::class, 'updateJob'])->name('jobs.update');
             Route::delete('/jobs/{job}', [TemplateApiController::class, 'destroyJob'])->name('jobs.destroy');
             Route::patch('/jobs/{job}/phase', [TemplateApiController::class, 'moveJob'])->name('jobs.phase');
@@ -131,6 +139,7 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])
         Route::post('/pusher/auth', PusherAuthController::class)->name('pusher.auth');
 
         Route::get('/notifications/status', [NotificationController::class, 'status'])->name('notifications.status');
+        Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
         Route::patch('/notifications/read-all', [NotificationController::class, 'readAll'])->middleware('flow.bootstrap.invalidate')->name('notifications.read-all');
         Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read'])->middleware('flow.bootstrap.invalidate')->name('notifications.read');
 

@@ -31,30 +31,22 @@ class NotificationFeedService
 
     public function paginate(User $user, int $perPage = 30): LengthAwarePaginator
     {
-        $this->synchronizeAuthorityFeed($user);
-
         return $user->notifications()->latest()->paginate($perPage);
     }
 
     /** @return Collection<int, DatabaseNotification> */
     public function latest(User $user, int $limit = 50): Collection
     {
-        $this->synchronizeAuthorityFeed($user);
-
         return $user->notifications()->latest()->limit($limit)->get();
     }
 
     public function unreadCount(User $user): int
     {
-        $this->synchronizeAuthorityFeed($user);
-
         return $user->unreadNotifications()->count();
     }
 
     public function latestSignature(User $user): ?string
     {
-        $this->synchronizeAuthorityFeed($user);
-
         $latest = $user->notifications()->latest()->first(['id', 'created_at', 'updated_at']);
         if (! $latest) {
             return null;

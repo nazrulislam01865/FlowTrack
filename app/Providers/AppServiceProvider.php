@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Authorization results are request-scoped so repeated record mapping
+        // reuses assignment checks instead of issuing duplicate SQL queries.
+        $this->app->scoped(FlowAuthorizationService::class);
     }
 
     /**
