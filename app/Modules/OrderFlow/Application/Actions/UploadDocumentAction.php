@@ -7,6 +7,7 @@ use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\ActivityLogger;
 use App\Modules\OrderFlow\Business\Services\DocumentWorkflowLinker;
 use App\Modules\OrderFlow\Business\Services\FlowNotificationService;
+use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
 use App\Modules\OrderFlow\Business\Services\IdentifierGenerator;
 use App\Modules\OrderFlow\Business\Services\JobDocumentRequirementService;
 use App\Modules\OrderFlow\Business\Services\TaskPackActivator;
@@ -34,6 +35,7 @@ class UploadDocumentAction
         private readonly TaskPackActivator $taskPackActivator,
         private readonly FlowNotificationService $notifications,
         private readonly TransitionAuditLogger $transitions,
+        private readonly FlowAuthorizationService $authorization,
     ) {}
 
     public function execute(
@@ -62,9 +64,10 @@ class UploadDocumentAction
         $effectiveCategoryId = $existingDocument?->document_category_id ?: $categoryId;
         $effectivePhaseId = $existingDocument?->workflow_phase_id ?: $workflowPhaseId;
         $effectiveTaskPackItemId = $existingDocument?->task_pack_item_id ?: $taskPackItemId;
+        $effectiveTaskId = $existingDocument?->flow_task_id ?: $taskId;
 
-        $task = $taskId
-            ? FlowTask::query()->with('phase')->where('flow_job_id', $job->id)->findOrFail($taskId)
+        $task = $effectiveTaskId
+            ? FlowTask::query()->with(['phase', 'packItem.documentCategory'])->where('flow_job_id', $job->id)->findOrFail($effectiveTaskId)
             : null;
 
         if ($task) {
@@ -83,6 +86,14 @@ class UploadDocumentAction
             if (! $category) {
                 throw ValidationException::withMessages([
                     'document_category_id' => 'Choose an active document category for this Task attachment.',
+                ]);
+            }
+
+            $requiredCategoryId = $task->document_category_id ?: $task->packItem?->document_category_id;
+            if ($requiredCategoryId && (int) $requiredCategoryId !== (int) $category->id) {
+                $requiredName = $task->documentCategory?->name ?: $task->packItem?->documentCategory?->name ?: 'configured';
+                throw ValidationException::withMessages([
+                    'document_category_id' => "This Task requires the {$requiredName} document category.",
                 ]);
             }
 
@@ -113,16 +124,33 @@ class UploadDocumentAction
             );
         }
 
+        // Persist an explicit Task link whenever the requirement belongs to a
+        // generated Task. This prevents one document from accidentally
+        // satisfying a different Task that happens to use the same category.
+        $linkedTaskId = $task?->id;
+        if (! $linkedTaskId && $requirement['task_pack_item_id'] !== null) {
+            $linkedTaskId = FlowTask::query()
+                ->where('flow_job_id', $job->id)
+                ->where('workflow_phase_id', $requirement['workflow_phase_id'])
+                ->where('task_pack_item_id', $requirement['task_pack_item_id'])
+                ->whereNull('deleted_at')
+                ->value('id');
+        }
+
         $storedFile = null;
 
         try {
-            $document = DB::transaction(function () use ($job, $file, $isFinal, $actor, $existingDocument, $notes, $requirement, &$storedFile): FlowDocument {
+            $document = DB::transaction(function () use ($job, $file, $isFinal, $actor, $existingDocument, $notes, $requirement, $linkedTaskId, &$storedFile): FlowDocument {
+            // Serialize version allocation for the same document. Without this
+            // row lock, simultaneous uploads can both calculate version 2.
             $document = $existingDocument
-                ?: FlowDocument::create([
+                ? FlowDocument::query()->whereKey($existingDocument->id)->lockForUpdate()->firstOrFail()
+                : FlowDocument::create([
                     'workspace_id' => $job->workspace_id,
                     'flow_job_id' => $job->id,
                     'workflow_phase_id' => $requirement['workflow_phase_id'],
                     'task_pack_item_id' => $requirement['task_pack_item_id'],
+                    'flow_task_id' => $linkedTaskId,
                     'document_category_id' => $requirement['category_id'],
                     'uploaded_by' => $actor->id,
                     'linked_by' => $actor->id,
@@ -133,7 +161,7 @@ class UploadDocumentAction
                 ]);
 
             $version = ((int) $document->versions()->max('version')) + 1;
-            $disk = config('filesystems.default');
+            $disk = (string) config('flowtrack.documents_disk', 'flowtrack_documents');
             $path = $file->store("flowtrack/{$job->code}/documents/{$document->code}", $disk);
             if (! is_string($path) || $path === '') {
                 throw new RuntimeException('The uploaded document could not be stored.');
@@ -156,6 +184,7 @@ class UploadDocumentAction
                 'document_category_id' => $requirement['category_id'],
                 'workflow_phase_id' => $requirement['workflow_phase_id'],
                 'task_pack_item_id' => $requirement['task_pack_item_id'],
+                'flow_task_id' => $linkedTaskId,
                 'linked_by' => $actor->id,
                 'linked_at' => now(),
             ]);
@@ -170,6 +199,7 @@ class UploadDocumentAction
                     'version' => $version,
                     'workflow_phase_id' => $requirement['workflow_phase_id'],
                     'task_pack_item_id' => $requirement['task_pack_item_id'],
+                    'flow_task_id' => $linkedTaskId,
                     'requirement_key' => $requirement['requirement_key'],
                 ],
             );
@@ -188,11 +218,35 @@ class UploadDocumentAction
         // Reconcile the current Phase so configured Task Pack document Tasks
         // are updated by this upload in the same request.
         $job->loadMissing('currentPhase');
-        if ($job->currentPhase && (int) $job->current_phase_id === (int) $requirement['workflow_phase_id']) {
+        $isCurrentPhaseRequirement = $job->currentPhase
+            && (int) $job->current_phase_id === (int) $requirement['workflow_phase_id'];
+
+        if ($isCurrentPhaseRequirement) {
             $this->taskPackActivator->activate($job, $job->currentPhase, $actor, 'document_upload');
+
+            // The Documents page can create the configured Task in this same
+            // request. Resolve that freshly generated Task before attempting an
+            // automatic completion; authorization below still permits only its
+            // effective assignee (or Admin/Super Admin) to change status.
+            if (! $linkedTaskId && $requirement['task_pack_item_id'] !== null) {
+                $linkedTaskId = FlowTask::query()
+                    ->where('flow_job_id', $job->id)
+                    ->where('workflow_phase_id', $requirement['workflow_phase_id'])
+                    ->where('task_pack_item_id', $requirement['task_pack_item_id'])
+                    ->whereNull('deleted_at')
+                    ->value('id');
+
+                if ($linkedTaskId && ! $document->flow_task_id) {
+                    $document->forceFill(['flow_task_id' => $linkedTaskId])->saveQuietly();
+                }
+            }
+
+            $this->completeMatchingDocumentTasks($job, $requirement, $linkedTaskId, $actor, $file->getClientOriginalName());
         }
 
-        $this->completeMatchingDocumentTasks($job, $requirement, $actor, $file->getClientOriginalName());
+        // A future-phase document is allowed to be prepared in advance. It is
+        // picked up by TaskPackActivator when that phase becomes current, so
+        // future Tasks are not prematurely completed by the upload itself.
         $this->lastWorkflowResult = $this->workflowLinker->synchronize($job->fresh(), $actor, $advanceWhenReady);
         $this->notifications->documentUploaded(
             $document->id,
@@ -200,7 +254,7 @@ class UploadDocumentAction
             (bool) ($this->lastWorkflowResult['moved'] ?? false),
         );
 
-        return $document->fresh(['category', 'phase', 'taskPackItem', 'versions.uploader']);
+        return $document->fresh(['category', 'phase', 'taskPackItem', 'task', 'versions.uploader']);
     }
 
     public function workflowResult(): array
@@ -212,8 +266,12 @@ class UploadDocumentAction
      * A required-document Task is completed by the successful upload itself.
      * This keeps the Task Board, phase readiness and audit history in sync.
      */
-    private function completeMatchingDocumentTasks(FlowJob $job, array $requirement, User $actor, string $fileName): void
+    private function completeMatchingDocumentTasks(FlowJob $job, array $requirement, ?int $linkedTaskId, User $actor, string $fileName): void
     {
+        if (! $linkedTaskId) {
+            return;
+        }
+
         $completedStatus = MasterRecord::query()
             ->where('workspace_id', $job->workspace_id)
             ->where('type', MasterDataType::TaskStatus->value)
@@ -230,21 +288,18 @@ class UploadDocumentAction
         }
 
         $tasks = FlowTask::query()
+            ->whereKey($linkedTaskId)
             ->where('flow_job_id', $job->id)
             ->where('workflow_phase_id', $requirement['workflow_phase_id'])
-            ->when(
-                $requirement['task_pack_item_id'] !== null,
-                fn ($query) => $query->where('task_pack_item_id', $requirement['task_pack_item_id']),
-                fn ($query) => $query
-                    ->whereNull('task_pack_item_id')
-                    ->where('document_category_id', $requirement['category_id'])
-                    ->where('document_requirement_source', 'workflow_phase'),
-            )
             ->whereNull('completed_at')
             ->with(['job', 'phase', 'status'])
             ->get();
 
         foreach ($tasks as $task) {
+            if (! $this->authorization->canChangeTaskStatus($actor, $task)) {
+                continue;
+            }
+
             $previousStatus = $task->status?->name ?: 'Not Started';
             $previousProgress = (int) $task->progress;
             $task->forceFill([

@@ -36,6 +36,7 @@ class StoreTaskRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'start_rule' => ['nullable', 'string', 'max:255'],
+            'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date'],
             'attention_required' => ['sometimes', 'boolean'],
             'blocker_reason' => ['nullable', 'string', 'max:3000'],

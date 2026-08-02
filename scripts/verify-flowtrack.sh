@@ -6,9 +6,8 @@ if [ ! -d vendor ]; then
   exit 1
 fi
 
+npm run build
 php artisan optimize:clear
-php artisan migrate:fresh --seed
-node scripts/verify-assets.mjs
 php artisan route:list >/tmp/flowtrack-routes.txt
 php artisan test
 

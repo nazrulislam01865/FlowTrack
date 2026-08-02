@@ -8,6 +8,7 @@ use App\Http\Controllers\FlowTrack\SessionExpiredController;
 use App\Http\Controllers\FlowTrack\SessionStatusController;
 use App\Http\Controllers\FlowTrack\TemplateAccessController;
 use App\Http\Controllers\FlowTrack\TemplateApiController;
+use App\Http\Controllers\FlowTrack\TemplateBrandingController;
 use App\Http\Controllers\FlowTrack\TemplateConfigurationController;
 use App\Http\Controllers\FlowTrack\TemplatePageController;
 use App\Http\Controllers\FlowTrack\TemplateProfileController;
@@ -71,8 +72,11 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])
     ->prefix('flowtrack')
     ->name('flowtrack.')
     ->group(function (): void {
-        Route::prefix('template-api')->name('template-api.')->middleware('flow.bootstrap.invalidate')->group(function (): void {
+        Route::prefix('template-api')->name('template-api.')->middleware(['flow.bootstrap.invalidate', 'flow.route.access'])->group(function (): void {
             Route::get('/bootstrap', [TemplateApiController::class, 'bootstrap'])->name('bootstrap');
+            Route::get('/context/{page}', [TemplateApiController::class, 'pageContext'])
+                ->whereIn('page', ['dashboard', 'mywork', 'jobs', 'clients', 'board', 'documents', 'reports', 'notifications', 'workflowsetup', 'taskpacksetup', 'masterdata', 'setup', 'profile'])
+                ->name('context.show');
             Route::get('/bootstrap/segments/{segment}', [TemplateApiController::class, 'bootstrapSegment'])
                 ->whereIn('segment', ['clients', 'jobs', 'tasks', 'documents'])
                 ->name('bootstrap.segment');
@@ -88,6 +92,11 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])
             Route::post('/profile/avatar', [TemplateProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
             Route::delete('/profile/avatar', [TemplateProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 
+            Route::post('/branding/logo', [TemplateBrandingController::class, 'updateLogo'])->name('branding.logo.update');
+            Route::delete('/branding/logo', [TemplateBrandingController::class, 'destroyLogo'])->name('branding.logo.destroy');
+            Route::post('/branding/favicon', [TemplateBrandingController::class, 'updateFavicon'])->name('branding.favicon.update');
+            Route::delete('/branding/favicon', [TemplateBrandingController::class, 'destroyFavicon'])->name('branding.favicon.destroy');
+
             Route::post('/clients', [TemplateApiController::class, 'storeClient'])->name('clients.store');
             Route::put('/clients/{client}', [TemplateApiController::class, 'updateClient'])->name('clients.update');
             Route::delete('/clients/{client}', [TemplateApiController::class, 'destroyClient'])->name('clients.destroy');
@@ -98,6 +107,9 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])
             Route::delete('/jobs/{job}', [TemplateApiController::class, 'destroyJob'])->name('jobs.destroy');
             Route::patch('/jobs/{job}/phase', [TemplateApiController::class, 'moveJob'])->name('jobs.phase');
             Route::delete('/jobs/{job}/phases/{phase}', [TemplateApiController::class, 'destroyJobPhase'])->name('jobs.phases.destroy');
+            Route::post('/jobs/{job}/comments', [TemplateApiController::class, 'storeJobComment'])->name('jobs.comments.store');
+            Route::patch('/jobs/{job}/phase-controls', [TemplateApiController::class, 'updateJobPhaseControls'])->name('jobs.phase-controls.update');
+            Route::post('/jobs/{job}/phases/{phase}/tasks/sync', [TemplateApiController::class, 'syncJobPhaseTasks'])->name('jobs.phases.tasks.sync');
             Route::get('/jobs/{job}/tasks', [TemplateApiController::class, 'jobTasks'])->name('jobs.tasks.index');
             Route::post('/jobs/{job}/tasks', [TemplateApiController::class, 'storeTask'])->name('jobs.tasks.store');
 
@@ -106,6 +118,9 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])
             Route::delete('/tasks/{task}', [TemplateApiController::class, 'destroyTask'])->name('tasks.destroy');
 
             Route::post('/documents', [TemplateApiController::class, 'storeDocument'])->name('documents.store');
+            Route::post('/jobs/{job}/documents/link-existing', [TemplateApiController::class, 'linkExistingDocument'])->name('jobs.documents.link-existing');
+            Route::post('/jobs/{job}/attachments', [TemplateApiController::class, 'storeJobAttachment'])->name('jobs.attachments.store');
+            Route::post('/jobs/{job}/attachments/link-existing', [TemplateApiController::class, 'linkExistingJobAttachment'])->name('jobs.attachments.link-existing');
             Route::delete('/documents/{document}', [TemplateApiController::class, 'destroyDocument'])->name('documents.destroy');
 
             Route::get('/master-data/next-code', [TemplateConfigurationController::class, 'nextMasterCode'])->name('master-data.next-code');
@@ -140,8 +155,8 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])
 
         Route::get('/notifications/status', [NotificationController::class, 'status'])->name('notifications.status');
         Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
-        Route::patch('/notifications/read-all', [NotificationController::class, 'readAll'])->middleware('flow.bootstrap.invalidate')->name('notifications.read-all');
-        Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read'])->middleware('flow.bootstrap.invalidate')->name('notifications.read');
+        Route::patch('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+        Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
 
         Route::get('/documents/versions/{version}/preview', [DocumentController::class, 'preview'])->name('documents.versions.preview');
         Route::get('/documents/versions/{version}/download', [DocumentController::class, 'download'])->name('documents.versions.download');
@@ -167,3 +182,5 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])
         Route::get('/master-data', fn () => redirect('/flowtrack/view/masterdata'))->name('master-data.index');
         Route::get('/administration', fn () => redirect('/flowtrack/view/setup'))->name('administration.index');
     });
+
+

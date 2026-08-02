@@ -5,6 +5,7 @@ namespace Database\Seeders\FlowTrack;
 use App\Models\User;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\IdentifierGenerator;
+use App\Modules\OrderFlow\Business\Services\RoleMatrixService;
 use App\Modules\OrderFlow\Data\Models\Client;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowDocumentVersion;
@@ -85,6 +86,15 @@ class FlowTrackSeeder extends Seeder
             ]);
             $role->permissions()->sync($permissions->only($definition[1])->pluck('id'));
             return [$slug => $role];
+        });
+
+        // Demo roles must have the same server-side matrix that production
+        // roles receive through the Role Matrix service. Without this, legacy
+        // permission rows exist but route authorization correctly sees an
+        // empty module matrix and denies seeded managers during tests.
+        $roleMatrix = app(RoleMatrixService::class);
+        $roles->each(function (Role $role) use ($roleMatrix): void {
+            $roleMatrix->ensureInitialized($role->load(['permissions', 'moduleAccess']));
         });
 
         $master = $this->seedMasterData($workspace->id);

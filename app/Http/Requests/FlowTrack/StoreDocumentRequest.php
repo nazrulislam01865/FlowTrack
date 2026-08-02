@@ -45,8 +45,18 @@ class StoreDocumentRequest extends FormRequest
                     ->where('type', MasterDataType::DocumentCategory->value)
                     ->where('status', 'active')
                     ->whereNull('deleted_at'))],
-            'file' => ['required', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg,webp,zip'],
+            'file' => ['bail', 'required', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg,webp,zip'],
             'notes' => ['nullable', 'string', 'max:2000'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'file.required' => 'Choose a document before uploading.',
+            'file.uploaded' => 'The server rejected the upload before FlowTrack received it. Check that PHP upload_max_filesize is at least 25M and post_max_size is at least 30M.',
+            'file.max' => 'The document must be 20 MB or smaller.',
+            'file.mimes' => 'Use a PDF, DOC, DOCX, XLS, XLSX, PNG, JPG, WEBP, or ZIP document.',
         ];
     }
 }

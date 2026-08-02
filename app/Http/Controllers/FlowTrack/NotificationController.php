@@ -4,6 +4,7 @@ namespace App\Http\Controllers\FlowTrack;
 
 use App\Http\Controllers\Controller;
 use App\Modules\OrderFlow\Business\Services\NotificationFeedService;
+use App\Modules\OrderFlow\Application\Support\FlowTrackBootstrapCache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,13 +12,22 @@ use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationController extends Controller
 {
-    public function status(Request $request, NotificationFeedService $feed): JsonResponse
-    {
+    public function status(
+        Request $request,
+        NotificationFeedService $feed,
+        FlowTrackBootstrapCache $bootstrapCache,
+    ): JsonResponse {
+        $user = $request->user();
+
         return response()->json([
-            'unread_count' => $feed->unreadCount($request->user()),
-            'latest_signature' => $feed->latestSignature($request->user()),
-            'authority_view' => $feed->isAuthority($request->user()),
-        ]);
+            'unread_count' => $feed->unreadCount($user),
+            'latest_signature' => $feed->latestSignature($user),
+            'authority_view' => $feed->isAuthority($user),
+            // Cheap workspace-wide change token. Every successful FlowTrack
+            // mutation bumps this version, allowing open browsers to refresh
+            // Jobs/Tasks/Documents/assignments without a page reload.
+            'workspace_version' => $bootstrapCache->currentVersion($user->currentWorkspaceId()),
+        ])->header('Cache-Control', 'private, no-store');
     }
 
 

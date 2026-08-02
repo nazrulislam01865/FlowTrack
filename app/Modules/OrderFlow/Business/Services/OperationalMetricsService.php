@@ -32,6 +32,164 @@ class OperationalMetricsService
         return $this->metricsCache->remember($user, fn (): array => $this->calculateForUser($user));
     }
 
+    /**
+     * Calculate and cache only the metric group required by the active page.
+     * This prevents Dashboard from executing Reports / Setup aggregate queries.
+     *
+     * @return array<string, mixed>
+     */
+    public function forPage(User $user, string $page): array
+    {
+        $section = match (strtolower(trim($page))) {
+            'dashboard' => 'dashboard',
+            'mywork' => 'myWork',
+            'reports' => 'reports',
+            'workflowsetup' => 'workflow',
+            'taskpacksetup' => 'taskPacks',
+            'masterdata' => 'masterData',
+            'setup' => 'administration',
+            default => null,
+        };
+
+        if ($section === null) {
+            return [];
+        }
+
+        return [
+            'asOf' => $this->asOfPayload(),
+            $section => $this->metricsCache->rememberSection(
+                $user,
+                $section,
+                fn (): array => $this->calculateSectionForUser($user, $section),
+            ),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function calculateSectionForUser(User $user, string $section): array
+    {
+        $workspaceId = $user->currentWorkspaceId();
+
+        if ($section === 'workflow') {
+            return [
+                'templates' => WorkflowTemplate::query()->where('workspace_id', $workspaceId)->count(),
+                'activeTemplates' => WorkflowTemplate::query()->where('workspace_id', $workspaceId)->where('is_active', true)->count(),
+                'configuredPhases' => WorkflowPhase::query()->whereHas('workflow', fn (Builder $query) => $query->where('workspace_id', $workspaceId))->count(),
+                'allowedStartingStages' => WorkflowPhase::query()->whereHas('workflow', fn (Builder $query) => $query->where('workspace_id', $workspaceId))->where('allow_job_start', true)->where('is_active', true)->count(),
+                'automaticTransitions' => WorkflowPhase::query()->whereHas('workflow', fn (Builder $query) => $query->where('workspace_id', $workspaceId))->where('auto_advance_on_ready', true)->where('is_active', true)->count(),
+            ];
+        }
+
+        if ($section === 'taskPacks') {
+            return [
+                'total' => TaskPack::query()->where('workspace_id', $workspaceId)->count(),
+                'active' => TaskPack::query()->where('workspace_id', $workspaceId)->where('is_active', true)->count(),
+                'configuredTasks' => TaskPackItem::query()->whereHas('pack', fn (Builder $query) => $query->where('workspace_id', $workspaceId))->count(),
+                'mappedPhases' => WorkflowPhase::query()->whereHas('workflow', fn (Builder $query) => $query->where('workspace_id', $workspaceId))->whereNotNull('task_pack_id')->count(),
+            ];
+        }
+
+        if ($section === 'masterData') {
+            return [
+                'categories' => count(MasterDataType::cases()),
+                'totalRecords' => MasterRecord::query()->where('workspace_id', $workspaceId)->count(),
+                'activeRecords' => MasterRecord::query()->where('workspace_id', $workspaceId)->where('status', 'active')->count(),
+                'inactiveRecords' => MasterRecord::query()->where('workspace_id', $workspaceId)->where('status', '!=', 'active')->count(),
+            ];
+        }
+
+        if ($section === 'administration') {
+            return [
+                'activeUsers' => WorkspaceMembership::query()->where('workspace_id', $workspaceId)->where('status', 'active')->count(),
+                'operationalRoles' => Role::query()->where('workspace_id', $workspaceId)->where('is_active', true)->count(),
+                'departments' => MasterRecord::query()->where('workspace_id', $workspaceId)->where('type', MasterDataType::Department->value)->where('status', 'active')->count(),
+                'notificationRules' => count(config('flowtrack.notification_rules', [])),
+            ];
+        }
+
+        $jobs = $this->authorization->applyJobVisibility(FlowJob::query(), $user);
+        $tasks = $this->authorization->applyTaskVisibility(FlowTask::query(), $user);
+        $canViewFinancials = $this->authorization->allows($user, 'invoice', 'view')
+            && $this->authorization->canViewSensitiveField($user, 'invoice_amount');
+
+        if ($section === 'dashboard') {
+            $blockedTaskConstraint = function (Builder $query): void {
+                $query->where('attention_required', true)
+                    ->orWhereNotNull('blocker_reason')
+                    ->orWhereHas('status', fn (Builder $status) => $status
+                        ->whereRaw('LOWER(name) = ?', ['blocked'])
+                        ->orWhereRaw('LOWER(code) IN (?, ?)', ['blk', 'blocked']));
+            };
+
+            return [
+                'activeJobs' => (clone $jobs)->where('status', '!=', 'completed')->count(),
+                'needsAttention' => (clone $jobs)->where(function (Builder $query): void {
+                    $query->where('attention_required', true)
+                        ->orWhereIn('health', ['needs_attention', 'at_risk', 'delayed', 'blocked']);
+                })->where('status', '!=', 'completed')->count(),
+                'overdueTasks' => (clone $tasks)->whereDate('due_date', '<', today())->whereNull('completed_at')->count(),
+                'blockedTasks' => (clone $tasks)->where($blockedTaskConstraint)->whereNull('completed_at')->count(),
+                'shippingNow' => (clone $jobs)->where('status', '!=', 'completed')->whereHas('currentPhase', function (Builder $phase): void {
+                    $phase->whereRaw('LOWER(name) LIKE ?', ['%ship%'])
+                        ->orWhereRaw('LOWER(short_name) LIKE ?', ['%ship%']);
+                })->count(),
+                'outstanding' => $canViewFinancials
+                    ? (float) Client::query()->where('workspace_id', $workspaceId)
+                        ->whereIn('id', (clone $jobs)->select('client_id'))
+                        ->sum('outstanding_balance')
+                    : null,
+                'canViewFinancials' => $canViewFinancials,
+                'phaseBreakdown' => $this->jobPhaseBreakdown($jobs),
+                'workload' => $this->taskWorkload($tasks),
+            ];
+        }
+
+        if ($section === 'myWork') {
+            $blockedTaskConstraint = function (Builder $query): void {
+                $query->where('attention_required', true)
+                    ->orWhereNotNull('blocker_reason')
+                    ->orWhereHas('status', fn (Builder $status) => $status
+                        ->whereRaw('LOWER(name) = ?', ['blocked'])
+                        ->orWhereRaw('LOWER(code) IN (?, ?)', ['blk', 'blocked']));
+            };
+            $waitingTaskConstraint = function (Builder $query): void {
+                $query->whereRaw('LOWER(name) LIKE ?', ['waiting%'])
+                    ->orWhereRaw('LOWER(name) LIKE ?', ['%review%'])
+                    ->orWhereRaw('LOWER(code) LIKE ?', ['wait%']);
+            };
+
+            return [
+                'dueToday' => (clone $tasks)->whereDate('due_date', today())->whereNull('completed_at')->count(),
+                'overdue' => (clone $tasks)->whereDate('due_date', '<', today())->whereNull('completed_at')->count(),
+                'blockedAttention' => (clone $tasks)->where($blockedTaskConstraint)->whereNull('completed_at')->count(),
+                'waitingReview' => (clone $tasks)->whereHas('status', $waitingTaskConstraint)->whereNull('completed_at')->count(),
+                'completedThisWeek' => (clone $tasks)->whereBetween('completed_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+                'upcoming' => (clone $tasks)->whereDate('due_date', '>', today())->whereNull('completed_at')->count(),
+            ];
+        }
+
+        if ($section === 'reports') {
+            return [
+                ...$this->reportMetrics($user, $jobs, $tasks, $canViewFinancials),
+                'phaseBreakdown' => $this->jobPhaseBreakdown($jobs),
+                'workload' => $this->taskWorkload($tasks),
+            ];
+        }
+
+        return [];
+    }
+
+    /** @return array{date:string,displayDate:string,weekStart:string,weekEnd:string} */
+    private function asOfPayload(): array
+    {
+        return [
+            'date' => today()->toDateString(),
+            'displayDate' => now()->isoFormat('dddd, MMMM D'),
+            'weekStart' => now()->startOfWeek()->toDateString(),
+            'weekEnd' => now()->endOfWeek()->toDateString(),
+        ];
+    }
+
     private function calculateForUser(User $user): array
     {
         $workspaceId = $user->currentWorkspaceId();
@@ -39,6 +197,9 @@ class OperationalMetricsService
         $tasks = $this->authorization->applyTaskVisibility(FlowTask::query(), $user);
         $canViewFinancials = $this->authorization->allows($user, 'invoice', 'view')
             && $this->authorization->canViewSensitiveField($user, 'invoice_amount');
+
+        $phaseBreakdown = $this->jobPhaseBreakdown($jobs);
+        $workload = $this->taskWorkload($tasks);
 
         $blockedTaskConstraint = function (Builder $query): void {
             $query->where('attention_required', true)
@@ -72,6 +233,8 @@ class OperationalMetricsService
                     ->sum('outstanding_balance')
                 : null,
             'canViewFinancials' => $canViewFinancials,
+            'phaseBreakdown' => $phaseBreakdown,
+            'workload' => $workload,
         ];
 
         $myWork = [
@@ -125,8 +288,68 @@ class OperationalMetricsService
             'taskPacks' => $taskPacks,
             'masterData' => $masterData,
             'administration' => $administration,
-            'reports' => $this->reportMetrics($user, $jobs, $tasks, $canViewFinancials),
+            'reports' => [
+                ...$this->reportMetrics($user, $jobs, $tasks, $canViewFinancials),
+                'phaseBreakdown' => $phaseBreakdown,
+                'workload' => $workload,
+            ],
         ];
+    }
+
+    /** @return array<int, array{label:string,value:int}> */
+    private function jobPhaseBreakdown(Builder $jobs): array
+    {
+        $counts = (clone $jobs)
+            ->where('status', '!=', 'completed')
+            ->whereNotNull('current_phase_id')
+            ->selectRaw('current_phase_id, COUNT(*) as aggregate')
+            ->groupBy('current_phase_id')
+            ->pluck('aggregate', 'current_phase_id');
+
+        if ($counts->isEmpty()) {
+            return [];
+        }
+
+        $phases = WorkflowPhase::query()
+            ->whereIn('id', $counts->keys())
+            ->get(['id', 'name', 'short_name'])
+            ->keyBy('id');
+
+        return $counts
+            ->map(fn ($count, $phaseId): array => [
+                'label' => $phases->get((int) $phaseId)?->short_name
+                    ?: $phases->get((int) $phaseId)?->name
+                    ?: 'Unassigned',
+                'value' => (int) $count,
+            ])
+            ->sortByDesc('value')
+            ->values()
+            ->all();
+    }
+
+    /** @return array<int, array{label:string,value:int}> */
+    private function taskWorkload(Builder $tasks): array
+    {
+        $counts = (clone $tasks)
+            ->whereNull('completed_at')
+            ->selectRaw('assignee_id, COUNT(*) as aggregate')
+            ->groupBy('assignee_id')
+            ->orderByDesc('aggregate')
+            ->limit(10)
+            ->pluck('aggregate', 'assignee_id');
+
+        if ($counts->isEmpty()) {
+            return [];
+        }
+
+        $names = User::query()
+            ->whereIn('id', $counts->keys()->filter())
+            ->pluck('name', 'id');
+
+        return $counts->map(fn ($count, $userId): array => [
+            'label' => $userId ? ($names->get((int) $userId) ?: 'Unassigned') : 'Unassigned',
+            'value' => (int) $count,
+        ])->values()->all();
     }
 
     private function reportMetrics(User $user, Builder $jobs, Builder $tasks, bool $canViewFinancials): array

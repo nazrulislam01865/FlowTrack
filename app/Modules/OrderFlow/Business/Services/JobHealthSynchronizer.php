@@ -71,6 +71,15 @@ class JobHealthSynchronizer
             return ['completed', 'The Job workflow is complete.'];
         }
 
+        $phaseControl = $job->phaseHistory()
+            ->where('workflow_phase_id', $job->current_phase_id)
+            ->first(['health_override', 'target_date']);
+
+        $healthOverride = strtolower(trim((string) ($phaseControl?->health_override ?? '')));
+        if (in_array($healthOverride, ['on_track', 'needs_attention', 'at_risk', 'delayed', 'blocked'], true)) {
+            return [$healthOverride, 'Current phase health is manually controlled from Job Details.'];
+        }
+
         $blocked = $tasks->first(function (FlowTask $task): bool {
             $code = strtoupper(trim((string) $task->status?->code));
             $name = strtoupper(trim((string) $task->status?->name));
@@ -80,6 +89,10 @@ class JobHealthSynchronizer
         });
         if ($blocked) {
             return ['blocked', trim((string) $blocked->blocker_reason) ?: "Task {$blocked->code} is blocked."];
+        }
+
+        if ($phaseControl?->target_date?->lt(today())) {
+            return ['delayed', 'The current phase target date has passed while the phase is still active.'];
         }
 
         if ($job->delivery_date?->lt(today())) {

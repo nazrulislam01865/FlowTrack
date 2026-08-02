@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 cd "$(dirname "$0")"
 
-mkdir -p storage/framework/{cache/data,sessions,testing,views} storage/logs bootstrap/cache
+mkdir -p storage/framework/{cache/data,sessions,testing,views} storage/app/flowtrack-documents storage/logs bootstrap/cache
 chmod -R ug+rwX storage bootstrap/cache 2>/dev/null || true
 
 if [[ ! -f .env ]]; then
@@ -17,8 +17,7 @@ fi
 if ! grep -Eq '^APP_KEY=base64:.+' .env; then
     php artisan key:generate
 fi
-if php scripts/check-vite-build.php public/build >/dev/null 2>&1 \
-    && php scripts/check-vite-build.php public/build-fallback >/dev/null 2>&1; then
+if php scripts/check-vite-build.php public/build >/dev/null 2>&1; then
     echo "Using the verified bundled frontend build."
 else
     ./scripts/frontend-install-and-build.sh

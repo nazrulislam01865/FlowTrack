@@ -8,6 +8,7 @@ use App\Modules\OrderFlow\Business\Services\IdentifierGenerator;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
@@ -23,7 +24,7 @@ class UploadJobAttachmentAction
     public function execute(FlowJob $job, UploadedFile $file, User $actor): FlowDocument
     {
         $job->loadMissing('currentPhase');
-        $disk = (string) config('filesystems.default');
+        $disk = (string) config('flowtrack.documents_disk', 'flowtrack_documents');
         $storedPath = null;
 
         try {
@@ -85,4 +86,49 @@ class UploadJobAttachmentAction
             throw $exception;
         }
     }
+    public function copyExisting(FlowJob $job, FlowDocument $source, User $actor): FlowDocument
+    {
+        $source->loadMissing('currentVersion');
+        $version = $source->currentVersion;
+        if (! $version || ! Storage::disk($version->disk)->exists($version->path)) {
+            throw ValidationException::withMessages([
+                'existing_attachment_document_ids' => 'One of the selected stored documents is no longer available.',
+            ]);
+        }
+
+        $temporaryPath = tempnam(sys_get_temp_dir(), 'flowtrack-attachment-');
+        if (! is_string($temporaryPath) || $temporaryPath === '') {
+            throw new RuntimeException('The stored document could not be prepared for attachment.');
+        }
+
+        $sourceStream = null;
+        $targetStream = null;
+        try {
+            $sourceStream = Storage::disk($version->disk)->readStream($version->path);
+            $targetStream = fopen($temporaryPath, 'w+b');
+            if (! is_resource($sourceStream) || ! is_resource($targetStream)) {
+                throw new RuntimeException('The stored document could not be read.');
+            }
+            stream_copy_to_stream($sourceStream, $targetStream);
+            fclose($sourceStream);
+            fclose($targetStream);
+            $sourceStream = null;
+            $targetStream = null;
+
+            $uploadedFile = new UploadedFile(
+                $temporaryPath,
+                $version->original_name ?: ($source->name ?: 'document'),
+                $version->mime_type ?: null,
+                null,
+                true,
+            );
+
+            return $this->execute($job, $uploadedFile, $actor);
+        } finally {
+            if (is_resource($sourceStream)) fclose($sourceStream);
+            if (is_resource($targetStream)) fclose($targetStream);
+            @unlink($temporaryPath);
+        }
+    }
+
 }

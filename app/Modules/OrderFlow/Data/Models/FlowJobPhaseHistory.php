@@ -18,11 +18,13 @@ class FlowJobPhaseHistory extends Model
             'ready_at' => 'datetime',
             'readiness_checked_at' => 'datetime',
             'readiness_details' => 'array',
+            'target_date' => 'date',
         ];
     }
 
     public function job(): BelongsTo { return $this->belongsTo(FlowJob::class, 'flow_job_id'); }
     public function phase(): BelongsTo { return $this->belongsTo(WorkflowPhase::class, 'workflow_phase_id'); }
     public function changedBy(): BelongsTo { return $this->belongsTo(User::class, 'changed_by'); }
+    public function phaseOwner(): BelongsTo { return $this->belongsTo(User::class, 'phase_owner_id'); }
     public function changedByUser(): BelongsTo { return $this->belongsTo(User::class, 'changed_by'); }
 }

@@ -151,6 +151,9 @@ class UpdateJobAction
             $count = WorkspaceMembership::query()
                 ->where('workspace_id', $job->workspace_id)
                 ->where('status', 'active')
+                ->whereHas('user', fn ($query) => $query->where('status', 'active'))
+                ->whereHas('role', fn ($query) => $query->where('is_active', true))
+                ->whereHas('workspace', fn ($query) => $query->where('is_active', true))
                 ->whereIn('user_id', $userIds)
                 ->count();
             if ($count !== $userIds->count()) throw new DomainException('Every assigned user must be an active member of this workspace.');

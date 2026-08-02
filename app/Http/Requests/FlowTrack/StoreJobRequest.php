@@ -49,6 +49,8 @@ class StoreJobRequest extends FormRequest
             'start_reason' => ['nullable', 'string', 'max:2000'],
             'attachments' => ['nullable', 'array', 'max:10'],
             'attachments.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,png,jpg,jpeg,webp,zip,txt,csv'],
+            'existing_attachment_document_ids' => ['nullable', 'array', 'max:10'],
+            'existing_attachment_document_ids.*' => ['integer', 'distinct', Rule::exists('flow_documents', 'id')->where(fn ($query) => $query->where('workspace_id', $workspaceId)->whereNull('deleted_at'))],
             'member_ids' => ['nullable', 'array'],
             'member_ids.*' => ['integer', 'distinct', $workspaceMember],
             'draft' => ['sometimes', 'boolean'],

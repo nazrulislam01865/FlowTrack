@@ -7,6 +7,7 @@ use App\Modules\OrderFlow\Data\Models\Client;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
+use App\Modules\OrderFlow\Data\Models\WorkspaceMembership;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,11 +21,29 @@ class FlowAuthorizationService
 
     public function isSuperAdmin(User $user): bool
     {
-        return (bool) $user->is_super_admin;
+        // Super Admin is still subject to the same active account/workspace
+        // access gate. The override applies to business authorization, not to
+        // disabled accounts, roles, memberships, or workspaces.
+        return (bool) $user->is_super_admin && $this->hasActiveWorkspaceAccess($user);
+    }
+
+    public function hasActiveWorkspaceAccess(User $user): bool
+    {
+        $membership = $user->currentWorkspaceMembership();
+
+        return $user->status === 'active'
+            && $membership !== null
+            && $membership->status === 'active'
+            && (bool) $membership->role?->is_active
+            && (bool) $membership->workspace?->is_active;
     }
 
     public function isAdministrator(User $user): bool
     {
+        if (! $this->hasActiveWorkspaceAccess($user)) {
+            return false;
+        }
+
         if ($this->isSuperAdmin($user)) {
             return true;
         }
@@ -36,14 +55,11 @@ class FlowAuthorizationService
 
     public function allows(User $user, string $module, string $action, ?Model $record = null): bool
     {
-        if ($user->status !== 'active') {
+        if (! $this->hasActiveWorkspaceAccess($user)) {
             return false;
         }
 
         $membership = $user->currentWorkspaceMembership();
-        if (! $membership || $membership->status !== 'active' || ! $membership->role?->is_active) {
-            return false;
-        }
 
         if ($this->isAdministrator($user)) {
             return true;
@@ -63,6 +79,10 @@ class FlowAuthorizationService
 
     public function scope(User $user, string $module): string
     {
+        if (! $this->hasActiveWorkspaceAccess($user)) {
+            return 'none';
+        }
+
         if ($this->isAdministrator($user)) {
             return 'all_records';
         }
@@ -73,6 +93,10 @@ class FlowAuthorizationService
 
     public function canViewSensitiveField(User $user, string $field): bool
     {
+        if (! $this->hasActiveWorkspaceAccess($user)) {
+            return false;
+        }
+
         if ($this->isAdministrator($user)) {
             return true;
         }
@@ -159,9 +183,70 @@ class FlowAuthorizationService
             return false;
         }
 
-        return (int) $task->assignee_id === (int) $user->id
+        return $this->effectiveTaskAssigneeId($task) === (int) $user->id
             && ($this->allows($user, 'tasks', 'edit_own', $task)
                 || $this->allows($user, 'tasks', 'edit_all', $task));
+    }
+
+    public function effectiveTaskAssigneeId(FlowTask $task): ?int
+    {
+        if ($task->assignee_id) {
+            return (int) $task->assignee_id;
+        }
+
+        if (! $task->assignee_overridden_at && $task->setup_assignee_id) {
+            return (int) $task->setup_assignee_id;
+        }
+
+        return null;
+    }
+
+    public function canChangeTaskStatus(User $user, FlowTask $task): bool
+    {
+        if ($task->job?->workspace_id !== $user->currentWorkspaceId()) {
+            return false;
+        }
+
+        if ($this->isAdministrator($user)) {
+            return true;
+        }
+
+        if ($this->taskIsCompleted($task)) {
+            return false;
+        }
+
+        return $this->effectiveTaskAssigneeId($task) === (int) $user->id
+            && ($this->allows($user, 'tasks', 'edit_own', $task)
+                || $this->allows($user, 'tasks', 'edit_all', $task));
+    }
+
+    public function canChangeJobWorkflowStatus(User $user, FlowJob $job): bool
+    {
+        if ((int) $job->workspace_id !== $user->currentWorkspaceId()) {
+            return false;
+        }
+
+        if ($this->isAdministrator($user)) {
+            return true;
+        }
+
+        if (! ($this->allows($user, 'jobs', 'edit_own', $job)
+            || $this->allows($user, 'jobs', 'edit_all', $job)
+            || $this->allows($user, 'jobs', 'override', $job)
+            || $this->allows($user, 'jobs', 'manage', $job))) {
+            return false;
+        }
+
+        $phaseOwnerId = $job->phaseHistory()
+            ->where('workflow_phase_id', $job->current_phase_id)
+            ->value('phase_owner_id');
+
+        // Treat an inactive Phase owner as unavailable so the documented Job
+        // owner fallback remains usable instead of deadlocking the workflow.
+        $authorizedOwnerId = $this->activeWorkspaceUserId((int) $job->workspace_id, $phaseOwnerId)
+            ?: $this->activeWorkspaceUserId((int) $job->workspace_id, $job->owner_id);
+
+        return $authorizedOwnerId !== null && (int) $authorizedOwnerId === (int) $user->id;
     }
 
     public function canAssignExistingTask(User $user, FlowTask $task): bool
@@ -176,6 +261,14 @@ class FlowAuthorizationService
     {
         // Task removal is intentionally restricted to Admin and Super Admin.
         // Job creators and ordinary assignees may update Tasks but cannot remove them.
+        return $task->job?->workspace_id === $user->currentWorkspaceId()
+            && $this->isAdministrator($user);
+    }
+
+    public function canManageTaskChecklist(User $user, FlowTask $task): bool
+    {
+        // Checklist structure is part of the controlled Task record. Only an
+        // Administrator or Super Admin may add or remove checklist items.
         return $task->job?->workspace_id === $user->currentWorkspaceId()
             && $this->isAdministrator($user);
     }
@@ -321,13 +414,45 @@ class FlowAuthorizationService
         return false;
     }
 
+    private function activeWorkspaceUserId(int $workspaceId, int|string|null $userId): ?int
+    {
+        $userId = (int) ($userId ?? 0);
+        if ($userId <= 0) {
+            return null;
+        }
+
+        return WorkspaceMembership::query()
+            ->where('workspace_id', $workspaceId)
+            ->where('user_id', $userId)
+            ->where('status', 'active')
+            ->whereHas('user', fn ($query) => $query->where('status', 'active'))
+            ->whereHas('role', fn ($query) => $query->where('is_active', true))
+            ->whereHas('workspace', fn ($query) => $query->where('is_active', true))
+            ->exists()
+                ? $userId
+                : null;
+    }
+
     private function assignedJobConditions(Builder $builder, User $user): void
     {
         $builder->where('owner_id', $user->id)
             ->orWhere('coordinator_id', $user->id)
             ->orWhere('created_by', $user->id)
             ->orWhereHas('members', fn (Builder $member) => $member->where('user_id', $user->id))
-            ->orWhereHas('tasks', fn (Builder $task) => $task->where('assignee_id', $user->id));
+            ->orWhereHas('tasks', function (Builder $task) use ($user): void {
+                // Task Setup assignments are real assignments too. Older/generated
+                // records can temporarily have assignee_id = null while the
+                // setup_assignee_id still identifies the effective assignee. Keep
+                // Board/My Work visibility correct in both states, while respecting
+                // an explicit manual assignee override.
+                $task->where(function (Builder $assignee) use ($user): void {
+                    $assignee->where('assignee_id', $user->id)
+                        ->orWhere(function (Builder $setup) use ($user): void {
+                            $setup->whereNull('assignee_overridden_at')
+                                ->where('setup_assignee_id', $user->id);
+                        });
+                });
+            });
     }
 
     private function isAssignedToJob(User $user, FlowJob $job): bool
@@ -354,7 +479,13 @@ class FlowAuthorizationService
         }
 
         return $this->jobAssignmentCache[$cacheKey] = $job->tasks()
-            ->where('assignee_id', $user->id)
+            ->where(function (Builder $task) use ($user): void {
+                $task->where('assignee_id', $user->id)
+                    ->orWhere(function (Builder $setup) use ($user): void {
+                        $setup->whereNull('assignee_overridden_at')
+                            ->where('setup_assignee_id', $user->id);
+                    });
+            })
             ->exists();
     }
 

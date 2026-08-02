@@ -18,7 +18,7 @@ for required in artisan composer.json package.json resources/views/flowtrack-tem
   [[ -e "$required" ]] || { echo "Missing required FlowTrack file: $required" >&2; exit 1; }
 done
 
-mkdir -p storage/framework/{cache/data,sessions,testing,views} storage/logs bootstrap/cache
+mkdir -p storage/framework/{cache/data,sessions,testing,views} storage/logs storage/app/flowtrack-documents bootstrap/cache
 chmod -R ug+rwX storage bootstrap/cache 2>/dev/null || true
 rm -f public/hot
 
@@ -29,6 +29,12 @@ COMPOSER_ALLOW_SUPERUSER=1 composer install \
   --no-interaction
 
 npm run build || true
+
+if php -r 'exit(((int) ini_get("upload_max_filesize") >= 25 && (int) ini_get("post_max_size") >= 30) ? 0 : 1);'; then
+  echo "PHP upload limits are ready for FlowTrack documents."
+else
+  echo "WARNING: install deploy/99-flowtrack-uploads.ini in the PHP-FPM conf.d directory and restart PHP-FPM." >&2
+fi
 
 sudo -u "$PHP_USER" php artisan down || true
 SITE_DOWN=1

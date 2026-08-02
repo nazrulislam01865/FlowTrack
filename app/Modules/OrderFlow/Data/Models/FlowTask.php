@@ -19,6 +19,7 @@ class FlowTask extends Model
     protected function casts(): array
     {
         return [
+            'start_date' => 'date',
             'due_date' => 'date',
             'attention_required' => 'boolean',
             'completed_at' => 'datetime',

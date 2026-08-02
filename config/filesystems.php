@@ -47,6 +47,17 @@ return [
             'report' => false,
         ],
 
+        // Authenticated FlowTrack documents are deliberately kept outside the
+        // public storage symlink. Preview/download always pass through the
+        // authorization-aware DocumentController.
+        'flowtrack_documents' => [
+            'driver' => 'local',
+            'root' => storage_path('app/flowtrack-documents'),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

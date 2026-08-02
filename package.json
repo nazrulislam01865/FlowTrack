@@ -1,9 +1,13 @@
 {
+  "name": "flowtrack-livewire-frontend",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "echo 'FlowTrack exact design uses Blade + public vanilla JS assets. No Vue/Inertia dev server is required.'",
-    "build": "node scripts/verify-assets.mjs"
+    "dev": "vite",
+    "build": "node scripts/split-flowtrack-assets.mjs && vite build && node scripts/verify-assets.mjs"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "vite": "^6.1.0"
+  }
 }

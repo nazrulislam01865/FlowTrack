@@ -7,6 +7,7 @@ use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Business\Services\ActivityLogger;
 use App\Modules\OrderFlow\Business\Services\FlowNotificationService;
 use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
+use App\Modules\OrderFlow\Business\Services\JobDocumentRequirementService;
 use App\Modules\OrderFlow\Business\Services\ProgressCalculator;
 use App\Modules\OrderFlow\Business\Services\TransitionAuditLogger;
 use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
@@ -25,6 +26,7 @@ class TaskTransitionAction
         private readonly TransitionAuditLogger $transitions,
         private readonly FlowNotificationService $notifications,
         private readonly FlowAuthorizationService $authorization,
+        private readonly JobDocumentRequirementService $documentRequirements,
     ) {}
 
     public function execute(FlowTask $task, array $data, User $actor, string $source = 'task_drawer'): FlowTask
@@ -32,7 +34,7 @@ class TaskTransitionAction
         return DB::transaction(function () use ($task, $data, $actor, $source) {
             $task->loadMissing(
                 'job.documents', 'job.owner', 'job.coordinator', 'job.members.user',
-                'status', 'assignee', 'priority', 'dependency', 'phase', 'packItem.documentCategory', 'documentCategory',
+                'status', 'assignee', 'priority', 'dependency', 'phase', 'packItem.documentCategory', 'documentCategory', 'checklistItems',
             );
             $workspaceId = (int) $task->job->workspace_id;
             $statusId = (int) ($data['task_status_id'] ?? 0);
@@ -56,6 +58,9 @@ class TaskTransitionAction
                     ->where('workspace_id', $workspaceId)
                     ->where('user_id', $data['assignee_id'])
                     ->where('status', 'active')
+                    ->whereHas('user', fn ($query) => $query->where('status', 'active'))
+                    ->whereHas('role', fn ($query) => $query->where('is_active', true))
+                    ->whereHas('workspace', fn ($query) => $query->where('is_active', true))
                     ->exists();
                 if (! $isMember) {
                     throw new DomainException('The selected assignee is not an active member of this workspace.');
@@ -73,9 +78,15 @@ class TaskTransitionAction
             $previousPriority = $task->priority?->name ?: 'Unassigned';
             $previousStatusId = (int) ($task->task_status_id ?? 0);
             $previousStatus = $task->status?->name;
+
+            if ($previousStatusId !== (int) $status->id
+                && ! $this->authorization->canChangeTaskStatus($actor, $task)) {
+                throw new DomainException('Only the effective Task assignee can change Task status. Admin and Super Admin may override this rule.');
+            }
             $previousStatusCode = $task->status?->code;
             $previousAssigneeId = $task->assignee_id ? (int) $task->assignee_id : null;
             $previousAssignee = $task->assignee?->name ?: 'Unassigned';
+            $previousStartDate = $task->start_date?->toDateString();
             $previousDueDate = $task->due_date?->toDateString();
             $previousProgress = (int) $task->progress;
             $previousAttention = (bool) $task->attention_required;
@@ -88,21 +99,9 @@ class TaskTransitionAction
             $isBlocked = $this->matches($status, ['BLK', 'BLOCKED', 'ATTN', 'ATTENTION', 'HOLD', 'ON HOLD']);
 
             $documentCategoryId = $task->document_category_id ?: $task->packItem?->document_category_id;
-            if ($isCompleted && $documentCategoryId) {
-                $hasRequiredDocument = $task->job->documents()
-                    ->where('workflow_phase_id', $task->workflow_phase_id)
-                    ->where('document_category_id', $documentCategoryId)
-                    ->when(
-                        $task->document_requirement_source === 'workflow_phase',
-                        fn ($query) => $query->whereNull('task_pack_item_id'),
-                        fn ($query) => $query->where('task_pack_item_id', $task->task_pack_item_id),
-                    )
-                    ->exists();
-
-                if (! $hasRequiredDocument) {
-                    $name = $task->documentCategory?->name ?: $task->packItem?->documentCategory?->name ?: 'configured';
-                    throw new DomainException("Upload the required {$name} document from this Task before completing {$task->code}.");
-                }
+            if ($isCompleted && $documentCategoryId && ! $this->documentRequirements->isTaskRequirementSatisfied($task)) {
+                $name = $task->documentCategory?->name ?: $task->packItem?->documentCategory?->name ?: 'configured';
+                throw new DomainException("Upload or link the required {$name} document for this Task before completing {$task->code}.");
             }
 
             $wasBlocked = $this->matches($task->status, ['BLK', 'BLOCKED', 'ATTN', 'ATTENTION', 'HOLD', 'ON HOLD']);
@@ -139,6 +138,10 @@ class TaskTransitionAction
             $assigneeChanged = $previousAssigneeId !== $nextAssigneeId;
             $assignmentOverride = [];
 
+            if ($assigneeChanged && ! $this->authorization->canAssignExistingTask($actor, $task)) {
+                throw new DomainException('Only Admin or Super Admin can override a generated Task assignee.');
+            }
+
             if ($assigneeChanged && $this->authorization->isAdministrator($actor)) {
                 $matchesSetup = (int) ($nextAssigneeId ?? 0) === (int) ($task->setup_assignee_id ?? 0);
                 $assignmentOverride = [
@@ -153,6 +156,7 @@ class TaskTransitionAction
                 'task_status_id' => $status->id,
                 'assignee_id' => $nextAssigneeId,
                 'priority_id' => $nextPriorityId,
+                'start_date' => array_key_exists('start_date', $data) ? ($data['start_date'] ?: null) : $task->start_date,
                 'due_date' => array_key_exists('due_date', $data) ? ($data['due_date'] ?: null) : $task->due_date,
                 'progress' => $this->progress->forTaskStatus($status),
                 'attention_required' => $attention,
@@ -161,12 +165,73 @@ class TaskTransitionAction
                 ...$assignmentOverride,
             ]);
 
-            // Kept for API compatibility with older clients. The Task drawer no longer displays a checklist.
+            // Persist checklist completion and the Admin/Super Admin-only
+            // structural changes submitted from the final Task details page.
+            $checklistChanges = collect();
             if (array_key_exists('completed_checklist_ids', $data)) {
-                $completedChecklistIds = collect($data['completed_checklist_ids'] ?? [])->map(fn ($id) => (int) $id);
-                $task->checklistItems()->get()->each(
-                    fn ($item) => $item->update(['is_completed' => $completedChecklistIds->contains($item->id)]),
+                $completedChecklistIds = collect($data['completed_checklist_ids'] ?? [])
+                    ->map(fn ($id): int => (int) $id)
+                    ->unique();
+
+                $task->checklistItems()->orderBy('sort_order')->orderBy('id')->get()->each(
+                    function ($item) use ($completedChecklistIds, $checklistChanges): void {
+                        $nextCompleted = $completedChecklistIds->contains((int) $item->id);
+                        if ((bool) $item->is_completed === $nextCompleted) {
+                            return;
+                        }
+
+                        $item->update(['is_completed' => $nextCompleted]);
+                        $checklistChanges->push([
+                            'action' => $nextCompleted ? 'completed' : 'reopened',
+                            'item_id' => (int) $item->id,
+                            'label' => (string) $item->label,
+                            'from' => $nextCompleted ? 'Open' : 'Completed',
+                            'to' => $nextCompleted ? 'Completed' : 'Open',
+                        ]);
+                    },
                 );
+            }
+
+            $checklistLabel = trim((string) ($data['checklist_add'] ?? ''));
+            if ($checklistLabel !== '') {
+                if ($task->checklistItems()->count() >= 30) {
+                    throw new DomainException('A Task checklist cannot contain more than 30 items.');
+                }
+
+                $duplicateExists = $task->checklistItems()
+                    ->whereRaw('LOWER(label) = LOWER(?)', [$checklistLabel])
+                    ->exists();
+                if ($duplicateExists) {
+                    throw new DomainException('This checklist item already exists on the Task.');
+                }
+
+                $createdChecklistItem = $task->checklistItems()->create([
+                    'label' => $checklistLabel,
+                    'sort_order' => ((int) $task->checklistItems()->max('sort_order')) + 1,
+                ]);
+                $checklistChanges->push([
+                    'action' => 'added',
+                    'item_id' => (int) $createdChecklistItem->id,
+                    'label' => $checklistLabel,
+                    'from' => 'Not present',
+                    'to' => 'Added',
+                ]);
+            }
+
+            if (! empty($data['checklist_delete_id'])) {
+                $deletedChecklistItem = $task->checklistItems()->find((int) $data['checklist_delete_id']);
+                if ($deletedChecklistItem) {
+                    $deletedLabel = (string) $deletedChecklistItem->label;
+                    $deletedId = (int) $deletedChecklistItem->id;
+                    $deletedChecklistItem->delete();
+                    $checklistChanges->push([
+                        'action' => 'deleted',
+                        'item_id' => $deletedId,
+                        'label' => $deletedLabel,
+                        'from' => 'Present',
+                        'to' => 'Removed',
+                    ]);
+                }
             }
 
             $comment = trim((string) ($data['comment'] ?? ''));
@@ -175,6 +240,7 @@ class TaskTransitionAction
             }
 
             $task->load(['status', 'assignee', 'priority']);
+            $newStartDate = $task->start_date?->toDateString();
             $newDueDate = $task->due_date?->toDateString();
             $newAssignee = $task->assignee?->name ?: 'Unassigned';
             $newPriority = $task->priority?->name ?: 'Unassigned';
@@ -187,14 +253,28 @@ class TaskTransitionAction
                 $statusChanged ? ['field' => 'Status', 'from' => $previousStatus ?: 'Unassigned', 'to' => $status->name] : null,
                 $previousAssigneeId !== ($task->assignee_id ? (int) $task->assignee_id : null) ? ['field' => 'Assignee', 'from' => $previousAssignee, 'to' => $newAssignee] : null,
                 $previousPriorityId !== ($task->priority_id ? (int) $task->priority_id : null) ? ['field' => 'Priority', 'from' => $previousPriority, 'to' => $newPriority] : null,
+                $previousStartDate !== $newStartDate ? ['field' => 'Start date', 'from' => $previousStartDate ?: 'Not set', 'to' => $newStartDate ?: 'Not set'] : null,
                 $previousDueDate !== $newDueDate ? ['field' => 'Due date', 'from' => $previousDueDate ?: 'Not set', 'to' => $newDueDate ?: 'Not set'] : null,
                 $previousProgress !== (int) $task->progress ? ['field' => 'Progress', 'from' => "{$previousProgress}%", 'to' => "{$task->progress}%"] : null,
-                $previousAttention !== (bool) $task->attention_required ? ['field' => 'Attention needed', 'from' => $previousAttention ? 'Yes' : 'No', 'to' => $task->attention_required ? 'Yes' : 'No'] : null,
+                $previousAttention !== (bool) $task->attention_required ? ['field' => 'Attention', 'from' => $previousAttention ? 'Flagged' : 'Not flagged', 'to' => $task->attention_required ? 'Flagged' : 'Not flagged'] : null,
                 $previousBlockerReason !== ($task->blocker_reason ?: null) ? ['field' => 'Blocker reason', 'from' => $previousBlockerReason ?: 'None', 'to' => $task->blocker_reason ?: 'None'] : null,
-            ])->filter()->values()->all();
+            ])->filter();
 
-            $event = $statusChanged ? 'task.status_changed' : ($comment !== '' && empty($changes) ? 'task.commented' : 'task.updated');
-            $changedFields = collect($changes)->pluck('field')->join(', ');
+            $checklistChanges->each(fn (array $change) => $changes->push([
+                'field' => 'Checklist',
+                'from' => "{$change['label']}: {$change['from']}",
+                'to' => "{$change['label']}: {$change['to']}",
+            ]));
+            $changes = $changes->values()->all();
+
+            $onlyChecklistChanged = $checklistChanges->isNotEmpty()
+                && count($changes) === $checklistChanges->count();
+            $event = $statusChanged
+                ? 'task.status_changed'
+                : ($comment !== '' && empty($changes)
+                    ? 'task.commented'
+                    : ($onlyChecklistChanged ? 'task.checklist_changed' : 'task.updated'));
+            $changedFields = collect($changes)->pluck('field')->unique()->join(', ');
             $description = $changedFields !== ''
                 ? "Task {$task->code} updated: {$changedFields}"
                 : ($comment !== '' ? "Comment added to Task {$task->code}" : "Task {$task->code} updated");
@@ -211,7 +291,9 @@ class TaskTransitionAction
                     'source' => $source,
                     'blocker_reason' => $blockerReason,
                     'changes' => $changes,
+                    'checklist_changes' => $checklistChanges->values()->all(),
                     'comment_added' => $comment !== '',
+                    'comment' => $comment !== '' ? $comment : null,
                 ],
             );
 

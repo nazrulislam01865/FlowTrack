@@ -6,52 +6,91 @@ use App\Modules\OrderFlow\Data\Models\Client;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
+use Closure;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class IdentifierGenerator
 {
     public function client(int $workspaceId): string
     {
-        $codes = Client::withTrashed()
-            ->where('workspace_id', $workspaceId)
-            ->where('code', 'like', 'CL-%')
-            ->pluck('code');
-
-        $number = $codes
-            ->map(fn (string $code): int => preg_match('/^CL-(\d+)$/', $code, $matches) ? (int) $matches[1] : 0)
-            ->max() + 1;
-
-        return 'CL-'.str_pad((string) max(1, $number), 3, '0', STR_PAD_LEFT);
+        return $this->next(
+            Client::class,
+            'CL-',
+            3,
+            "client:workspace:{$workspaceId}",
+            fn (Builder $query): Builder => $query->where('workspace_id', $workspaceId),
+        );
     }
 
     public function job(): string
     {
-        return $this->next(FlowJob::class, 'JOB-'.now()->format('Y').'-', 5);
+        $prefix = 'JOB-'.now()->format('Y').'-';
+
+        return $this->next(FlowJob::class, $prefix, 5, "job:{$prefix}");
     }
 
     public function order(): string
     {
         $prefix = 'ORD-'.now()->format('Y').'-';
-        $last = FlowJob::withTrashed()->whereNotNull('order_code')->where('order_code', 'like', $prefix.'%')->max('order_code');
 
-        return $prefix.str_pad((string) (((int) substr((string) $last, -5)) + 1), 5, '0', STR_PAD_LEFT);
+        return $this->next(FlowJob::class, $prefix, 5, "order:{$prefix}", null, 'order_code');
     }
 
     public function task(): string
     {
-        return $this->next(FlowTask::class, 'TSK-', 6);
+        return $this->next(FlowTask::class, 'TSK-', 6, 'task:TSK');
     }
 
     public function document(): string
     {
-        return $this->next(FlowDocument::class, 'DOC-', 6);
+        return $this->next(FlowDocument::class, 'DOC-', 6, 'document:DOC');
     }
 
-    /** @param class-string<\Illuminate\Database\Eloquent\Model> $model */
-    private function next(string $model, string $prefix, int $digits): string
+    /**
+     * Allocate a human-readable identifier under a database row lock. The lock
+     * remains held by an outer business transaction, preventing two workers
+     * from assigning the same document/task/job code under concurrent load.
+     *
+     * @param class-string<\Illuminate\Database\Eloquent\Model> $model
+     */
+    private function next(
+        string $model,
+        string $prefix,
+        int $digits,
+        string $sequenceKey,
+        ?Closure $scope = null,
+        string $column = 'code',
+    ): string
     {
-        $last = $model::withTrashed()->where('code', 'like', $prefix.'%')->max('code');
-        $number = ((int) substr((string) $last, -$digits)) + 1;
+        return DB::transaction(function () use ($model, $prefix, $digits, $sequenceKey, $scope, $column): string {
+            $query = $model::withTrashed()->where($column, 'like', $prefix.'%');
+            if ($scope) {
+                $query = $scope($query);
+            }
 
-        return $prefix.str_pad((string) $number, $digits, '0', STR_PAD_LEFT);
+            $last = $query->max($column);
+            $existingMaximum = (int) substr((string) $last, -$digits);
+
+            DB::table('flowtrack_sequences')->insertOrIgnore([
+                'key' => $sequenceKey,
+                'current_value' => $existingMaximum,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $current = (int) DB::table('flowtrack_sequences')
+                ->where('key', $sequenceKey)
+                ->lockForUpdate()
+                ->value('current_value');
+            $number = max($current, $existingMaximum) + 1;
+
+            DB::table('flowtrack_sequences')->where('key', $sequenceKey)->update([
+                'current_value' => $number,
+                'updated_at' => now(),
+            ]);
+
+            return $prefix.str_pad((string) $number, $digits, '0', STR_PAD_LEFT);
+        }, 3);
     }
 }

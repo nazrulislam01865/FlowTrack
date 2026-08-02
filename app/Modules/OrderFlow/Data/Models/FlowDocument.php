@@ -25,6 +25,7 @@ class FlowDocument extends Model
     public function job(): BelongsTo { return $this->belongsTo(FlowJob::class, 'flow_job_id'); }
     public function phase(): BelongsTo { return $this->belongsTo(WorkflowPhase::class, 'workflow_phase_id'); }
     public function taskPackItem(): BelongsTo { return $this->belongsTo(TaskPackItem::class, 'task_pack_item_id'); }
+    public function task(): BelongsTo { return $this->belongsTo(FlowTask::class, 'flow_task_id'); }
     public function category(): BelongsTo { return $this->belongsTo(MasterRecord::class, 'document_category_id'); }
     public function uploader(): BelongsTo { return $this->belongsTo(User::class, 'uploaded_by'); }
     public function linker(): BelongsTo { return $this->belongsTo(User::class, 'linked_by'); }

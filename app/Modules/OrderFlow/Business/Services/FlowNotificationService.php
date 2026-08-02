@@ -7,6 +7,10 @@ use App\Jobs\DeliverPusherEvent;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
+use App\Modules\OrderFlow\Data\Models\TaskPackItem;
+use App\Modules\OrderFlow\Data\Models\WorkflowPhase;
+use App\Modules\OrderFlow\Data\Models\Workspace;
+use App\Modules\OrderFlow\Data\Models\WorkspaceMembership;
 use App\Notifications\FlowTrackAlert;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -41,12 +45,15 @@ class FlowNotificationService
 
         $job->tasks()
             ->where('workflow_phase_id', $job->current_phase_id)
-            ->whereNotNull('assignee_id')
-            ->with(['assignee:id,name,status'])
+            ->with(['assignee:id,name,status', 'setupAssignee:id,name,status'])
             ->get()
-            ->groupBy('assignee_id')
+            ->filter(fn (FlowTask $task): bool => $this->authorization->effectiveTaskAssigneeId($task) !== null)
+            ->groupBy(fn (FlowTask $task): int => (int) $this->authorization->effectiveTaskAssigneeId($task))
             ->each(function (Collection $tasks) use ($job, $actor, $phase): void {
-                $assignee = $tasks->first()?->assignee;
+                /** @var FlowTask|null $first */
+                $first = $tasks->first();
+                $assigneeId = $first ? $this->authorization->effectiveTaskAssigneeId($first) : null;
+                $assignee = $assigneeId ? User::query()->find($assigneeId) : null;
                 if (! $assignee) return;
 
                 $count = $tasks->count();
@@ -76,8 +83,9 @@ class FlowNotificationService
 
         $actor = User::query()->find($actorId);
         $recipients = $this->administrators($task->job->workspace_id);
-        if ($task->assignee_id) {
-            $recipients = $recipients->merge(User::query()->whereKey($task->assignee_id)->get());
+        $assigneeId = $this->authorization->effectiveTaskAssigneeId($task);
+        if ($assigneeId) {
+            $recipients = $recipients->merge(User::query()->whereKey($assigneeId)->get());
         }
 
         $this->send($recipients, [
@@ -94,6 +102,47 @@ class FlowNotificationService
             'actor' => $actor?->name ?: 'System',
             'url' => "/flowtrack/view/tasks/{$task->id}",
         ], null);
+    }
+
+    /** @param array<int, int> $taskIds */
+    public function phaseTasksGenerated(int $jobId, int $phaseId, array $taskIds, ?int $actorId = null): void
+    {
+        $job = $this->job($jobId);
+        if (! $job || $taskIds === []) return;
+
+        $actor = $actorId ? User::query()->find($actorId) : null;
+        $tasks = FlowTask::query()
+            ->where('flow_job_id', $jobId)
+            ->where('workflow_phase_id', $phaseId)
+            ->whereIn('id', array_values(array_unique(array_map('intval', $taskIds))))
+            ->with(['phase:id,name', 'assignee:id,name,status', 'setupAssignee:id,name,status'])
+            ->get()
+            ->filter(fn (FlowTask $task): bool => $this->authorization->effectiveTaskAssigneeId($task) !== null)
+            ->groupBy(fn (FlowTask $task): int => (int) $this->authorization->effectiveTaskAssigneeId($task));
+
+        foreach ($tasks as $assigneeId => $assignedTasks) {
+            $assignee = User::query()->find((int) $assigneeId);
+            if (! $assignee) continue;
+
+            $phaseName = $assignedTasks->first()?->phase?->name ?: $job->currentPhase?->name ?: 'Workflow Phase';
+            $count = $assignedTasks->count();
+            $this->send(
+                collect([$assignee])->merge($this->administrators($job->workspace_id)),
+                [
+                    'event' => 'task.phase_assignment',
+                    'title' => 'New Phase Tasks assigned',
+                    'text' => "{$count} Task".($count === 1 ? '' : 's')." from {$phaseName} are assigned on {$job->code}.",
+                    'type' => 'task',
+                    'severity' => 'info',
+                    'job' => $job->code,
+                    'job_id' => $job->id,
+                    'phase' => $phaseName,
+                    'actor' => $actor?->name ?: 'System',
+                    'url' => "/flowtrack/view/jobs/{$job->id}",
+                ],
+                null,
+            );
+        }
     }
 
     public function taskChanged(
@@ -314,35 +363,6 @@ class FlowNotificationService
             'url' => "/flowtrack/view/jobs/{$job->id}",
         ], 'workflow_updates');
 
-        $newTasks = $job->tasks()
-            ->where('workflow_phase_id', $job->current_phase_id)
-            ->whereNotNull('assignee_id')
-            ->with(['assignee:id,name,status', 'phase:id,name'])
-            ->get()
-            ->groupBy('assignee_id');
-
-        foreach ($newTasks as $assigneeId => $tasks) {
-            $assignee = $tasks->first()?->assignee;
-            if (! $assignee) continue;
-
-            $count = $tasks->count();
-            $this->send(
-                collect([$assignee])->merge($this->administrators($job->workspace_id)),
-                [
-                    'event' => 'task.phase_assignment',
-                    'title' => 'New Phase Tasks assigned',
-                    'text' => "{$count} Task".($count === 1 ? '' : 's')." from {$toPhase} are assigned on {$job->code}.",
-                    'type' => 'task',
-                    'severity' => 'info',
-                    'job' => $job->code,
-                    'job_id' => $job->id,
-                    'phase' => $toPhase,
-                    'actor' => $actor?->name ?: 'System',
-                    'url' => "/flowtrack/view/jobs/{$job->id}",
-                ],
-                null,
-            );
-        }
     }
 
     public function phaseReady(int $jobId, ?int $actorId, string $phaseName): void
@@ -461,9 +481,11 @@ class FlowNotificationService
                 ? FlowJob::query()->whereKey($payload['job_id'])->value('workspace_id')
                 : null);
 
+        $workspaceId = filled($payload['workspace_id'] ?? null) ? (int) $payload['workspace_id'] : null;
         $recipients = $users
             ->filter(fn ($user): bool => $user instanceof User && $user->status === 'active')
             ->unique('id')
+            ->filter(fn (User $user): bool => $this->hasActiveWorkspaceAccess($user, $workspaceId))
             ->filter(fn (User $user): bool => $this->shouldReceive($user, $preference))
             ->values();
 
@@ -515,6 +537,28 @@ class FlowNotificationService
         }
     }
 
+
+    private function hasActiveWorkspaceAccess(User $user, ?int $workspaceId): bool
+    {
+        if (! $workspaceId) {
+            return true;
+        }
+
+        if (! Workspace::query()->whereKey($workspaceId)->where('is_active', true)->exists()) {
+            return false;
+        }
+
+        if ($user->is_super_admin) {
+            return true;
+        }
+
+        return $user->workspaceMemberships()
+            ->where('workspace_id', $workspaceId)
+            ->where('status', 'active')
+            ->whereHas('role', fn (Builder $role) => $role->where('is_active', true))
+            ->exists();
+    }
+
     private function shouldReceive(User $user, ?string $preference): bool
     {
         $roleCode = strtoupper((string) $user->currentWorkspaceMembership()?->role?->code);
@@ -537,6 +581,15 @@ class FlowNotificationService
         $assignedIds = collect([$job->owner_id, $job->coordinator_id])
             ->merge($job->members()->pluck('user_id'))
             ->merge($job->tasks()->whereNotNull('assignee_id')->pluck('assignee_id'))
+            ->merge($job->tasks()
+                ->whereNull('assignee_id')
+                ->whereNull('assignee_overridden_at')
+                ->whereNotNull('setup_assignee_id')
+                ->pluck('setup_assignee_id'))
+            // Notify effective Task Setup assignees for later included phases at
+            // Job creation too. They receive a second, phase-specific assignment
+            // notice only when those Tasks are actually generated.
+            ->merge($this->configuredSetupAssigneeIds($job))
             ->filter()
             ->map(fn ($id): int => (int) $id)
             ->unique();
@@ -553,6 +606,88 @@ class FlowNotificationService
             ->get();
 
         return $assigned->merge($this->administrators($job->workspace_id))->unique('id')->values();
+    }
+
+
+    /** @return Collection<int, int> */
+    private function configuredSetupAssigneeIds(FlowJob $job): Collection
+    {
+        $excludedPhaseIds = $job->excludedPhases()->pluck('workflow_phase_id')->map(fn ($id): int => (int) $id);
+        $currentSequence = $job->current_phase_id
+            ? WorkflowPhase::query()->whereKey($job->current_phase_id)->value('sequence')
+            : null;
+
+        $taskPackIds = WorkflowPhase::query()
+            ->where('workflow_template_id', $job->workflow_template_id)
+            ->where('is_active', true)
+            ->when($currentSequence !== null, fn (Builder $query) => $query->where('sequence', '>=', $currentSequence))
+            ->when($excludedPhaseIds->isNotEmpty(), fn (Builder $query) => $query->whereNotIn('id', $excludedPhaseIds))
+            ->whereHas('taskPack', fn (Builder $query) => $query
+                ->where('workspace_id', $job->workspace_id)
+                ->where('is_active', true))
+            ->pluck('task_pack_id')
+            ->filter()
+            ->unique();
+
+        if ($taskPackIds->isEmpty()) {
+            return collect();
+        }
+
+        return TaskPackItem::query()
+            ->whereIn('task_pack_id', $taskPackIds)
+            ->orderBy('task_pack_id')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get(['id', 'default_assignee_id', 'default_department_id'])
+            ->map(fn (TaskPackItem $item): ?int => $this->resolveConfiguredAssignee($job, $item))
+            ->filter()
+            ->unique()
+            ->values();
+    }
+
+    private function resolveConfiguredAssignee(FlowJob $job, TaskPackItem $item): ?int
+    {
+        if ($activeDefault = $this->activeWorkspaceUserId($job->workspace_id, $item->default_assignee_id)) {
+            return $activeDefault;
+        }
+
+        if ($item->default_department_id) {
+            $departmentUserId = WorkspaceMembership::query()
+                ->where('workspace_id', $job->workspace_id)
+                ->where('department_id', $item->default_department_id)
+                ->where('status', 'active')
+                ->whereHas('user', fn (Builder $query) => $query->where('status', 'active'))
+                ->whereHas('role', fn (Builder $query) => $query->where('is_active', true))
+                ->whereHas('workspace', fn (Builder $query) => $query->where('is_active', true))
+                ->orderBy('id')
+                ->value('user_id');
+
+            if ($departmentUserId) {
+                return (int) $departmentUserId;
+            }
+        }
+
+        return $this->activeWorkspaceUserId($job->workspace_id, $job->coordinator_id)
+            ?: $this->activeWorkspaceUserId($job->workspace_id, $job->owner_id);
+    }
+
+    private function activeWorkspaceUserId(int $workspaceId, int|string|null $userId): ?int
+    {
+        $userId = (int) ($userId ?? 0);
+        if ($userId <= 0) {
+            return null;
+        }
+
+        return WorkspaceMembership::query()
+            ->where('workspace_id', $workspaceId)
+            ->where('user_id', $userId)
+            ->where('status', 'active')
+            ->whereHas('user', fn (Builder $query) => $query->where('status', 'active'))
+            ->whereHas('role', fn (Builder $query) => $query->where('is_active', true))
+            ->whereHas('workspace', fn (Builder $query) => $query->where('is_active', true))
+            ->exists()
+                ? $userId
+                : null;
     }
 
     /** @return Collection<int, User> */

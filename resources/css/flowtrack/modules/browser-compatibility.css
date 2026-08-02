@@ -1,0 +1,23 @@
+/* Browser fallbacks for features that are progressive enhancements in newer engines. */
+.flowtrack-lazy-page-state{min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:28px;text-align:center;color:var(--muted,#64748b)}
+.flowtrack-lazy-page-state b{color:var(--text,#17233c);font-size:14px}
+.flowtrack-lazy-page-state span{max-width:430px;font-size:12px;line-height:1.55}
+.flowtrack-lazy-spinner{width:28px;height:28px;border:3px solid #dbe5f2;border-top-color:#2563eb;border-radius:50%;animation:flowtrack-lazy-spin .7s linear infinite}
+@keyframes flowtrack-lazy-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.flowtrack-lazy-spinner{animation-duration:1.5s}}
+
+/* Browsers without dynamic viewport units keep usable vh sizing. */
+@supports not (height:100dvh){
+  .login,.login-form-wrap{min-height:100vh!important}
+  #sidebar.sidebar,.sidebar,.drawer{height:100vh!important}
+  #appScreen.app:not(.hidden),#appScreen .main{min-height:100vh!important}
+  .modal{max-height:92vh!important}
+  .jobs-v2-toolbar-main>.flow-searchable>.flow-searchable-panel{max-height:60vh!important}
+  .job-v4-filter-popover{max-height:58vh!important}
+}
+
+/* :has() is only decorative in these controls; preserve layout where unsupported. */
+@supports not selector(:has(*)){
+  .ft-task-job-card dd{min-width:0}
+  .task-attention-row{position:relative}
+}

@@ -1,0 +1,261 @@
+/* style — previously injected at runtime. */
+html,body{max-width:100%;overflow-x:hidden}
+        .main,.content,.page,.standalone-record-page,.standalone-record-content{min-width:0;max-width:100%}
+        .table-wrap,.ops-board-canvas,.job-v4-phase-body,.job-v3-panel-card,.job-v3-main-panel,.job-v5-history,.role-matrix-wrap{max-width:100%;-webkit-overflow-scrolling:touch}
+        img,svg,video,canvas{max-width:100%}
+        .modal,.drawer{overscroll-behavior:contain}
+
+        @media (max-width:1180px){
+            .content{padding:20px 18px 86px!important}
+            .page-head{gap:12px!important;flex-wrap:wrap!important}
+            .page-head>.actions,.page-head>.ops-board-actions{margin-left:0!important}
+            .metrics{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+            .grid-2,.grid-3,.report-grid{grid-template-columns:1fr!important}
+            .client-grid,.task-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .doc-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+            .setup-layout,.workflow-layout,.master-layout{grid-template-columns:1fr!important}
+            .setup-menu,.workflow-list,.master-categories{display:flex!important;overflow-x:auto!important;gap:6px!important;scrollbar-width:thin}
+            .setup-menu button,.workflow-list button,.master-categories button{width:auto!important;min-width:max-content!important;white-space:nowrap!important}
+            .form-grid,.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .toolbar{align-items:stretch!important}
+            .toolbar input,.toolbar select,.toolbar button,.toolbar .flow-searchable{min-height:42px}
+
+            .ops-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .ops-toolbar>.ops-search{grid-column:1/-1!important}
+            .ops-toolbar>*{width:100%!important;min-width:0!important}
+            .ops-board-actions{justify-content:flex-start!important}
+            .ops-quick-row{align-items:flex-start!important}
+            .ops-board-canvas{max-width:100%!important}
+
+            .jobs-v2-header,.jobs-v2-page-head{flex-wrap:wrap!important;gap:12px!important}
+            .jobs-v2-toolbar-main{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+            .jobs-v2-toolbar-main>.flow-searchbar{grid-column:1/-1!important}
+            .jobs-v2-toolbar-main>*{min-width:0!important;width:100%!important}
+            .jobs-v2-table{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+            .jobs-v2-table .jobs-v2-data-table{min-width:1320px!important}
+            .jobs-v2-pagination{grid-template-columns:1fr auto!important;row-gap:10px!important}
+            .jobs-v2-pagination>:first-child{grid-column:1/-1!important}
+
+            .job-detail-v4-content .job-v4-header,.job-v3-header{grid-template-columns:minmax(0,1fr) auto!important;gap:12px!important}
+            .job-detail-v4-content .job-v4-metrics,.job-v3-metric-grid,.job-v3-workflow-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .job-detail-v4-content .job-v4-info-grid,.job-v3-overview-grid,.job-v3-workflow-grid,.job-v3-doc-layout,.job-v5-grid,.job-v6-doc-shell{grid-template-columns:1fr!important}
+            .job-v6-doc-side{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .job-v6-filters,.job-v3-doc-filters-template{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+            .job-v6-search{grid-column:1/-1!important}
+            .job-v4-task-table,.job-v3-task-table,.job-v3-doc-table,.job-v3-history-table{min-width:820px!important}
+            .job-v5-timeline{overflow-x:auto!important;grid-template-columns:repeat(11,minmax(100px,1fr))!important;padding-bottom:8px!important}
+            .job-v5-gate-row{grid-template-columns:24px 26px 185px minmax(130px,1fr) 92px 92px!important}
+
+            .ft-task-final-layout{grid-template-columns:1fr!important}
+            .ft-task-final-side{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .ft-task-final-side .ft-task-side-footer{grid-column:1/-1!important}
+            .ft-task-meta-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+        }
+
+        @media (max-width:900px){
+            .app{grid-template-columns:minmax(0,1fr)!important}
+            .sidebar{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:min(280px,86vw)!important;height:100dvh!important;z-index:70!important;transform:translateX(-105%);box-shadow:18px 0 45px rgba(3,12,24,.22)}
+            .sidebar.open{transform:translateX(0)!important}
+            .topbar{height:60px!important;padding:0 12px!important;gap:8px!important}
+            .mobile-menu{display:inline-grid!important;place-items:center!important;width:40px!important;height:40px!important;flex:0 0 40px!important;border-radius:9px!important}
+            .topbar .search{max-width:none!important}
+            .top-actions{gap:6px!important}
+            .content{padding:16px 14px 82px!important;width:100%!important}
+            .page-head{display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-items:start!important;margin-bottom:16px!important}
+            .page-head .actions,.page-head .ops-board-actions{width:100%!important;justify-content:flex-start!important}
+            .page-head .actions>*{max-width:100%}
+            .section-card{padding:15px!important}
+            .section-head{align-items:flex-start!important;flex-wrap:wrap!important}
+            .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .client-grid,.task-grid,.doc-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .form-grid,.summary-grid{grid-template-columns:1fr!important}
+            .form-grid .full{grid-column:auto!important}
+            .toolbar{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+            .toolbar .search-small,.toolbar .flow-searchbar{grid-column:1/-1!important;min-width:0!important;width:100%!important}
+            .toolbar input,.toolbar select,.toolbar button,.toolbar .flow-searchable{width:100%!important;min-width:0!important}
+            .saved-views{overflow-x:auto!important;flex-wrap:nowrap!important;padding-bottom:4px!important}
+            .view-chip{flex:0 0 auto!important}
+            .data-table{min-width:900px!important}
+            .modal{width:calc(100% - 20px)!important;max-height:92dvh!important;border-radius:14px!important}
+            .modal-head,.modal-body,.modal-foot{padding-left:14px!important;padding-right:14px!important}
+            .modal-foot{flex-wrap:wrap!important}
+            .drawer{width:min(100%,680px)!important;height:100dvh!important}
+            .detail-tabs,.board-tabs{overflow-x:auto!important;flex-wrap:nowrap!important;scrollbar-width:none!important}
+            .detail-tab,.tab-btn{flex:0 0 auto!important;white-space:nowrap!important}
+
+            .ops-toolbar,.my-work-board.my-work-board .my-work-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+            .ops-toolbar>.ops-search,.my-work-board.my-work-board .my-work-toolbar>.ops-search{grid-column:1/-1!important}
+            .ops-view-box,.ops-search,.ops-filter,.ops-clear,.ops-group,.ops-view-icon{height:44px!important;min-height:44px!important}
+            .ops-quick-left{width:100%!important;overflow-x:auto!important;flex-wrap:nowrap!important;padding-bottom:4px!important}
+            .ops-chip{flex:0 0 auto!important}
+            .ops-status-summary{align-items:flex-start!important;flex-direction:column!important}
+            .ops-board-canvas{max-height:none!important;overflow:auto!important}
+            .ops-status-grid,.ops-task-row{min-width:900px!important}
+
+            .jobs-v2-toolbar-main{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .jobs-v2-toolbar-main>.flow-searchbar{grid-column:1/-1!important}
+            .jobs-v2-saved-views,.jobs-v2-view-row{overflow-x:auto!important;flex-wrap:nowrap!important;padding-bottom:4px!important}
+            .jobs-v2-saved-views>*{flex:0 0 auto!important}
+            .jobs-v2-pagination{grid-template-columns:1fr!important}
+            .jobs-v2-page-size,.jobs-v2-page-buttons{justify-self:start!important}
+            .jobs-v2-inline-popover,.jobs-v2-delivery-editor{max-width:calc(100vw - 24px)!important}
+
+            .job-detail-v4-content,.job-detail-v3-content{max-width:100%!important;overflow:hidden!important}
+            .job-detail-v4-content .job-v4-header,.job-v3-header{grid-template-columns:1fr!important;padding-left:14px!important;padding-right:14px!important}
+            .job-v4-team,.job-v3-team{justify-content:flex-start!important;overflow-x:auto!important;max-width:100%!important}
+            .job-v4-header-actions,.job-v3-header-actions{justify-content:flex-start!important;flex-wrap:wrap!important}
+            .job-detail-v4-content .detail-tabs,.job-detail-v3-content .detail-tabs{padding-left:14px!important;padding-right:14px!important}
+            .job-detail-v4-content #jobDetailPanels,.job-detail-v3-content #jobDetailPanels{padding-left:14px!important;padding-right:14px!important}
+            .job-v4-title-row[data-editing="1"],.job-v4-title-row[data-editing="1"] .job-v4-inline-editor{width:100%!important;min-width:0!important}
+            .job-v4-title-row[data-editing="1"] .job-v4-inline-editor{grid-template-columns:1fr!important}
+            .job-v4-title-row[data-editing="1"] .job-v4-inline-actions{justify-content:flex-start!important;flex-wrap:wrap!important}
+            .job-detail-v4-content .job-v4-metrics,.job-v3-metric-grid,.job-v3-workflow-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .job-v4-products-table,.job-v4-task-table,.job-v3-task-table,.job-v3-doc-table,.job-v3-history-table{min-width:760px!important}
+            .job-v4-overview-card,.job-v4-all-tasks,.job-v5-card,.job-v6-list-card{max-width:100%!important}
+            .job-v4-product-editor{grid-template-columns:1fr 1fr!important}
+            .job-v4-tasks-toolbar{align-items:flex-start!important;flex-direction:column!important}
+            .job-v4-task-actions-bar{width:100%!important;justify-content:flex-start!important;flex-wrap:wrap!important}
+            .job-v4-search{width:100%!important}
+            .job-v5-left,.job-v5-right{min-width:0!important}
+            .job-v5-timeline{min-width:100%!important;overflow-x:auto!important;grid-template-columns:repeat(11,100px)!important}
+            .job-v5-gate-table{overflow-x:auto!important}
+            .job-v5-gate-row{min-width:760px!important}
+            .job-v6-doc-side{grid-template-columns:1fr 1fr!important}
+            .job-v6-filters{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .job-v6-doc-template{overflow:hidden!important}
+            .job-v6-list-card{overflow-x:auto!important}
+
+            .ft-task-final-page{padding:14px!important;max-width:100%!important}
+            .ft-task-header{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+            .ft-task-header-actions{justify-content:flex-start!important;flex-wrap:wrap!important}
+            .ft-task-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+            .ft-task-final-side{grid-template-columns:1fr!important}
+
+            #page-record-job-new .standalone-record-page{padding-left:0!important;padding-right:0!important}
+            #page-record-job-new .job-create-prototype-card{max-width:100%!important}
+            #page-record-job-new .job-create-prototype-schedule-grid,#page-record-job-new .job-create-prototype-workflow-grid,#page-record-job-new .job-create-prototype-basics-grid{grid-template-columns:1fr!important}
+            #page-record-job-new .job-product-labels,#page-record-job-new .job-product-row{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) 110px 48px!important}
+            #page-record-job-new .job-create-prototype-preview{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        }
+
+        @media (max-width:640px){
+            body{font-size:14px!important}
+            .topbar{height:56px!important}
+            .topbar .search{display:none!important}
+            .lang-btn{max-width:58px!important;overflow:hidden!important;white-space:nowrap!important}
+            .icon-btn,.mobile-menu{width:38px!important;height:38px!important;min-width:38px!important}
+            .content{padding:12px 10px 76px!important}
+            .page-head h1{font-size:22px!important;line-height:1.2!important}
+            .page-head p{font-size:12.5px!important;line-height:1.45!important}
+            .actions{width:100%!important;display:flex!important;gap:7px!important;flex-wrap:wrap!important}
+            .actions .ghost{display:inline-flex!important}
+            .primary,.secondary,.ghost,.danger-btn{min-height:40px!important}
+            .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+            .metric{padding:12px!important;min-width:0!important}
+            .metric-value{font-size:22px!important}
+            .metric-label,.metric-foot{white-space:normal!important}
+            .metric-icon{display:none!important}
+            .client-grid,.task-grid,.doc-grid,.pack-list,.kpi-list{grid-template-columns:1fr!important}
+            .client-stats{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+            .section-card{padding:12px!important}
+            .section-head h3{font-size:15px!important}
+            .toolbar{grid-template-columns:1fr!important;padding:9px!important}
+            .toolbar .search-small,.toolbar .flow-searchbar{grid-column:auto!important}
+            .upload-zone{padding:16px 10px!important}
+            .bar-row{grid-template-columns:90px minmax(0,1fr) 34px!important}
+            .modal{top:auto!important;bottom:0!important;transform:translateX(-50%)!important;width:100%!important;max-height:92dvh!important;border-radius:16px 16px 0 0!important}
+            .modal-foot>*{flex:1 1 auto!important}
+            .drawer{width:100%!important}
+            .drawer-head,.drawer-body{padding-left:12px!important;padding-right:12px!important}
+            .role-matrix{min-width:620px!important}
+
+            .ops-toolbar,.my-work-board.my-work-board .my-work-toolbar{grid-template-columns:1fr!important}
+            .ops-toolbar>.ops-search,.my-work-board.my-work-board .my-work-toolbar>.ops-search{grid-column:auto!important}
+            .ops-board-tabs{overflow-x:auto!important;gap:18px!important;scrollbar-width:none!important}
+            .ops-board-tabs .tab-btn{flex:0 0 auto!important}
+            .ops-status-grid,.ops-task-row{min-width:760px!important}
+            .ops-board-canvas{border-radius:10px!important}
+            .ops-group-row{width:100%!important;overflow-x:auto!important;padding-bottom:3px!important}
+
+            .jobs-v2-toolbar-main{grid-template-columns:1fr!important}
+            .jobs-v2-toolbar-main>.flow-searchbar{grid-column:auto!important}
+            .jobs-v2-toolbar-main>.flow-searchable>.flow-searchable-panel{position:fixed!important;left:10px!important;right:10px!important;width:auto!important;max-width:none!important;max-height:60dvh!important}
+            .jobs-v2-table .jobs-v2-data-table{min-width:1120px!important}
+            .jobs-v2-pagination{padding:10px!important}
+            .jobs-v2-page-buttons{display:flex!important;gap:6px!important;flex-wrap:wrap!important}
+            .jobs-v2-inline-popover{left:10px!important;right:10px!important;width:auto!important;max-width:none!important}
+            .jobs-v2-delivery-editor{left:10px!important;right:10px!important;width:auto!important;grid-template-columns:minmax(0,1fr) 38px 38px!important}
+
+            .job-detail-v4-content .job-v4-header,.job-v3-header{padding-left:10px!important;padding-right:10px!important}
+            .job-detail-v4-content .detail-tabs,.job-detail-v3-content .detail-tabs{padding-left:10px!important;padding-right:10px!important;gap:18px!important}
+            .job-detail-v4-content #jobDetailPanels,.job-detail-v3-content #jobDetailPanels{padding-left:10px!important;padding-right:10px!important}
+            .job-detail-v4-content .job-v4-metrics,.job-v3-metric-grid,.job-v3-workflow-metrics{grid-template-columns:1fr!important}
+            .job-v4-product-editor{grid-template-columns:1fr!important}
+            .job-v4-plan-row{grid-template-columns:105px minmax(0,1fr) 30px!important}
+            .job-v5-card{padding-left:10px!important;padding-right:10px!important}
+            .job-v5-current-head{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
+            .job-v5-progress-line{flex-wrap:wrap!important}
+            .job-v5-progress-line i{width:min(180px,100%)!important}
+            .job-v5-phase-meta{flex-wrap:wrap!important}
+            .job-v5-gate-row{min-width:0!important;grid-template-columns:22px 24px minmax(0,1fr) auto!important;padding:8px 4px!important}
+            .job-v5-gate-row strong,.job-v5-gate-row em,.job-v5-gate-row .job-v5-link{grid-column:3/5!important}
+            .job-v5-next-phase{grid-template-columns:30px minmax(0,1fr)!important}
+            .job-v5-next-phase button{grid-column:2!important;width:100%!important}
+            .job-v5-timeline-step{min-width:94px!important}
+            .job-v6-doc-side{grid-template-columns:1fr!important}
+            .job-v6-filters{grid-template-columns:1fr!important}
+            .job-v6-search{grid-column:auto!important}
+            .job-v6-doc-columns{display:none!important}
+            .job-v6-doc-row{grid-template-columns:minmax(0,1fr) auto auto!important}
+            .job-v6-doc-row>span:nth-of-type(n+3){display:none!important}
+            .job-v6-doc-file{grid-column:1/-1!important}
+            .job-v6-purpose{grid-template-columns:1fr!important}
+            .job-v6-purpose>*{grid-column:1!important}
+            .job-v6-dropzone{grid-template-columns:32px minmax(0,1fr)!important;min-height:76px!important;height:auto!important;padding:10px!important}
+            .job-v6-dropzone .job-v6-outline{grid-column:1/-1!important;width:100%!important}
+            .job-v6-requirement-row{grid-template-columns:20px minmax(0,1fr) auto!important}
+            .job-v6-upload-required{grid-column:2/-1!important;width:100%!important}
+
+            .ft-task-final-page{padding:10px!important}
+            .ft-task-heading h1{font-size:22px!important}
+            .ft-task-meta-grid{grid-template-columns:1fr!important}
+            .ft-task-meta-card{border-right:0!important;border-bottom:1px solid #dbe3ef!important;border-radius:0!important}
+            .ft-task-meta-card:first-child{border-radius:9px 9px 0 0!important}
+            .ft-task-meta-card:last-child{border-bottom:0!important;border-radius:0 0 9px 9px!important}
+            .ft-task-dropzone{margin-left:10px!important;margin-right:10px!important;grid-template-columns:34px minmax(0,1fr)!important;padding:10px!important}
+            .ft-task-dropzone>.ft-task-btn{grid-column:1/-1!important;width:100%!important}
+            .ft-task-check-row{padding-left:10px!important;padding-right:10px!important}
+            .ft-task-comment-compose{grid-template-columns:30px minmax(0,1fr)!important;padding-left:10px!important;padding-right:10px!important}
+            .ft-task-comment-btn{grid-column:2!important}
+            .ft-task-activity-tabs{gap:4px!important;padding:0 8px!important;overflow-x:auto!important}
+            .ft-task-activity-tabs h2{flex:0 0 auto!important}
+            .ft-task-activity-tabs button{flex:0 0 auto!important}
+            .ft-task-activity-list{padding-left:10px!important;padding-right:10px!important}
+            .ft-task-activity-row{grid-template-columns:28px minmax(0,1fr)!important}
+            .ft-task-activity-row time{grid-column:2!important;text-align:left!important;padding-top:0!important}
+            .ft-task-side-line{grid-template-columns:92px minmax(0,1fr) auto!important}
+
+            #page-record-job-new .job-create-prototype-card{padding:11px!important}
+            #page-record-job-new .job-product-labels{display:none!important}
+            #page-record-job-new .job-product-row{grid-template-columns:1fr 46px!important;gap:8px!important;padding:10px!important}
+            #page-record-job-new .job-product-row>:nth-child(1),#page-record-job-new .job-product-row>:nth-child(2),#page-record-job-new .job-product-row>:nth-child(3){grid-column:1!important}
+            #page-record-job-new .job-product-row>:nth-child(4){grid-column:2!important;grid-row:1!important}
+            #page-record-job-new .job-create-prototype-product-bottom{align-items:flex-start!important;flex-direction:column!important}
+            #page-record-job-new [data-job-create-product-summary]{white-space:normal!important}
+            #page-record-job-new .job-create-prototype-info-row{align-items:flex-start!important;flex-direction:column!important}
+            #page-record-job-new .job-create-prototype-preview{grid-template-columns:1fr!important}
+            #page-record-job-new .job-create-prototype-footer{gap:8px!important;padding-left:8px!important;padding-right:8px!important}
+            #page-record-job-new .job-create-prototype-footer button{flex:1 1 0!important;min-width:0!important;padding:0 8px!important}
+        }
+
+        @media (max-width:430px){
+            .content{padding-left:8px!important;padding-right:8px!important}
+            .metrics{grid-template-columns:1fr!important}
+            .client-stats{grid-template-columns:1fr!important}
+            .top-actions .lang-btn{display:none!important}
+            .page-head .actions>*{flex:1 1 auto!important}
+            .modal-foot{display:grid!important;grid-template-columns:1fr!important}
+            .modal-foot>*{width:100%!important}
+            .job-v4-plan-row{grid-template-columns:88px minmax(0,1fr) 28px!important}
+            .ft-task-side-line{grid-template-columns:82px minmax(0,1fr) auto!important}
+        }

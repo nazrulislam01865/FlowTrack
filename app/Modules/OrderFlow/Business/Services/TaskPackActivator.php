@@ -5,12 +5,14 @@ namespace App\Modules\OrderFlow\Business\Services;
 use App\Models\User;
 use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
+use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
 use App\Modules\OrderFlow\Data\Models\MasterRecord;
 use App\Modules\OrderFlow\Data\Models\TaskPackItem;
 use App\Modules\OrderFlow\Data\Models\WorkflowPhase;
 use App\Modules\OrderFlow\Data\Models\WorkspaceMembership;
 use DomainException;
+use Illuminate\Support\Facades\DB;
 
 class TaskPackActivator
 {
@@ -18,6 +20,8 @@ class TaskPackActivator
         private readonly IdentifierGenerator $identifiers,
         private readonly ProgressCalculator $progress,
         private readonly ActivityLogger $activities,
+        private readonly FlowNotificationService $notifications,
+        private readonly JobDocumentRequirementService $documentRequirements,
     ) {}
 
     /**
@@ -56,7 +60,7 @@ class TaskPackActivator
         $completedStatusId = $this->resolveCompletedStatusId($job->workspace_id);
         $phaseDocuments = $job->documents()
             ->where('workflow_phase_id', $phase->id)
-            ->get(['id', 'task_pack_item_id', 'document_category_id', 'created_at']);
+            ->get(['id', 'flow_task_id', 'task_pack_item_id', 'document_category_id', 'created_at']);
 
         // Workflow Phase document requirements stay in the Documents panel only.
         // The Job task table must contain only Task Pack Setup items (plus any
@@ -64,6 +68,7 @@ class TaskPackActivator
         // document upload tasks such as "Upload Client Requirement".
         $this->removeWorkflowPhaseDocumentTasks($job, $phase, $actor, $source);
         $createdOrRestored = 0;
+        $generatedTaskIds = [];
 
         if (! $phase->taskPack || ! $phase->taskPack->is_active || (int) $phase->taskPack->workspace_id !== (int) $job->workspace_id) {
             return $createdOrRestored;
@@ -109,11 +114,15 @@ class TaskPackActivator
         foreach ($items as $index => $item) {
             /** @var FlowTask|null $task */
             $task = $existing->get($item->id);
-            $hasRequiredDocument = $item->document_category_id
-                && $phaseDocuments->contains(fn ($document): bool =>
-                    (int) $document->task_pack_item_id === (int) $item->id
-                    && (int) $document->document_category_id === (int) $item->document_category_id
-                );
+            if ($task && $item->document_category_id) {
+                $this->linkLegacyEvidenceToTask($job, $phase, $task, $item);
+                $phaseDocuments = $job->documents()
+                    ->where('workflow_phase_id', $phase->id)
+                    ->get(['id', 'flow_task_id', 'task_pack_item_id', 'document_category_id', 'created_at']);
+            }
+            $hasRequiredDocument = $task && $item->document_category_id
+                ? $this->documentRequirements->isTaskRequirementSatisfied($task)
+                : false;
             $documentAttributes = [
                 'document_category_id' => $item->document_category_id ?: null,
                 'document_requirement_source' => $item->document_category_id ? 'task_pack_item' : null,
@@ -146,6 +155,7 @@ class TaskPackActivator
                         ...$assignmentAttributes,
                     ])->save();
                     $createdOrRestored++;
+                    $generatedTaskIds[] = (int) $task->id;
                     $this->logTaskAdded($job, $task, $actor, $source, true);
                 } elseif (! $task->trashed()) {
                     $previousAssigneeId = $task->assignee_id ? (int) $task->assignee_id : null;
@@ -171,20 +181,28 @@ class TaskPackActivator
                 'code' => $this->identifiers->task(),
                 'title' => $item->title,
                 'description' => $item->description,
+                'start_date' => now()->toDateString(),
                 'due_date' => null, // Due dates are now set manually from the Task details page.
-                'progress' => $hasRequiredDocument && $completedStatusId
-                    ? 100
-                    : $this->initialProgress($initialStatusId),
-                'completed_at' => $hasRequiredDocument && $completedStatusId ? now() : null,
+                'progress' => $this->initialProgress($initialStatusId),
+                'completed_at' => null,
                 'sort_order' => $index,
-                'task_status_id' => $hasRequiredDocument && $completedStatusId
-                    ? $completedStatusId
-                    : $initialStatusId,
+                'task_status_id' => $initialStatusId,
                 ...$documentAttributes,
             ]);
 
+            if ($item->document_category_id) {
+                $this->linkLegacyEvidenceToTask($job, $phase, $createdTask, $item);
+            }
             $createdOrRestored++;
+            $generatedTaskIds[] = (int) $createdTask->id;
             $this->logTaskAdded($job, $createdTask, $actor, $source);
+        }
+
+        if ($source !== 'job_creation' && $generatedTaskIds !== []) {
+            $jobId = (int) $job->id;
+            $phaseId = (int) $phase->id;
+            $actorId = $actor?->id ? (int) $actor->id : null;
+            DB::afterCommit(fn () => $this->notifications->phaseTasksGenerated($jobId, $phaseId, $generatedTaskIds, $actorId));
         }
 
         return $createdOrRestored;
@@ -212,6 +230,22 @@ class TaskPackActivator
                 );
                 $task->delete();
             });
+    }
+
+    private function linkLegacyEvidenceToTask(FlowJob $job, WorkflowPhase $phase, FlowTask $task, TaskPackItem $item): void
+    {
+        if (! $item->document_category_id) {
+            return;
+        }
+
+        FlowDocument::query()
+            ->where('flow_job_id', $job->id)
+            ->where('workflow_phase_id', $phase->id)
+            ->where('task_pack_item_id', $item->id)
+            ->where('document_category_id', $item->document_category_id)
+            ->whereNull('flow_task_id')
+            ->whereNull('deleted_at')
+            ->update(['flow_task_id' => $task->id]);
     }
 
     private function logTaskAdded(FlowJob $job, FlowTask $task, ?User $actor, string $source, bool $restored = false): void
@@ -318,16 +352,10 @@ class TaskPackActivator
         ?int $initialStatusId,
         ?int $completedStatusId,
     ): array {
-        if ($hasRequiredDocument && $completedStatusId) {
-            return [
-                'task_status_id' => $completedStatusId,
-                'progress' => 100,
-                'completed_at' => $task?->completed_at ?: now(),
-                'attention_required' => false,
-                'blocker_reason' => null,
-            ];
-        }
-
+        // Evidence presence never grants another actor the right to complete a
+        // Task. Completion happens only through the assignee-authorized upload
+        // or Task status transition path. Missing evidence may still reopen a
+        // previously completed Task as a system integrity correction.
         if (! $hasRequiredDocument && $task
             && ($task->completed_at || ($completedStatusId && (int) $task->task_status_id === $completedStatusId))) {
             return [
@@ -353,16 +381,8 @@ class TaskPackActivator
 
     private function resolveAssignee(FlowJob $job, TaskPackItem $item): ?int
     {
-        if ($item->default_assignee_id) {
-            $isActiveMember = WorkspaceMembership::query()
-                ->where('workspace_id', $job->workspace_id)
-                ->where('user_id', $item->default_assignee_id)
-                ->where('status', 'active')
-                ->exists();
-
-            if ($isActiveMember) {
-                return $item->default_assignee_id;
-            }
+        if ($activeDefault = $this->activeWorkspaceUserId((int) $job->workspace_id, $item->default_assignee_id)) {
+            return $activeDefault;
         }
 
         if ($item->default_department_id) {
@@ -370,6 +390,9 @@ class TaskPackActivator
                 ->where('workspace_id', $job->workspace_id)
                 ->where('department_id', $item->default_department_id)
                 ->where('status', 'active')
+                ->whereHas('user', fn ($query) => $query->where('status', 'active'))
+                ->whereHas('role', fn ($query) => $query->where('is_active', true))
+                ->whereHas('workspace', fn ($query) => $query->where('is_active', true))
                 ->orderBy('id')
                 ->value('user_id');
 
@@ -378,6 +401,26 @@ class TaskPackActivator
             }
         }
 
-        return $job->coordinator_id ?: $job->owner_id;
+        return $this->activeWorkspaceUserId((int) $job->workspace_id, $job->coordinator_id)
+            ?: $this->activeWorkspaceUserId((int) $job->workspace_id, $job->owner_id);
+    }
+
+    private function activeWorkspaceUserId(int $workspaceId, int|string|null $userId): ?int
+    {
+        $userId = (int) ($userId ?? 0);
+        if ($userId <= 0) {
+            return null;
+        }
+
+        return WorkspaceMembership::query()
+            ->where('workspace_id', $workspaceId)
+            ->where('user_id', $userId)
+            ->where('status', 'active')
+            ->whereHas('user', fn ($query) => $query->where('status', 'active'))
+            ->whereHas('role', fn ($query) => $query->where('is_active', true))
+            ->whereHas('workspace', fn ($query) => $query->where('is_active', true))
+            ->exists()
+                ? $userId
+                : null;
     }
 }

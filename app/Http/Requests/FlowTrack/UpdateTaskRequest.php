@@ -38,6 +38,7 @@ class UpdateTaskRequest extends FormRequest
                     ->where('status', 'active')
                     ->whereNull('deleted_at'))],
             'assignee_id' => ['nullable', 'integer', $workspaceMember],
+            'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date'],
             'priority_id' => ['nullable', 'integer', Rule::exists('master_records', 'id')
                 ->where(fn ($query) => $query
@@ -50,6 +51,9 @@ class UpdateTaskRequest extends FormRequest
             'blocker_reason' => ['nullable', 'string', 'max:3000'],
             'completed_checklist_ids' => ['nullable', 'array'],
             'completed_checklist_ids.*' => ['integer', Rule::exists('flow_task_checklist_items', 'id')
+                ->where(fn ($query) => $query->where('flow_task_id', $task->id))],
+            'checklist_add' => ['nullable', 'string', 'max:255'],
+            'checklist_delete_id' => ['nullable', 'integer', Rule::exists('flow_task_checklist_items', 'id')
                 ->where(fn ($query) => $query->where('flow_task_id', $task->id))],
             'comment' => ['nullable', 'string', 'max:5000'],
             'mentioned_user_ids' => ['nullable', 'array', 'max:25'],

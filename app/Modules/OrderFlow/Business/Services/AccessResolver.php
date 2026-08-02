@@ -18,8 +18,7 @@ class AccessResolver
 
     public function canManageJob(User $user, FlowJob $job): bool
     {
-        return $this->authorization->allows($user, 'jobs', 'edit_all', $job)
-            || $this->authorization->allows($user, 'jobs', 'edit_own', $job);
+        return $this->authorization->canChangeJobWorkflowStatus($user, $job);
     }
 
     public function canManageTasks(User $user, FlowJob $job): bool

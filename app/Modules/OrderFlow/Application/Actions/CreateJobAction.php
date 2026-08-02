@@ -235,6 +235,9 @@ class CreateJobAction
             $validCount = WorkspaceMembership::query()
                 ->where('workspace_id', $data->workspaceId)
                 ->where('status', 'active')
+                ->whereHas('user', fn ($query) => $query->where('status', 'active'))
+                ->whereHas('role', fn ($query) => $query->where('is_active', true))
+                ->whereHas('workspace', fn ($query) => $query->where('is_active', true))
                 ->whereIn('user_id', $userIds)
                 ->distinct('user_id')
                 ->count('user_id');

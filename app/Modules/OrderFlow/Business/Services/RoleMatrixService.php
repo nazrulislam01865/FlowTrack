@@ -35,7 +35,7 @@ class RoleMatrixService
 
         $members = WorkspaceMembership::query()
             ->where('workspace_id', $workspaceId)
-            ->with(['user:id,name,initials,email,status,is_super_admin', 'role:id,name,code', 'department:id,name'])
+            ->with(['user:id,name,initials,email,status,is_super_admin,locale', 'role:id,name,code', 'department:id,name'])
             ->orderBy('id')
             ->get()
             ->map(fn (WorkspaceMembership $membership) => [
@@ -51,6 +51,7 @@ class RoleMatrixService
                 'roleCode' => $membership->role?->code,
                 'jobTitle' => $membership->job_title,
                 'status' => $membership->status,
+                'locale' => $membership->user?->locale ?: 'en',
                 'isSuperAdmin' => (bool) $membership->user?->is_super_admin,
             ])
             ->values()
@@ -195,6 +196,10 @@ class RoleMatrixService
     public function ensureInitialized(Role $role): void
     {
         if ($this->isAdministratorRole($role)) {
+            if ($this->administratorMatrixIsCurrent($role)) {
+                return;
+            }
+
             DB::transaction(function () use ($role): void {
                 $this->writeMatrix($role, $this->fullMatrix());
                 $role->update([
@@ -209,6 +214,7 @@ class RoleMatrixService
         }
 
         if ($role->moduleAccess->isNotEmpty()) {
+            $this->ensureMatrixContainsCatalogModules($role);
             return;
         }
 
@@ -232,6 +238,62 @@ class RoleMatrixService
         });
 
         $role->load('moduleAccess');
+    }
+
+    private function ensureMatrixContainsCatalogModules(Role $role): void
+    {
+        $existing = $role->moduleAccess->pluck('module_code')->map(fn ($code): string => (string) $code)->all();
+        $missing = array_values(array_diff($this->catalog->moduleCodes(), $existing));
+
+        if ($missing === []) {
+            return;
+        }
+
+        DB::transaction(function () use ($role, $missing): void {
+            foreach ($missing as $moduleCode) {
+                $role->moduleAccess()->updateOrCreate(
+                    ['module_code' => $moduleCode],
+                    ['record_scope' => $role->default_scope ?: 'assigned_jobs', 'actions' => []],
+                );
+            }
+            $this->syncLegacyPermissions($role->fresh('moduleAccess'));
+        });
+
+        $role->load('moduleAccess');
+    }
+
+    private function administratorMatrixIsCurrent(Role $role): bool
+    {
+        $moduleAccess = $role->moduleAccess;
+        if ($role->default_scope !== 'all_records' || ! $role->is_active) {
+            return false;
+        }
+
+        if (! $this->sameStringSet($role->sensitive_fields ?: [], $this->catalog->sensitiveFieldCodes())) {
+            return false;
+        }
+
+        foreach ($this->catalog->moduleCodes() as $moduleCode) {
+            $access = $moduleAccess->firstWhere('module_code', $moduleCode);
+            if (! $access || $access->record_scope !== 'all_records') {
+                return false;
+            }
+            if (! $this->sameStringSet($access->actions ?: [], $this->catalog->actionCodes())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function sameStringSet(array $left, array $right): bool
+    {
+        $left = array_values(array_unique(array_map('strval', $left)));
+        $right = array_values(array_unique(array_map('strval', $right)));
+        sort($left);
+        sort($right);
+
+        return $left === $right;
     }
 
     private function normalizeCode(string $code): string

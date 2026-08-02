@@ -11,6 +11,7 @@ class DocumentWorkflowLinker
         private readonly WorkflowAutomationService $automation,
         private readonly PhaseReadinessEvaluator $readiness,
         private readonly WorkflowEngine $workflow,
+        private readonly FlowAuthorizationService $authorization,
     ) {}
 
     /**
@@ -39,6 +40,16 @@ class DocumentWorkflowLinker
 
         $updated = $this->automation->synchronize($job, $actor, 'document_link', false);
         $updated->loadMissing(['currentPhase', 'workflow.phases']);
+
+        if (! $this->authorization->canChangeJobWorkflowStatus($actor, $updated)) {
+            return [
+                'moved' => false,
+                'ready' => false,
+                'blockers' => ['Only the current Phase owner (or Job owner when no Phase owner is assigned) can move this Job.'],
+                'from_phase_id' => $beforePhaseId,
+                'to_phase_id' => $updated->current_phase_id,
+            ];
+        }
         if (! $updated->currentPhase) {
             return ['moved' => false, 'ready' => false, 'blockers' => ['The Job does not have a current phase.'], 'from_phase_id' => $beforePhaseId, 'to_phase_id' => null];
         }

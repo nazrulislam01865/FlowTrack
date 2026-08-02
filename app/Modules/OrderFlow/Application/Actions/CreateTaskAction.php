@@ -80,6 +80,7 @@ class CreateTaskAction
                 'title' => $data['title'],
                 'description' => $data['description'] ?? null,
                 'start_rule' => $data['start_rule'] ?? null,
+                'start_date' => $data['start_date'] ?? now()->toDateString(),
                 'due_date' => $data['due_date'] ?? null,
                 'attention_required' => (bool) ($data['attention_required'] ?? false),
                 'blocker_reason' => $data['blocker_reason'] ?? null,

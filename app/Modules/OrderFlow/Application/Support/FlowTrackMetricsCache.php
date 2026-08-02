@@ -25,16 +25,30 @@ class FlowTrackMetricsCache
         );
     }
 
+    public function rememberSection(User $user, string $section, Closure $resolver): array
+    {
+        $workspaceId = (int) $user->currentWorkspaceId();
+        $version = $this->version($workspaceId);
+        $seconds = max(60, min(300, (int) config('flowtrack.metrics_cache_seconds', 120)));
+        $safeSection = preg_replace('/[^a-z0-9_-]+/i', '-', strtolower($section)) ?: 'default';
+
+        return $this->cache->remember(
+            $this->sectionPayloadKey($workspaceId, (int) $user->id, $version, $safeSection),
+            $seconds,
+            fn (): array => $resolver(),
+        );
+    }
+
     public function invalidateWorkspace(?int $workspaceId): void
     {
         if (! $workspaceId) {
             return;
         }
 
-        $this->cache->forever(
-            $this->versionKey($workspaceId),
-            $this->version($workspaceId) + 1,
-        );
+        $key = $this->versionKey($workspaceId);
+        if (! $this->cache->add($key, 2, now()->addYears(10))) {
+            $this->cache->increment($key);
+        }
     }
 
     private function version(int $workspaceId): int
@@ -52,5 +66,12 @@ class FlowTrackMetricsCache
         $date = now()->toDateString();
 
         return "flowtrack:metrics:schema:".self::CACHE_SCHEMA_VERSION.":workspace:{$workspaceId}:user:{$userId}:date:{$date}:v{$version}";
+    }
+
+    private function sectionPayloadKey(int $workspaceId, int $userId, int $version, string $section): string
+    {
+        $date = now()->toDateString();
+
+        return "flowtrack:metrics:schema:".self::CACHE_SCHEMA_VERSION.":workspace:{$workspaceId}:user:{$userId}:date:{$date}:section:{$section}:v{$version}";
     }
 }

@@ -13,7 +13,6 @@ class DeliverPusherEvent implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public bool $afterCommit = true;
 
     public int $tries = 3;
 
@@ -30,6 +29,7 @@ class DeliverPusherEvent implements ShouldQueue
         public readonly array $payload,
     ) {
         $this->onQueue('notifications');
+        $this->afterCommit();
     }
 
     public function handle(PusherChannelsClient $pusher): void

@@ -5,6 +5,7 @@ namespace App\Modules\OrderFlow\Application\Actions;
 use App\Models\User;
 use App\Modules\OrderFlow\Business\Services\ActivityLogger;
 use App\Modules\OrderFlow\Business\Services\FlowNotificationService;
+use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
 use App\Modules\OrderFlow\Business\Services\TransitionAuditLogger;
 use App\Modules\OrderFlow\Business\Services\WorkflowAutomationService;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
@@ -22,11 +23,16 @@ class RemoveJobPhaseAction
         private readonly TransitionAuditLogger $transitions,
         private readonly WorkflowAutomationService $automation,
         private readonly FlowNotificationService $notifications,
+        private readonly FlowAuthorizationService $authorization,
     ) {}
 
     public function execute(FlowJob $job, WorkflowPhase $phase, User $actor, ?string $reason = null): FlowJob
     {
         $job->loadMissing('workflow.phases', 'currentPhase', 'excludedPhases');
+
+        if (! $this->authorization->canChangeJobWorkflowStatus($actor, $job)) {
+            throw new DomainException('Only the current Phase owner may change Workflow state, with Job owner fallback. Admin and Super Admin may override this rule.');
+        }
 
         if ((int) $phase->workflow_template_id !== (int) $job->workflow_template_id) {
             throw new DomainException('The selected phase does not belong to this Job workflow.');

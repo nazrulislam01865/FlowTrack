@@ -124,7 +124,7 @@ class TemplateAccessController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'initials' => ['nullable', 'string', 'max:8'],
             'email' => ['required', 'email:rfc', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+            'password' => ['required', 'confirmed', Password::defaults()],
             'role_id' => ['required', 'integer', Rule::exists('roles', 'id')->where(fn ($query) => $query->where('workspace_id', $workspaceId)->where('is_active', true))],
             'department_id' => ['nullable', 'integer', Rule::exists('master_records', 'id')->where(fn ($query) => $query->where('workspace_id', $workspaceId)->where('type', MasterDataType::Department->value)->where('status', 'active'))],
             'job_title' => ['nullable', 'string', 'max:255'],
@@ -138,7 +138,7 @@ class TemplateAccessController extends Controller
         $membership = DB::transaction(function () use ($workspaceId, $data): WorkspaceMembership {
             $user = User::create([
                 'name' => $data['name'],
-                'initials' => $data['initials'] ?: $this->initials($data['name']),
+                'initials' => ($data['initials'] ?? null) ?: $this->initials($data['name']),
                 'email' => mb_strtolower($data['email']),
                 'email_verified_at' => now(),
                 'locale' => $data['locale'] ?? 'en',
@@ -176,7 +176,8 @@ class TemplateAccessController extends Controller
             'department_id' => ['nullable', 'integer', Rule::exists('master_records', 'id')->where(fn ($query) => $query->where('workspace_id', $workspaceId)->where('type', MasterDataType::Department->value)->where('status', 'active'))],
             'job_title' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(['active', 'inactive', 'pending'])],
-            'password' => ['nullable', 'confirmed', Password::min(8)->letters()->numbers()],
+            'locale' => ['sometimes', Rule::in(['en', 'zh'])],
+            'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 
         $identityFields = ['name', 'email', 'password'];
@@ -213,6 +214,9 @@ class TemplateAccessController extends Controller
             if (array_key_exists('email', $data)) {
                 $userData['email'] = mb_strtolower($data['email']);
                 $userData['email_verified_at'] = now();
+            }
+            if (array_key_exists('locale', $data)) {
+                $userData['locale'] = $data['locale'] ?: 'en';
             }
             if (! empty($data['password'])) {
                 $userData['password'] = Hash::make($data['password']);
@@ -292,7 +296,7 @@ class TemplateAccessController extends Controller
 
     private function mapMember(WorkspaceMembership $membership): array
     {
-        $membership->load(['user:id,name,initials,email,status,is_super_admin', 'role:id,name,code', 'department:id,name']);
+        $membership->load(['user:id,name,initials,email,status,is_super_admin,locale', 'role:id,name,code', 'department:id,name']);
 
         return [
             'id' => $membership->id,
@@ -307,6 +311,7 @@ class TemplateAccessController extends Controller
             'roleCode' => $membership->role?->code,
             'jobTitle' => $membership->job_title,
             'status' => $membership->status,
+            'locale' => $membership->user?->locale ?: 'en',
             'isSuperAdmin' => (bool) $membership->user?->is_super_admin,
         ];
     }

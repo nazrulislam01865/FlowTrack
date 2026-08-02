@@ -28,16 +28,25 @@ class FlowTrackBootstrapCache
         );
     }
 
+    public function currentVersion(?int $workspaceId): int
+    {
+        if (! $workspaceId) {
+            return 1;
+        }
+
+        return $this->version((int) $workspaceId);
+    }
+
     public function invalidateWorkspace(?int $workspaceId): void
     {
         if (! $workspaceId) {
             return;
         }
 
-        $this->cache->forever(
-            $this->versionKey($workspaceId),
-            $this->version($workspaceId) + 1,
-        );
+        $key = $this->versionKey($workspaceId);
+        if (! $this->cache->add($key, 2, now()->addYears(10))) {
+            $this->cache->increment($key);
+        }
     }
 
     public function etag(array $payload): string

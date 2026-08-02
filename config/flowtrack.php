@@ -21,13 +21,24 @@ return [
 
     // Operational datasets are delivered in bounded pages to avoid one huge
     // bootstrap query/response while preserving the same client-side data model.
-    'bootstrap_segment_per_page' => (int) env('FLOWTRACK_BOOTSTRAP_SEGMENT_PER_PAGE', 100),
+    'bootstrap_segment_per_page' => (int) env('FLOWTRACK_BOOTSTRAP_SEGMENT_PER_PAGE', 50),
 
     // Lightweight list pages. Full details are fetched only when a record opens.
-    'list_per_page' => (int) env('FLOWTRACK_LIST_PER_PAGE', 50),
+    'list_per_page' => (int) env('FLOWTRACK_LIST_PER_PAGE', 25),
 
     // User/workspace dashboard calculations are cached for 1-5 minutes.
     'metrics_cache_seconds' => (int) env('FLOWTRACK_METRICS_CACHE_SECONDS', 120),
+
+    // New documents use an authenticated private disk. Existing version rows
+    // retain their original disk and remain downloadable without migration.
+    'documents_disk' => env('FLOWTRACK_DOCUMENTS_DISK', 'flowtrack_documents'),
+
+    // Polling is the reliable fallback when Pusher/Reverb is unavailable.
+    // Fifteen seconds keeps 30-40 active browsers responsive without producing
+    // an unnecessary heartbeat request every five seconds.
+    'realtime_poll_interval_ms' => max(10000, min(60000, (int) env('FLOWTRACK_REALTIME_POLL_INTERVAL_MS', 15000))),
+
+    'force_https' => (bool) env('FLOWTRACK_FORCE_HTTPS', env('APP_ENV') === 'production'),
 
     // The completed Blade Task Card interface is the only mounted FlowTrack UI.
     'ui_driver' => env('FLOWTRACK_UI_DRIVER', 'template'),

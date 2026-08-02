@@ -6,6 +6,7 @@ mkdir -p \
   storage/framework/sessions \
   storage/framework/testing \
   storage/framework/views \
+  storage/app/flowtrack-documents \
   storage/logs \
   bootstrap/cache
 

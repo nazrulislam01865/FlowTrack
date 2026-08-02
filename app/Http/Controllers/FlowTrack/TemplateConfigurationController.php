@@ -323,6 +323,7 @@ class TemplateConfigurationController extends Controller
             'status' => str($record->status)->title()->toString(),
             'parent_id' => $record->parent_id,
             'parent_name' => $record->parent?->name,
+            'parent_code' => $record->parent?->code,
             'sort_order' => (int) $record->sort_order,
         ];
     }

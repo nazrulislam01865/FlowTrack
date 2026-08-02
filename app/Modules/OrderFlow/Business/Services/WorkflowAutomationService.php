@@ -46,7 +46,14 @@ class WorkflowAutomationService
                 $this->health->synchronize($locked, $actor, $source);
                 $readiness = $this->readiness->synchronize($locked, $locked->currentPhase, $actor, $source);
 
-                if (! $allowAutoAdvance || ! $readiness['ready'] || ! $locked->currentPhase->auto_advance_on_ready) {
+                $phaseControl = $locked->phaseHistory()
+                    ->where('workflow_phase_id', $locked->current_phase_id)
+                    ->first(['automation_mode']);
+                $automationMode = strtolower(trim((string) ($phaseControl?->automation_mode ?? '')));
+                $autoAdvanceEnabled = $automationMode === 'automatic'
+                    || ($automationMode === '' && (bool) $locked->currentPhase->auto_advance_on_ready);
+
+                if (! $allowAutoAdvance || ! $readiness['ready'] || ! $autoAdvanceEnabled) {
                     return ['job' => $locked, 'moved' => false];
                 }
 
