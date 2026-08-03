@@ -213,7 +213,7 @@ Route::middleware(['auth', 'verified', 'flow.workspace'])
     });
 
 // FLOWTRACK_CSRF_REFRESH_ROUTE
-\Illuminate\Support\Facades\Route::get(
+\Illuminate\Support\Facades\Route::middleware('auth')->get(
     '/flowtrack/csrf-token',
     \App\Http\Controllers\FlowTrack\CsrfTokenController::class
 )->name('flowtrack.csrf-token');

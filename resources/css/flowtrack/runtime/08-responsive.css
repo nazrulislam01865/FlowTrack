@@ -179,7 +179,7 @@ html,body{max-width:100%;overflow-x:hidden}
 
             .jobs-v2-toolbar-main{grid-template-columns:1fr!important}
             .jobs-v2-toolbar-main>.flow-searchbar{grid-column:auto!important}
-            .jobs-v2-toolbar-main>.flow-searchable>.flow-searchable-panel{position:fixed!important;left:10px!important;right:10px!important;width:auto!important;max-width:none!important;max-height:60dvh!important}
+            .jobs-v2-toolbar-main>.flow-searchable>.flow-searchable-panel{position:fixed!important;left:10px!important;right:10px!important;width:auto!important;max-width:none!important;max-height:var(--flow-dropdown-panel-max-height,calc(100dvh - 20px))!important;bottom:10px!important;top:auto!important}
             .jobs-v2-table .jobs-v2-data-table{min-width:1120px!important}
             .jobs-v2-pagination{padding:10px!important}
             .jobs-v2-page-buttons{display:flex!important;gap:6px!important;flex-wrap:wrap!important}

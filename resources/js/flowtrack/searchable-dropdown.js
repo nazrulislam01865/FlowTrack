@@ -137,23 +137,79 @@
             this.trigger.title = text;
         }
 
+        viewportBounds() {
+            const viewport = window.visualViewport;
+            const viewportTop = viewport?.offsetTop ?? 0;
+            const viewportHeight = viewport?.height ?? window.innerHeight;
+            const viewportBottom = viewportTop + viewportHeight;
+            const boundary = this.wrapper.closest('.modal, .drawer, .standalone-record-shell')?.getBoundingClientRect();
+            const margin = 10;
+            return {
+                top: Math.max(viewportTop + margin, (boundary?.top ?? viewportTop) + margin),
+                bottom: Math.min(viewportBottom - margin, (boundary?.bottom ?? viewportBottom) - margin),
+                height: Math.max(120, viewportHeight - (margin * 2)),
+            };
+        }
+
+        estimatedPanelHeight() {
+            const optionCount = this.filtered().length;
+            // Search field + panel padding/borders + roughly one normal option row per item.
+            return 66 + (optionCount * 42);
+        }
+
+        updatePanelGeometry() {
+            if (!this.wrapper.classList.contains('open')) return;
+
+            const bounds = this.viewportBounds();
+            const rect = this.wrapper.getBoundingClientRect();
+            const roomBelow = Math.max(0, bounds.bottom - rect.bottom - 6);
+            const roomAbove = Math.max(0, rect.top - bounds.top - 6);
+            const requestedDirection = String(this.select.dataset.dropdownDirection || '').toLowerCase();
+            const compactSheet = window.matchMedia('(max-width: 620px)').matches;
+            const desiredHeight = Math.min(this.estimatedPanelHeight(), bounds.height);
+
+            let shouldDropUp = false;
+            if (!compactSheet) {
+                shouldDropUp = requestedDirection === 'up'
+                    || (requestedDirection !== 'down' && roomBelow < desiredHeight && roomAbove > roomBelow);
+            }
+
+            this.wrapper.classList.toggle('drop-up', shouldDropUp);
+
+            const availableHeight = compactSheet
+                ? bounds.height
+                : Math.max(120, shouldDropUp ? roomAbove : roomBelow);
+            const panelMaxHeight = Math.max(120, Math.min(availableHeight, bounds.height));
+
+            const panelStyle = getComputedStyle(this.panel);
+            const searchWrap = this.panel.querySelector('.flow-searchable-search-wrap');
+            const searchHeight = searchWrap?.getBoundingClientRect().height || 42;
+            const searchMargin = parseFloat(getComputedStyle(searchWrap || this.search).marginBottom || '0') || 0;
+            const verticalChrome = (parseFloat(panelStyle.paddingTop || '0') || 0)
+                + (parseFloat(panelStyle.paddingBottom || '0') || 0)
+                + (parseFloat(panelStyle.borderTopWidth || '0') || 0)
+                + (parseFloat(panelStyle.borderBottomWidth || '0') || 0)
+                + searchHeight
+                + searchMargin;
+            const optionsMaxHeight = Math.max(64, Math.floor(panelMaxHeight - verticalChrome));
+
+            this.panel.style.setProperty('--flow-dropdown-panel-max-height', `${Math.floor(panelMaxHeight)}px`);
+            this.optionsEl.style.setProperty('--flow-dropdown-options-max-height', `${optionsMaxHeight}px`);
+        }
+
         open() {
             if (this.trigger.disabled) return;
             if (opened && opened !== this) opened.close();
             opened = this;
-            const rect = this.wrapper.getBoundingClientRect();
-            const boundary = this.wrapper.closest('.modal, .drawer, .standalone-record-shell')?.getBoundingClientRect();
-            const roomBelow = (boundary?.bottom ?? window.innerHeight) - rect.bottom;
-            const roomAbove = rect.top - (boundary?.top ?? 0);
-            const requestedDirection = String(this.select.dataset.dropdownDirection || '').toLowerCase();
-            const shouldDropUp = requestedDirection === 'up'
-                || (requestedDirection !== 'down' && roomBelow < 290 && roomAbove > roomBelow);
-            this.wrapper.classList.toggle('drop-up', shouldDropUp);
             this.wrapper.classList.add('open');
             this.trigger.setAttribute('aria-expanded', 'true');
             this.search.value = '';
             this.render();
-            requestAnimationFrame(() => this.search.focus());
+            this.updatePanelGeometry();
+            requestAnimationFrame(() => {
+                this.updatePanelGeometry();
+                this.search.focus();
+            });
         }
 
         close() {
@@ -176,6 +232,9 @@
             this.optionsEl.innerHTML = options.length
                 ? options.map((item) => `<button type="button" class="flow-searchable-option${item.selected ? ' selected' : ''}" data-flow-option-index="${item.index}" role="option" aria-selected="${item.selected}" ${item.disabled ? 'disabled' : ''}><span>${escapeHtml(item.label)}</span>${item.selected ? '<span class="flow-searchable-check">✓</span>' : ''}</button>`).join('')
                 : '<div class="flow-searchable-empty">No matching result found</div>';
+            if (this.wrapper.classList.contains('open')) {
+                requestAnimationFrame(() => this.updatePanelGeometry());
+            }
         }
 
         choose(index) {
@@ -314,6 +373,10 @@
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && opened) opened.close();
     });
+    window.addEventListener('resize', () => opened?.updatePanelGeometry(), { passive: true });
+    window.addEventListener('scroll', () => opened?.updatePanelGeometry(), { passive: true, capture: true });
+    window.visualViewport?.addEventListener('resize', () => opened?.updatePanelGeometry(), { passive: true });
+    window.visualViewport?.addEventListener('scroll', () => opened?.updatePanelGeometry(), { passive: true });
 
     window.FlowtrackSearchableDropdown = {
         enhance,
