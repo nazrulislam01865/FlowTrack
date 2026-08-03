@@ -1,7 +1,14 @@
-/* FlowTrack generated lazy module: job-details. Source: resources/js/flowtrack/flowtrack-dynamic-source.js. Build: 6254af6ca40e4526. */
+/* FlowTrack runtime module: job-details. Build: f400609959067571. */
 function flowtrackJobV4Workflow(job) {
         return getWorkflow(job?.workflow || 'standard') || { phases: [], name: job?.workflowName || 'Workflow' };
     }
+    function flowtrackJobV4BulkIcon(kind) {
+        if (kind === 'collapse') {
+            return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 17 5-5 5 5"/><path d="m7 12 5-5 5 5"/></svg>';
+        }
+        return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 5 5 5-5"/><path d="m7 12 5 5 5-5"/></svg>';
+    }
+
 
     function flowtrackJobV4ConfiguredPhaseTasks(job, phase, actualTasks = null) {
         const actual = flowtrackTasksForPhase(job, phase.id, actualTasks || flowtrackJobAllTasks(job))
@@ -124,7 +131,7 @@ function flowtrackJobV4Workflow(job) {
             <td><button type="button" class="job-v4-task-title" data-job-v4-open-task ${task.planned ? 'disabled' : ''}>${html(task.title || task.id)}</button>${requirementNote}</td>
             <td><div class="job-v4-assignee-cell"><span class="job-v4-person" data-job-v4-assignee-label><span class="avatar">${userInitials(assigneeName)}</span><span>${html(assigneeName)}</span></span>${canAssign ? `<button type="button" class="job-v4-icon-btn" data-job-v4-edit-assignee title="Edit assignee" aria-label="Edit assignee">✎</button>` : ''}</div></td>
             <td><div class="job-v4-due-cell"><span data-job-v4-due-label>${due ? formatDate(due) : 'Not set'}</span>${canDue ? `<button type="button" class="job-v4-icon-btn" data-job-v4-edit-due title="Edit due date">✎</button><input type="date" class="job-v4-hidden-date" data-job-v4-due-input value="${html(due)}">` : ''}</div></td>
-            <td>${canUpdate ? `<select class="job-v4-task-inline-select job-v4-status-select" data-job-v4-task-status data-previous-value="${html(task.statusId || '')}">${flowtrackJobV4TaskStatusOptions(task)}</select>` : statusBadge(status)}</td>
+            <td>${canUpdate ? `<select class="job-v4-task-inline-select job-v4-status-select" data-job-v4-task-status data-native-select aria-label="Task status" data-previous-value="${html(task.statusId || '')}">${flowtrackJobV4TaskStatusOptions(task)}</select>` : statusBadge(status)}</td>
             <td class="job-v4-task-actions"><button type="button" class="job-v4-row-menu" data-job-v4-open-task ${task.planned ? 'disabled' : ''} aria-label="Open task">•••</button></td>
         </tr>`;
     }
@@ -137,8 +144,8 @@ function flowtrackJobV4Workflow(job) {
             const isCurrent = Number(phase.id) === Number(job.phaseId);
             const open = isCurrent;
             return `<section class="job-v4-phase" data-job-v4-phase data-phase-id="${html(phase.id)}">
-                <div class="job-v4-phase-head">
-                    <button type="button" class="job-v4-phase-toggle" data-job-v4-toggle-phase><span class="job-v4-caret">${open ? '⌄' : '›'}</span><span class="job-v4-phase-number ${isCurrent ? 'is-current' : completed === rows.length && rows.length ? 'is-done' : ''}">${completed === rows.length && rows.length ? '✓' : Number(phase.sequence || phaseIndex + 1)}</span><b>${html(phase.name)}</b></button>
+                <div class="job-v4-phase-head" data-job-v4-phase-head>
+                    <button type="button" class="job-v4-phase-toggle" data-job-v4-toggle-phase aria-expanded="${open ? 'true' : 'false'}"><span class="job-v4-caret">${open ? '⌄' : '›'}</span><span class="job-v4-phase-number ${isCurrent ? 'is-current' : completed === rows.length && rows.length ? 'is-done' : ''}">${completed === rows.length && rows.length ? '✓' : Number(phase.sequence || phaseIndex + 1)}</span><b>${html(phase.name)}</b></button>
                     <div class="job-v4-phase-summary"><span>${completed} of ${rows.length} complete</span><i><span style="width:${percent}%"></span></i>${canFlow('tasks', 'create') ? `<button type="button" class="job-v4-phase-add" data-job-v4-add-task="${html(phase.id)}" title="Add task to ${html(phase.name)}">＋</button>` : ''}</div>
                 </div>
                 <div class="job-v4-phase-body ${open ? '' : 'is-collapsed'}">
@@ -147,6 +154,56 @@ function flowtrackJobV4Workflow(job) {
             </section>`;
         }).join('')}</div>`;
     }
+
+    function flowtrackJobV4UpdateExpandedCount(scope) {
+        const content = scope?.closest?.('.job-detail-v4-content') || scope?.querySelector?.('.job-detail-v4-content') || scope;
+        if (!content?.querySelectorAll) return;
+        const count = [...content.querySelectorAll('.job-v4-phase-body')].filter((body) => !body.classList.contains('is-collapsed') && !body.closest('.job-v4-phase')?.classList.contains('is-filtered-out')).length;
+        const label = content.querySelector('[data-job-v4-expanded-count]');
+        if (label) label.textContent = `${count} phase${count === 1 ? '' : 's'} expanded`;
+    }
+
+    function flowtrackJobV4SetPhaseExpanded(phase, expanded) {
+        if (!phase) return;
+        const body = phase.querySelector('.job-v4-phase-body');
+        if (!body) return;
+        body.classList.toggle('is-collapsed', !expanded);
+        const toggle = phase.querySelector('[data-job-v4-toggle-phase]');
+        toggle?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        const caret = phase.querySelector('.job-v4-caret');
+        if (caret) caret.textContent = expanded ? '⌄' : '›';
+    }
+
+    function flowtrackInstallJobV4PhaseAccordionInteraction() {
+        if (window.__flowtrackJobV4PhaseAccordionInstalled) return;
+        window.__flowtrackJobV4PhaseAccordionInstalled = true;
+        document.addEventListener('click', (event) => {
+            const target = event.target instanceof Element ? event.target : null;
+            if (!target) return;
+
+            const expandAll = target.closest('[data-job-v4-expand-all]');
+            const collapseAll = target.closest('[data-job-v4-collapse-all]');
+            if (expandAll || collapseAll) {
+                const content = target.closest('.job-detail-v4-content');
+                if (!content) return;
+                const expand = Boolean(expandAll);
+                content.querySelectorAll('[data-job-v4-phase]').forEach((phase) => flowtrackJobV4SetPhaseExpanded(phase, expand));
+                flowtrackJobV4UpdateExpandedCount(content);
+                return;
+            }
+
+            const phaseHead = target.closest('[data-job-v4-phase-head]');
+            if (!phaseHead) return;
+            if (target.closest('[data-job-v4-add-task],a,input,select,textarea')) return;
+            const phase = phaseHead.closest('[data-job-v4-phase]');
+            const body = phase?.querySelector('.job-v4-phase-body');
+            if (!phase || !body) return;
+            flowtrackJobV4SetPhaseExpanded(phase, body.classList.contains('is-collapsed'));
+            flowtrackJobV4UpdateExpandedCount(phaseHead);
+        });
+    }
+
+    flowtrackInstallJobV4PhaseAccordionInteraction();
 
     function flowtrackJobV4ProductTable(job) {
         const products = flowtrackToArray(job.products);
@@ -210,11 +267,12 @@ function flowtrackJobV4Workflow(job) {
                     <div class="job-v4-plan-row"><span>Coordinator</span><b><span class="avatar">${userInitials(job.coordinator || 'U')}</span>${html(job.coordinator || 'Unassigned')}</b>${canEditJobRecord() ? '<button type="button" class="job-v4-icon-btn" data-job-v4-edit-field="coordinator">✎</button>' : ''}</div>
                     <div class="job-v4-plan-row"><span>Workflow</span><b>▣ ${html(job.workflowName || wf.name || 'Workflow')}</b><span></span></div>
                     <div class="job-v4-plan-row"><span>Created</span><b>${job.createdAt ? flowtrackFormatDateTime(job.createdAt) : 'Not recorded'}</b><span></span></div>
+                    ${jobIsCompleted(job) ? `<div class="job-v4-plan-row job-v4-completed-row"><span>Completed</span><b>${html(boardCompletedDateTime(job) || 'Not recorded')}</b><span></span></div>` : ''}
                 </section>
             </div>
             ${flowtrackMiniTimeline(job, activePhases, currentPhase)}
             <section class="job-v4-card job-v4-all-tasks">
-                <div class="job-v4-tasks-toolbar"><div><h3>All phase tasks</h3><p>${configuredTasks.length} tasks across ${activePhases.length} phases</p></div><div class="job-v4-task-actions-bar"><label class="job-v4-search"><span>⌕</span><input type="search" placeholder="Search tasks" data-job-v4-task-search></label><div class="job-v4-filter-wrap"><button type="button" class="ghost" data-job-v4-filter-toggle>☰ Filter</button><div class="job-v4-filter-popover is-hidden" data-job-v4-filter-popover><label>Status<select data-job-v4-status-filter><option value="">All statuses</option>${(masterData.taskStatuses || []).filter((item) => String(item.status || 'Active').toLowerCase() === 'active').map((item) => `<option value="${html(normalizedStatusValue(item.name))}">${html(item.name)}</option>`).join('')}</select></label><label>Assignee<select data-job-v4-assignee-filter><option value="">All assignees</option>${(typeof flowtrackWorkspaceMembers === 'function' ? flowtrackWorkspaceMembers() : users).map((member) => `<option value="${html(normalizedStatusValue(member.name))}">${html(member.name)}</option>`).join('')}</select></label><button type="button" class="job-v4-link" data-job-v4-clear-filters>Clear filters</button></div></div><button type="button" class="ghost" data-job-v4-collapse-all>⌃ Collapse all</button><button type="button" class="primary" data-job-v4-expand-all>↗ Expand all</button></div></div>
+                <div class="job-v4-tasks-toolbar"><div><h3>All phase tasks</h3><p>${configuredTasks.length} tasks across ${activePhases.length} phases</p></div><div class="job-v4-task-actions-bar"><label class="job-v4-search"><span>⌕</span><input type="search" placeholder="Search tasks" data-job-v4-task-search></label><div class="job-v4-filter-wrap"><button type="button" class="ghost" data-job-v4-filter-toggle>☰ Filter</button><div class="job-v4-filter-popover is-hidden" data-job-v4-filter-popover><label>Status<select data-job-v4-status-filter><option value="">All statuses</option>${(masterData.taskStatuses || []).filter((item) => String(item.status || 'Active').toLowerCase() === 'active').map((item) => `<option value="${html(normalizedStatusValue(item.name))}">${html(item.name)}</option>`).join('')}</select></label><label>Assignee<select data-job-v4-assignee-filter><option value="">All assignees</option>${(typeof flowtrackWorkspaceMembers === 'function' ? flowtrackWorkspaceMembers() : users).map((member) => `<option value="${html(normalizedStatusValue(member.name))}">${html(member.name)}</option>`).join('')}</select></label><button type="button" class="job-v4-link" data-job-v4-clear-filters>Clear filters</button></div></div><button type="button" class="ghost flow-bulk-icon-btn job-v4-bulk-icon-btn" data-job-v4-collapse-all title="Collapse all phases" aria-label="Collapse all phases">${flowtrackJobV4BulkIcon('collapse')}</button><button type="button" class="primary flow-bulk-icon-btn job-v4-bulk-icon-btn" data-job-v4-expand-all title="Expand all phases" aria-label="Expand all phases">${flowtrackJobV4BulkIcon('expand')}</button></div></div>
                 <div class="job-v4-task-meta"><span>ⓘ All ${configuredTasks.length} tasks are loaded</span><span data-job-v4-expanded-count>1 phase expanded</span><span>Changes save automatically</span></div>
                 ${flowtrackJobV4PhaseAccordion(job, actualTasks, activePhases, currentPhase)}
             </section>
@@ -669,28 +727,9 @@ function flowtrackJobV4Workflow(job) {
 
         flowtrackJobV5BindWorkflow(content, job);
 
-        const updateExpandedCount = () => {
-            const count = [...content.querySelectorAll('.job-v4-phase-body')].filter((body) => !body.classList.contains('is-collapsed') && !body.closest('.job-v4-phase')?.classList.contains('is-filtered-out')).length;
-            const label = content.querySelector('[data-job-v4-expanded-count]');
-            if (label) label.textContent = `${count} phase${count === 1 ? '' : 's'} expanded`;
-        };
-        content.querySelectorAll('[data-job-v4-toggle-phase]').forEach((button) => button.addEventListener('click', () => {
-            const body = button.closest('.job-v4-phase')?.querySelector('.job-v4-phase-body');
-            body?.classList.toggle('is-collapsed');
-            const caret = button.querySelector('.job-v4-caret');
-            if (caret) caret.textContent = body?.classList.contains('is-collapsed') ? '›' : '⌄';
-            updateExpandedCount();
-        }));
-        content.querySelector('[data-job-v4-expand-all]')?.addEventListener('click', () => {
-            content.querySelectorAll('.job-v4-phase-body').forEach((body) => body.classList.remove('is-collapsed'));
-            content.querySelectorAll('.job-v4-caret').forEach((caret) => { caret.textContent = '⌄'; });
-            updateExpandedCount();
-        });
-        content.querySelector('[data-job-v4-collapse-all]')?.addEventListener('click', () => {
-            content.querySelectorAll('.job-v4-phase-body').forEach((body) => body.classList.add('is-collapsed'));
-            content.querySelectorAll('.job-v4-caret').forEach((caret) => { caret.textContent = '›'; });
-            updateExpandedCount();
-        });
+        // Phase accordion interaction is delegated at document level so it keeps
+        // working after task/status updates re-render the Job Details panels.
+        flowtrackJobV4UpdateExpandedCount(content);
         content.querySelectorAll('[data-job-v4-add-task]').forEach((button) => button.addEventListener('click', () => openJobTaskModal(job.id, Number(button.dataset.jobV4AddTask))));
 
         const applyTaskFilters = () => {
@@ -706,7 +745,7 @@ function flowtrackJobV4Workflow(job) {
                 });
                 phase.classList.toggle('is-filtered-out', visible === 0);
             });
-            updateExpandedCount();
+            flowtrackJobV4UpdateExpandedCount(content);
         };
         content.querySelector('[data-job-v4-task-search]')?.addEventListener('input', applyTaskFilters);
         content.querySelector('[data-job-v4-status-filter]')?.addEventListener('change', applyTaskFilters);
@@ -862,7 +901,7 @@ function flowtrackJobV4Workflow(job) {
         bindJobDocumentUploadButtons(content, job, 8);
         flowtrackBindJobDocumentTemplate(content, job);
         applyActionPermissions();
-        updateExpandedCount();
+        flowtrackJobV4UpdateExpandedCount(content);
     }
 
     jobPanels = function (job) { return flowtrackJobV4Panels(job); };

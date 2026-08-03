@@ -1,0 +1,6 @@
+/* Shared interaction feedback. Visible only while a button action is running. */
+button.ft-button-loading{position:relative!important;cursor:progress!important;pointer-events:none!important;color:transparent!important;text-shadow:none!important}
+button.ft-button-loading>*:not(.ft-button-spinner){opacity:0!important}
+.ft-button-spinner{position:absolute;z-index:2;left:50%;top:50%;display:block;width:14px;height:14px;margin:0;border:2px solid var(--ft-button-spinner-color,#2563eb);border-right-color:transparent;border-radius:999px;pointer-events:none;animation:ftButtonSpin .68s linear infinite}
+@keyframes ftButtonSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.ft-button-spinner{animation-duration:1.25s}}

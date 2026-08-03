@@ -14,7 +14,7 @@ trap bring_site_up EXIT
 
 cd "$APP_DIR"
 
-for required in artisan composer.json package.json resources/views/flowtrack-template.blade.php public/flowtrack-dynamic.js; do
+for required in artisan composer.json package.json resources/views/flowtrack-template.blade.php resources/js/flowtrack/loader.js scripts/build-flowtrack-runtime.mjs; do
   [[ -e "$required" ]] || { echo "Missing required FlowTrack file: $required" >&2; exit 1; }
 done
 
@@ -28,7 +28,7 @@ COMPOSER_ALLOW_SUPERUSER=1 composer install \
   --optimize-autoloader \
   --no-interaction
 
-npm run build || true
+npm run build
 
 if php -r 'exit(((int) ini_get("upload_max_filesize") >= 25 && (int) ini_get("post_max_size") >= 30) ? 0 : 1);'; then
   echo "PHP upload limits are ready for FlowTrack documents."

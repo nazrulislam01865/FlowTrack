@@ -1,4 +1,4 @@
-/* FlowTrack generated lazy module: operations. Source: resources/js/flowtrack/flowtrack-dynamic-source.js. Build: 6254af6ca40e4526. */
+/* FlowTrack runtime module: operations. Build: f400609959067571. */
 function normalizedStatusValue(value) {
         return String(value ?? '').trim().toUpperCase();
     }
@@ -245,7 +245,7 @@ function normalizedStatusValue(value) {
             ${(entry.changes || []).length ? `<ul class="task-change-list">${entry.changes.map((change) => `<li><b>${html(change.field)}:</b> ${html(change.from)} → ${html(change.to)}</li>`).join('')}</ul>` : ''}
         </div>`).join('');
 
-        $('#detailDrawer').innerHTML = `<div class="drawer-head"><div><div class="small muted">${html(task.id)} · <button type="button" class="task-job-link" data-task-job-link>${html(task.job)}</button></div><h2>${html(task.title)}</h2><div>${statusBadge(task.status)} <span class="badge ${task.priority === 'Critical' ? 'b-red' : task.priority === 'High' ? 'b-amber' : 'b-gray'}">${html(task.priority)}</span></div></div><div class="task-head-actions">${canDeleteTask ? `<div class="task-menu-wrap"><button class="task-menu-button" type="button" id="taskActionMenuButton" aria-label="Task actions" aria-expanded="false">•••</button><div class="task-action-menu hidden" id="taskActionMenu"><button type="button" class="danger-option" data-delete-task="${task.dbId}">Delete Task</button></div></div>` : ''}<button class="close-btn" data-close>×</button></div></div>
+        $('#detailDrawer').innerHTML = `<div class="drawer-head"><div><div class="small muted"><span class="flow-id-link-row">${flowtrackCopyIdentifierButton(task.id, 'Task ID', 'flow-id-copy-inline')}</span> · <span class="flow-id-link-row"><button type="button" class="task-job-link" data-task-job-link>${html(task.job)}</button>${flowtrackCopyIdentifierButton(task.job, 'Job ID', 'flow-id-copy-icon-only')}</span></div><h2>${html(task.title)}</h2><div>${statusBadge(task.status)} <span class="badge ${task.priority === 'Critical' ? 'b-red' : task.priority === 'High' ? 'b-amber' : 'b-gray'}">${html(task.priority)}</span></div></div><div class="task-head-actions">${canDeleteTask ? `<div class="task-menu-wrap"><button class="task-menu-button" type="button" id="taskActionMenuButton" aria-label="Task actions" aria-expanded="false">•••</button><div class="task-action-menu hidden" id="taskActionMenu"><button type="button" class="danger-option" data-delete-task="${task.dbId}">Delete Task</button></div></div>` : ''}<button class="close-btn" data-close>×</button></div></div>
         <div class="drawer-body"><div class="summary-grid"><div class="summary-box"><span>Job</span><button type="button" class="task-job-link" data-task-job-link>${html(job?.title || task.jobTitle || task.job)}</button></div><div class="summary-box"><span>Assignee</span><b>${html(taskAssigneeName)}</b></div><div class="summary-box"><span>Due Date</span><b class="${dueClass(task.due)}">${formatDate(task.due)}</b></div></div>${completedTaskLocked ? '<div class="source-note" style="margin-top:14px"><b>Completed task locked</b><div class="small muted" style="margin-top:4px">Only Admin or Super Admin can edit/update a completed Task. You can still view documents, comments and history.</div></div>' : ''}
         <div class="form-grid" style="margin-top:18px"><div class="field full"><label>Task title</label><input id="taskUpdateTitle" value="${html(task.title || '')}" maxlength="255" ${canEdit ? '' : 'disabled'}></div>
         <div class="field full"><label>Description</label><textarea id="taskUpdateDescription" rows="3" maxlength="5000" placeholder="Add clear sub task details, expected output or instructions…" ${canEdit ? '' : 'disabled'}>${html(task.description || '')}</textarea><div class="inline-help">Admins can update completed tasks. Before completion, authorised task owners can update their assigned work without changing the workflow template.</div></div>
@@ -1131,11 +1131,39 @@ function normalizedStatusValue(value) {
         return ids.every((id) => expandedBoardJobCards.has(id));
     }
 
+    function boardClientFilterRecords() {
+        const records = [];
+        const seen = new Set();
+        flowtrackToArray(clients).concat(flowtrackToArray(clientLabels)).forEach((client) => {
+            const id = String(client?.id || '').trim();
+            if (!id || seen.has(id)) return;
+            seen.add(id);
+            records.push(client);
+        });
+        return records;
+    }
+
+    function boardBulkToggleButton(id, extraClass = '') {
+        const expanded = boardAllVisibleJobsExpanded();
+        const label = expanded ? 'Collapse all jobs' : 'Expand all jobs';
+        const icon = expanded
+            ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 17 5-5 5 5"/><path d="m7 12 5-5 5 5"/></svg>'
+            : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 5 5 5-5"/><path d="m7 12 5 5 5-5"/></svg>';
+        return `<button type="button" class="ops-clear ops-expand-toggle flow-bulk-icon-btn ${extraClass}" id="${id}" title="${label}" aria-label="${label}">${icon}</button>`;
+    }
+
     function operationsBoardToolbar(filteredCount, filteredJobCount) {
         const activeJobs = boardActiveJobs();
         const activeTasks = flowtrackVisibleTaskRows(tasks).filter((task) => boardActiveJobs().some((job) => String(job.id) === String(task.job)));
         const jobOptions = boardSelectOptions(activeJobs, (job) => job.id, (job) => `${job.id} · ${clientName(job.client)}`, boardFilters.job, 'Job');
-        const clientOptions = boardSelectOptions(clients, (client) => client.id, (client) => client.name, boardFilters.client, 'Client');
+        const activeClientIds = new Set(activeJobs.map((job) => String(job?.client || '')).filter(Boolean));
+        const clientOptions = boardSelectOptions(
+            boardClientFilterRecords().filter((client) => activeClientIds.has(String(client?.id || ''))),
+            (client) => client.id,
+            (client) => client.name,
+            boardFilters.client,
+            'Client',
+        );
         const userOptions = boardSelectOptions(boardAssigneeFilterUsers(), (user) => user.id || user.name, (user) => user.name, boardFilters.assignee, 'Assignee');
         const quickMineLabel = boardMode === 'tasks' ? 'My task' : 'My job';
         const quickCounts = {
@@ -1149,7 +1177,6 @@ function normalizedStatusValue(value) {
             unassigned: activeTasks.filter((task) => !task.assigneeId && (!task.assignee || String(task.assignee).toLowerCase() === 'unassigned')).length,
         };
         return `<div class="ops-toolbar">
-            <button type="button" class="ops-view-box" data-board-view-menu><span class="ops-view-icon-box">▣</span><span><div class="ops-view-title">All active jobs</div><div class="ops-view-sub">${activeJobs.length} jobs · ${activeTasks.length} tasks</div></span><span style="margin-left:auto">⌄</span></button>
             <label class="ops-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg><input id="opsBoardSearch" value="${html(boardSearchValue)}" placeholder="Search job ID, task or client"></label>
             <select class="ops-filter" data-board-filter="job">${jobOptions}</select>
             <select class="ops-filter" data-board-filter="client">${clientOptions}</select>
@@ -1165,7 +1192,7 @@ function normalizedStatusValue(value) {
             ['blocked', 'Blocked', quickCounts.blocked, 'danger'],
             ['waiting', 'Waiting external', quickCounts.waiting, ''],
             ['unassigned', 'Unassigned', quickCounts.unassigned, 'warn'],
-        ].map(([key, label, count, tone]) => `<button type="button" class="ops-chip ${tone} ${boardQuickFilter === key ? 'active' : ''}" data-board-quick="${key}">${label} <span class="ops-count">${count}</span></button>`).join('')}</div><div class="ops-quick-right"><button type="button" class="ops-clear ops-expand-toggle" id="opsBoardExpandAll">${boardAllVisibleJobsExpanded() ? 'Minimize all jobs' : 'Expand all jobs'}</button></div></div>
+        ].map(([key, label, count, tone]) => `<button type="button" class="ops-chip ${tone} ${boardQuickFilter === key ? 'active' : ''}" data-board-quick="${key}">${label} <span class="ops-count">${count}</span></button>`).join('')}</div><div class="ops-quick-right">${boardBulkToggleButton('opsBoardExpandAll')}</div></div>
         <div class="ops-status-summary"><span>Showing <b>${filteredCount}</b> ${boardMode === 'tasks' ? 'of ' + flowtrackVisibleTaskRows(tasks).length + ' tasks' : 'Jobs'} across <b>${filteredJobCount}</b> ${filteredJobCount === 1 ? 'job' : 'jobs'}</span></div>`;
     }
 
@@ -1211,10 +1238,11 @@ function normalizedStatusValue(value) {
         return `<article class="ops-task-card" draggable="${canDrag ? 'true' : 'false'}" data-task="${html(task.id)}" data-task-updatable="${canDrag ? '1' : '0'}">
             <div class="ops-task-card-top"><span class="ops-priority ${boardPriorityClass(task.priority)}">${html(task.priority || 'Medium')}</span><span class="ops-task-alerts">${overdueDays ? `<span class="ops-overdue">Overdue · ${overdueDays}d</span>` : ''}<span class="ops-board-card-menu-wrap"><button type="button" class="ops-task-menu" data-board-card-menu="${html(task.id)}" aria-label="Task actions" aria-expanded="false">⋮</button><span class="ops-board-card-action-menu hidden">${task.canDelete || isFlowAdmin || isFlowSuperAdmin ? `<button type="button" data-board-delete-task="${html(task.dbId)}" data-board-delete-task-code="${html(task.id)}">Delete Task</button>` : '<span class="ops-menu-disabled">No available actions</span>'}</span></span></span></div>
             <h4 class="ops-card-title">${html(task.title)}</h4>
-            <div class="ops-card-meta"><button type="button" class="job-link" data-board-job-link="${html(task.job)}">${html(task.job)}</button> <span>· ${html(clientName(job?.client))}</span>${boardTaskPhaseHtml(task, job)}</div>
+            <div class="ops-card-meta"><span class="flow-id-link-row"><button type="button" class="job-link" data-board-job-link="${html(task.job)}">${html(task.job)}</button>${flowtrackCopyIdentifierButton(task.job, 'Job ID', 'flow-id-copy-icon-only')}</span> <span>· ${html(clientName(job?.client))}</span>${boardTaskPhaseHtml(task, job)}</div>
             ${waiting ? `<div class="ops-waiting-box"><span class="ops-wait-icon">🔗</span><span><div class="ops-wait-title">Waiting on: ${html(boardWaitingLabel(task))}</div><div class="ops-wait-date">Since ${boardShortDate(task.updatedAt || task.createdAt || task.due)}</div></span></div>` : ''}
             <div class="ops-card-sep"></div>
             <div class="ops-assignee-row"><div class="ops-assignee"><span class="avatar">${userInitials(task.assignee || 'Unassigned')}</span><span class="truncate">${html(task.assignee || 'Unassigned')}</span></div>${boardTaskDueHtml(task, overdueDays)}</div>
+            ${taskIsCompleted(task) ? boardCompletedMetaHtml(task, 'Completed') : ''}
             <div class="ops-card-sep"></div>
             <div class="ops-card-footer"><div class="ops-card-stats"><span class="ops-stat">☑ ${html(boardChecklistCount(task))}</span><span class="ops-stat">📎 ${attachments}</span><span class="ops-stat">◯ ${comments}</span></div><span class="ops-updated">${html(boardTaskUpdatedText(task))}</span></div>
         </article>`;
@@ -1248,7 +1276,7 @@ function normalizedStatusValue(value) {
             const completedCount = jobTasks.filter((task) => boardTaskStatusBucket(task) === 'done').length;
             const totalCount = flowtrackVisibleTaskRows(tasks).filter((task) => String(task.job) === String(job.id) || Number(task.jobDbId) === Number(job.dbId)).length || jobTasks.length;
             const collapsed = collapsedBoardJobs.has(String(job.id));
-            return `<section class="ops-job-group" data-board-job-group="${html(job.id)}"><div class="ops-job-row-head"><div class="ops-job-left"><button type="button" class="ops-collapse" data-board-collapse="${html(job.id)}">${collapsed ? '›' : '⌄'}</button><span class="ops-job-title"><button type="button" data-board-job-link="${html(job.id)}">${html(job.id)}</button> · ${html(clientName(job.client))}</span><span class="ops-client-pill">${html(clientName(job.client))}</span></div><div class="ops-job-right"><span>${completedCount} of ${totalCount} tasks</span><span>▣ ${boardShortDate(job.delivery)}</span><button type="button" class="ops-job-kebab" data-board-row-menu>⋮</button></div></div>${collapsed ? '' : `<div class="ops-task-row">${columns.map((column) => {
+            return `<section class="ops-job-group" data-board-job-group="${html(job.id)}"><div class="ops-job-row-head"><div class="ops-job-left"><button type="button" class="ops-collapse" data-board-collapse="${html(job.id)}">${collapsed ? '›' : '⌄'}</button><span class="ops-job-title"><span class="flow-id-link-row"><button type="button" data-board-job-link="${html(job.id)}">${html(job.id)}</button>${flowtrackCopyIdentifierButton(job.id, 'Job ID', 'flow-id-copy-icon-only')}</span> · ${html(clientName(job.client))}</span><span class="ops-client-pill">${html(clientName(job.client))}</span></div><div class="ops-job-right"><span>${completedCount} of ${totalCount} tasks</span><span>▣ ${boardShortDate(job.delivery)}</span><button type="button" class="ops-job-kebab" data-board-row-menu>⋮</button></div></div>${collapsed ? '' : `<div class="ops-task-row">${columns.map((column) => {
                 const columnTasks = jobTasks.filter((task) => boardTaskColumnKey(task) === column.key);
                 return `<div class="ops-task-cell kanban-list ${columnTasks.length ? '' : 'is-empty'}" data-drop-column="${column.key}" data-column-label="${html(column.label)}"><div class="ops-mobile-column-head"><span>${html(column.label)}</span><span class="count">${columnTasks.length}</span></div>${columnTasks.map(boardTaskCardHtml).join('') || '<div class="ops-job-empty">No tasks</div>'}</div>`;
             }).join('')}</div>`}</section>`;
@@ -1291,6 +1319,18 @@ function normalizedStatusValue(value) {
         if (!key) return '—';
         const days = Math.max(0, Math.round((new Date(`${today}T00:00:00`) - new Date(`${key}T00:00:00`)) / 86400000));
         return `${days || 1}d in phase`;
+    }
+
+    function boardCompletedDateTime(record) {
+        const value = record?.completedAt || record?.completed_at || null;
+        if (!value) return '';
+        return flowtrackFormatDateTime(value);
+    }
+
+    function boardCompletedMetaHtml(record, label = 'Completed') {
+        const completed = boardCompletedDateTime(record);
+        if (!completed) return '';
+        return `<div class="ops-completed-meta"><span>✓</span><span><b>${html(label)}</b> ${html(completed)}</span></div>`;
     }
 
     function boardJobUpdatedText(job) {
@@ -1361,13 +1401,14 @@ function normalizedStatusValue(value) {
         return `<article class="ops-phase-card ops-job-card health-${tone}" draggable="true" data-job="${html(job.id)}">
             <div class="ops-job-card-top"><span class="ops-health-pill ${tone}">${html(job.health || 'On Track')}</span><span class="ops-phase-age">◷ ${html(boardJobDaysInPhase(job))}</span><button type="button" class="ops-job-card-toggle" data-board-job-card-toggle="${html(job.id)}" aria-label="${expanded ? 'Show next action' : 'Show phase tasks'}">•••</button></div>
             <h4>${html(job.title)}</h4>
-            <div class="ops-phase-meta"><button type="button" class="kanban-job-link" data-board-job-link="${html(job.id)}">${html(job.id)}</button> <span>· ${html(clientName(job.client))}</span></div>
+            <div class="ops-phase-meta"><span class="flow-id-link-row"><button type="button" class="kanban-job-link" data-board-job-link="${html(job.id)}">${html(job.id)}</button>${flowtrackCopyIdentifierButton(job.id, 'Job ID', 'flow-id-copy-icon-only')}</span> <span>· ${html(clientName(job.client))}</span></div>
             <div class="ops-product-row"><span class="cube">▧</span><span>${productCount || 1} product${(productCount || 1) === 1 ? '' : 's'} · ${unitCount.toLocaleString()} units</span></div>
             <div class="ops-job-progress-head"><span>Overall progress</span><b>${progress}%</b></div><div class="ops-progress"><span class="${progress >= 100 ? 'complete' : ''}" style="width:${progress}%"></span></div>
             <div class="ops-job-metrics"><div class="ops-job-metric">☷ ${openPhaseTasks.length} open</div><div class="ops-job-metric warn">◷ ${dueSoon} due soon</div><div class="ops-job-metric ok">✓ ${blockedCount} blocked</div></div>
             ${expanded ? phaseTasksHtml : nextHtml}
             <div class="ops-team-row"><span>Team</span><span class="ops-team-avatars">${team.slice(0, 3).map((name) => `<span class="avatar">${userInitials(name)}</span>`).join('')}${team.length > 3 ? `<span class="ops-team-more">+${team.length - 3}</span>` : ''}</span><span class="ops-lead">Lead: ${html(lead)}</span></div>
             <div class="ops-job-bottom"><div class="ops-bottom-item"><span class="ops-bottom-icon">▣</span><span><div class="ops-bottom-label">Delivery</div><div class="ops-bottom-value ${overdueJob ? 'due overdue' : ''}">${boardShortDate(job.delivery)}</div></span></div><div class="ops-bottom-item"><span class="ops-bottom-icon">▤</span><span><div class="ops-bottom-label">Commercial</div><div class="ops-bottom-value">${html(boardJobCommercialLabel(job))}</div></span></div></div>
+            ${jobIsCompleted(job) ? boardCompletedMetaHtml(job, 'Job completed') : ''}
             <div class="ops-job-card-updated">${boardJobUpdatedText(job)}</div>
         </article>`;
     }
@@ -1507,17 +1548,6 @@ function normalizedStatusValue(value) {
         }).join('');
     }
 
-    function flowtrackClientOptionRows() {
-        const rows = new Map();
-        flowtrackToArray(clientLabels).forEach((client) => {
-            if (client?.id != null) rows.set(String(client.id), client);
-        });
-        flowtrackToArray(clients).forEach((client) => {
-            if (client?.id != null) rows.set(String(client.id), client);
-        });
-        return Array.from(rows.values()).sort((left, right) => String(left?.name || '').localeCompare(String(right?.name || '')));
-    }
-
     function jobListOwnerOptions() {
         return users.map((user) => `<option value="${html(user.id || user.name)}" ${String(jobListFilters.owner) === String(user.id || user.name) ? 'selected' : ''}>${html(user.name)}</option>`).join('');
     }
@@ -1544,13 +1574,7 @@ function normalizedStatusValue(value) {
     function jobListPaginationHtml(pagination) {
         const showingStart = pagination.total ? pagination.start + 1 : 0;
         const showingEnd = pagination.end;
-        const hasServerMore = Boolean(segmentPagination.jobs?.nextPageUrl);
-        const totalLabel = hasServerMore ? `${pagination.total}+` : String(pagination.total);
-        const pageLabel = hasServerMore && pagination.page >= pagination.pageCount
-            ? `Page ${pagination.page}`
-            : `Page ${pagination.page} of ${pagination.pageCount}`;
-        const nextDisabled = pagination.page >= pagination.pageCount && !hasServerMore;
-        return `<div class="jobs-v2-pagination"><div class="jobs-v2-page-count">Showing <b>${showingStart}</b>–<b>${showingEnd}</b> of <b>${totalLabel}</b> Jobs</div><label class="jobs-v2-page-size">Show <select id="jobPageSize">${jobListPageSizeOptions()}</select> per page</label><div class="jobs-v2-page-buttons"><button type="button" id="jobPrevPage" ${pagination.page <= 1 ? 'disabled' : ''}>Previous</button><span>${pageLabel}</span><button type="button" id="jobNextPage" ${nextDisabled ? 'disabled' : ''}>Next</button></div></div>`;
+        return `<div class="jobs-v2-pagination"><div class="jobs-v2-page-count">Showing <b>${showingStart}</b>–<b>${showingEnd}</b> of <b>${pagination.total}</b> Jobs</div><label class="jobs-v2-page-size">Show <select id="jobPageSize">${jobListPageSizeOptions()}</select> per page</label><div class="jobs-v2-page-buttons"><button type="button" id="jobPrevPage" ${pagination.page <= 1 ? 'disabled' : ''}>Previous</button><span>Page ${pagination.page} of ${pagination.pageCount}</span><button type="button" id="jobNextPage" ${pagination.page >= pagination.pageCount ? 'disabled' : ''}>Next</button></div></div>`;
     }
 
     function jobListTableColumnsHtml() {
@@ -1703,14 +1727,14 @@ function normalizedStatusValue(value) {
         const checked = selectedBulkJobIds.has(Number(job.dbId)) ? 'checked' : '';
         return `<tr class="${checked ? 'jobs-v2-row-selected' : ''}">
             <td class="jobs-v2-cell-select"><input type="checkbox" data-job-bulk-checkbox="${html(job.dbId)}" aria-label="Select ${html(job.id)}" ${checked}></td>
-            <td class="jobs-v2-cell-code"><button type="button" class="jobs-v2-job-code" data-board-job-link="${html(job.id)}">${html(job.id)}</button><div class="jobs-v2-order">${html(job.order || 'RFQ-' + String(job.id || '').slice(-5))}</div></td>
+            <td class="jobs-v2-cell-code"><div class="flow-id-link-row"><button type="button" class="jobs-v2-job-code" data-board-job-link="${html(job.id)}">${html(job.id)}</button>${flowtrackCopyIdentifierButton(job.id, 'Job ID', 'flow-id-copy-icon-only')}</div><div class="jobs-v2-order">${html(job.order || 'RFQ-' + String(job.id || '').slice(-5))}</div></td>
             <td class="jobs-v2-cell-client"><div class="jobs-v2-client">${html(clientName(job.client))}</div><div class="jobs-v2-brief truncate">${html(job.title || '')}</div></td>
             <td class="jobs-v2-cell-product"><div class="jobs-v2-product">${html(job.product || 'Unspecified product')}</div><div class="muted small">${productCount || 1} product${(productCount || 1) === 1 ? '' : 's'} · ${unitCount.toLocaleString()} units</div></td>
             <td class="jobs-v2-cell-phase"><span class="jobs-v2-phase">${html(phaseShortFor(job))}</span><div class="muted small" style="margin-top:4px">${phaseNumber} of ${totalPhases}</div></td>
             <td class="jobs-v2-cell-next"><div class="jobs-v2-next">${html(nextTask?.title || job.next || 'Review current phase')}</div><div class="jobs-v2-due-note">${boardDaysOverdue(nextTask?.due || job.delivery) ? 'Overdue' : 'Due'} ${boardShortDate(nextTask?.due || job.delivery)}</div></td>
             <td class="jobs-v2-cell-health">${healthBadge(job.health, job.healthReason)}</td>
             <td class="jobs-v2-cell-owner">${jobListOwnerCell(job)}</td>
-            <td class="jobs-v2-cell-delivery">${jobListDeliveryCell(job, overdue)}</td>
+            <td class="jobs-v2-cell-delivery">${jobListDeliveryCell(job, overdue)}${jobIsCompleted(job) ? `<div class="jobs-v2-completed-at"><b>Completed</b><span>${html(boardCompletedDateTime(job) || '—')}</span></div>` : ''}</td>
             <td><div class="jobs-v2-progress"><div class="progress"><span class="${progress >= 100 ? 'complete' : ''}" style="width:${progress}%"></span></div><span>${progress}%</span></div></td>
             <td><span class="jobs-v2-invoice ${invoice.tone}">${html(invoice.label)}</span></td>
             <td><button type="button" class="jobs-v2-menu" data-job-list-menu="${html(job.id)}" aria-label="Job actions">•••</button></td>
@@ -1800,10 +1824,10 @@ function normalizedStatusValue(value) {
         <div class="jobs-v2-saved">${[
             ['all', 'All active', stats.active, ''], ['attention', 'Needs attention', stats.attention, 'danger'], ['week', 'Due this week', stats.week, ''], ['waiting', 'Waiting for client', stats.waiting, ''], ['unpaid', 'Unpaid invoices', stats.unpaid, 'warn'], ['completed', 'Completed', stats.completed, '']
         ].map(([key, label, count, tone]) => `<button type="button" class="jobs-v2-chip ${tone} ${jobListFilters.saved === key ? 'active' : ''}" data-job-saved="${key}">${label} <span class="ops-count">${count}</span></button>`).join('')}</div>
-        <div class="card jobs-v2-toolbar"><div class="jobs-v2-toolbar-main"><input id="jobSearch" class="jobs-v2-search" placeholder="Search Job ID, order, client or product" value="${html(jobFilter.search || '')}"><select id="jobPhase"><option value="">Phase</option>${jobListPhaseOptions()}</select><select id="jobHealth"><option value="">Health</option>${['On Track','Needs Attention','At Risk','Delayed','Blocked','Completed'].map((health) => `<option value="${html(health)}" ${normalizedStatusValue(jobFilter.health || '') === normalizedStatusValue(health) ? 'selected' : ''}>${html(health)}</option>`).join('')}</select><select id="jobOwner"><option value="">Owner</option>${jobListOwnerOptions()}</select><select id="jobClient"><option value="">Client</option>${flowtrackClientOptionRows().map((client) => `<option value="${html(client.id)}" ${String(jobFilter.client || '') === String(client.id) ? 'selected' : ''}>${html(client.name)}</option>`).join('')}</select><select id="jobDelivery"><option value="">Delivery</option><option value="week" ${jobListFilters.delivery === 'week' ? 'selected' : ''}>Due this week</option><option value="overdue" ${jobListFilters.delivery === 'overdue' ? 'selected' : ''}>Overdue</option></select><select id="jobInvoice"><option value="">Invoice</option><option value="unpaid" ${jobListFilters.invoice === 'unpaid' ? 'selected' : ''}>Unpaid</option></select><div class="jobs-v2-more-wrap"><button type="button" id="jobMoreFilterBtn" class="${jobListFilters.more ? 'active' : ''}"><span class="jobs-v2-filter-icon">▽</span> More filters</button>${jobListMoreFilterMenuHtml()}</div><button type="button" id="clearJobFilter" class="jobs-v2-clear-filter">× Clear filters</button></div><div class="jobs-v2-active-filters"><button type="button" id="jobSavedFilterToken">${html(jobListActiveFilterLabel())} <span>×</span></button>${jobListFilters.more === 'documents' ? '<button type="button" data-clear-job-more>Missing documents <span>×</span></button>' : ''}</div></div>
+        <div class="card jobs-v2-toolbar"><div class="jobs-v2-toolbar-main"><input id="jobSearch" class="jobs-v2-search" placeholder="Search Job ID, order, client or product" value="${html(jobFilter.search || '')}"><select id="jobPhase"><option value="">Phase</option>${jobListPhaseOptions()}</select><select id="jobHealth"><option value="">Health</option>${['On Track','Needs Attention','At Risk','Delayed','Blocked','Completed'].map((health) => `<option value="${html(health)}" ${normalizedStatusValue(jobFilter.health || '') === normalizedStatusValue(health) ? 'selected' : ''}>${html(health)}</option>`).join('')}</select><select id="jobOwner"><option value="">Owner</option>${jobListOwnerOptions()}</select><select id="jobClient"><option value="">Client</option>${clients.map((client) => `<option value="${html(client.id)}" ${String(jobFilter.client || '') === String(client.id) ? 'selected' : ''}>${html(client.name)}</option>`).join('')}</select><select id="jobDelivery"><option value="">Delivery</option><option value="week" ${jobListFilters.delivery === 'week' ? 'selected' : ''}>Due this week</option><option value="overdue" ${jobListFilters.delivery === 'overdue' ? 'selected' : ''}>Overdue</option></select><select id="jobInvoice"><option value="">Invoice</option><option value="unpaid" ${jobListFilters.invoice === 'unpaid' ? 'selected' : ''}>Unpaid</option></select><div class="jobs-v2-more-wrap"><button type="button" id="jobMoreFilterBtn" class="${jobListFilters.more ? 'active' : ''}"><span class="jobs-v2-filter-icon">▽</span> More filters</button>${jobListMoreFilterMenuHtml()}</div><button type="button" id="clearJobFilter" class="jobs-v2-clear-filter">× Clear filters</button></div><div class="jobs-v2-active-filters"><button type="button" id="jobSavedFilterToken">${html(jobListActiveFilterLabel())} <span>×</span></button>${jobListFilters.more === 'documents' ? '<button type="button" data-clear-job-more>Missing documents <span>×</span></button>' : ''}</div></div>
         ${jobBulkActionBar(visibleJobs)}
         <div class="card jobs-v2-table table-wrap"><table class="data-table jobs-v2-data-table">${jobListTableColumnsHtml()}<thead><tr><th><input type="checkbox" id="jobBulkSelectAll" aria-label="Select all shown jobs"></th><th>Job / Order</th><th>Client / Brief</th><th>Product / Qty</th><th>Phase</th><th>Next Action</th><th>Health</th><th>Owner</th><th>Delivery ↓</th><th>Progress</th><th>Invoice</th><th></th></tr></thead><tbody>${visibleJobs.map(jobListRow).join('') || '<tr><td colspan="12"><div class="jobs-v2-empty">No jobs match the selected filters.</div></td></tr>'}</tbody></table></div>${jobListPaginationHtml(pagination)}</div>`;
-        $('#jobCreate')?.addEventListener('click', () => openJobModal());
+        $('#jobCreate')?.addEventListener('click', openJobModal);
         $('#jobExport')?.addEventListener('click', () => showToast('Job list export prepared.'));
         $('#jobColumns')?.addEventListener('click', () => showToast('Compact columns are enabled for this view.'));
         $('#jobSearch')?.addEventListener('input', (event) => {
@@ -1838,21 +1862,7 @@ function normalizedStatusValue(value) {
             renderJobs();
         });
         $('#jobPrevPage')?.addEventListener('click', () => { if (jobListPage > 1) { jobListPage -= 1; renderJobs(); } });
-        $('#jobNextPage')?.addEventListener('click', async () => {
-            if (jobListPage < pagination.pageCount) {
-                jobListPage += 1;
-                renderJobs();
-                return;
-            }
-            if (segmentPagination.jobs?.nextPageUrl) {
-                const loaded = await flowtrackLoadNextSegment('jobs', { render: false });
-                if (loaded) {
-                    const refreshed = jobListPaginationState(jobListFilteredJobs());
-                    if (jobListPage < refreshed.pageCount) jobListPage += 1;
-                    renderJobs();
-                }
-            }
-        });
+        $('#jobNextPage')?.addEventListener('click', () => { if (jobListPage < pagination.pageCount) { jobListPage += 1; renderJobs(); } });
         const selectAll = $('#jobBulkSelectAll');
         if (selectAll) {
             const selectable = visibleJobs.filter((job) => Number(job.dbId));
@@ -1881,6 +1891,7 @@ function normalizedStatusValue(value) {
         $$('[data-job-list-menu]').forEach((button) => button.addEventListener('click', (event) => { event.stopPropagation(); openJob(button.dataset.jobListMenu); }));
         bindCommon();
         applyActionPermissions();
+        requestAnimationFrame(flowtrackFitWorkSurfacesToViewport);
     });
 
     renderBoard = function () {
@@ -1888,10 +1899,10 @@ function normalizedStatusValue(value) {
         const jobList = boardMode === 'tasks' ? Array.from(new Set(taskList.map((task) => boardJobForTask(task)?.id || task.job))).map((id) => jobs.find((job) => String(job.id) === String(id)) || { id }).filter(Boolean) : boardFilteredJobsForPhases();
         const filteredCount = boardMode === 'tasks' ? taskList.length : jobList.length;
         const filteredJobCount = boardMode === 'tasks' ? jobList.length : jobList.length;
-        $('#page-board').innerHTML = `<div class="ops-board-page ops-mode-${boardMode === 'tasks' ? 'tasks' : 'jobs'}"><div class="page-head"><div><h1>Operations Board</h1><p>Track work across all active Jobs</p></div><div class="ops-board-actions"><button type="button" class="ghost ops-expand-toggle" id="opsBoardExpandAllTop">${boardAllVisibleJobsExpanded() ? 'Minimize all jobs' : 'Expand all jobs'}</button><button class="primary" id="boardCreate">＋ New Job</button></div></div><div class="ops-board-tabs"><button class="tab-btn ${boardMode === 'jobs' ? 'active' : ''}" data-boardmode="jobs">Job Board</button><button class="tab-btn ${boardMode === 'tasks' ? 'active' : ''}" data-boardmode="tasks">Task Board</button></div>${operationsBoardToolbar(filteredCount, filteredJobCount)}<div id="kanbanArea"></div></div>`;
+        $('#page-board').innerHTML = `<div class="ops-board-page ops-mode-${boardMode === 'tasks' ? 'tasks' : 'jobs'}"><div class="page-head"><div><h1>Operations Board</h1><p>Track work across all active Jobs</p></div><div class="ops-board-actions">${boardBulkToggleButton('opsBoardExpandAllTop', 'ghost')}<button class="primary" id="boardCreate">＋ New Job</button></div></div><div class="ops-board-tabs"><button class="tab-btn ${boardMode === 'jobs' ? 'active' : ''}" data-boardmode="jobs">Job Board</button><button class="tab-btn ${boardMode === 'tasks' ? 'active' : ''}" data-boardmode="tasks">Task Board</button></div>${operationsBoardToolbar(filteredCount, filteredJobCount)}<div id="kanbanArea"></div></div>`;
         renderKanban();
         $$('[data-boardmode]').forEach((button) => button.addEventListener('click', () => { boardMode = button.dataset.boardmode; try { sessionStorage.setItem('flowtrackBoardModeTouched', '1'); } catch (_) {} renderBoard(); }));
-        $('#boardCreate')?.addEventListener('click', () => openJobModal());
+        $('#boardCreate')?.addEventListener('click', openJobModal);
         $('#opsBoardSearch')?.addEventListener('input', (event) => {
             const value = event.target.value;
             const caret = event.target.selectionStart ?? value.length;
@@ -2078,6 +2089,7 @@ function normalizedStatusValue(value) {
     }
 
     bindCommon = function () {
+        flowtrackBindCopyIdentifiers(document);
         const newClientJob = $('[data-new-client-job]');
         flowtrackBindOnce(newClientJob, 'new-client-job', 'click', () => {
             const id = newClientJob.dataset.newClientJob;
@@ -2370,31 +2382,29 @@ function normalizedStatusValue(value) {
     }
 
     renderDashboard = function () {
+        // Server aggregates stay authoritative even though Dashboard only loads
+        // a bounded operational preview instead of every Job/Task at login.
         const metrics = { ...dynamicDashboardMetrics(), ...(summaryMetrics.dashboard || {}) };
         const activeJobs = jobs.filter((job) => !jobIsCompleted(job));
         const attentionJobs = activeJobs
             .filter((job) => jobNeedsAttentionFromTasks(job) || job.attention || ['needs attention', 'at risk', 'delayed', 'blocked'].includes(String(job.health || '').toLowerCase()))
             .sort((a, b) => String(a.delivery || '9999-12-31').localeCompare(String(b.delivery || '9999-12-31')))
             .slice(0, 6);
-        const serverPhaseCounts = flowtrackToArray(summaryMetrics.dashboard?.phaseBreakdown)
-            .map((item) => [item?.label || 'Unassigned', Number(item?.value || 0)]);
         const phaseMap = new Map();
         activeJobs.forEach((job) => {
             const label = phaseShortFor(job) || phaseNameFor(job) || 'Unassigned';
             phaseMap.set(label, (phaseMap.get(label) || 0) + 1);
         });
-        const phaseCounts = (serverPhaseCounts.length ? serverPhaseCounts : Array.from(phaseMap.entries()))
+        const phaseCounts = Array.from(phaseMap.entries())
             .filter((entry) => Array.isArray(entry) && entry.length >= 2)
             .sort((left, right) => Number(right[1] || 0) - Number(left[1] || 0));
         const maxPhase = Math.max(1, ...phaseCounts.map((entry) => Number(entry?.[1] || 0)));
-        const serverWorkload = flowtrackToArray(summaryMetrics.dashboard?.workload)
-            .map((item) => [item?.label || 'Unassigned', Number(item?.value || 0)]);
         const workloadMap = new Map();
         tasks.filter((task) => !taskIsCompleted(task)).forEach((task) => {
             const assignee = task.assignee || 'Unassigned';
             workloadMap.set(assignee, (workloadMap.get(assignee) || 0) + 1);
         });
-        const workload = (serverWorkload.length ? serverWorkload : Array.from(workloadMap.entries()))
+        const workload = Array.from(workloadMap.entries())
             .filter((entry) => Array.isArray(entry) && entry.length >= 2)
             .sort((left, right) => Number(right[1] || 0) - Number(left[1] || 0))
             .slice(0, 6);
@@ -2405,13 +2415,13 @@ function normalizedStatusValue(value) {
 
         $('#page-dashboard').innerHTML = `<div class="page-head"><div><h1>Management Dashboard</h1><p>${html(displayDate)} · Exceptions, workload and delivery health</p></div><div class="actions"><button class="ghost" data-dashboard-action="export">Export summary</button><button class="primary" data-dashboard-action="create">＋ New Job</button></div></div>
         <div class="metrics">${metric('Active Jobs', metrics.activeJobs, 'Across visible workflow phases', 'jobs')}${metric('Needs Attention', metrics.needsAttention, 'Risk, delay or blocker', 'risk')}${metric('Overdue Tasks', metrics.overdueTasks, 'Require immediate update', 'overdue')}${metric('Blocked Tasks', metrics.blockedTasks, 'Require resolution', 'blocked')}${metric('Shipping Now', metrics.shippingNow, 'Ready or in transit', 'shipment')}${metric('Outstanding', outstandingValue, metrics.canViewFinancials ? 'Open client balance' : 'Financial access required', 'payment')}</div>
-        <div class="grid-2"><div class="card section-card"><div class="section-head"><h3>Needs Attention</h3><button class="link-btn" data-go="jobs">View all Jobs</button></div><div class="attention-list">${attentionJobs.map((job) => `<div class="attention-item" data-job="${job.id}"><span class="signal ${String(job.health).toLowerCase() === 'blocked' ? 'purple' : String(job.health).toLowerCase() === 'needs attention' ? 'amber' : 'red'}"></span><div><div class="item-title">${html(job.next || job.title)}</div><div class="item-meta">${html(job.id)} · ${html(clientName(job.client))} · ${html(phaseShortFor(job))}</div></div>${healthBadge(job.health)}</div>`).join('') || '<div class="empty-state">No visible Jobs currently require attention.</div>'}</div></div>
+        <div class="grid-2"><div class="card section-card"><div class="section-head"><h3>Needs Attention</h3><button class="link-btn" data-go="jobs">View all Jobs</button></div><div class="attention-list">${attentionJobs.map((job) => `<div class="attention-item" data-job="${job.id}"><span class="signal red"></span><div><div class="item-title">${html(job.next || job.title)}</div><div class="item-meta">${html(job.id)} · ${html(clientName(job.client))} · ${html(phaseShortFor(job))}</div></div>${healthBadge(job.health)}</div>`).join('') || '<div class="empty-state">No visible Jobs currently require attention.</div>'}</div></div>
         <div class="card section-card"><div class="section-head"><h3>Jobs by Phase</h3><button class="link-btn" data-go="board">Open board</button></div><div class="phase-list">${phaseCounts.map((entry) => { const label = entry?.[0] ?? 'Unassigned'; const count = Number(entry?.[1] || 0); return `<div class="phase-row"><span>${html(label)}</span><div class="progress"><span style="width:${Math.max(8, count / maxPhase * 100)}%"></span></div><b>${count}</b></div>`; }).join('') || '<div class="empty-state">No active Jobs are visible.</div>'}</div></div></div>
         <div class="grid-3"><div class="card section-card"><div class="section-head"><h3>Team Workload</h3><button class="link-btn" data-go="reports">Details</button></div>${workload.map((entry) => { const name = String(entry?.[0] || 'Unassigned'); const count = Number(entry?.[1] || 0); return `<div class="workload-row"><div class="person"><span class="avatar">${html(userInitials(name))}</span>${html(name)}</div><div class="progress"><span style="width:${Math.max(8, count / maxWorkload * 100)}%"></span></div><b>${count}</b></div>`; }).join('') || '<div class="empty-state">No open Tasks are visible.</div>'}</div>
         <div class="card section-card"><div class="section-head"><h3>Upcoming Deliveries</h3><button class="link-btn" data-go="jobs">View Jobs</button></div><table class="mini-table"><thead><tr><th>Job</th><th>Client</th><th>Delivery</th></tr></thead><tbody>${activeJobs.filter((job) => job.delivery).sort((a, b) => a.delivery.localeCompare(b.delivery)).slice(0, 6).map((job) => `<tr data-job="${job.id}" style="cursor:pointer"><td><b>${html(String(job.id).slice(-5))}</b><div class="muted small truncate" style="max-width:125px">${html(job.title)}</div></td><td>${html(String(clientName(job.client) || '—').trim().split(/\s+/).filter(Boolean)[0] || '—')}</td><td class="${job.delivery < (summaryMetrics.asOf?.date || metricDateKey()) ? 'due overdue' : ''}">${formatDate(job.delivery)}</td></tr>`).join('') || '<tr><td colspan="3"><div class="empty-state">No upcoming deliveries.</div></td></tr>'}</tbody></table></div>
         <div class="card section-card"><div class="section-head"><h3>Recent Activity</h3><button class="link-btn" data-go="mywork">View Tasks</button></div>${recentActivities.map((item) => `<div class="activity" ${item.task ? `data-task="${html(item.task)}"` : item.job ? `data-job="${html(item.job)}"` : ''} style="cursor:pointer"><span class="avatar">${html(item.user?.initials || userInitials(item.user?.name || 'System'))}</span><div><div class="activity-text"><b>${html(item.title || 'Task created')}</b><br>${html(item.text || '')}</div><div class="activity-time">${html(item.time || '')}</div></div></div>`).join('') || '<div class="empty-state">No recently created tasks.</div>'}</div></div>`;
         bindCommon();
-        $$('[data-dashboard-action="create"]').forEach((button) => button.addEventListener('click', () => openJobModal()));
+        $$('[data-dashboard-action="create"]').forEach((button) => button.addEventListener('click', openJobModal));
         $('[data-dashboard-action="export"]')?.addEventListener('click', () => window.print());
         applyActionPermissions();
     };
@@ -2443,6 +2453,10 @@ function normalizedStatusValue(value) {
             if (task?.jobDbId) taskJobKeys.add(`db:${Number(task.jobDbId)}`);
         });
         return flowtrackToArray(jobs).filter((job) => taskJobKeys.has(String(job.id)) || taskJobKeys.has(`db:${Number(job.dbId)}`));
+    }
+
+    function myWorkOpenTaskCount() {
+        return myWorkBaseTasks().filter((task) => !taskIsCompleted(task)).length;
     }
 
     function myWorkHasTaskScopedFilter() {
@@ -2526,7 +2540,13 @@ function normalizedStatusValue(value) {
         const ownJobs = myWorkBaseJobs();
         const jobOptions = boardSelectOptions(ownJobs, (job) => job.id, (job) => `${job.id} · ${clientName(job.client)}`, myWorkFilters.job, 'Job');
         const clientIds = new Set(ownJobs.map((job) => String(job.client)).filter(Boolean));
-        const clientOptions = boardSelectOptions(clients.filter((client) => clientIds.has(String(client.id))), (client) => client.id, (client) => client.name, myWorkFilters.client, 'Client');
+        const clientOptions = boardSelectOptions(
+            boardClientFilterRecords().filter((client) => clientIds.has(String(client.id))),
+            (client) => client.id,
+            (client) => client.name,
+            myWorkFilters.client,
+            'Client',
+        );
         const assigneeOptions = boardSelectOptions(
             boardAssigneeFilterUsers().filter((user) => ownTasks.some((task) => boardTaskMatchesAssignee(task, user.id || user.name, user.name))),
             (user) => user.id || user.name,
@@ -2536,7 +2556,7 @@ function normalizedStatusValue(value) {
         );
         const priorityOptions = boardSelectOptions(masterData.priorities || [], (priority) => priority.id || priority.name, (priority) => priority.name, myWorkFilters.priority, 'Priority');
         const quickCounts = {
-            open: ownTasks.filter((task) => !taskIsCompleted(task)).length,
+            open: myWorkOpenTaskCount(),
             overdue: ownTasks.filter((task) => boardDaysOverdue(task.due) > 0 && boardTaskStatusBucket(task) !== 'done').length,
             week: ownTasks.filter((task) => { const days = boardDaysUntil(task.due); return days !== null && days >= 0 && days <= 7; }).length,
             blocked: ownTasks.filter((task) => /BLOCK|ATTENTION|HOLD/.test(normalizedStatusValue(task.status || '')) || task.attention || task.blockerReason).length,
@@ -2666,6 +2686,36 @@ function normalizedStatusValue(value) {
         bindCommon();
     }
 
+    function flowtrackFitWorkSurfacesToViewport() {
+        const desktop = window.matchMedia ? window.matchMedia('(min-width: 901px)').matches : window.innerWidth >= 901;
+        const fit = (surface, footer, minimum = 300) => {
+            if (!surface) return;
+            if (!desktop) {
+                surface.style.removeProperty('height');
+                surface.style.removeProperty('max-height');
+                surface.style.removeProperty('min-height');
+                return;
+            }
+            const top = surface.getBoundingClientRect().top;
+            const footerHeight = footer?.getBoundingClientRect().height || 0;
+            const available = Math.max(minimum, Math.floor(window.innerHeight - top - footerHeight - 18));
+            surface.style.setProperty('height', `${available}px`, 'important');
+            surface.style.setProperty('max-height', `${available}px`, 'important');
+            surface.style.setProperty('min-height', `${Math.min(minimum, available)}px`, 'important');
+        };
+        fit($('#page-mywork #myWorkKanbanArea .ops-board-canvas'), $('#page-mywork .my-work-footer-summary'), 300);
+        fit($('#page-jobs .jobs-v2-table'), $('#page-jobs .jobs-v2-pagination'), 300);
+    }
+
+    if (!window.__flowtrackWorkSurfaceResizeBound) {
+        window.__flowtrackWorkSurfaceResizeBound = true;
+        let fitTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(fitTimer);
+            fitTimer = setTimeout(flowtrackFitWorkSurfacesToViewport, 80);
+        }, { passive: true });
+    }
+
     renderMyWork = function () {
         const filteredTasks = myWorkFilteredTasks();
         const filteredJobs = myWorkFilteredJobs(filteredTasks);
@@ -2677,6 +2727,7 @@ function normalizedStatusValue(value) {
         ${myWorkStatusSummary(filteredTasks.length, filteredJobCount)}</div>`;
 
         renderMyWorkBoard();
+        requestAnimationFrame(flowtrackFitWorkSurfacesToViewport);
         $('#myWorkBoardSearch')?.addEventListener('input', (event) => {
             const value = event.target.value;
             const caret = event.target.selectionStart ?? value.length;
@@ -2704,12 +2755,10 @@ function normalizedStatusValue(value) {
             const label = phaseShortFor(job) || phaseNameFor(job) || 'Unassigned';
             phaseMap.set(label, (phaseMap.get(label) || 0) + 1);
         });
-        const serverPhaseData = flowtrackToArray(report.phaseBreakdown).map((item) => ({ label: item?.label || 'Unassigned', value: Number(item?.value || 0) }));
-        const phaseData = serverPhaseData.length ? serverPhaseData : flowtrackToArray(phaseMap).map(([label, value]) => ({ label, value }));
+        const phaseData = flowtrackToArray(phaseMap).map(([label, value]) => ({ label, value }));
         const workloadMap = new Map();
         tasks.filter((task) => !taskIsCompleted(task)).forEach((task) => workloadMap.set(task.assignee || 'Unassigned', (workloadMap.get(task.assignee || 'Unassigned') || 0) + 1));
-        const serverWorkload = flowtrackToArray(report.workload).map((item) => ({ label: item?.label || 'Unassigned', value: Number(item?.value || 0) }));
-        const workload = (serverWorkload.length ? serverWorkload : flowtrackToArray(workloadMap).map(([label, value]) => ({ label, value }))).sort((a, b) => b.value - a.value).slice(0, 10);
+        const workload = flowtrackToArray(workloadMap).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 10);
         const maxPhase = Math.max(1, ...phaseData.map((item) => item.value));
         const maxWorkload = Math.max(1, ...workload.map((item) => item.value));
         const ageing = Array.isArray(report.ageing) ? report.ageing : [];
@@ -2734,8 +2783,8 @@ function normalizedStatusValue(value) {
     clientCards = function (items) {
         return items.map((client) => {
             const clientJobs = jobs.filter((job) => Number(job.client) === Number(client.id));
-            const activeJobs = clientJobs.filter((job) => !jobIsCompleted(job)).length;
-            const attention = clientJobs.filter((job) => !jobIsCompleted(job) && (job.attention || ['needs attention', 'at risk', 'delayed', 'blocked'].includes(String(job.health || '').toLowerCase()))).length;
+            const activeJobs = Number(client.active_jobs_count ?? client.jobs ?? clientJobs.filter((job) => !jobIsCompleted(job)).length);
+            const attention = Number(client.attention_jobs_count ?? clientJobs.filter((job) => !jobIsCompleted(job) && (job.attention || ['needs attention', 'at risk', 'delayed', 'blocked'].includes(String(job.health || '').toLowerCase()))).length);
             const outstanding = canSensitive('invoice_amount') ? currency(client.outstanding || 0).replace('$', '') : 'Restricted';
             return `<div class="card client-card" data-client="${client.id}"><div class="client-head"><div class="company-logo">${html(client.code)}</div><div><h3>${html(client.name)}</h3><div class="small muted">${html(client.country || '—')} · ${html(client.contact || 'No contact')}</div></div></div><div class="client-stats"><div class="client-stat"><b>${activeJobs}</b><span>Active Jobs</span></div><div class="client-stat"><b>${attention}</b><span>Attention</span></div><div class="client-stat"><b>${html(outstanding)}</b><span>Outstanding</span></div></div><div class="small muted" style="margin-top:12px">Account manager: ${html(client.manager || 'Unassigned')}</div></div>`;
         }).join('') || '<div class="card empty-state">No clients found.</div>';
@@ -2744,7 +2793,9 @@ function normalizedStatusValue(value) {
     updateBadges = function () {
         const unread = notifications.filter((notification) => !notification.read).length;
         if ($('#notificationBadge')) $('#notificationBadge').textContent = unread;
-        const visibleOpenTasks = flowtrackVisibleTaskRows(tasks).filter((task) => !taskIsCompleted(task));
-        const myWorkOpenTasks = myWorkIsAdministrativeView() ? visibleOpenTasks : visibleOpenTasks.filter(taskAssignedToCurrentUser);
-        if ($('#myWorkBadge')) $('#myWorkBadge').textContent = myWorkOpenTasks.length;
+        // The My Work navigation badge represents everything shown by the
+        // unfiltered My Work page (open + completed), while the Open quick
+        // filter has its own separate count. Keeping these semantics explicit
+        // avoids a misleading 33-vs-50 style mismatch on the same screen.
+        if ($('#myWorkBadge')) $('#myWorkBadge').textContent = myWorkBaseTasks().length;
     };

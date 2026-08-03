@@ -1,33 +1,21 @@
-# FlowTrack route-aware frontend modules
+# FlowTrack route-aware runtime
 
-The preserved compatibility renderer is maintained in:
+The previous application-sized JavaScript source has been removed. Canonical source is split under `resources/js/flowtrack/modules/` and generated into `public/flowtrack/modules/` by `scripts/build-flowtrack-runtime.mjs`.
 
-```text
-resources/js/flowtrack/flowtrack-dynamic-source.js
-```
+The loader starts with core/workspace behavior, then loads operational, board, configuration, record or detail modules only when the current URL or user interaction needs them.
 
-`npm run build` validates the source boundaries and generates:
+Main groups:
 
 | Module | Responsibility |
 | --- | --- |
-| `core.js` | API, CSRF, session, bootstrap and realtime runtime; login credentials are never handled here |
-| `workspace.js` | Lightweight Clients and Documents behavior shared across authenticated screens |
-| `operations.js` | Dashboard, Jobs, Tasks, Board, My Work and Reports behavior |
-| `board.js` | Board and My Work responsive behavior |
-| `configuration.js` | Workflow, Task Pack, Master Data and Setup |
-| `records.js` | Standalone record routing and shell |
-| `job-shared.js` | Shared detail loading and document integration |
-| `task-details.js` | Final Task Details frontend |
-| `job-details.js` | Jobs list, Create Job and final Job Details frontend |
+| `core.js` | API, CSRF, session, segmented bootstrap, realtime primitives and common state |
+| `workspace.js` | shared workspace/client/document behavior |
+| `operations.js` | dashboard, jobs, task/job boards, My Work and reports |
+| `board.js` | board/My Work responsive interaction helpers |
+| `configuration.js` | job configuration, workflows, task packs, master data, access and profile UI |
+| `records.js` | standalone record routing/shell behavior |
+| `job-shared.js` | shared detail/document integration |
+| `task-details.js` | Task Details behavior |
+| `job-details.js` | Jobs list/create/edit/details behavior |
 
-The small `public/flowtrack-dynamic.js` loader downloads modules sequentially
-only when their route or first interaction requires them. Generated files under
-`public/flowtrack/modules/` must not be edited directly.
-
-The login page loads only the core module and submits credentials with a native
-HTTPS form. Board does not load Task Details or
-Job Details until a record is opened, and Jobs does not load Task Details.
-
-The former embedded prototype fallback is maintained separately in
-`resources/js/flowtrack/prototype-fallback.js` and copied to `public/` during
-the build. It is no longer embedded in a Blade template.
+Login does not load operational/detail modules. Record/detail code is deferred until a matching route or interaction requires it.

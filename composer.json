@@ -2,14 +2,20 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "flowtrack/exact-design-blade",
     "type": "project",
-    "description": "FlowTrack Laravel Blade application using the exact supplied FlowTrac UI with a modular dynamic backend. No Vue or Inertia UI is mounted.",
-    "keywords": ["laravel", "blade", "flowtrack", "workflow", "jobs", "tasks"],
+    "description": "FlowTracker modular Laravel application preserving the supplied UI and OrderFlow business logic.",
+    "keywords": [
+        "laravel",
+        "blade",
+        "flowtrack",
+        "workflow",
+        "jobs",
+        "tasks"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.17",
-        "laravel/tinker": "^3.0",
-        "livewire/livewire": "^4.3"
+        "laravel/tinker": "^3.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",

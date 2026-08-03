@@ -1,0 +1,647 @@
+/*
+ * FlowTrack responsive repair.
+ *
+ * IMPORTANT:
+ * - Never enlarge the desktop main column beyond the space left by the sidebar.
+ * - Never use viewport clipping as a substitute for responsive layout.
+ * - Wide data (tables / kanban) scrolls inside its own component.
+ * - Controls, headings and cards wrap/shrink naturally.
+ */
+
+/* --------------------------------------------------------------------------
+   Application shell — preserve the 248px desktop sidebar contract
+   -------------------------------------------------------------------------- */
+#appScreen,
+#appScreen .main,
+#appScreen .content,
+#appScreen .page {
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+#appScreen .page > *,
+#appScreen .card,
+#appScreen .section-card {
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+@media (min-width: 901px) {
+    #appScreen .main {
+        margin-left: 248px !important;
+        width: calc(100% - 248px) !important;
+        max-width: calc(100% - 248px) !important;
+        overflow-x: visible !important;
+    }
+
+    #appScreen .content {
+        width: auto !important;
+        max-width: 1650px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+}
+
+@media (max-width: 900px) {
+    #appScreen .main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: visible !important;
+    }
+
+    #appScreen .content {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Allow flex/grid children to shrink. This prevents long labels and selects
+   from deciding the width of the whole page. */
+.page-head > *,
+.page-head .actions,
+.page-head .ops-board-actions,
+.section-head > *,
+.master-head > *,
+.toolbar > *,
+.ops-toolbar > *,
+.jobs-v2-toolbar-main > *,
+.grid-2 > *,
+.grid-3 > *,
+.report-grid > *,
+.form-grid > *,
+.summary-grid > *,
+.config-summary > *,
+.metrics > *,
+.client-grid > *,
+.task-grid > *,
+.doc-grid > *,
+.pack-list > *,
+.master-layout > *,
+.workflow-layout > *,
+.setup-layout > *,
+.access-role-grid > *,
+.access-sensitive-grid > * {
+    min-width: 0 !important;
+}
+
+.page-head,
+.section-head,
+.master-head {
+    max-width: 100% !important;
+}
+
+.page-head h1,
+.page-head h2,
+.page-head p,
+.section-head h3,
+.master-head h3,
+.card,
+.metric,
+.config-stat {
+    overflow-wrap: break-word;
+}
+
+.topbar {
+    min-width: 0 !important;
+}
+
+.topbar .search {
+    min-width: 0 !important;
+}
+
+.top-actions {
+    flex: 0 0 auto !important;
+}
+
+/* Wide information belongs to an internal scroller, not the document. */
+.table-wrap,
+.jobs-v2-table,
+.role-matrix-wrap,
+.access-matrix-wrap,
+.job-v4-phase-body,
+.job-v5-history {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-inline: contain;
+}
+
+/* --------------------------------------------------------------------------
+   Jobs
+   The original 9-control row is wider than the usable area whenever the
+   desktop sidebar is visible. Break it into clean rows before it overflows.
+   -------------------------------------------------------------------------- */
+#page-jobs,
+#page-jobs .jobs-v2,
+#page-jobs .jobs-v2-toolbar,
+#page-jobs .jobs-v2-table,
+#page-jobs .jobs-v2-pagination {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+#page-jobs .jobs-v2-actions,
+#page-jobs .jobs-v2-saved {
+    max-width: 100% !important;
+    flex-wrap: wrap !important;
+}
+
+@media (max-width: 1700px) and (min-width: 1501px) {
+    #page-jobs .jobs-v2-toolbar-main {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 9px !important;
+    }
+
+    #page-jobs .jobs-v2-toolbar-main > .flow-searchbar,
+    #page-jobs .jobs-v2-toolbar-main > .jobs-v2-search {
+        grid-column: span 2 !important;
+    }
+}
+
+@media (max-width: 1500px) and (min-width: 1181px) {
+    #page-jobs .jobs-v2-toolbar-main {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 9px !important;
+    }
+
+    #page-jobs .jobs-v2-toolbar-main > .flow-searchbar,
+    #page-jobs .jobs-v2-toolbar-main > .jobs-v2-search {
+        grid-column: span 2 !important;
+    }
+}
+
+@media (max-width: 1180px) and (min-width: 901px) {
+    #page-jobs .jobs-v2-toolbar-main {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    #page-jobs .jobs-v2-toolbar-main > .flow-searchbar,
+    #page-jobs .jobs-v2-toolbar-main > .jobs-v2-search {
+        grid-column: 1 / -1 !important;
+    }
+}
+
+@media (max-width: 900px) {
+    #page-jobs .jobs-v2-toolbar-main {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    #page-jobs .jobs-v2-toolbar-main > .flow-searchbar,
+    #page-jobs .jobs-v2-toolbar-main > .jobs-v2-search {
+        grid-column: 1 / -1 !important;
+    }
+
+    #page-jobs .jobs-v2-page-head,
+    #page-jobs .page-head {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    #page-jobs .jobs-v2-actions {
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+
+    #page-jobs .jobs-v2-saved {
+        display: flex !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        padding-bottom: 4px !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #page-jobs .jobs-v2-saved > * {
+        flex: 0 0 auto !important;
+    }
+}
+
+@media (max-width: 620px) {
+    #page-jobs .jobs-v2-toolbar-main {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #page-jobs .jobs-v2-toolbar-main > .flow-searchbar,
+    #page-jobs .jobs-v2-toolbar-main > .jobs-v2-search {
+        grid-column: auto !important;
+    }
+
+    #page-jobs .jobs-v2-actions {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 7px !important;
+    }
+
+    #page-jobs .jobs-v2-actions > * {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    #page-jobs .jobs-v2-actions > .primary:last-child:nth-child(odd) {
+        grid-column: 1 / -1 !important;
+    }
+
+    #page-jobs .jobs-v2-pagination {
+        grid-template-columns: 1fr !important;
+        gap: 9px !important;
+    }
+
+    #page-jobs .jobs-v2-page-size,
+    #page-jobs .jobs-v2-page-buttons {
+        justify-self: stretch !important;
+        width: 100% !important;
+    }
+
+    #page-jobs .jobs-v2-page-buttons {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+        align-items: center !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Operations Board + My Work
+   -------------------------------------------------------------------------- */
+#page-board,
+#page-mywork,
+#page-board .ops-board-page,
+#page-mywork .my-work-board,
+#page-board #kanbanArea,
+#page-mywork #myWorkKanbanArea,
+#page-board .ops-toolbar,
+#page-mywork .my-work-toolbar {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+@media (max-width: 1700px) and (min-width: 1451px) {
+    #page-board .ops-board-page .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-jobs .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-tasks .ops-toolbar,
+    #page-mywork .my-work-board .my-work-toolbar {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+
+    #page-board .ops-board-page .ops-search,
+    #page-mywork .my-work-board .ops-search {
+        grid-column: span 2 !important;
+    }
+}
+
+@media (max-width: 1450px) and (min-width: 1181px) {
+    #page-board .ops-board-page .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-jobs .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-tasks .ops-toolbar,
+    #page-mywork .my-work-board .my-work-toolbar {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+
+    #page-board .ops-board-page .ops-search,
+    #page-mywork .my-work-board .ops-search {
+        grid-column: span 2 !important;
+    }
+}
+
+@media (max-width: 1180px) and (min-width: 721px) {
+    #page-board .ops-board-page .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-jobs .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-tasks .ops-toolbar,
+    #page-mywork .my-work-board .my-work-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+
+    #page-board .ops-board-page .ops-search,
+    #page-mywork .my-work-board .ops-search {
+        grid-column: 1 / -1 !important;
+    }
+}
+
+@media (max-width: 720px) {
+    #page-board .ops-board-page .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-jobs .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-tasks .ops-toolbar,
+    #page-mywork .my-work-board .my-work-toolbar {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #page-board .ops-board-page .ops-search,
+    #page-mywork .my-work-board .ops-search {
+        grid-column: auto !important;
+    }
+}
+
+/* Board canvas owns horizontal scrolling on desktop/tablet. The page itself
+   remains the exact width of the content column. */
+@media (min-width: 761px) {
+    #page-board .ops-board-page.ops-mode-jobs #kanbanArea,
+    #page-board .ops-board-page.ops-mode-tasks .ops-board-canvas,
+    #page-mywork .my-work-board.ops-mode-tasks .ops-board-canvas {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-inline: contain;
+    }
+
+    #page-board .ops-board-page.ops-mode-jobs .ops-phase-kanban {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+    }
+}
+
+/* Quick filters wrap instead of forcing the page wider. */
+#page-board .ops-quick-row,
+#page-mywork .ops-quick-row {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+#page-board .ops-quick-left,
+#page-mywork .ops-quick-left {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+/* --------------------------------------------------------------------------
+   Master Data / Setup / Workflow / Task Pack
+   -------------------------------------------------------------------------- */
+#page-masterdata,
+#page-setup,
+#page-workflowsetup,
+#page-taskpacksetup,
+#page-masterdata .master-layout,
+#page-setup .setup-layout,
+#page-workflowsetup .workflow-layout,
+#page-taskpacksetup .setup-layout {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+@media (max-width: 1180px) {
+    #page-masterdata .master-layout,
+    #page-setup .setup-layout,
+    #page-workflowsetup .workflow-layout,
+    #page-taskpacksetup .setup-layout {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    /* Navigation becomes a wrapping grid rather than a clipped horizontal row. */
+    #page-masterdata .master-categories,
+    #page-setup .setup-menu,
+    #page-workflowsetup .workflow-list,
+    #page-taskpacksetup .setup-menu {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+        gap: 7px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        padding: 8px !important;
+    }
+
+    #page-masterdata .master-categories button,
+    #page-setup .setup-menu button,
+    #page-workflowsetup .workflow-list button,
+    #page-taskpacksetup .setup-menu button {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+        white-space: normal !important;
+        overflow-wrap: break-word !important;
+    }
+}
+
+@media (max-width: 900px) {
+    #page-masterdata .master-head {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 10px !important;
+        align-items: stretch !important;
+    }
+
+    #page-masterdata #masterSearch {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+    }
+
+    /* Master Data rows become readable cards before the actions column would
+       otherwise need sideways scrolling. */
+    #page-masterdata .table-wrap {
+        overflow: visible !important;
+        border: 0 !important;
+        background: transparent !important;
+    }
+
+    #page-masterdata .master-table {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        border: 0 !important;
+    }
+
+    #page-masterdata .master-table thead {
+        display: none !important;
+    }
+
+    #page-masterdata .master-table tbody {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 10px !important;
+        width: 100% !important;
+    }
+
+    #page-masterdata .master-table tr {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 12px !important;
+        background: #fff !important;
+        padding: 4px 12px !important;
+        overflow: visible !important;
+    }
+
+    #page-masterdata .master-table td {
+        display: grid !important;
+        grid-template-columns: minmax(92px, 30%) minmax(0, 1fr) !important;
+        gap: 10px !important;
+        align-items: start !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 10px 0 !important;
+        border: 0 !important;
+        border-bottom: 1px solid var(--line) !important;
+        white-space: normal !important;
+        overflow-wrap: break-word !important;
+    }
+
+    #page-masterdata .master-table td:last-child {
+        border-bottom: 0 !important;
+    }
+
+    #page-masterdata .master-table td::before {
+        content: attr(data-label);
+        color: var(--muted) !important;
+        font-size: 10.5px !important;
+        font-weight: 750 !important;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+    }
+
+    #page-masterdata .master-table td[colspan] {
+        display: block !important;
+        text-align: center !important;
+        border-bottom: 0 !important;
+    }
+
+    #page-masterdata .master-table td[colspan]::before {
+        display: none !important;
+    }
+
+    #page-masterdata .master-table .row-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 7px !important;
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 520px) {
+    #page-masterdata .master-categories,
+    #page-setup .setup-menu,
+    #page-workflowsetup .workflow-list,
+    #page-taskpacksetup .setup-menu {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #page-masterdata .master-table td {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 4px !important;
+    }
+
+    #page-masterdata .master-table .row-actions {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #page-masterdata .master-table .row-actions > * {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+
+/* Administration tables use internal scrolling until phone/card mode already
+   provided by the existing configuration stylesheet. */
+#page-setup .table-wrap,
+#page-setup .access-matrix-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+}
+
+/* --------------------------------------------------------------------------
+   Shared tablet / mobile safeguards
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+    .page-head {
+        max-width: 100% !important;
+    }
+
+    .page-head .actions,
+    .page-head .ops-board-actions {
+        max-width: 100% !important;
+        flex-wrap: wrap !important;
+    }
+
+    .toolbar {
+        max-width: 100% !important;
+    }
+
+    .toolbar input,
+    .toolbar select,
+    .toolbar button,
+    .toolbar .flow-searchable {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .modal,
+    .drawer {
+        max-width: 100vw !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .content {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .page-head .actions,
+    .page-head .ops-board-actions {
+        width: 100% !important;
+    }
+
+    .mobile-bottom {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .mobile-bottom button {
+        min-width: 0 !important;
+        flex: 1 1 20% !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Job Details phase tasks — contained status control, no nested scrollbars
+   -------------------------------------------------------------------------- */
+.job-v4-status-select[data-native-select]{display:block!important;width:100%!important;max-width:170px!important;min-width:118px!important;height:34px!important;padding:0 30px 0 10px!important;border:1px solid #cfd9e7!important;border-radius:8px!important;background-color:#fff!important;color:#17243d!important;font-size:10.5px!important;font-weight:600!important;cursor:pointer!important;box-shadow:none!important}.job-v4-status-select[data-native-select]:focus{border-color:#76a2ff!important;box-shadow:0 0 0 3px rgba(37,99,235,.1)!important;outline:0!important}.job-v4-status-select[data-native-select]:disabled{cursor:wait!important;opacity:.72!important;background:#f7f9fc!important}
+
+@media(max-width:1100px){
+    .job-v4-phase-body{overflow:visible!important;max-width:100%!important;padding-left:8px!important;padding-right:8px!important}
+    .job-v4-task-table{width:100%!important;min-width:0!important;max-width:100%!important;table-layout:fixed!important}
+    .job-v4-task-table th,.job-v4-task-table td{min-width:0!important;overflow-wrap:anywhere!important}
+    .job-v4-task-table th:nth-child(1),.job-v4-task-table td:nth-child(1){width:46px!important}
+    .job-v4-task-table th:nth-child(2),.job-v4-task-table td:nth-child(2){width:31%!important}
+    .job-v4-task-table th:nth-child(3),.job-v4-task-table td:nth-child(3){width:22%!important}
+    .job-v4-task-table th:nth-child(4),.job-v4-task-table td:nth-child(4){width:16%!important}
+    .job-v4-task-table th:nth-child(5),.job-v4-task-table td:nth-child(5){width:20%!important}
+    .job-v4-task-table th:nth-child(6),.job-v4-task-table td:nth-child(6){width:42px!important}
+    .job-v4-status-select[data-native-select]{max-width:100%!important;min-width:0!important}
+}
+
+@media(max-width:720px){
+    .job-v4-phase-head{align-items:flex-start!important;padding:9px 10px!important;min-height:0!important}
+    .job-v4-phase-summary{flex-wrap:wrap!important;justify-content:flex-end!important}.job-v4-phase-summary i{width:62px!important}
+    .job-v4-phase-body{padding:0 10px 10px!important;overflow:visible!important}
+    .job-v4-task-table,.job-v4-task-table tbody{display:block!important;width:100%!important;border:0!important}
+    .job-v4-task-table thead{display:none!important}
+    .job-v4-task-table tr.job-v4-task-row{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px 12px!important;margin:0 0 9px!important;padding:10px!important;border:1px solid #e1e8f1!important;border-radius:9px!important;background:#fff!important}
+    .job-v4-task-table tr.job-v4-task-row:last-child{margin-bottom:0!important}
+    .job-v4-task-table td{display:grid!important;grid-template-columns:72px minmax(0,1fr)!important;align-items:center!important;gap:8px!important;width:auto!important;min-width:0!important;padding:0!important;border:0!important;text-align:left!important;font-size:10px!important}
+    .job-v4-task-table td::before{color:#71809a!important;font-size:8.5px!important;font-weight:750!important;text-transform:uppercase!important;letter-spacing:.04em!important}
+    .job-v4-task-table td:nth-child(1){grid-column:1/-1!important;color:#63758f!important}.job-v4-task-table td:nth-child(1)::before{content:'Task'}
+    .job-v4-task-table td:nth-child(2){grid-column:1/-1!important;display:block!important}.job-v4-task-table td:nth-child(2)::before{display:none!important}.job-v4-task-table td:nth-child(2) .job-v4-task-title{font-size:11.5px!important;font-weight:700!important}
+    .job-v4-task-table td:nth-child(3)::before{content:'Assignee'}.job-v4-task-table td:nth-child(4)::before{content:'Due date'}.job-v4-task-table td:nth-child(5)::before{content:'Status'}.job-v4-task-table td:nth-child(6)::before{content:'Action'}
+    .job-v4-task-table td:nth-child(3),.job-v4-task-table td:nth-child(4),.job-v4-task-table td:nth-child(5),.job-v4-task-table td:nth-child(6){grid-column:1/-1!important}
+    .job-v4-task-table td:nth-child(6){justify-items:start!important}
+    .job-v4-task-actions{text-align:left!important}.job-v4-row-menu{width:34px!important;height:30px!important;border:1px solid #dbe3ef!important;border-radius:7px!important;background:#fff!important}
+    .job-v4-status-select[data-native-select]{width:100%!important;max-width:100%!important;height:36px!important;font-size:11px!important}
+    .job-v4-assignee-cell,.job-v4-due-cell{min-width:0!important;white-space:normal!important}
+}

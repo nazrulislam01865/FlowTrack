@@ -1,0 +1,60 @@
+/* 2026-08-03 Board toolbar cleanup + Job Board sticky phase headers.
+   Keep this file last so older board compatibility rules cannot reintroduce
+   the removed saved-view selector or non-sticky Job Board headers. */
+
+#page-board .ops-board-page .ops-toolbar,
+#page-board .ops-board-page.ops-mode-jobs .ops-toolbar,
+#page-board .ops-board-page.ops-mode-tasks .ops-toolbar{
+    grid-template-columns:minmax(280px,2fr) repeat(5,minmax(140px,1fr)) minmax(112px,.72fr)!important;
+    gap:8px!important;
+    align-items:stretch!important;
+}
+
+#page-board .ops-board-page .ops-view-box{display:none!important}
+
+@media(max-width:1380px){
+    #page-board .ops-board-page .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-jobs .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-tasks .ops-toolbar{
+        grid-template-columns:minmax(220px,1.45fr) repeat(5,minmax(118px,1fr)) minmax(92px,.7fr)!important;
+    }
+}
+
+@media(max-width:1180px){
+    #page-board .ops-board-page .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-jobs .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-tasks .ops-toolbar{
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    }
+    #page-board .ops-board-page .ops-search{grid-column:1/-1!important}
+}
+
+@media(max-width:720px){
+    #page-board .ops-board-page .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-jobs .ops-toolbar,
+    #page-board .ops-board-page.ops-mode-tasks .ops-toolbar{grid-template-columns:1fr!important}
+}
+
+@media(min-width:761px){
+    #page-board .ops-board-page.ops-mode-jobs #kanbanArea{position:relative!important;min-height:0!important}
+    #page-board .ops-board-page.ops-mode-jobs .ops-phase-kanban{
+        position:relative!important;
+        max-height:calc(100vh - 300px)!important;
+        min-height:360px!important;
+        overflow:auto!important;
+        overscroll-behavior:contain!important;
+        align-items:start!important;
+    }
+    #page-board .ops-board-page.ops-mode-jobs .ops-phase-column{position:relative!important}
+    #page-board .ops-board-page.ops-mode-jobs .ops-phase-column>.kanban-head{
+        position:sticky!important;
+        top:0!important;
+        z-index:40!important;
+        background:#f7faff!important;
+        box-shadow:0 2px 0 rgba(226,232,240,.98),0 8px 16px rgba(15,23,42,.06)!important;
+    }
+}
+
+@media(min-width:761px) and (max-height:780px){
+    #page-board .ops-board-page.ops-mode-jobs .ops-phase-kanban{max-height:calc(100vh - 250px)!important}
+}

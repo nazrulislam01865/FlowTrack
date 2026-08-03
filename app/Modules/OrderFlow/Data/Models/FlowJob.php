@@ -15,6 +15,18 @@ class FlowJob extends Model
 {
     use SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::saving(function (FlowJob $job): void {
+            $isCompleted = strtolower((string) $job->status) === 'completed';
+            if ($isCompleted && ! $job->completed_at) {
+                $job->completed_at = now();
+            } elseif (! $isCompleted && $job->isDirty('status')) {
+                $job->completed_at = null;
+            }
+        });
+    }
+
     protected $table = 'flow_jobs';
     protected $guarded = [];
 
@@ -22,6 +34,7 @@ class FlowJob extends Model
     {
         return [
             'delivery_date' => 'date',
+            'completed_at' => 'datetime',
             'quoted_amount' => 'decimal:2',
             'attention_required' => 'boolean',
             'health_updated_at' => 'datetime',

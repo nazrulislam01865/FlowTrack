@@ -1,4 +1,4 @@
-/* FlowTrack generated lazy module: configuration. Source: resources/js/flowtrack/flowtrack-dynamic-source.js. Build: 6254af6ca40e4526. */
+/* FlowTrack runtime module: configuration. Build: f400609959067571. */
 function masterSection(category = selectedMasterCategory) {
         return masterCatalog.find((section) => section.key === category) || null;
     }
@@ -68,8 +68,7 @@ function masterSection(category = selectedMasterCategory) {
             button.disabled = true;
             try {
                 const result = await api(`/flowtrack/template-api/master-data/${record.id}`, { method: 'DELETE' });
-                flowtrackInvalidatePageData('masterdata');
-                await flowtrackEnsurePageData('masterdata', { force: true });
+                await loadBootstrap();
                 renderMasterData();
                 showToast(result.message || 'Master-data record deleted.');
             } catch (error) {
@@ -344,8 +343,7 @@ function masterSection(category = selectedMasterCategory) {
 
                     // Refresh related generated tasks and workflow data without hiding the
                     // authoritative Task Pack that was just returned by the save request.
-                    flowtrackInvalidatePageData('taskpacksetup');
-                    void flowtrackEnsurePageData('taskpacksetup', { force: true })
+                    void loadBootstrap()
                         .then(() => {
                             upsertTaskPack(savedTaskPack);
                             if (currentPage === 'taskpacksetup') renderTaskPackSetup();
@@ -500,7 +498,7 @@ function masterSection(category = selectedMasterCategory) {
 
         $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>Create New Job</h2><div class="small muted" style="margin-top:5px">Enter the Job details in order and add every requested product.</div></div><button class="close-btn" data-close>×</button></div>
         <div class="modal-body"><div class="form-grid job-form-stack">
-        <div class="field full"><label>Client *</label><select id="newJobClient" data-searchable data-search-placeholder="Search clients…">${flowtrackClientOptionRows().map((client) => `<option value="${client.id}" ${Number(defaultClient?.id) === Number(client.id) ? 'selected' : ''}>${html(client.name)}</option>`).join('')}</select></div>
+        <div class="field full"><label>Client *</label><select id="newJobClient" data-searchable data-search-placeholder="Search clients…">${clients.map((client) => `<option value="${client.id}" ${Number(defaultClient?.id) === Number(client.id) ? 'selected' : ''}>${html(client.name)}</option>`).join('')}</select></div>
         <div class="field full"><label>Client contact</label><input id="newJobContact" value="${html(defaultClient?.contact)}" readonly></div>
         <div class="field full"><label>Job title *</label><input id="newJobTitle" placeholder="e.g. Conference merchandise order"></div>
         <div class="field full"><label>Request description</label><textarea id="newJobDesc" rows="3" placeholder="Specifications, target price, printing or customization requirements…"></textarea></div>
@@ -793,7 +791,7 @@ function masterSection(category = selectedMasterCategory) {
         $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>Edit Job</h2><div class="small muted" style="margin-top:5px">Update the Job details without changing its active Workflow or current Phase.</div></div><button class="close-btn" data-edit-job-close>×</button></div>
         <div class="modal-body"><div class="form-grid job-form-stack">
             <div class="field full"><label>Job code</label><input value="${html(job.id)}" readonly></div>
-            <div class="field full"><label>Client *</label><select id="editJobClient" data-searchable data-search-placeholder="Search clients…">${flowtrackClientOptionRows().map((client) => `<option value="${client.id}" ${Number(client.id) === Number(job.client) ? 'selected' : ''}>${html(client.name)}</option>`).join('')}</select></div>
+            <div class="field full"><label>Client *</label><select id="editJobClient" data-searchable data-search-placeholder="Search clients…">${clients.map((client) => `<option value="${client.id}" ${Number(client.id) === Number(job.client) ? 'selected' : ''}>${html(client.name)}</option>`).join('')}</select></div>
             <div class="field full"><label>Job title *</label><input id="editJobTitle" value="${html(job.title)}"></div>
             <div class="field full"><label>Request description</label><textarea id="editJobDesc" rows="3" placeholder="Specifications, target price, printing or customization requirements…">${html(job.requestDescription || '')}</textarea></div>
             <div class="field full job-products-field"><div class="job-products-title"><div><label>Products & quantities *</label><div class="inline-help">Category, Product and Quantity stay linked on each row.</div></div></div><div class="job-product-labels"><span>Product category</span><span>Product</span><span>Quantity</span><span></span></div><div id="editJobProducts" class="job-product-list"></div><button type="button" class="secondary job-add-product" id="addEditJobProduct">＋ Add another product</button></div>
@@ -1354,8 +1352,6 @@ function masterSection(category = selectedMasterCategory) {
                 const result = await api(`/flowtrack/template-api/access/roles/${role.id}/matrix`, { method: 'PUT', body: { modules, sensitive_fields } });
                 upsertAccessRole(result.role);
                 await loadBootstrap();
-                flowtrackInvalidatePageData('setup');
-                await flowtrackEnsurePageData('setup', { force: true });
                 renderPermissionMatrix();
                 applyActionPermissions();
                 showToast('Permission matrix saved successfully.');
@@ -1394,8 +1390,6 @@ function masterSection(category = selectedMasterCategory) {
                     },
                 });
                 await loadBootstrap();
-                flowtrackInvalidatePageData('setup');
-                await flowtrackEnsurePageData('setup', { force: true });
                 renderRoleAssignments();
                 showToast('User role assignment updated.');
             } catch (error) {
@@ -1411,8 +1405,6 @@ function masterSection(category = selectedMasterCategory) {
             try {
                 await api(`/flowtrack/template-api/access/members/${membershipId}`, { method: 'DELETE' });
                 await loadBootstrap();
-                flowtrackInvalidatePageData('setup');
-                await flowtrackEnsurePageData('setup', { force: true });
                 renderRoleAssignments();
                 showToast('User deleted successfully.');
             } catch (error) {
@@ -1463,8 +1455,6 @@ function masterSection(category = selectedMasterCategory) {
                     method: existing ? 'PUT' : 'POST', body: payload,
                 });
                 await loadBootstrap();
-                flowtrackInvalidatePageData('setup');
-                await flowtrackEnsurePageData('setup', { force: true });
                 closeAll();
                 renderRoleAssignments();
                 showToast(existing ? 'User updated successfully.' : 'User created successfully.');

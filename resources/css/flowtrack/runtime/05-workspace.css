@@ -98,7 +98,7 @@ html,body,#appScreen,.app,.main{max-width:100%;overflow-x:hidden!important}.cont
         .task-attention-row{position:relative;display:flex!important;align-items:flex-start!important;justify-content:flex-start!important;gap:11px!important;width:100%!important;margin-top:16px!important;padding:12px 14px!important;border:1px solid #dbe3ef!important;border-radius:12px!important;background:#fbfdff!important;cursor:pointer!important;text-align:left!important}
         .task-attention-row>input{position:absolute!important;opacity:0!important;pointer-events:none!important}
         .task-attention-control{width:20px;height:20px;flex:0 0 20px;border:1.5px solid #a9b7ca;border-radius:6px;background:#fff;display:grid;place-items:center;margin-top:1px;transition:.15s}
-        .task-attention-row>input:checked+.task-attention-control{background:#2563eb;border-color:#2563eb}
+        .task-attention-row>input:checked+.task-attention-control{background:#dc2626;border-color:#dc2626}
         .task-attention-row>input:checked+.task-attention-control:after{content:'✓';color:#fff;font-size:13px;font-weight:800;line-height:1}
         .task-attention-copy{display:grid;gap:3px;min-width:0;color:#172033}
         .task-attention-copy b{font-size:13px;font-weight:650}

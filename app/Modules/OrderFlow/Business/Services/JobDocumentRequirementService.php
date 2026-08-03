@@ -128,7 +128,10 @@ class JobDocumentRequirementService
                     'source' => 'task_pack_item',
                     'source_label' => "Task: {$item->title}",
                     'sources' => ["Task: {$item->title}"],
-                    'required_for_readiness' => (bool) $item->is_required,
+                    // Selecting a Required document in Task Pack Setup makes
+                    // that evidence mandatory regardless of whether the Task
+                    // itself is marked optional for other workflow purposes.
+                    'required_for_readiness' => true,
                 ]);
             }
         }

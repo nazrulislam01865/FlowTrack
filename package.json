@@ -1,11 +1,13 @@
 {
-  "name": "flowtrack-livewire-frontend",
+  "name": "flowtrack-modular-frontend",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "node scripts/split-flowtrack-assets.mjs && vite build && node scripts/verify-assets.mjs"
+    "dev": "node scripts/build-flowtrack-runtime.mjs && vite",
+    "build:runtime": "node scripts/build-flowtrack-runtime.mjs",
+    "verify:assets": "node scripts/verify-assets.mjs",
+    "build": "node scripts/build-flowtrack-runtime.mjs && vite build && node scripts/verify-assets.mjs"
   },
   "devDependencies": {
     "vite": "^6.1.0"

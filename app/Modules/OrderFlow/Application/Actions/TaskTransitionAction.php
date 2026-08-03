@@ -98,7 +98,11 @@ class TaskTransitionAction
             $isCompleted = $this->matches($status, ['CMP', 'COMPLETED', 'COMPLETE', 'DONE']);
             $isBlocked = $this->matches($status, ['BLK', 'BLOCKED', 'ATTN', 'ATTENTION', 'HOLD', 'ON HOLD']);
 
-            $documentCategoryId = $task->document_category_id ?: $task->packItem?->document_category_id;
+            $documentSource = $task->document_requirement_source
+                ?: ($task->packItem?->document_category_id ? 'task_pack_item' : null);
+            $documentCategoryId = $documentSource === 'task_pack_item'
+                ? ($task->document_category_id ?: $task->packItem?->document_category_id)
+                : null;
             if ($isCompleted && $documentCategoryId && ! $this->documentRequirements->isTaskRequirementSatisfied($task)) {
                 $name = $task->documentCategory?->name ?: $task->packItem?->documentCategory?->name ?: 'configured';
                 throw new DomainException("Upload or link the required {$name} document for this Task before completing {$task->code}.");

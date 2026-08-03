@@ -29,7 +29,7 @@
       </div>
     </header>
     <div class="content">
-      <livewire:flow-track.workspace-shell />
+      @include('flowtrack.pages.screen')
     </div>
   </main>
   <nav class="mobile-bottom">

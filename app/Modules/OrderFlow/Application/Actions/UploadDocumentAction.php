@@ -67,13 +67,25 @@ class UploadDocumentAction
         $effectiveTaskId = $existingDocument?->flow_task_id ?: $taskId;
 
         $task = $effectiveTaskId
-            ? FlowTask::query()->with(['phase', 'packItem.documentCategory'])->where('flow_job_id', $job->id)->findOrFail($effectiveTaskId)
+            ? FlowTask::query()->with(['phase', 'packItem.documentCategory', 'documentCategory'])->where('flow_job_id', $job->id)->findOrFail($effectiveTaskId)
             : null;
 
         if ($task) {
             if ((int) $task->workflow_phase_id !== (int) $job->current_phase_id) {
                 throw ValidationException::withMessages([
                     'workflow_phase_id' => 'Task documents can only be uploaded while the Task is in the Job’s current Workflow Phase.',
+                ]);
+            }
+
+            $documentSource = $task->document_requirement_source
+                ?: ($task->packItem?->document_category_id ? 'task_pack_item' : null);
+            $requiredCategoryId = $documentSource === 'task_pack_item'
+                ? ($task->document_category_id ?: $task->packItem?->document_category_id)
+                : null;
+
+            if (! $task->task_pack_item_id || ! $requiredCategoryId) {
+                throw ValidationException::withMessages([
+                    'task_id' => 'This Task does not have a Required document configured in Task Pack Setup.',
                 ]);
             }
 
@@ -89,8 +101,7 @@ class UploadDocumentAction
                 ]);
             }
 
-            $requiredCategoryId = $task->document_category_id ?: $task->packItem?->document_category_id;
-            if ($requiredCategoryId && (int) $requiredCategoryId !== (int) $category->id) {
+            if ((int) $requiredCategoryId !== (int) $category->id) {
                 $requiredName = $task->documentCategory?->name ?: $task->packItem?->documentCategory?->name ?: 'configured';
                 throw ValidationException::withMessages([
                     'document_category_id' => "This Task requires the {$requiredName} document category.",
@@ -105,15 +116,15 @@ class UploadDocumentAction
             }
 
             $requirement = [
-                'requirement_key' => "task-attachment:{$task->id}:{$category->id}",
+                'requirement_key' => "task:{$task->task_pack_item_id}:{$category->id}",
                 'workflow_phase_id' => (int) $task->workflow_phase_id,
                 'workflow_phase_name' => $task->phase?->name ?? 'Current Phase',
                 'task_pack_item_id' => $task->task_pack_item_id ? (int) $task->task_pack_item_id : null,
                 'category_id' => (int) $category->id,
                 'category_name' => $category->name,
-                'source' => 'task_attachment',
+                'source' => 'task_pack_item',
                 'source_label' => "Task: {$task->title}",
-                'required_for_readiness' => false,
+                'required_for_readiness' => true,
             ];
         } else {
             $requirement = $this->documentRequirements->resolveUploadRequirement(

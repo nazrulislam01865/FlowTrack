@@ -1,4 +1,4 @@
-/* FlowTrack generated lazy module: workspace. Source: resources/js/flowtrack/flowtrack-dynamic-source.js. Build: 6254af6ca40e4526. */
+/* FlowTrack runtime module: workspace. Build: f400609959067571. */
 function nextClientCodePreview() {
         const max = clients.reduce((highest, client) => {
             const match = String(client.code || '').match(/^CL-(\d+)$/i);
@@ -504,33 +504,122 @@ function nextClientCodePreview() {
         });
     }
 
+    function flowtrackDocumentArchiveNormalize(value) {
+        return String(value ?? '').trim().toLowerCase();
+    }
+
+    function flowtrackDocumentArchiveFileBadge(documentRecord) {
+        const name = String(documentRecord?.name || '').toLowerCase();
+        if (name.endsWith('.pdf')) return 'PDF';
+        if (/\.(png|jpe?g|webp|gif)$/.test(name)) return 'IMG';
+        if (/\.(doc|docx)$/.test(name)) return 'DOC';
+        if (/\.(xls|xlsx|csv)$/.test(name)) return 'XLS';
+        if (/\.(zip|rar|7z)$/.test(name)) return 'ZIP';
+        return 'FILE';
+    }
+
+    function flowtrackDocumentArchiveRows(records) {
+        if (!records.length) {
+            return '<div class="document-archive-empty"><span>▧</span><b>No documents found</b><p>Try a different search, category or client filter.</p></div>';
+        }
+
+        return records.map((documentRecord) => {
+            const badge = flowtrackDocumentArchiveFileBadge(documentRecord);
+            const client = clientName(documentRecord.client) || 'No client';
+            const category = documentRecord.type || documentRecord.category || 'Document';
+            const version = documentRecord.version || (documentRecord.versionNumber ? `v${documentRecord.versionNumber}` : 'Current');
+            const uploadedBy = documentRecord.uploadedBy || 'System';
+            const date = documentRecord.date ? formatDate(documentRecord.date) : 'No date';
+            const previewUrl = documentRecord.previewUrl || documentRecord.downloadUrl || '';
+            const status = documentRecord.final ? '<span class="badge b-green">Final</span>' : '<span class="badge b-gray">Current</span>';
+            return `<div class="ft-task-file-row document-archive-file-row" data-document-archive-row data-search="${html(flowtrackDocumentArchiveNormalize(`${documentRecord.name || ''} ${documentRecord.job || ''} ${client} ${category} ${uploadedBy}`))}" data-type="${html(flowtrackDocumentArchiveNormalize(category))}" data-client="${html(documentRecord.client || '')}">
+                <span class="ft-task-file-icon document-archive-file-icon">${html(badge)}</span>
+                <div class="document-archive-file-copy"><b>${html(documentRecord.name || documentRecord.id || 'Document')}</b><small>${html(category)} · ${html(documentRecord.job || 'No Job')} · ${html(client)}</small><small>${html(version)} · ${html(date)} · ${html(uploadedBy)}</small></div>
+                <div class="document-archive-file-status">${status}</div>
+                <div class="ft-task-file-actions document-archive-file-actions">
+                    ${previewUrl ? `<a class="ft-task-file-open" href="${html(previewUrl)}" target="_blank" rel="noopener">Open</a>` : ''}
+                    <button type="button" class="ft-task-file-open" data-document-archive-details="${html(documentRecord.id)}">Details</button>
+                    ${canFlow('documents', 'delete') ? `<button type="button" class="ft-task-file-delete" data-document-archive-delete="${html(documentRecord.dbId || '')}">Delete</button>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
     renderDocuments = function () {
-        originalRenderDocuments();
-        const uploadButton = $('#uploadBtn');
-        if (uploadButton) {
-            const cleanButton = uploadButton.cloneNode(true);
-            cleanButton.textContent = '＋ Upload Required Document';
-            uploadButton.replaceWith(cleanButton);
-            cleanButton.addEventListener('click', openRequiredDocumentJobChooser);
-        }
-        const uploadZone = $('#uploadZone');
-        if (uploadZone) {
-            const replacement = document.createElement('div');
-            replacement.id = 'uploadZone';
-            replacement.className = 'task-document-attachment-card document-archive-attachment-card';
-            replacement.tabIndex = 0;
-            replacement.setAttribute('role', 'button');
-            replacement.setAttribute('aria-label', 'Upload a required Job document');
-            replacement.innerHTML = `<div class="task-attachment-template-head"><div class="task-attachment-icon">▧</div><div><h3>Document attachment</h3><p>Upload a required Job document</p></div><span class="badge b-amber">Required</span></div><div class="task-attachment-dropzone document-archive-dropzone"><div class="task-upload-cloud">☁↑</div><b>Upload a required Job document</b><span>or choose the related Job first</span><div class="task-upload-actions"><button type="button" class="primary">Select Job & Upload</button></div><small>Only document categories configured in Workflow Setup or Task Pack Setup can be uploaded.</small></div><div class="task-attachment-info"><span>ⓘ</span><b>The document will stay connected to its client, Job, phase and version.</b></div>`;
-            uploadZone.replaceWith(replacement);
-            replacement.addEventListener('click', openRequiredDocumentJobChooser);
-            replacement.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    openRequiredDocumentJobChooser();
-                }
+        const page = $('#page-documents');
+        if (!page) return;
+
+        const canUpload = canFlow('documents', 'create') && canFlow('documents', 'link');
+        const categories = [...new Set(flowtrackToArray(docs).map((item) => item.type || item.category).filter(Boolean))]
+            .sort((left, right) => String(left).localeCompare(String(right)));
+
+        page.innerHTML = `<div class="document-archive-page">
+            <div class="page-head document-archive-head"><div><h1>Document Archive</h1><p>Files remain connected to their client, Job, phase and version</p></div></div>
+            <section class="card document-archive-panel">
+                <div class="document-archive-section-head"><div><h3>Documents</h3><span class="job-v4-count" data-document-archive-total>${docs.length}</span></div><p>Search, open and manage files using the same attachment layout used throughout FlowTrack.</p></div>
+                ${canUpload ? `<div id="uploadZone" class="ft-task-dropzone document-archive-quick-add" tabindex="0" role="button" aria-label="Select a Job and attach a document">
+                    <span class="ft-task-paperclip" aria-hidden="true">⌕</span>
+                    <div><b>Attach a document to a Job</b><small>Select the related Job first so the correct phase, Task and document category stay linked.</small></div>
+                    <button type="button" class="ft-task-btn ft-task-btn-secondary" data-document-archive-select-job>Select Job</button>
+                </div>` : ''}
+                <div class="document-archive-toolbar">
+                    <label class="document-archive-search"><span>⌕</span><input id="docSearch" type="search" placeholder="Search file name, Job or client…"></label>
+                    <select id="docType" data-native-select aria-label="Document category"><option value="">All categories</option>${categories.map((category) => `<option value="${html(flowtrackDocumentArchiveNormalize(category))}">${html(category)}</option>`).join('')}</select>
+                    <select id="docClient" data-native-select aria-label="Client"><option value="">All clients</option>${clients.map((client) => `<option value="${html(client.id)}">${html(client.name)}</option>`).join('')}</select>
+                    <span class="document-archive-visible-count">Showing <b data-document-archive-visible>${docs.length}</b> file${docs.length === 1 ? '' : 's'}</span>
+                </div>
+                <div id="docGrid" class="ft-task-file-list document-archive-file-list">${flowtrackDocumentArchiveRows(flowtrackToArray(docs))}</div>
+            </section>
+        </div>`;
+
+        const bindDocumentRows = () => {
+            page.querySelectorAll('[data-document-archive-details]').forEach((button) => button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                openDoc(button.dataset.documentArchiveDetails);
+            }));
+            page.querySelectorAll('[data-document-archive-delete]').forEach((button) => button.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const documentRecord = docs.find((item) => Number(item.dbId) === Number(button.dataset.documentArchiveDelete));
+                if (!documentRecord) return showToast('The selected document could not be found.');
+                flowtrackConfirmDeleteDocument(documentRecord, () => renderDocuments());
+            }));
+        };
+
+        const applyFilters = () => {
+            const term = flowtrackDocumentArchiveNormalize($('#docSearch')?.value || '');
+            const type = flowtrackDocumentArchiveNormalize($('#docType')?.value || '');
+            const clientId = String($('#docClient')?.value || '');
+            const filtered = flowtrackToArray(docs).filter((documentRecord) => {
+                const client = clientName(documentRecord.client) || '';
+                const haystack = flowtrackDocumentArchiveNormalize(`${documentRecord.name || ''} ${documentRecord.job || ''} ${client} ${documentRecord.type || documentRecord.category || ''} ${documentRecord.uploadedBy || ''}`);
+                const documentType = flowtrackDocumentArchiveNormalize(documentRecord.type || documentRecord.category || '');
+                return (!term || haystack.includes(term))
+                    && (!type || documentType === type)
+                    && (!clientId || String(documentRecord.client || '') === clientId);
             });
-        }
+            $('#docGrid').innerHTML = flowtrackDocumentArchiveRows(filtered);
+            const count = page.querySelector('[data-document-archive-visible]');
+            if (count) count.textContent = String(filtered.length);
+            bindDocumentRows();
+        };
+
+        $('#docSearch')?.addEventListener('input', applyFilters);
+        $('#docType')?.addEventListener('change', applyFilters);
+        $('#docClient')?.addEventListener('change', applyFilters);
+        page.querySelector('[data-document-archive-select-job]')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openRequiredDocumentJobChooser();
+        });
+        page.querySelector('#uploadZone')?.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            openRequiredDocumentJobChooser();
+        });
+
+        bindDocumentRows();
         applyActionPermissions();
     };
 

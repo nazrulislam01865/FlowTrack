@@ -1,4 +1,4 @@
-/* FlowTrack generated lazy module: records. Source: resources/js/flowtrack/flowtrack-dynamic-source.js. Build: 6254af6ca40e4526. */
+/* FlowTrack runtime module: records. Build: f400609959067571. */
 /* FlowTrack lazy module boundary: records. */
 
     function jobDocsFor(job) {
@@ -79,13 +79,6 @@
         if (!phase) return all;
         const phaseName = normalizedStatusValue(phase.name || phase.short || '');
         return all.filter((task) => Number(task.phaseId) === Number(phase.id) || normalizedStatusValue(task.phase || '') === phaseName);
-    }
-
-    function flowtrackFormatDateTime(value) {
-        if (!value) return 'Not recorded';
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return String(value);
-        return date.toLocaleString([], { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
     }
 
     function flowtrackPhaseHistoryFor(job, phase) {
@@ -936,7 +929,35 @@
         }
     };
 
-    window.addEventListener('popstate', () => window.location.reload());
+    window.addEventListener('popstate', () => {
+        const route = flowtrackInitialRoute();
+        if (!route) return;
+
+        // Browser back/forward should use the same in-place renderer as normal
+        // navigation. This preserves the shell and prevents an auth/loading flash.
+        void (async () => {
+            try {
+                const targetPage = route.type === 'page'
+                    ? route.page
+                    : route.type === 'task'
+                        ? 'board'
+                        : route.type.startsWith('client')
+                            ? 'clients'
+                            : route.type.startsWith('workflow')
+                                ? 'workflowsetup'
+                                : route.type.startsWith('task-pack')
+                                    ? 'taskpacksetup'
+                                    : 'jobs';
+                if (window.FlowTrackAssets?.ensureForPage) await window.FlowTrackAssets.ensureForPage(targetPage);
+                if (typeof window.flowtrackEnsurePageData === 'function') await window.flowtrackEnsurePageData(targetPage);
+                flowtrackOpenInitialRoute(route);
+                window.dispatchEvent(new CustomEvent('flowtrack:navigation-complete', { detail: { page: targetPage, ok: true, history: true } }));
+            } catch (error) {
+                console.error('FlowTrack history navigation failed.', error);
+                window.location.reload();
+            }
+        })();
+    });
 
     const expectedFlowtrackStages = {
         openJob: ['openJob-stage-1', 'openJob-stage-2', 'openJob-stage-3'],

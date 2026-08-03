@@ -1,44 +1,57 @@
 # FlowTrack modular frontend structure
 
-## Blade and Livewire
+FlowTracker keeps the supplied FlowTrack design as the visual source of truth, but the application no longer mounts every screen through an ignored Livewire compatibility shell.
 
-The root `resources/views/flowtrack-template.blade.php` only composes modules:
+## Route-level Blade pages
 
-- `flowtrack/auth/` — login and authenticated loading state
-- `flowtrack/layouts/` — workspace shell, navigation and content host
-- `flowtrack/partials/` — runtime defaults, overlays and asset tags
-- `livewire/flow-track/screens/` — one view for each of the 13 canonical screens
+Authenticated URLs are handled by dedicated controllers under:
 
-The existing screen IDs, classes, data attributes and `wire:ignore` boundaries
-are preserved. JavaScript and backend endpoints therefore keep the same DOM and
-API contracts.
+```text
+app/Http/Controllers/FlowTrack/Pages/
+```
 
-## CSS and Vite
+The workspace mounts only the active route page through:
 
-`resources/css/flowtrack/app.css` is the Vite entry. It imports CSS in the same
-cascade order as the previous embedded styles:
+```text
+resources/views/flowtrack/pages/screen.blade.php
+```
 
-- `modules/` — base, authentication, shell, dashboard, tables, board, My Work,
-  clients, documents, reports, setup, overlays, responsive, configuration,
-  compact controls and detail/form modules
-- `vendors/` — the preserved searchable-dropdown stylesheet
-- `runtime/` — the 53 former JavaScript-injected style blocks, externalized in
-  their original order
+The established `page-*` IDs, CSS classes, data attributes, overlays, board markup and record/detail selectors remain unchanged for frontend compatibility.
 
-`npm run build` writes the fingerprinted CSS and Laravel manifest under
-`public/build/`. No CSS remains in Blade `<style>` tags, and JavaScript no
-longer creates runtime `<style>` elements.
+## JavaScript source
 
-Tailwind was not enabled. Its preflight reset could change established form,
-table and typography rendering; Vite compiles the existing exact CSS directly.
+Canonical application JavaScript lives under:
 
-## JavaScript
+```text
+resources/js/flowtrack/
+├── loader.js
+├── searchable-dropdown.js
+├── prototype-fallback.js
+└── modules/
+    ├── core.js
+    ├── workspace.js
+    ├── operations.js
+    ├── board.js
+    ├── configuration.js
+    ├── records.js
+    ├── job-shared.js
+    ├── task-details.js
+    └── job-details.js
+```
 
-The route-aware loader remains small. Nine generated modules load only when
-the current screen or interaction needs them. Generated files under
-`public/flowtrack/modules/` must not be edited directly.
+This follows the same principle used by Hisebghor: responsibility-scoped source modules instead of one application-sized JavaScript source file. The route-aware loader downloads only the modules needed by the active page or first interaction.
 
-## Safe deployment
+`npm run build` runs `scripts/build-flowtrack-runtime.mjs`, which generates ordered runtime files under `public/flowtrack/`. Generated public files must not be edited directly.
 
-On an existing database, run the additive migrations with
-`php artisan migrate --force`. Never run `migrate:fresh` or `db:wipe`.
+The generated runtime remains ordered classic JavaScript intentionally. The preserved FlowTracker renderer shares lexical state across several historical sections; forcing those sections into independent ESM bundles in one step would change behavior. The maintainable source boundary is now explicit, and page/controller boundaries no longer depend on the old monolith.
+
+## CSS
+
+`resources/css/flowtrack/app.css` remains the Vite CSS entry. Existing CSS modules and their cascade order are preserved. No design framework reset or Tailwind preflight was introduced.
+
+## Backend pairing
+
+Page controllers are under `app/Http/Controllers/FlowTrack/Pages/`.
+API controllers are separated under `app/Http/Controllers/FlowTrack/Api/` by responsibility: reads, clients, jobs, tasks, documents, configuration, workflows, access, profile, branding and session behavior.
+
+Business rules continue to live in the existing OrderFlow Actions/Services and remain authoritative.

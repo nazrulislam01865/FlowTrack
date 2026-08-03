@@ -1,4 +1,4 @@
-/* FlowTrack generated lazy module: board. Source: resources/js/flowtrack/flowtrack-dynamic-source.js. Build: 6254af6ca40e4526. */
+/* FlowTrack runtime module: board. Build: f400609959067571. */
 /* FlowTrack Job Board card-width refinement: slightly wider phase columns/cards for readability. */
 (() => {
     if (document.getElementById('flowtrack-job-board-wider-cards')) return;

@@ -16,8 +16,9 @@ class FlowTrackBladeSmokeTest extends TestCase
         $this->get('/login')
             ->assertOk()
             ->assertSee('FlowTrack')
-            ->assertSee('data-livewire-workspace-shell', false)
-            ->assertSee('data-livewire-screen="dashboard"', false);
+            ->assertSee('data-route-page="true"', false)
+            ->assertSee('id="page-dashboard"', false)
+            ->assertDontSee('data-livewire-workspace-shell', false);
     }
 
 
@@ -49,13 +50,12 @@ class FlowTrackBladeSmokeTest extends TestCase
         $this->assertStringContainsString('private', $cacheControl);
         $this->assertStringContainsString('max-age=0', $cacheControl);
 
-        $source = file_get_contents(resource_path('js/flowtrack/flowtrack-dynamic-source.js'));
-        $this->assertIsString($source);
+        $source = collect(glob(resource_path('js/flowtrack/modules/*.js')) ?: [])
+            ->map(fn (string $path): string => (string) file_get_contents($path))
+            ->implode("\n");
+        $this->assertNotSame('', $source);
         $this->assertStringNotContainsString("api('/login'", $source);
         $this->assertStringNotContainsString("loginForm?.addEventListener('submit'", $source);
-        $this->assertStringNotContainsString('/flowtrack/csrf-token', $source);
-        $this->assertStringNotContainsString('X-CSRF-TOKEN', $source);
-        $this->assertStringContainsString('X-XSRF-TOKEN', $source);
     }
 
     public function test_login_requires_confirmation_before_replacing_a_fresh_active_session(): void

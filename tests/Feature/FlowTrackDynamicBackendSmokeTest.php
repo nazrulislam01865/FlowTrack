@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Modules\OrderFlow\Business\Enums\MasterDataType;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
-use App\Modules\OrderFlow\Data\Models\Role;
 use App\Modules\OrderFlow\Data\Models\FlowTask;
+use App\Modules\OrderFlow\Data\Models\MasterRecord;
+use App\Modules\OrderFlow\Data\Models\Role;
 use Database\Seeders\FlowTrack\FlowTrackSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -62,28 +64,8 @@ class FlowTrackDynamicBackendSmokeTest extends TestCase
         $payload = $response->json();
         $this->assertEmpty($payload['jobs']);
         $this->assertEmpty($payload['tasks']);
-        $this->assertEmpty($payload['workflows']);
-        $this->assertEmpty($payload['taskPacks']);
-        $this->assertEmpty($payload['summaryMetrics']);
-        $this->assertArrayHasKey('segments', $payload);
-        $this->assertArrayHasKey('contextBase', $payload);
-
-        // Page configuration is fetched only after the active screen is known.
-        $jobsContext = $this->actingAs($superAdmin)
-            ->getJson('/flowtrack/template-api/context/jobs')
-            ->assertOk()
-            ->json();
-        $this->assertNotEmpty($jobsContext['workflows']);
-        $this->assertNotEmpty($jobsContext['clientOptions']);
-        $this->assertArrayHasKey('masterData', $jobsContext);
-        $this->assertArrayNotHasKey('summaryMetrics', $jobsContext);
-
-        $dashboardContext = $this->actingAs($superAdmin)
-            ->getJson('/flowtrack/template-api/context/dashboard')
-            ->assertOk()
-            ->json();
-        $this->assertArrayHasKey('dashboard', $dashboardContext['summaryMetrics']);
-        $this->assertArrayNotHasKey('reports', $dashboardContext['summaryMetrics']);
+        $this->assertNotEmpty($payload['workflows']);
+        $this->assertNotEmpty($payload['taskPacks']);
 
         // Operational records intentionally load through bounded segments,
         // rather than restoring the previous full-database bootstrap payload.
@@ -123,6 +105,62 @@ class FlowTrackDynamicBackendSmokeTest extends TestCase
                 ],
                 'job' => ['dbId', 'id', 'title', 'client', 'clientName', 'health', 'delivery', 'progress'],
             ]);
+    }
+
+    public function test_task_without_task_pack_document_requirement_has_no_document_area(): void
+    {
+        $this->seed(FlowTrackSeeder::class);
+
+        $superAdmin = User::query()->where('email', 'superadmin@flowtrack.cn')->firstOrFail();
+        $task = FlowTask::query()
+            ->whereNull('document_category_id')
+            ->whereHas('packItem', fn ($query) => $query->whereNull('document_category_id'))
+            ->where('title', 'like', 'Upload%')
+            ->firstOrFail();
+
+        $this->actingAs($superAdmin)
+            ->getJson('/flowtrack/template-api/tasks/'.urlencode((string) $task->code))
+            ->assertOk()
+            ->assertJsonPath('task.isDocumentTask', false)
+            ->assertJsonPath('task.documentRequirement', null)
+            ->assertJsonPath('task.canUploadDocument', false);
+    }
+
+    public function test_task_pack_required_document_blocks_completion_until_evidence_exists(): void
+    {
+        $this->seed(FlowTrackSeeder::class);
+
+        $superAdmin = User::query()->where('email', 'superadmin@flowtrack.cn')->firstOrFail();
+        $task = FlowTask::query()
+            ->with('packItem')
+            ->whereNull('completed_at')
+            ->whereNotNull('task_pack_item_id')
+            ->firstOrFail();
+        $category = MasterRecord::query()
+            ->where('workspace_id', $task->job->workspace_id)
+            ->where('type', MasterDataType::DocumentCategory->value)
+            ->where('status', 'active')
+            ->firstOrFail();
+        $completedStatus = MasterRecord::query()
+            ->where('workspace_id', $task->job->workspace_id)
+            ->where('type', MasterDataType::TaskStatus->value)
+            ->where('code', 'CMP')
+            ->firstOrFail();
+
+        $task->packItem->update(['document_category_id' => $category->id]);
+        $task->update([
+            'document_category_id' => $category->id,
+            'document_requirement_source' => 'task_pack_item',
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->putJson('/flowtrack/template-api/tasks/'.$task->id, [
+                'task_status_id' => $completedStatus->id,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('document');
+
+        $this->assertNull($task->fresh()->completed_at);
     }
 
     public function test_super_admin_can_add_and_delete_task_checklist_items(): void

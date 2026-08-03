@@ -1,4 +1,4 @@
-/* FlowTrack generated lazy module: task-details. Source: resources/js/flowtrack/flowtrack-dynamic-source.js. Build: 6254af6ca40e4526. */
+/* FlowTrack runtime module: task-details. Build: f400609959067571. */
 function flowtrackTaskTemplateSlug(value) {
         return String(value ?? 'task').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
     }
@@ -265,12 +265,12 @@ function flowtrackTaskTemplateSlug(value) {
         const activityHtml = activityRows.map((row) => row.html).join('');
 
         return `<div class="ft-task-final-page" data-ft-task-id="${html(task.id || task.dbId)}">
-            <nav class="ft-task-breadcrumb" aria-label="Breadcrumb"><button type="button" data-standalone-back>My Work</button><span>/</span><span>${html(task.id || 'Task')}</span></nav>
+            <nav class="ft-task-breadcrumb" aria-label="Breadcrumb"><button type="button" data-standalone-back>My Work</button><span>/</span>${flowtrackCopyIdentifierButton(task.id || 'Task', 'Task ID', 'flow-id-copy-breadcrumb')}</nav>
             <div class="ft-task-final-layout">
                 <main class="ft-task-final-main">
                     <header class="ft-task-header">
                         <div class="ft-task-heading">
-                            <div class="ft-task-code">${html(task.id || '')}</div>
+                            <div class="ft-task-code">${flowtrackCopyIdentifierButton(job?.id || task.job || '', 'Job ID', 'flow-id-copy-task-job')}</div>
                             <h1 data-ft-task-title-view>${html(task.title || 'Untitled task')}</h1>
                         </div>
                         <div class="ft-task-header-actions">
@@ -341,7 +341,7 @@ function flowtrackTaskTemplateSlug(value) {
 
                     <section class="ft-task-side-card ft-task-job-card">
                         <h2>Job context</h2>
-                        ${job ? `<button type="button" class="ft-task-job-code" data-ft-task-open-job>${html(job.id || task.job)} ↗</button>
+                        ${job ? `<div class="ft-task-job-code-row"><button type="button" class="ft-task-job-code" data-ft-task-open-job>${html(job.id || task.job)} ↗</button>${flowtrackCopyIdentifierButton(job.id || task.job, 'Job ID', 'flow-id-copy-icon-only')}</div>
                         <h3>${html(job.title || task.jobTitle || task.job || 'Job')}</h3>
                         <dl><dt>Client</dt><dd>${html(job.clientName || clientName(job.client) || 'Unknown client')}</dd><dt>Job health</dt><dd><span class="ft-task-health is-${healthTone}"><i></i>${html(health)}</span></dd><dt>Delivery</dt><dd>${html(flowtrackTaskTemplateDate(job.delivery))}</dd><dt>Job progress</dt><dd><b>${jobProgress}%</b><span class="ft-task-job-progress"><i style="width:${jobProgress}%"></i></span></dd></dl>
                         <button type="button" class="ft-task-open-job-link" data-ft-task-open-job>Open job details ↗</button>` : `<h3>${html(task.jobTitle || task.job || 'No linked job')}</h3>`}
@@ -394,6 +394,7 @@ function flowtrackTaskTemplateSlug(value) {
     }
 
     function flowtrackTaskTemplateBind(page, renderedTask) {
+        flowtrackBindCopyIdentifiers(page);
         const signal = page.__flowtrackTaskTemplateController?.signal;
         const identifier = renderedTask.id || renderedTask.dbId;
         const getCurrent = () => flowtrackTaskTemplateCurrent(identifier);

@@ -55,12 +55,34 @@ class WorkflowEngine
                 'progress' => 0,
             ]);
 
-            $created = $this->taskPackActivator->activate($job, $startPhase, $actor, 'job_creation');
+            // Materialize every non-skipped phase Task Pack when the Job is created.
+            // This keeps the complete Job workflow available immediately and prevents
+            // the next phase from having to generate/fetch its Tasks after a transition.
+            // Phases before a mid-workflow starting point remain intentionally skipped
+            // and therefore do not receive active Tasks.
+            $created = 0;
+            $createdByPhase = [];
+            foreach ($phases as $workflowPhase) {
+                if ((int) $workflowPhase->sequence < (int) $startPhase->sequence) {
+                    continue;
+                }
+
+                $phaseCreated = $this->taskPackActivator->activate($job, $workflowPhase, $actor, 'job_creation');
+                $created += $phaseCreated;
+                $createdByPhase[(int) $workflowPhase->id] = $phaseCreated;
+            }
+
             $this->progressCalculator->recalculateJob($job);
             $this->health->synchronize($job, $actor, 'job_creation');
             $this->readiness->synchronize($job, $startPhase, $actor, 'job_creation');
-            $this->activityLogger->log($job->workspace_id, $actor, $job, 'job.created', "Job created at {$startPhase->name}", ['tasks_created' => $created]);
-            $this->transitions->log($job, 'job.initialized', $actor, 'job_creation', null, $startPhase->name, $reason, ['tasks_created' => $created], phase: $startPhase);
+            $this->activityLogger->log($job->workspace_id, $actor, $job, 'job.created', "Job created at {$startPhase->name}", [
+                'tasks_created' => $created,
+                'tasks_created_by_phase' => $createdByPhase,
+            ]);
+            $this->transitions->log($job, 'job.initialized', $actor, 'job_creation', null, $startPhase->name, $reason, [
+                'tasks_created' => $created,
+                'tasks_created_by_phase' => $createdByPhase,
+            ], phase: $startPhase);
 
             DB::afterCommit(fn () => $this->notifications->jobCreated($job->id, $actor->id));
         });
@@ -175,7 +197,10 @@ class WorkflowEngine
                 'milestone' => $targetPhase->exit_condition,
             ]);
 
-            $created = $this->taskPackActivator->activate($job, $targetPhase, $actor, $source);
+            // Phase Tasks were materialized during Job creation. Do not generate
+            // the target phase again during a transition; simply move the Job onto
+            // the already-created Task set.
+            $created = 0;
             $job->refresh();
             $this->progressCalculator->recalculateJob($job);
             $this->health->synchronize($job, $actor, $source);

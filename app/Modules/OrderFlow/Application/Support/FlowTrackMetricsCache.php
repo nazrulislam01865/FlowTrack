@@ -25,15 +25,16 @@ class FlowTrackMetricsCache
         );
     }
 
+
     public function rememberSection(User $user, string $section, Closure $resolver): array
     {
         $workspaceId = (int) $user->currentWorkspaceId();
         $version = $this->version($workspaceId);
         $seconds = max(60, min(300, (int) config('flowtrack.metrics_cache_seconds', 120)));
-        $safeSection = preg_replace('/[^a-z0-9_-]+/i', '-', strtolower($section)) ?: 'default';
+        $safeSection = preg_replace('/[^a-z0-9_-]+/i', '-', strtolower($section)) ?: 'page';
 
         return $this->cache->remember(
-            $this->sectionPayloadKey($workspaceId, (int) $user->id, $version, $safeSection),
+            $this->payloadKey($workspaceId, (int) $user->id, $version).":section:{$safeSection}",
             $seconds,
             fn (): array => $resolver(),
         );
@@ -66,12 +67,5 @@ class FlowTrackMetricsCache
         $date = now()->toDateString();
 
         return "flowtrack:metrics:schema:".self::CACHE_SCHEMA_VERSION.":workspace:{$workspaceId}:user:{$userId}:date:{$date}:v{$version}";
-    }
-
-    private function sectionPayloadKey(int $workspaceId, int $userId, int $version, string $section): string
-    {
-        $date = now()->toDateString();
-
-        return "flowtrack:metrics:schema:".self::CACHE_SCHEMA_VERSION.":workspace:{$workspaceId}:user:{$userId}:date:{$date}:section:{$section}:v{$version}";
     }
 }
