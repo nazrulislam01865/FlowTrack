@@ -134,7 +134,11 @@ class OperationalMetricsService
         $waitingTaskConstraint = $this->waitingTaskConstraint();
 
         return [
+            'totalVisible' => (clone $tasks)->count(),
+            'open' => (clone $tasks)->whereNull('completed_at')->count(),
+            'completed' => (clone $tasks)->whereNotNull('completed_at')->count(),
             'dueToday' => (clone $tasks)->whereDate('due_date', today())->whereNull('completed_at')->count(),
+            'dueThisWeek' => (clone $tasks)->whereBetween('due_date', [today(), today()->copy()->addDays(7)])->whereNull('completed_at')->count(),
             'overdue' => (clone $tasks)->whereDate('due_date', '<', today())->whereNull('completed_at')->count(),
             'blockedAttention' => (clone $tasks)->where($blockedTaskConstraint)->whereNull('completed_at')->count(),
             'waitingReview' => (clone $tasks)->whereHas('status', $waitingTaskConstraint)->whereNull('completed_at')->count(),

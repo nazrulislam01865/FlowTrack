@@ -14,11 +14,113 @@
         return typeof performance?.now === 'function' ? performance.now() : Date.now();
     }
 
+    const FILE_PICKER_TRIGGER_SELECTOR = [
+        '[data-task-upload-browse]',
+        '[data-ft-task-browse]',
+        '[data-job-doc-browse]',
+        '[data-job-v4-browse]',
+        '[data-job-upload-browse]',
+        '[data-new-job-browse]',
+        '#changeProfilePhoto',
+        '#uploadSystemLogo',
+        '#uploadSystemFavicon',
+    ].join(',');
+    const FILE_PICKER_DROPZONE_SELECTOR = [
+        '[data-task-upload-dropzone]',
+        '[data-ft-task-dropzone]',
+        '[data-job-doc-dropzone]',
+        '[data-job-v4-dropzone]',
+        '[data-job-upload-dropzone]',
+        '#newJobAttachmentDrop',
+    ].join(',');
+    const ATTACHMENT_UTILITY_SELECTOR = [
+        FILE_PICKER_TRIGGER_SELECTOR,
+        '[data-task-choose-documents]',
+        '[data-ft-task-choose-documents]',
+        '[data-job-doc-choose]',
+        '[data-job-v4-choose-documents]',
+        '[data-job-choose-documents]',
+        '[data-new-job-choose-documents]',
+    ].join(',');
+    const NAVIGATION_UTILITY_SELECTOR = [
+        '[data-page]',
+        '[data-page-jump]',
+        '[data-go]',
+        '[data-detailtab]',
+        '[role="tab"]',
+        '[data-standalone-back]',
+    ].join(',');
+    const EXPLICIT_ACTION_LAUNCHER_SELECTOR = [
+        '#newJob',
+        '#jobCreate',
+        '#boardCreate',
+        '#addClient',
+        '#addWorkflow',
+        '#addTaskPack',
+        '[data-dashboard-action="create"]',
+        '[data-add-task]',
+        '[data-job-v4-add-task]',
+        '[data-new-client-job]',
+    ].join(',');
+
     function loaderExcluded(button) {
         return Boolean(
             button?.matches('[data-no-button-loader],.ft-no-button-loader')
+            || button?.matches(ATTACHMENT_UTILITY_SELECTOR)
+            || button?.matches(NAVIGATION_UTILITY_SELECTOR)
             || button?.closest('#sidebar,.sidebar')
         );
+    }
+
+    function explicitActionLauncher(button) {
+        return Boolean(button?.matches(EXPLICIT_ACTION_LAUNCHER_SELECTOR));
+    }
+
+    function requestMethod(args) {
+        const input = args?.[0];
+        const init = args?.[1];
+        const method = init?.method || (typeof Request !== 'undefined' && input instanceof Request ? input.method : 'GET');
+        return String(method || 'GET').trim().toUpperCase();
+    }
+
+    function mutatingRequest(args) {
+        return !['GET', 'HEAD', 'OPTIONS'].includes(requestMethod(args));
+    }
+
+    function fileInputForTrigger(trigger) {
+        if (!(trigger instanceof Element)) return null;
+        const explicitTargets = {
+            changeProfilePhoto: '#profileAvatarInput',
+            uploadSystemLogo: '#systemLogoInput',
+            uploadSystemFavicon: '#systemFaviconInput',
+        };
+        const explicitSelector = trigger.id ? explicitTargets[trigger.id] : null;
+        if (explicitSelector) {
+            const explicitInput = document.querySelector(explicitSelector);
+            return explicitInput instanceof HTMLInputElement && !explicitInput.disabled ? explicitInput : null;
+        }
+        const scope = trigger.closest(FILE_PICKER_DROPZONE_SELECTOR)
+            || trigger.closest('.ft-task-dropzone,.task-attachment-dropzone,.job-v6-dropzone,.job-document-dropzone,.job-create-task-dropzone')
+            || trigger.parentElement;
+        const input = scope?.querySelector?.('input[type="file"]');
+        return input instanceof HTMLInputElement && !input.disabled ? input : null;
+    }
+
+    function openNativeFilePicker(input) {
+        if (!(input instanceof HTMLInputElement) || input.disabled) return false;
+        // Clearing the value allows selecting the same file twice in a row and
+        // still emits a change event after a failed/retried upload.
+        input.value = '';
+        try {
+            if (typeof input.showPicker === 'function') {
+                input.showPicker();
+                return true;
+            }
+        } catch (_) {
+            // Safari/older Chromium can reject showPicker while click() remains valid.
+        }
+        input.click();
+        return true;
     }
 
     function eligibleButton(value) {
@@ -129,7 +231,10 @@
     if (nativeFetch) {
         window.fetch = function (...args) {
             const interaction = recentInteraction();
-            const state = markRequestStart(interaction);
+            // Button spinners belong to real mutations only. Read-only GETs used
+            // by tabs, filters, expand/collapse, detail panels and refreshes use
+            // the page/inline circular loader instead of flashing a button spinner.
+            const state = mutatingRequest(args) ? markRequestStart(interaction) : null;
             let result;
             try {
                 result = nativeFetch(...args);
@@ -142,7 +247,31 @@
     }
 
     document.addEventListener('click', (event) => {
-        const clickedButton = event.target instanceof Element ? event.target.closest('button') : null;
+        const target = event.target instanceof Element ? event.target : null;
+        const browseTrigger = target?.closest(FILE_PICKER_TRIGGER_SELECTOR);
+        if (browseTrigger) {
+            const input = fileInputForTrigger(browseTrigger);
+            if (!input) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            openNativeFilePicker(input);
+            return;
+        }
+
+        // Make the whole attachment dropzone a reliable native file-picker target.
+        // Buttons/links inside it keep their own actions (Choose from Documents, etc.).
+        const dropzone = target?.closest(FILE_PICKER_DROPZONE_SELECTOR);
+        if (dropzone && !target.closest('button,a,input,select,textarea,[role="button"]')) {
+            const input = fileInputForTrigger(dropzone);
+            if (input) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                openNativeFilePicker(input);
+                return;
+            }
+        }
+
+        const clickedButton = target?.closest('button') || null;
         if (clickedButton?.classList.contains('ft-button-loading')) {
             event.preventDefault();
             event.stopImmediatePropagation();
@@ -153,12 +282,18 @@
         if (!button) return;
 
         const navigation = isNavigationButton(button);
-        const state = begin(button, { navigation });
-        if (!state) return;
+        if (navigation) return;
 
-        activeInteraction = { button, navigation, at: now() };
-
-        if (!navigation) {
+        // Remember the initiating button, but do not show a spinner merely for
+        // a click. If the action performs POST/PUT/PATCH/DELETE, the fetch hook
+        // starts the spinner and owns its lifetime. This prevents loaders on
+        // tabs, filters, menus, phase toggles, document chips and other UI-only
+        // controls. Explicit create-form launchers keep the short action feedback
+        // requested by the UI even when the form is already available locally.
+        activeInteraction = { button, navigation: false, at: now() };
+        if (explicitActionLauncher(button)) {
+            const state = begin(button, { navigation: false });
+            if (!state) return;
             clearTimeout(state.stopTimer);
             state.stopTimer = window.setTimeout(() => {
                 if (state.pending === 0) finish(button);
@@ -169,12 +304,14 @@
     document.addEventListener('submit', (event) => {
         const form = event.target instanceof HTMLFormElement ? event.target : null;
         if (!form) return;
+        const method = String(form.getAttribute('method') || form.method || 'GET').toUpperCase();
+        if (method === 'GET') return;
         const submitter = event.submitter instanceof HTMLButtonElement
             ? event.submitter
             : form.querySelector('button[type="submit"]');
-        if (!submitter) return;
-        begin(submitter, { navigation: true });
-        activeInteraction = { button: submitter, navigation: true, at: now() };
+        if (!submitter || loaderExcluded(submitter)) return;
+        begin(submitter, { navigation: false });
+        activeInteraction = { button: submitter, navigation: false, at: now() };
     }, true);
 
     window.addEventListener('flowtrack:navigation-complete', () => {
@@ -186,8 +323,17 @@
         if (state.pending === 0) finish(interaction.button);
     });
 
-    window.addEventListener('pageshow', () => {
+    function clearAllButtonLoaders() {
         document.querySelectorAll('button.ft-button-loading').forEach((button) => finish(button, true));
+        activeInteraction = null;
+    }
+
+    window.addEventListener('pageshow', clearAllButtonLoaders);
+    window.addEventListener('flowtrack:navigation-complete', () => {
+        window.setTimeout(clearAllButtonLoaders, 120);
+    });
+    window.addEventListener('unhandledrejection', () => {
+        window.setTimeout(clearAllButtonLoaders, 120);
     });
 
     window.FlowTrackButtonLoading = Object.freeze({

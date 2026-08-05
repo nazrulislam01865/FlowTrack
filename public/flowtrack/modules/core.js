@@ -1,4 +1,4 @@
-/* FlowTrack runtime module: core. Build: f400609959067571. */
+/* FlowTrack runtime module: core. Build: 30e4f82686c91463. */
 const phases=['Request Received','Quotation in Progress','Quotation Submitted','Negotiation','Confirmed Order','Artwork','Swatch / Sample','Production','Shipment','Invoice & Payment','Completed'];
 const phaseShort=['Request','Quotation','Submitted','Negotiation','Confirmed','Artwork','Swatch','Production','Shipment','Invoice','Completed'];
 const clients=[
@@ -35,7 +35,6 @@ let jobs=[
 {id:'JOB-2026-00121',order:'ORD-2026-00085',title:'Conference drawstring backpacks',client:5,product:'Drawstring Backpack',category:'Backpacks',qty:5000,price:19500,currency:'USD',phase:8,status:'Ready',health:'On Track',progress:82,owner:'Chen Mei',coordinator:'Xu Na',delivery:'2026-08-04',priority:'High',next:'Complete shipment booking',milestone:'Shipment Completed',attention:false},
 {id:'JOB-2026-00120',order:'ORD-2026-00084',title:'Silicone wristbands — 6 colour mix',client:6,product:'Silicone Wristband',category:'Wristbands',qty:20000,price:9800,currency:'USD',phase:9,status:'Waiting for Payment',health:'Needs Attention',progress:91,owner:'Zhang Min',coordinator:'Yang Lei',delivery:'2026-07-18',priority:'Medium',next:'Follow up overdue balance',milestone:'Payment Collected',attention:true},
 {id:'JOB-2026-00119',order:'',title:'Hotel staff polo shirts',client:10,product:'Polo Shirt',category:'Garments',qty:1800,price:0,currency:'USD',phase:3,status:'Negotiation',health:'On Track',progress:24,owner:'Chen Mei',coordinator:'Li Wei',delivery:'2026-09-18',priority:'Medium',next:'Revise quotation pricing',milestone:'Client Confirmation Received',attention:false},
-{id:'JOB-2026-00118',order:'ORD-2026-00083',title:'Retail launch canvas tote bags',client:8,product:'Canvas Tote Bag',category:'Bags',qty:6000,price:27600,currency:'USD',phase:10,status:'Completed',health:'Completed',progress:100,owner:'Zhang Min',coordinator:'Li Wei',delivery:'2026-07-12',priority:'Medium',next:'Closed',milestone:'Payment Collected',attention:false},
 {id:'JOB-2026-00117',order:'ORD-2026-00082',title:'School house-colour wristbands',client:9,product:'Debossed Wristband',category:'Wristbands',qty:7500,price:6900,currency:'USD',phase:8,status:'In Transit',health:'On Track',progress:86,owner:'Chen Mei',coordinator:'Xu Na',delivery:'2026-08-02',priority:'Medium',next:'Monitor DHL delivery',milestone:'Delivery Confirmed',attention:false},
 {id:'JOB-2026-00116',order:'',title:'Festival staff badge lanyards',client:7,product:'Printed Lanyard',category:'Lanyards',qty:3500,price:0,currency:'USD',phase:2,status:'Submitted',health:'On Track',progress:18,owner:'Zhang Min',coordinator:'Chen Mei',delivery:'2026-09-02',priority:'Low',next:'Await quotation response',milestone:'Client Confirmation Received',attention:false},
 {id:'JOB-2026-00115',order:'ORD-2026-00081',title:'Premium laptop backpacks',client:4,product:'Laptop Backpack',category:'Backpacks',qty:1500,price:47250,currency:'USD',phase:5,status:'Revision Required',health:'At Risk',progress:39,owner:'Chen Mei',coordinator:'Liu Fang',delivery:'2026-08-25',priority:'High',next:'Artwork revision v3',milestone:'Artwork Approved',attention:true},
@@ -94,6 +93,17 @@ let notifications=[
 {id:6,title:'Swatch revision uploaded',text:'Supplier uploaded the second cap-colour swatch.',time:'Yesterday',read:false,type:'file',job:'JOB-2026-00111'},
 {id:7,title:'Payment received',text:'USD 12,240 recorded against JOB-2026-00112.',time:'Yesterday',read:true,type:'payment',job:'JOB-2026-00112'}
 ];
+// Production safety: this file still provides legacy helper/template
+// functions used by the modular runtime, but its historical demo operational
+// records must never appear as real workspace data. All Jobs, Tasks, Clients,
+// Documents and Notifications come only from authenticated Laravel APIs.
+const FLOWTRACK_PROTOTYPE_DEMO_WRITES_ENABLED = false;
+clients.splice(0, clients.length);
+jobs.splice(0, jobs.length);
+tasks.splice(0, tasks.length);
+docs.splice(0, docs.length);
+notifications.splice(0, notifications.length);
+
 const translations={en:{workspace:'Workspace',dashboard:'Dashboard',myWork:'My Work',jobs:'Jobs',clients:'Clients',board:'Board',documents:'Documents',reports:'Reports',administration:'Administration',notifications:'Notifications',setup:'Setup',workflowsetup:'Workflow Setup',masterdata:'Master Data',newJob:'New Job'},zh:{workspace:'工作区',dashboard:'管理仪表板',myWork:'我的工作',jobs:'工作订单',clients:'客户',board:'看板',documents:'文件档案',reports:'报告',administration:'管理',notifications:'通知',setup:'系统设置',newJob:'新建工作'}};
 let lang='en',currentPage='dashboard',boardMode='jobs',jobFilter={search:'',phase:'',health:'',client:''};
 const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
@@ -121,6 +131,7 @@ function phaseShortFor(j,index=j?.phase){const wf=getWorkflow(j?.workflow||'stan
 function milestoneForPhase(workflowId,phaseIndex){const list=workflowPhaseList(getWorkflow(workflowId));const next=list[Math.min(Number(phaseIndex)+1,Math.max(0,list.length-1))];return next?.exit||'Job Completed'}
 function nextActionForPhase(workflowId,phaseIndex){const phase=workflowPhaseList(getWorkflow(workflowId))[Number(phaseIndex)];if(!phase)return 'Review Job';const map={'Quotation':'Review client specifications','Order Confirmation':'Confirm order details and upload PO','Artwork':'Prepare or review artwork','Swatch':'Prepare and submit sample','Production':'Update production milestone','Shipment':'Prepare shipment and tracking','Invoice':'Prepare invoice and payment follow-up'};return map[phase.taskPack]||'Review current phase'}
 function activateTaskPackForJob(j,phaseIndex,source='Phase activation'){
+ if(!FLOWTRACK_PROTOTYPE_DEMO_WRITES_ENABLED)return 0;
  const pack=phasePackFor(j.workflow||'standard',phaseIndex);if(!pack||!taskTemplates[pack])return 0;
  const existing=tasks.some(t=>t.job===j.id&&t.phase===pack&&t.activationPhase===phaseIndex);if(existing)return 0;
  taskTemplates[pack].forEach((title,i)=>{const assignee=users[(i+2)%users.length];tasks.unshift({id:'TSK-'+taskId++,job:j.id,title,status:i===0?'Ready':'Not Started',assignee:assignee.name,dept:assignee.dept,due:new Date(Date.parse(j.delivery)-Math.max(1,(10-i))*86400000).toISOString().slice(0,10),priority:j.priority,progress:0,phase:pack,activationPhase:phaseIndex,attention:false,checklist:[{text:'Confirm required information',done:false},{text:'Upload supporting file',done:false},{text:'Add completion comment',done:false}],comments:[{user:'Li Wei',text:`Task created automatically from ${pack} Task Pack. ${source}.`,time:'Just now'}]})});
@@ -172,7 +183,7 @@ function renderBoard(){
  $('#page-board').innerHTML=`<div class="page-head"><div><h1>Workflow Board</h1><p>Drag cards to update phase or task status</p></div><div class="actions"><button class="ghost" id="boardFilter">Filters</button><button class="primary" id="boardCreate">＋ New Job</button></div></div><div class="board-tabs"><button class="tab-btn ${boardMode==='tasks'?'active':''}" data-boardmode="tasks">Task Board</button><button class="tab-btn ${boardMode==='jobs'?'active':''}" data-boardmode="jobs">Job Phase Board</button></div><div id="kanbanArea"></div>`;
  renderKanban();$$('[data-boardmode]').forEach(b=>b.addEventListener('click',()=>{boardMode=b.dataset.boardmode;renderBoard()}));$('#boardCreate').addEventListener('click',openJobModal);$('#boardFilter').addEventListener('click',()=>showToast('Use Jobs and My Work filters for detailed saved views.'));
 }
-function renderKanban(){const area=$('#kanbanArea');if(boardMode==='tasks'){const cols=['Ready','In Progress','Waiting for Client','Revision Required','Blocked','Completed'];area.innerHTML=`<div class="kanban">${cols.map(c=>`<div class="kanban-col"><div class="kanban-head"><span>${c}</span><span class="count">${tasks.filter(t=>t.status===c).length}</span></div><div class="kanban-list" data-drop-status="${c}">${tasks.filter(t=>t.status===c).slice(0,12).map(t=>`<article class="kanban-card" draggable="true" data-task="${t.id}"><span class="badge ${t.priority==='Critical'?'b-red':t.priority==='High'?'b-amber':'b-gray'}">${t.priority}</span><div class="kanban-card-title">${t.title}</div><div class="kanban-job">${t.job} · ${t.phase}</div><div class="kanban-meta"><span class="avatar" style="width:25px;height:25px;font-size:9px">${userInitials(t.assignee)}</span><span class="due ${dueClass(t.due)} small">${formatDate(t.due)}</span></div></article>`).join('')}</div></div>`).join('')}</div>`}else{const cols=[0,1,3,5,6,7,8,9];area.innerHTML=`<div class="kanban" style="grid-template-columns:repeat(8,minmax(230px,1fr))">${cols.map(i=>`<div class="kanban-col"><div class="kanban-head"><span>${phaseShort[i]}</span><span class="count">${jobs.filter(j=>j.phase===i).length}</span></div><div class="kanban-list" data-drop-phase="${i}">${jobs.filter(j=>j.phase===i).map(j=>`<article class="kanban-card" draggable="true" data-job="${j.id}">${healthBadge(j.health,j.healthReason)}<div class="kanban-card-title">${j.title}</div><div class="kanban-job">${j.id} · ${clientName(j.client)}</div><div class="kanban-meta"><span class="avatar" style="width:25px;height:25px;font-size:9px">${userInitials(j.coordinator)}</span><span class="small">${j.progress}%</span></div></article>`).join('')}</div></div>`).join('')}</div>`}
+function renderKanban(){const area=$('#kanbanArea');if(boardMode==='tasks'){const cols=['Ready','In Progress','Waiting for Client','Revision Required','Blocked','Completed'];area.innerHTML=`<div class="kanban">${cols.map(c=>`<div class="kanban-col"><div class="kanban-head" style="${flowtrackMasterToneStyle(flowtrackTaskStatusColor(c), { backgroundAlpha: 0.055, borderAlpha: 0.2 })}"><span>${c}</span><span class="count">${tasks.filter(t=>t.status===c).length}</span></div><div class="kanban-list" data-drop-status="${c}">${tasks.filter(t=>t.status===c).slice(0,12).map(t=>`<article class="kanban-card" draggable="true" data-task="${t.id}">${priorityBadge(t.priority, t.priorityColor)}<div class="kanban-card-title">${t.title}</div><div class="kanban-job">${t.job} · ${t.phase}</div><div class="kanban-meta"><span class="avatar" style="width:25px;height:25px;font-size:9px">${userInitials(t.assignee)}</span><span class="due ${dueClass(t.due)} small">${formatDate(t.due)}</span></div></article>`).join('')}</div></div>`).join('')}</div>`}else{const cols=[0,1,3,5,6,7,8,9];area.innerHTML=`<div class="kanban" style="grid-template-columns:repeat(8,minmax(230px,1fr))">${cols.map(i=>`<div class="kanban-col"><div class="kanban-head"><span>${phaseShort[i]}</span><span class="count">${jobs.filter(j=>j.phase===i).length}</span></div><div class="kanban-list" data-drop-phase="${i}">${jobs.filter(j=>j.phase===i).map(j=>`<article class="kanban-card" draggable="true" data-job="${j.id}">${healthBadge(j.health,j.healthReason)}<div class="kanban-card-title">${j.title}</div><div class="kanban-job">${j.id} · ${clientName(j.client)}</div><div class="kanban-meta"><span class="avatar" style="width:25px;height:25px;font-size:9px">${userInitials(j.coordinator)}</span><span class="small">${j.progress}%</span></div></article>`).join('')}</div></div>`).join('')}</div>`}
  let dragged=null;$$('.kanban-card').forEach(c=>{c.addEventListener('dragstart',()=>{dragged=c;c.classList.add('dragging')});c.addEventListener('dragend',()=>c.classList.remove('dragging'))});$$('.kanban-list').forEach(l=>{l.addEventListener('dragover',e=>e.preventDefault());l.addEventListener('drop',()=>{if(!dragged)return;if(boardMode==='tasks'){const t=tasks.find(x=>x.id===dragged.dataset.task);t.status=l.dataset.dropStatus;t.progress=t.status==='Completed'?100:Math.max(t.progress,35)}else{const j=jobs.find(x=>x.id===dragged.dataset.job);const newPhase=Number(l.dataset.dropPhase);if(newPhase>j.phase+1){showToast('Complete required phase controls before skipping ahead.');return}j.phase=newPhase;j.progress=Math.max(j.progress,Math.round(newPhase/10*100))}renderKanban();showToast('Board updated successfully.')})});bindCommon();
 }
 function renderDocuments(){
@@ -268,7 +279,7 @@ function createJob(draft){
  const nextNum=126+jobs.length,id='JOB-2026-'+String(nextNum).padStart(5,'0'),order=startPhase>=4?'ORD-2026-'+String(90+jobs.length).padStart(5,'0'):'';
  const skippedPhases=Array.from({length:startPhase},(_,i)=>i);
  const j={id,order,title,client:Number($('#newJobClient').value),product,category:$('#newJobCategory').value,qty:Number($('#newJobQty').value),price:0,currency:'USD',workflow:workflowId,phase:startPhase,status:draft?'Draft':(startPhase===0?'New':'In Progress'),health:'On Track',progress:draft?0:Math.min(95,Math.max(4,Math.round(startPhase/Math.max(1,wf.phases.length-1)*100))),owner:$('#newJobOwner').value,coordinator:'Li Wei',delivery:$('#newJobDelivery').value,priority:$('#newJobPriority').value,next:nextActionForPhase(workflowId,startPhase),milestone:milestoneForPhase(workflowId,startPhase),attention:false,skippedPhases,startHandling:startPhase>0?handling:'Normal start',startReason:reason,createdFromPhase:startPhase,activity:[{title:'Job created',text:startPhase>0?`Job created directly at ${wf.phases[startPhase].name}. Earlier phases recorded as: ${handling}. Reason: ${reason}`:'Job created from the first workflow stage.',time:'Just now'}]};
- jobs.unshift(j);let created=0;if(!draft)created=activateTaskPackForJob(j,startPhase,'Job creation');closeAll();showToast(draft?'Draft Job saved.':`Job created at ${wf.phases[startPhase].name}. ${created} tasks activated.`);navigate('jobs');
+ if(!FLOWTRACK_PROTOTYPE_DEMO_WRITES_ENABLED){showToast('Please wait for the live Job module to finish loading.');return;}jobs.unshift(j);let created=0;if(!draft)created=activateTaskPackForJob(j,startPhase,'Job creation');closeAll();showToast(draft?'Draft Job saved.':`Job created at ${wf.phases[startPhase].name}. ${created} tasks activated.`);navigate('jobs');
 }
 function openJob(id){const j=jobs.find(x=>x.id===id);if(!j)return;const jt=tasks.filter(t=>t.job===id),jd=docs.filter(d=>d.job===id);$('#detailDrawer').innerHTML=`<div class="drawer-head"><div><div class="small muted">${j.id} ${j.order?'· '+j.order:''}</div><h2>${j.title}</h2><div>${healthBadge(j.health,j.healthReason)} ${statusBadge(j.status)}</div></div><button class="close-btn" data-close>×</button></div><div class="drawer-body"><div class="detail-tabs">${['Overview','Workflow','Tasks','Quotation','Artwork','Production','Shipment','Invoice','Documents','Activity'].map((x,i)=>`<button class="detail-tab ${i===0?'active':''}" data-detailtab="${i}">${x}</button>`).join('')}</div><div id="jobDetailPanels">${jobPanels(j,jt,jd)}</div></div>`;openOverlay();$('#detailDrawer').classList.add('open');$$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));$$('[data-detailtab]').forEach(b=>b.addEventListener('click',()=>{$$('[data-detailtab]').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.detail-panel').forEach(x=>x.classList.remove('active'));$('#detailPanel'+b.dataset.detailtab).classList.add('active')}));bindCommon();
 }
@@ -291,7 +302,7 @@ function jobPanels(j,jt,jd){
 <section id="detailPanel9" class="detail-panel">${activity.concat(notifications.filter(n=>n.job===j.id)).concat(activity.length?[]:[{title:'Job created',text:'Request received and Job record created.',time:'Jul 8, 2026'}]).map((n,i)=>`<div class="activity"><span class="avatar">${userInitials(users[(i+1)%users.length].name)}</span><div><div class="activity-text"><b>${n.title}</b><br>${n.text}</div><div class="activity-time">${n.time}</div></div></div>`).join('')}</section>`;
 }
 function versionTimeline(title,items){return `<div class="section-head"><h3>${title} Version History</h3><button class="primary">＋ New Version</button></div>${items.map((x,i)=>`<div class="attention-item"><span class="signal ${i===items.length-1?'amber':'purple'}"></span><div><div class="item-title">${x[0]}</div><div class="item-meta">${x[2]} · ${x[3]}</div></div>${statusBadge(x[1])}</div>`).join('')}`}
-function openTask(id){const t=tasks.find(x=>x.id===id),j=jobs.find(x=>x.id===t.job);$('#detailDrawer').innerHTML=`<div class="drawer-head"><div><div class="small muted">${t.id} · ${t.job}</div><h2>${t.title}</h2><div>${statusBadge(t.status)} <span class="badge ${t.priority==='Critical'?'b-red':t.priority==='High'?'b-amber':'b-gray'}">${t.priority}</span></div></div><button class="close-btn" data-close>×</button></div><div class="drawer-body"><div class="summary-grid"><div class="summary-box"><span>Job</span><b>${j.title}</b></div><div class="summary-box"><span>Assignee</span><b>${t.assignee}</b></div><div class="summary-box"><span>Due Date</span><b class="${dueClass(t.due)}">${formatDate(t.due)}</b></div></div><div class="form-grid" style="margin-top:18px"><div class="field"><label>Status</label><select id="taskUpdateStatus">${['Not Started','Ready','In Progress','Waiting for Client','Waiting for Supplier','Waiting for Internal Review','Revision Required','Blocked','On Hold','Completed'].map(s=>`<option ${s===t.status?'selected':''}>${s}</option>`).join('')}</select></div><div class="field"><label>Assignee</label><select id="taskUpdateAssignee">${users.map(u=>`<option ${u.name===t.assignee?'selected':''}>${u.name}</option>`).join('')}</select></div><div class="field"><label>Due Date</label><input type="date" id="taskUpdateDueDate" value="${t.due.split('T')[0]}"></div><div class="field full"><label>Progress: <b id="progressValue">${t.progress}%</b></label><input id="taskProgress" type="range" min="0" max="100" value="${t.progress}"></div></div><div class="section-head"><h3>Checklist</h3><span class="small muted">${t.checklist.filter(x=>x.done).length}/${t.checklist.length} complete</span></div>${t.checklist.map((c,i)=>`<label class="check-row"><input class="task-check" data-check="${i}" type="checkbox" ${c.done?'checked':''}> <span>${c.text}</span></label>`).join('')}<div class="field" style="margin-top:18px"><label>Update comment</label><textarea id="taskComment" rows="3" placeholder="Add progress, decision, blocker or next action…"></textarea></div><label class="check-row"><input id="taskAttention" type="checkbox" ${t.attention?'checked':''}> <span>Mark as attention needed</span></label><div class="section-head" style="margin-top:18px"><h3>Activity & Comments</h3></div>${t.comments.map(c=>`<div class="comment"><span class="avatar">${userInitials(c.user)}</span><div><b>${c.user}</b><div style="margin-top:4px">${c.text}</div><div class="small muted" style="margin-top:4px">${c.time}</div></div></div>`).join('')}<button class="primary" id="saveTaskUpdate" style="width:100%;margin-top:18px">Save</button></div>`;openOverlay();$('#detailDrawer').classList.add('open');$$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));$('#taskProgress').addEventListener('input',e=>$('#progressValue').textContent=e.target.value+'%');$('#saveTaskUpdate').addEventListener('click',()=>{const status=$('#taskUpdateStatus').value,comment=$('#taskComment').value.trim();if((status==='Blocked'||$('#taskAttention').checked)&&!comment){showToast('Please add a short reason for the blocker or attention flag.');return}t.status=status;t.assignee=$('#taskUpdateAssignee').value;t.due=$('#taskUpdateDueDate').value;t.progress=Number($('#taskProgress').value);if(status==='Completed')t.progress=100;t.attention=$('#taskAttention').checked;$$('.task-check').forEach(c=>t.checklist[Number(c.dataset.check)].done=c.checked);if(comment)t.comments.unshift({user:'Li Wei',text:comment,time:'Just now'});closeAll();renderPage(currentPage);showToast('Task update saved.')})}
+function openTask(id){const t=tasks.find(x=>x.id===id),j=jobs.find(x=>x.id===t.job);$('#detailDrawer').innerHTML=`<div class="drawer-head"><div><div class="small muted">${t.id} · ${t.job}</div><h2>${t.title}</h2><div>${statusBadge(t.status)} ${priorityBadge(t.priority, t.priorityColor)}</div></div><button class="close-btn" data-close>×</button></div><div class="drawer-body"><div class="summary-grid"><div class="summary-box"><span>Job</span><b>${j.title}</b></div><div class="summary-box"><span>Assignee</span><b>${t.assignee}</b></div><div class="summary-box"><span>Due Date</span><b class="${dueClass(t.due)}">${formatDate(t.due)}</b></div></div><div class="form-grid" style="margin-top:18px"><div class="field"><label>Status</label><select id="taskUpdateStatus">${['Not Started','Ready','In Progress','Waiting for Client','Waiting for Supplier','Waiting for Internal Review','Revision Required','Blocked','On Hold','Completed'].map(s=>`<option ${s===t.status?'selected':''}>${s}</option>`).join('')}</select></div><div class="field"><label>Assignee</label><select id="taskUpdateAssignee">${users.map(u=>`<option ${u.name===t.assignee?'selected':''}>${u.name}</option>`).join('')}</select></div><div class="field"><label>Due Date</label><input type="date" id="taskUpdateDueDate" value="${t.due.split('T')[0]}"></div><div class="field full"><label>Progress: <b id="progressValue">${t.progress}%</b></label><input id="taskProgress" type="range" min="0" max="100" value="${t.progress}"></div></div><div class="section-head"><h3>Checklist</h3><span class="small muted">${t.checklist.filter(x=>x.done).length}/${t.checklist.length} complete</span></div>${t.checklist.map((c,i)=>`<label class="check-row"><input class="task-check" data-check="${i}" type="checkbox" ${c.done?'checked':''}> <span>${c.text}</span></label>`).join('')}<div class="field" style="margin-top:18px"><label>Update comment</label><textarea id="taskComment" rows="3" placeholder="Add progress, decision, blocker or next action…"></textarea></div><label class="check-row"><input id="taskAttention" type="checkbox" ${t.attention?'checked':''}> <span>Mark as attention needed</span></label><div class="section-head" style="margin-top:18px"><h3>Activity & Comments</h3></div>${t.comments.map(c=>`<div class="comment"><span class="avatar">${userInitials(c.user)}</span><div><b>${c.user}</b><div style="margin-top:4px">${c.text}</div><div class="small muted" style="margin-top:4px">${c.time}</div></div></div>`).join('')}<button class="primary" id="saveTaskUpdate" style="width:100%;margin-top:18px">Save</button></div>`;openOverlay();$('#detailDrawer').classList.add('open');$$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));$('#taskProgress').addEventListener('input',e=>$('#progressValue').textContent=e.target.value+'%');$('#saveTaskUpdate').addEventListener('click',()=>{const status=$('#taskUpdateStatus').value,comment=$('#taskComment').value.trim();if((status==='Blocked'||$('#taskAttention').checked)&&!comment){showToast('Please add a short reason for the blocker or attention flag.');return}t.status=status;t.assignee=$('#taskUpdateAssignee').value;t.due=$('#taskUpdateDueDate').value;t.progress=Number($('#taskProgress').value);if(status==='Completed')t.progress=100;t.attention=$('#taskAttention').checked;$$('.task-check').forEach(c=>t.checklist[Number(c.dataset.check)].done=c.checked);if(comment)t.comments.unshift({user:'Li Wei',text:comment,time:'Just now'});closeAll();renderPage(currentPage);showToast('Task update saved.')})}
 function openClient(id){const c=clients.find(x=>x.id===Number(id)),cj=jobs.filter(j=>j.client===c.id);$('#detailDrawer').innerHTML=`<div class="drawer-head"><div class="client-head"><div class="company-logo">${c.code}</div><div><div class="small muted">Client</div><h2>${c.name}</h2><div class="muted">${c.country}</div></div></div><button class="close-btn" data-close>×</button></div><div class="drawer-body"><div class="summary-grid"><div class="summary-box"><span>Primary Contact</span><b>${c.contact}</b></div><div class="summary-box"><span>Account Manager</span><b>${c.manager}</b></div><div class="summary-box"><span>Outstanding</span><b>${currency(c.outstanding)}</b></div></div><div class="section-head" style="margin-top:20px"><h3>Contact Information</h3></div><div class="card" style="padding:14px"><b>${c.contact}</b><div class="muted" style="margin-top:4px">${c.email}<br>Preferred language: English</div></div><div class="section-head" style="margin-top:20px"><h3>Active Jobs</h3><button class="primary" data-new-client-job="${c.id}">＋ New Job</button></div>${cj.map(j=>`<div class="attention-item" data-job="${j.id}"><span class="signal ${j.attention?'red':'amber'}"></span><div><div class="item-title">${j.title}</div><div class="item-meta">${j.id} · ${phaseShort[j.phase]} · ${j.progress}%</div></div>${healthBadge(j.health,j.healthReason)}</div>`).join('')}</div>`;openOverlay();$('#detailDrawer').classList.add('open');$$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));bindCommon()}
 function openDoc(id){const d=docs.find(x=>x.id===id);$('#detailDrawer').innerHTML=`<div class="drawer-head"><div><div class="small muted">${d.type} · ${d.version}</div><h2>${d.name}</h2><div>${d.final?'<span class="badge b-green">Final Document</span>':'<span class="badge b-gray">Working Version</span>'}</div></div><button class="close-btn" data-close>×</button></div><div class="drawer-body"><div class="card" style="height:260px;display:grid;place-items:center;background:#f5f7fa"><div style="text-align:center"><div class="doc-icon" style="margin:auto auto 10px">PDF</div><b>Document preview</b><div class="muted small">Static placeholder in this HTML prototype</div></div></div><div class="summary-grid" style="margin-top:16px"><div class="summary-box"><span>Related Job</span><b>${d.job}</b></div><div class="summary-box"><span>Client</span><b>${clientName(d.client)}</b></div><div class="summary-box"><span>Uploaded</span><b>${formatDate(d.date)}</b></div></div><div class="section-head" style="margin-top:20px"><h3>Version History</h3><button class="primary" id="downloadDoc">Download</button></div>${[3,2,1].map(v=>`<div class="attention-item"><span class="signal purple"></span><div><div class="item-title">${d.name.replace(/v\d/,'v'+v)}</div><div class="item-meta">Version v${v} · ${d.uploadedBy}</div></div>${v===3?'<span class="badge b-green">Current</span>':'<button class="mini-btn">View</button>'}</div>`).join('')}</div>`;openOverlay();$('#detailDrawer').classList.add('open');$$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));$('#downloadDoc').addEventListener('click',()=>showToast('Sample document download simulated.'))}
 function bindCommon(){
@@ -302,7 +313,7 @@ function bindCommon(){
 function updateBadges(){const unread=notifications.filter(n=>!n.read).length;$('#notificationBadge').textContent=unread;$('#myWorkBadge').textContent=tasks.filter(t=>t.status!=='Completed'&&['Li Wei','Chen Mei'].includes(t.assignee)).length}
 function formatDate(d){if(!d)return'—';return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
 function applyLanguage(){lang=lang==='en'?'zh':'en';$$('[data-i18n]').forEach(el=>el.textContent=translations[lang][el.dataset.i18n]||el.textContent);$('#languageBtn').textContent=lang==='en'?'中文':'EN';showToast(lang==='zh'?'界面已切换为简体中文。':'Interface changed to English.')}
-$$('.nav-btn,.mobile-bottom button').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.page)));$$('[data-page-jump]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.pageJump)));$('#quickCreateBtn')?.addEventListener('click',openJobModal);$('#languageBtn').addEventListener('click',applyLanguage);$('#overlay').addEventListener('click',closeAll);$('#mobileMenu').addEventListener('click',()=>{$('#sidebar').classList.add('open');$('#sidebarShade').classList.add('open')});$('#sidebarShade').addEventListener('click',()=>{$('#sidebar').classList.remove('open');$('#sidebarShade').classList.remove('open')});$('#globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){jobFilter.search=e.target.value;navigate('jobs')}});
+$$('.nav-btn[data-page]:not(a),.mobile-bottom button[data-page]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();navigate(b.dataset.page)}));$$('[data-page-jump]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.pageJump)));$('#quickCreateBtn')?.addEventListener('click',openJobModal);$('#languageBtn').addEventListener('click',applyLanguage);$('#overlay').addEventListener('click',closeAll);$('#mobileMenu').addEventListener('click',()=>{$('#sidebar').classList.add('open');$('#sidebarShade').classList.add('open')});$('#sidebarShade').addEventListener('click',()=>{$('#sidebar').classList.remove('open');$('#sidebarShade').classList.remove('open')});$('#globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){jobFilter.search=e.target.value;navigate('jobs')}});
 
 function flowtrackToArray(value) {
         if (Array.isArray(value)) return value;
@@ -338,6 +349,102 @@ function flowtrackToArray(value) {
         if (typeof value === 'object') return Object.values(value);
         return [];
     }
+
+    function flowtrackNormalizeHexColor(value, fallback = '') {
+        const candidate = String(value || '').trim().toUpperCase();
+        return /^#[0-9A-F]{6}$/.test(candidate) ? candidate : fallback;
+    }
+
+    function flowtrackDefaultTaskStatusColor(value) {
+        const normalized = String(value?.code || value?.name || value || '').trim().toUpperCase();
+        if (/^(CMP|COMPLETED|COMPLETE|DONE|APPROVED)$/.test(normalized)) return '#16A34A';
+        if (/^(BLK|BLOCKED)$/.test(normalized)) return '#DC2626';
+        if (/^(REV|REVISION REQUIRED|ATTN|ATTENTION)$/.test(normalized)) return '#EF4444';
+        if (/^(HOLD|ON HOLD)$/.test(normalized)) return '#A855F7';
+        if (/^(WC|WAITING FOR CLIENT)$/.test(normalized)) return '#F59E0B';
+        if (/^(WS|WAITING FOR SUPPLIER)$/.test(normalized)) return '#F97316';
+        if (/^(WIA|WAITING FOR INTERNAL APPROVAL|WAITING FOR INTERNAL REVIEW)$/.test(normalized)) return '#8B5CF6';
+        if (/^(IP|IN PROGRESS)$/.test(normalized)) return '#4F46E5';
+        if (/^(READY)$/.test(normalized)) return '#2563EB';
+        return '#64748B';
+    }
+
+    function flowtrackDefaultPriorityColor(value) {
+        const normalized = String(value?.code || value?.name || value || '').trim().toUpperCase();
+        if (/^(CRI|CRITICAL|URGENT)$/.test(normalized)) return '#DC2626';
+        if (/^(HIG|HIGH)$/.test(normalized)) return '#F97316';
+        if (/^(MED|MEDIUM|NORMAL)$/.test(normalized)) return '#F59E0B';
+        if (/^(LOW)$/.test(normalized)) return '#16A34A';
+        return '#64748B';
+    }
+
+    function flowtrackMasterRecordFor(key, value) {
+        const records = flowtrackToArray(masterData?.[key]);
+        if (value && typeof value === 'object') {
+            const id = Number(value.id ?? value.dbId ?? 0);
+            if (id) {
+                const byId = records.find((record) => Number(record?.id) === id);
+                if (byId) return byId;
+            }
+        }
+        const raw = String(value?.code || value?.name || value || '').trim().toUpperCase();
+        if (!raw) return null;
+        return records.find((record) => String(record?.code || '').trim().toUpperCase() === raw
+            || String(record?.name || '').trim().toUpperCase() === raw) || null;
+    }
+
+    function flowtrackTaskStatusColor(value, explicitColor = '') {
+        const record = flowtrackMasterRecordFor('taskStatuses', value);
+        const direct = typeof value === 'object' ? (value.color || value.statusColor) : '';
+        return flowtrackNormalizeHexColor(record?.color || explicitColor || direct, flowtrackDefaultTaskStatusColor(record || value));
+    }
+
+    function flowtrackPriorityColor(value, explicitColor = '') {
+        const record = flowtrackMasterRecordFor('priorities', value);
+        const direct = typeof value === 'object' ? (value.color || value.priorityColor) : '';
+        return flowtrackNormalizeHexColor(record?.color || explicitColor || direct, flowtrackDefaultPriorityColor(record || value));
+    }
+
+    function flowtrackHexRgba(color, alpha = 1) {
+        const normalized = flowtrackNormalizeHexColor(color, '#64748B');
+        const red = parseInt(normalized.slice(1, 3), 16);
+        const green = parseInt(normalized.slice(3, 5), 16);
+        const blue = parseInt(normalized.slice(5, 7), 16);
+        return `rgba(${red},${green},${blue},${Math.max(0, Math.min(1, Number(alpha) || 0))})`;
+    }
+
+    function flowtrackMasterToneStyle(color, { backgroundAlpha = 0.11, borderAlpha = 0.28 } = {}) {
+        const normalized = flowtrackNormalizeHexColor(color, '#64748B');
+        return `color:${normalized};background:${flowtrackHexRgba(normalized, backgroundAlpha)};border-color:${flowtrackHexRgba(normalized, borderAlpha)};`;
+    }
+
+    function flowtrackMasterDotStyle(color) {
+        return `background:${flowtrackNormalizeHexColor(color, '#64748B')};`;
+    }
+
+    // Task Status badges across the maintained UI resolve their color from
+    // Master Data. Legacy semantic colors remain only as a safe fallback for
+    // existing workspaces that have not chosen colors yet.
+    function flowtrackStatusBadge(status, explicitColor = '') {
+        const label = String(status?.name || status || 'Not Started');
+        const color = flowtrackTaskStatusColor(status, explicitColor || status?.statusColor || '');
+        return `<span class="badge flowtrack-master-color-badge" style="${flowtrackMasterToneStyle(color)}">${safeHtml(label)}</span>`;
+    }
+    statusBadge = flowtrackStatusBadge;
+
+    function priorityBadge(priority, explicitColor = '') {
+        const label = String(priority?.name || priority || 'Medium');
+        const color = flowtrackPriorityColor(priority, explicitColor || priority?.priorityColor || '');
+        return `<span class="badge flowtrack-master-color-badge" style="${flowtrackMasterToneStyle(color)}">${safeHtml(label)}</span>`;
+    }
+
+    window.FlowtrackMasterColors = Object.freeze({
+        normalize: flowtrackNormalizeHexColor,
+        status: flowtrackTaskStatusColor,
+        priority: flowtrackPriorityColor,
+        toneStyle: flowtrackMasterToneStyle,
+        dotStyle: flowtrackMasterDotStyle,
+    });
 
     function flowtrackNormalizeWorkflow(workflow) {
         const source = workflow && typeof workflow === 'object' ? workflow : {};
@@ -584,11 +691,40 @@ function flowtrackToArray(value) {
     let sessionCheckNow = null;
     let notificationSignature;
     let notificationUnread = 0;
+    let notificationFeedRequestId = 0;
+    let notificationPageRequestId = 0;
+    let notificationPageLoaded = false;
+    let notificationPagination = {
+        currentPage: 1,
+        perPage: 20,
+        total: 0,
+        lastPage: 1,
+        from: 0,
+        to: 0,
+        hasMorePages: false,
+    };
     let workspaceDataVersion = null;
     let realtimeWorkspaceRefreshTimer = null;
     let realtimeWorkspaceRefreshInFlight = false;
     let bootstrapGeneration = 0;
     let bootstrapAppliedGeneration = 0;
+    // Operational list requests use their own generation. Background bootstrap
+    // refreshes must never invalidate an in-flight Clients/Jobs/Tasks/Documents
+    // page request; only a real mutation or a fresh application reset may do so.
+    let operationalGeneration = 0;
+
+    // My Work owns a stable, complete snapshot instead of sharing the paginated
+    // task array used by Board/Reports. This prevents scroll resets and repeated
+    // whole-dataset reloads when the user revisits My Work.
+    const FLOWTRACK_MYWORK_CACHE_TTL_MS = 90000;
+    let myWorkSnapshotTasks = [];
+    let myWorkSnapshotJobs = [];
+    let myWorkSnapshotClients = [];
+    let myWorkSnapshotLoaded = false;
+    let myWorkSnapshotLoadedAt = 0;
+    let myWorkSnapshotWorkspaceVersion = 0;
+    let myWorkSnapshotLoading = null;
+    let myWorkSnapshotSignature = '';
 
 
     function applyFlowtrackBranding(branding = flowtrackBranding) {
@@ -629,6 +765,8 @@ function flowtrackToArray(value) {
 
     function invalidateBootstrapLoads() {
         bootstrapGeneration += 1;
+        operationalGeneration += 1;
+        flowtrackInvalidateMyWorkSnapshotCache();
     }
 
     function hasOwnBootstrapField(payload, field) {
@@ -721,20 +859,50 @@ function flowtrackToArray(value) {
         }
     }
 
-    async function refreshNotificationFeed() {
-        const payload = await api('/flowtrack/notifications/feed?limit=50', { cache: 'no-store' });
-        replaceArray(notifications, payload?.notifications || []);
-        notificationUnread = Number(payload?.unread_count || notifications.filter((item) => !item.read).length);
+    function applyNotificationPagination(payload, requestedPage, requestedPerPage) {
+        const page = payload?.pagination || {};
+        notificationPagination = {
+            currentPage: Math.max(1, Number(page.current_page ?? requestedPage ?? 1) || 1),
+            perPage: Math.max(10, Number(page.per_page ?? requestedPerPage ?? 20) || 20),
+            total: Math.max(0, Number(page.total ?? 0) || 0),
+            lastPage: Math.max(1, Number(page.last_page ?? 1) || 1),
+            from: Math.max(0, Number(page.from ?? 0) || 0),
+            to: Math.max(0, Number(page.to ?? 0) || 0),
+            hasMorePages: Boolean(page.has_more_pages),
+        };
+        notificationPageLoaded = true;
+    }
+
+    async function refreshNotificationFeed(options = {}) {
+        const trackPagination = options.trackPagination ?? (currentPage === 'notifications');
+        const page = Math.max(1, Number(options.page ?? (trackPagination ? notificationPagination.currentPage : 1)) || 1);
+        const perPage = Math.max(10, Math.min(100, Number(options.perPage ?? (trackPagination ? notificationPagination.perPage : 50)) || 20));
+        const requestId = trackPagination ? ++notificationPageRequestId : ++notificationFeedRequestId;
+        const payload = await api(`/flowtrack/notifications/feed?page=${page}&per_page=${perPage}&_=${Date.now()}`, { cache: 'no-store' });
+        // Page requests and lightweight background refreshes have independent
+        // generations so a heartbeat can never cancel/replace pagination.
+        if (trackPagination ? requestId !== notificationPageRequestId : requestId !== notificationFeedRequestId) return payload;
+        notificationUnread = Number(payload?.unread_count ?? notificationUnread);
         notificationSignature = payload?.latest_signature ?? notificationSignature;
         notificationAccess = { ...notificationAccess, authorityView: Boolean(payload?.authority_view) };
+        if (!trackPagination) {
+            // Outside the Notifications screen we only need global badge/status
+            // metadata. Keep the last paginated rows intact; otherwise returning
+            // to page 2/3 could show the unrelated 50-row heartbeat feed.
+            notificationPageLoaded = false;
+            updateBadges();
+            return payload;
+        }
+        replaceArray(notifications, payload?.notifications || []);
+        applyNotificationPagination(payload, page, perPage);
         updateBadges();
-        if (currentPage === 'notifications') renderNotifications();
+        if (currentPage === 'notifications' && options.render !== false) renderNotifications();
         return payload;
     }
 
     function realtimeRefreshWouldInterruptEditing() {
         const route = typeof flowtrackInitialRoute === 'function' ? flowtrackInitialRoute() : null;
-        if (route && ['job-new', 'job-edit', 'client-new', 'client-edit', 'workflow-new', 'workflow-edit', 'task-pack-new', 'task-pack-edit'].includes(route.type)) {
+        if (route && ['job-new', 'job-edit', 'client-new', 'client-edit', 'workflow-new', 'workflow-edit', 'workflow-copy', 'task-pack-new', 'task-pack-edit'].includes(route.type)) {
             return true;
         }
 
@@ -748,7 +916,9 @@ function flowtrackToArray(value) {
         updateBadges();
 
         if (route && ['task', 'job', 'client'].includes(route.type) && typeof flowtrackOpenInitialRoute === 'function') {
-            flowtrackOpenInitialRoute(route);
+            void Promise.resolve(flowtrackOpenInitialRoute(route)).catch((error) => {
+                console.warn('FlowTrack could not refresh the open record.', error);
+            });
             return;
         }
 
@@ -762,6 +932,13 @@ function flowtrackToArray(value) {
 
     async function refreshWorkspaceDataSilently() {
         if (realtimeWorkspaceRefreshInFlight || document.hidden) return;
+        // Foreground navigation always wins. A realtime heartbeat may refresh
+        // after navigation finishes, but it must never compete with the page the
+        // user is actively opening.
+        if (window.FLOWTRACK_NAVIGATION_IN_FLIGHT) {
+            scheduleWorkspaceDataRefresh(900);
+            return;
+        }
         if (realtimeRefreshWouldInterruptEditing()) {
             scheduleWorkspaceDataRefresh(1500);
             return;
@@ -770,10 +947,25 @@ function flowtrackToArray(value) {
         realtimeWorkspaceRefreshInFlight = true;
         const route = typeof flowtrackInitialRoute === 'function' ? flowtrackInitialRoute() : null;
         const previousPage = currentPage;
+        const pathAtStart = window.location.pathname;
         try {
             const data = await loadBootstrap({ silent: true });
             if (!data) return;
+            // If the user navigated while the bootstrap request was in flight,
+            // do not force-refresh or repaint the page that was previously open.
+            if (window.FLOWTRACK_NAVIGATION_IN_FLIGHT || window.location.pathname !== pathAtStart) {
+                scheduleWorkspaceDataRefresh(900);
+                return;
+            }
+            if (flowtrackNormalizePageName(previousPage) === 'mywork') {
+                await flowtrackEnsurePageContext('mywork', { force: true });
+                await flowtrackEnsureMyWorkSnapshot({ force: true, background: true });
+                if (window.FLOWTRACK_NAVIGATION_IN_FLIGHT || window.location.pathname !== pathAtStart) return;
+                updateBadges();
+                return;
+            }
             await flowtrackEnsurePageData(previousPage, { force: true });
+            if (window.FLOWTRACK_NAVIGATION_IN_FLIGHT || window.location.pathname !== pathAtStart) return;
             refreshVisibleSurfaceAfterRealtime(route, previousPage);
         } catch (error) {
             console.warn('FlowTrack workspace background refresh failed.', error);
@@ -865,7 +1057,9 @@ function flowtrackToArray(value) {
         invalidateBootstrapLoads();
         const record = realtimeNotificationRecord(payload || {});
         if (!notifications.some((item) => String(item.id) === String(record.id))) {
-            notifications.unshift(record);
+            if (currentPage === 'notifications') notifications.unshift(record);
+            else notificationPageLoaded = false;
+            notificationUnread += 1;
         }
         updateBadges();
         showToast(`${record.title}${record.text ? `: ${record.text}` : ''}`);
@@ -1276,12 +1470,30 @@ function flowtrackToArray(value) {
             </div>`;
         }).join('');
 
-        page.innerHTML = `<div class="page-head"><div><h1>Notifications</h1><p>${notificationAccess.authorityView ? 'Workspace-wide' : 'Your'} assignment, Task, Workflow, document and health updates</p></div><div class="actions"><button class="ghost" id="markAllRead" type="button" ${notifications.some((item) => !item.read) ? '' : 'disabled'}>Mark all read</button></div></div>
-            <div class="card section-card"><div class="attention-list">${rows || '<div class="empty">You are all caught up.</div>'}</div></div>`;
+        const pagination = notificationPagination;
+        const paginationHtml = `<div class="jobs-v2-pagination notification-pagination">
+            <div class="jobs-v2-page-count">Showing <b>${pagination.total ? pagination.from : 0}</b>–<b>${pagination.to}</b> of <b>${pagination.total}</b> Notifications</div>
+            <label class="jobs-v2-page-size">Show <select id="notificationPageSize"><option value="10" ${pagination.perPage === 10 ? 'selected' : ''}>10</option><option value="20" ${pagination.perPage === 20 ? 'selected' : ''}>20</option><option value="30" ${pagination.perPage === 30 ? 'selected' : ''}>30</option><option value="50" ${pagination.perPage === 50 ? 'selected' : ''}>50</option></select> per page</label>
+            <div class="jobs-v2-page-buttons"><button type="button" id="notificationPrevPage" ${pagination.currentPage <= 1 ? 'disabled' : ''}>Previous</button><span>Page ${pagination.currentPage} of ${pagination.lastPage}</span><button type="button" id="notificationNextPage" ${pagination.currentPage >= pagination.lastPage ? 'disabled' : ''}>Next</button></div>
+        </div>`;
+
+        page.innerHTML = `<div class="page-head"><div><h1>Notifications</h1><p>${notificationAccess.authorityView ? 'Workspace-wide' : 'Your'} assignment, Task, Workflow, document and health updates</p></div><div class="actions"><button class="ghost" id="markAllRead" type="button" ${notificationUnread > 0 ? '' : 'disabled'}>Mark all read</button></div></div>
+            <div class="card section-card"><div class="attention-list">${rows || '<div class="empty">You are all caught up.</div>'}</div></div>${paginationHtml}`;
+
+        const loadNotificationPage = async (targetPage, perPage = pagination.perPage) => {
+            const safePage = Math.max(1, Math.min(Number(targetPage) || 1, Math.max(1, notificationPagination.lastPage)));
+            try {
+                await refreshNotificationFeed({ page: safePage, perPage, trackPagination: true });
+                page.scrollIntoView({ block: 'start', behavior: 'smooth' });
+            } catch (error) {
+                showToast(error.message || 'Unable to load notifications.');
+            }
+        };
 
         document.querySelector('#markAllRead')?.addEventListener('click', async () => {
             try {
                 await api('/flowtrack/notifications/read-all', { method: 'PATCH' });
+                notificationUnread = 0;
                 notifications.forEach((item) => { item.read = true; });
                 window.renderNotifications();
                 updateBadges();
@@ -1291,6 +1503,17 @@ function flowtrackToArray(value) {
             }
         });
 
+        document.querySelector('#notificationPrevPage')?.addEventListener('click', () => {
+            if (notificationPagination.currentPage > 1) void loadNotificationPage(notificationPagination.currentPage - 1);
+        });
+        document.querySelector('#notificationNextPage')?.addEventListener('click', () => {
+            if (notificationPagination.currentPage < notificationPagination.lastPage) void loadNotificationPage(notificationPagination.currentPage + 1);
+        });
+        document.querySelector('#notificationPageSize')?.addEventListener('change', (event) => {
+            const perPage = Math.max(10, Math.min(50, Number(event.target.value) || 20));
+            void loadNotificationPage(1, perPage);
+        });
+
         page.querySelectorAll('[data-notification-id]').forEach((row) => {
             row.addEventListener('click', async () => {
                 const notification = notifications.find((item) => String(item.id) === String(row.dataset.notificationId));
@@ -1298,8 +1521,9 @@ function flowtrackToArray(value) {
 
                 try {
                     if (!notification.read) {
-                        await api(`/flowtrack/notifications/${encodeURIComponent(notification.id)}/read`, { method: 'PATCH' });
+                        const readResult = await api(`/flowtrack/notifications/${encodeURIComponent(notification.id)}/read`, { method: 'PATCH' });
                         notification.read = true;
+                        notificationUnread = Math.max(0, Number(readResult?.unread_count ?? (notificationUnread - 1)) || 0);
                         updateBadges();
                     }
 
@@ -1376,8 +1600,9 @@ function flowtrackToArray(value) {
         applyCurrentUserIdentity();
     }
 
-    function applyBootstrap(data) {
+    function applyBootstrap(data, options = {}) {
         let derivedStateChanged = false;
+        const allowOperational = Boolean(options?.allowOperational);
 
         if (hasOwnBootstrapField(data, 'currentUser')) acceptCurrentUser(data.currentUser);
         if (hasOwnBootstrapField(data, 'users')) replaceArray(users, data.users);
@@ -1386,19 +1611,19 @@ function flowtrackToArray(value) {
         } else if (hasOwnBootstrapField(data, 'users') && !boardAssigneeUsers.length) {
             replaceArray(boardAssigneeUsers, data.users);
         }
-        if (hasOwnBootstrapField(data, 'clients')) replaceArray(clients, data.clients);
-        if (hasOwnBootstrapField(data, 'jobs')) replaceArray(jobs, data.jobs);
+        if (allowOperational && hasOwnBootstrapField(data, 'clients')) replaceArray(clients, data.clients);
+        if (allowOperational && hasOwnBootstrapField(data, 'jobs')) replaceArray(jobs, data.jobs);
         if (hasOwnBootstrapField(data, 'boardJobIds')) {
             boardJobIds = new Set(flowtrackToArray(data.boardJobIds).map((id) => Number(id)));
         }
         if (hasOwnBootstrapField(data, 'boardAccess')) {
             boardAccess = data.boardAccess || { isAdministrator: false, taskVisibility: 'assigned_job_tasks' };
         }
-        if (hasOwnBootstrapField(data, 'tasks')) {
+        if (allowOperational && hasOwnBootstrapField(data, 'tasks')) {
             replaceArray(tasks, data.tasks);
             tasks.forEach(flowtrackHydrateTaskAssignee);
         }
-        if (hasOwnBootstrapField(data, 'documents')) replaceArray(docs, data.documents);
+        if (allowOperational && hasOwnBootstrapField(data, 'documents')) replaceArray(docs, data.documents);
         if (hasOwnBootstrapField(data, 'notifications')) replaceArray(notifications, data.notifications);
         if (hasOwnBootstrapField(data, 'activities')) replaceArray(dashboardActivities, data.activities);
         if (hasOwnBootstrapField(data, 'workflows')) {
@@ -1417,7 +1642,14 @@ function flowtrackToArray(value) {
         }
         if (hasOwnBootstrapField(data, 'notificationRules')) notificationRules = flowtrackToArray(data.notificationRules);
         if (hasOwnBootstrapField(data, 'notificationAccess')) notificationAccess = data.notificationAccess || notificationAccess;
-        notificationUnread = notifications.filter((notification) => !notification.read).length;
+        if (hasOwnBootstrapField(data, 'notificationUnreadCount')) {
+            notificationUnread = Math.max(0, Number(data.notificationUnreadCount) || 0);
+        } else if (hasOwnBootstrapField(data, 'notifications') && notificationSignature === undefined) {
+            // Compatibility fallback for older cached payloads. Once the status
+            // endpoint has supplied the global count, never replace it with the
+            // unread count of only the currently loaded notification page.
+            notificationUnread = notifications.filter((notification) => !notification.read).length;
+        }
         const incomingWorkspaceVersion = Number(data.bootstrapVersion || 0);
         if (incomingWorkspaceVersion > 0) workspaceDataVersion = incomingWorkspaceVersion;
 
@@ -1471,9 +1703,9 @@ function flowtrackToArray(value) {
         if (hasOwnBootstrapField(data, 'notifications') || hasOwnBootstrapField(data, 'currentUser')) initializeRealtimeNotifications();
     }
 
-    async function loadBootstrapSegment(url, perPage = 50, generation = bootstrapGeneration, allPages = false, minimumRows = 0) {
+    async function loadBootstrapSegment(url, perPage = 50, generation = operationalGeneration, allPages = false, minimumRows = 0) {
         if (!url) return { rows: [], relatedJobs: [], relatedClients: [], pagination: null };
-        if (generation !== bootstrapGeneration) return null;
+        if (generation !== operationalGeneration) return null;
 
         const rows = [];
         const relatedJobs = [];
@@ -1489,7 +1721,7 @@ function flowtrackToArray(value) {
             const separator = url.includes('?') ? '&' : '?';
             const pageUrl = `${url}${separator}per_page=${encodeURIComponent(requestPageSize)}&page=${encodeURIComponent(pageNumber)}`;
             const page = await api(pageUrl, { cache: 'no-store' });
-            if (generation !== bootstrapGeneration) return null;
+            if (generation !== operationalGeneration) return null;
             if (!page || typeof page !== 'object') {
                 throw new Error('FlowTrack returned an invalid data page. Please reload once more.');
             }
@@ -1506,8 +1738,224 @@ function flowtrackToArray(value) {
         return { rows, relatedJobs, relatedClients, pagination };
     }
 
+    function flowtrackMyWorkCacheKey() {
+        const userId = Number(currentUser?.id || 0);
+        return userId > 0 ? `flowtrack:mywork:snapshot:v4:user:${userId}` : null;
+    }
+
+    function flowtrackMyWorkSnapshotFingerprint(taskRows = myWorkSnapshotTasks, jobRows = myWorkSnapshotJobs) {
+        const tasksKey = flowtrackToArray(taskRows).map((task) => [
+            task?.id,
+            task?.statusId ?? task?.status,
+            task?.due,
+            task?.assigneeId ?? task?.assignee,
+            task?.priorityId ?? task?.priority,
+            task?.progress,
+            task?.attention,
+            task?.updatedAt ?? task?.updated_at,
+            task?.completedAt ?? task?.completed_at,
+        ].join(':')).join('|');
+        const jobsKey = flowtrackToArray(jobRows).map((job) => [
+            job?.id,
+            job?.status,
+            job?.phaseId ?? job?.phase,
+            job?.progress,
+            job?.health,
+            job?.delivery,
+            job?.updatedAt ?? job?.updated_at,
+        ].join(':')).join('|');
+        return `${tasksKey}::${jobsKey}`;
+    }
+
+    function flowtrackMyWorkSnapshotFresh() {
+        if (!myWorkSnapshotLoaded) return false;
+        if ((Date.now() - myWorkSnapshotLoadedAt) > FLOWTRACK_MYWORK_CACHE_TTL_MS) return false;
+        const liveVersion = Number(workspaceDataVersion || 0);
+        return !(liveVersion > 0 && myWorkSnapshotWorkspaceVersion > 0 && liveVersion !== myWorkSnapshotWorkspaceVersion);
+    }
+
+    function flowtrackSaveMyWorkSnapshotCache() {
+        const key = flowtrackMyWorkCacheKey();
+        if (!key || !myWorkSnapshotLoaded) return;
+        try {
+            sessionStorage.setItem(key, JSON.stringify({
+                loadedAt: myWorkSnapshotLoadedAt,
+                workspaceVersion: myWorkSnapshotWorkspaceVersion,
+                source: 'database',
+                signature: myWorkSnapshotSignature,
+                tasks: myWorkSnapshotTasks,
+                jobs: myWorkSnapshotJobs,
+                clients: myWorkSnapshotClients,
+                summaryMetrics: summaryMetrics?.myWork ? { myWork: summaryMetrics.myWork, asOf: summaryMetrics.asOf } : null,
+            }));
+        } catch (_) {
+            // The in-memory snapshot remains valid if browser storage is blocked.
+        }
+    }
+
+    function flowtrackRestoreMyWorkSnapshotCache() {
+        if (myWorkSnapshotLoaded && flowtrackMyWorkSnapshotFresh()) return true;
+        const key = flowtrackMyWorkCacheKey();
+        if (!key) return false;
+        try {
+            const raw = sessionStorage.getItem(key);
+            if (!raw) return false;
+            const cached = JSON.parse(raw);
+            const loadedAt = Number(cached?.loadedAt || 0);
+            const cachedVersion = Number(cached?.workspaceVersion || 0);
+            if (String(cached?.source || '') !== 'database') {
+                sessionStorage.removeItem(key);
+                return false;
+            }
+            const liveVersion = Number(workspaceDataVersion || 0);
+            if (!loadedAt || (Date.now() - loadedAt) > FLOWTRACK_MYWORK_CACHE_TTL_MS) {
+                sessionStorage.removeItem(key);
+                return false;
+            }
+            if (liveVersion > 0 && cachedVersion > 0 && liveVersion !== cachedVersion) {
+                sessionStorage.removeItem(key);
+                return false;
+            }
+
+            replaceArray(myWorkSnapshotTasks, flowtrackToArray(cached?.tasks).map((task) => flowtrackHydrateTaskAssignee({ ...task })));
+            replaceArray(myWorkSnapshotJobs, flowtrackToArray(cached?.jobs));
+            replaceArray(myWorkSnapshotClients, flowtrackToArray(cached?.clients));
+            myWorkSnapshotLoaded = true;
+            myWorkSnapshotLoadedAt = loadedAt;
+            myWorkSnapshotWorkspaceVersion = cachedVersion || liveVersion;
+            myWorkSnapshotSignature = String(cached?.signature || flowtrackMyWorkSnapshotFingerprint());
+            flowtrackToArray(myWorkSnapshotJobs).forEach((job) => flowtrackUpsertRecord(jobs, job, false));
+            flowtrackToArray(myWorkSnapshotClients).forEach((client) => flowtrackUpsertRecord(clientLabels, client, false));
+            if (cached?.summaryMetrics?.myWork) {
+                summaryMetrics = {
+                    ...summaryMetrics,
+                    ...cached.summaryMetrics,
+                    myWork: cached.summaryMetrics.myWork,
+                };
+            }
+            return true;
+        } catch (_) {
+            try { sessionStorage.removeItem(key); } catch (_) {}
+            return false;
+        }
+    }
+
+    function flowtrackInvalidateMyWorkSnapshotCache() {
+        myWorkSnapshotLoadedAt = 0;
+        const key = flowtrackMyWorkCacheKey();
+        if (!key) return;
+        try { sessionStorage.removeItem(key); } catch (_) {}
+    }
+
+    function flowtrackCaptureMyWorkScroll() {
+        const canvas = document.querySelector('#page-mywork.active .ops-board-canvas');
+        return {
+            windowY: window.scrollY || document.documentElement.scrollTop || 0,
+            canvasTop: canvas?.scrollTop || 0,
+            canvasLeft: canvas?.scrollLeft || 0,
+        };
+    }
+
+    function flowtrackRestoreMyWorkScroll(scroll) {
+        if (!scroll) return;
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: scroll.windowY || 0, left: 0, behavior: 'auto' });
+            const canvas = document.querySelector('#page-mywork.active .ops-board-canvas');
+            if (canvas) {
+                canvas.scrollTop = scroll.canvasTop || 0;
+                canvas.scrollLeft = scroll.canvasLeft || 0;
+            }
+        });
+    }
+
+    function flowtrackApplyMyWorkSnapshot(payload) {
+        if (String(payload?.source || '') !== 'database' || payload?.readOnly !== true) {
+            throw new Error('My Work rejected a non-authoritative snapshot.');
+        }
+        const taskRows = flowtrackToArray(payload?.tasks).map((task) => flowtrackHydrateTaskAssignee({ ...task }));
+        const jobRows = flowtrackToArray(payload?.relatedJobs);
+        const clientRows = flowtrackToArray(payload?.relatedClients);
+
+        replaceArray(myWorkSnapshotTasks, taskRows);
+        replaceArray(myWorkSnapshotJobs, jobRows);
+        replaceArray(myWorkSnapshotClients, clientRows);
+        myWorkSnapshotLoaded = true;
+        myWorkSnapshotLoadedAt = Date.now();
+        myWorkSnapshotWorkspaceVersion = Number(payload?.workspaceVersion || workspaceDataVersion || 0);
+        myWorkSnapshotSignature = flowtrackMyWorkSnapshotFingerprint(taskRows, jobRows);
+
+        jobRows.forEach((job) => flowtrackUpsertRecord(jobs, job, false));
+        clientRows.forEach((client) => flowtrackUpsertRecord(clientLabels, client, false));
+
+        if (payload?.summaryMetrics && typeof payload.summaryMetrics === 'object') {
+            summaryMetrics = {
+                ...summaryMetrics,
+                ...payload.summaryMetrics,
+                myWork: payload.summaryMetrics.myWork || summaryMetrics.myWork,
+            };
+        }
+
+        flowtrackSaveMyWorkSnapshotCache();
+    }
+
+    async function flowtrackEnsureMyWorkSnapshot(options = {}) {
+        const force = Boolean(options?.force);
+        const background = Boolean(options?.background);
+
+        if (!force && (flowtrackMyWorkSnapshotFresh() || flowtrackRestoreMyWorkSnapshotCache())) {
+            return { cached: true, changed: false };
+        }
+        if (myWorkSnapshotLoading) return myWorkSnapshotLoading;
+
+        const previousSignature = myWorkSnapshotSignature;
+        const scroll = background && currentPage === 'mywork' ? flowtrackCaptureMyWorkScroll() : null;
+
+        myWorkSnapshotLoading = (async () => {
+            const payload = await api(`/flowtrack/template-api/my-work-snapshot?_=${Date.now()}`, {
+                cache: 'no-store',
+                timeoutMs: 30000,
+            });
+            flowtrackApplyMyWorkSnapshot(payload || {});
+            const changed = previousSignature !== myWorkSnapshotSignature;
+
+            if (background && currentPage === 'mywork' && changed && typeof renderMyWork === 'function') {
+                renderMyWork();
+                flowtrackRestoreMyWorkScroll(scroll);
+            }
+            if (typeof updateBadges === 'function') updateBadges();
+            return { cached: false, changed };
+        })().finally(() => {
+            myWorkSnapshotLoading = null;
+        });
+
+        return myWorkSnapshotLoading;
+    }
+
+    window.flowtrackEnsureMyWorkSnapshot = flowtrackEnsureMyWorkSnapshot;
+    window.flowtrackInvalidateMyWorkSnapshotCache = flowtrackInvalidateMyWorkSnapshotCache;
+
+    const flowtrackOperationalBootstrapFields = Object.freeze(['clients', 'jobs', 'tasks', 'documents']);
+
+    function flowtrackBootstrapPayloadForApply(core, resetOperational = false) {
+        const data = { ...(core || {}) };
+
+        // The bootstrap endpoint intentionally includes empty operational arrays
+        // for backward compatibility. Those placeholders are NOT an instruction
+        // to clear live page state. Only the first authenticated application
+        // startup may reset these collections; every later shell/background
+        // refresh must leave the currently loaded page snapshot untouched.
+        if (resetOperational) {
+            flowtrackOperationalBootstrapFields.forEach((field) => { data[field] = []; });
+        } else {
+            flowtrackOperationalBootstrapFields.forEach((field) => { delete data[field]; });
+        }
+
+        return data;
+    }
+
     async function loadBootstrap(options = {}) {
         const silent = Boolean(options?.silent);
+        const resetOperational = Boolean(options?.resetOperational);
         const generation = ++bootstrapGeneration;
         const coreUrl = `/flowtrack/template-api/bootstrap?_flowtrack_generation=${generation}&_=${Date.now()}`;
         if (!silent) flowtrackSetLoadingProgress(6, 'Preparing FlowTrack workspace…');
@@ -1523,7 +1971,13 @@ function flowtrackToArray(value) {
         bootstrapSegmentUrls = core.segments || {};
         pageContextBaseUrl = String(core.contextBaseUrl || '/flowtrack/template-api/context');
         bootstrapSegmentPerPage = Math.max(20, Number(bootstrapSegmentUrls.perPage || 50));
-        if (!silent) {
+
+        // Reset pagination/page-context state only for a genuine fresh
+        // application startup. Configuration saves and realtime refreshes often
+        // call loadBootstrap too; treating those as a startup was the source of
+        // intermittent Clients/Jobs/My Work disappearance.
+        if (resetOperational) {
+            operationalGeneration += 1;
             Object.keys(segmentPagination).forEach((segment) => {
                 segmentPagination[segment] = null;
                 segmentLoadState[segment] = 'none';
@@ -1534,19 +1988,10 @@ function flowtrackToArray(value) {
             replaceArray(clientLabels, []);
         }
 
-        // Background bootstrap refreshes must never throw away already-loaded
-        // page data. Only a fresh authenticated startup initializes the empty
-        // operational collections; subsequent silent refreshes update global
-        // shell state in place.
-        const data = silent ? core : Object.assign({}, core, {
-            clients: [],
-            jobs: [],
-            tasks: [],
-            documents: [],
-        });
+        const data = flowtrackBootstrapPayloadForApply(core, resetOperational);
         if (generation !== bootstrapGeneration) return null;
         if (!silent) flowtrackSetLoadingProgress(82, 'Applying workspace configuration…');
-        applyBootstrap(data);
+        applyBootstrap(data, { allowOperational: resetOperational });
         bootstrapAppliedGeneration = generation;
         if (!silent) flowtrackSetLoadingProgress(90, 'Loading this page…');
         return data;
@@ -1583,14 +2028,31 @@ function flowtrackToArray(value) {
             const loadedRowCount = target.length;
             const refreshAllPages = allPages || (force && currentState === 'all');
             const minimumRows = force && !refreshAllPages ? loadedRowCount : 0;
-            const page = await loadBootstrapSegment(
+            let page = await loadBootstrapSegment(
                 url,
                 bootstrapSegmentPerPage,
-                bootstrapGeneration,
+                operationalGeneration,
                 refreshAllPages,
                 minimumRows,
             );
             if (!page) return;
+
+            // Never let one transient empty/partial background response erase a
+            // healthy visible list. When a forced refresh would shrink an
+            // already-populated snapshot, verify it once more before committing.
+            // Genuine deletes/permission changes are still reflected because the
+            // second server response confirms the smaller result.
+            if (force && loadedRowCount > 0 && flowtrackToArray(page.rows).length < loadedRowCount) {
+                const verification = await loadBootstrapSegment(
+                    url,
+                    bootstrapSegmentPerPage,
+                    operationalGeneration,
+                    refreshAllPages,
+                    minimumRows,
+                );
+                if (!verification) return;
+                page = verification;
+            }
 
             replaceArray(target, page.rows);
             if (segment === 'tasks') target.forEach(flowtrackHydrateTaskAssignee);
@@ -1609,10 +2071,10 @@ function flowtrackToArray(value) {
         if (normalized === 'clients') return [{ segment: 'clients' }];
         if (normalized === 'jobs') return [{ segment: 'clients' }, { segment: 'jobs' }];
         if (normalized === 'board') return [{ segment: 'jobs' }, { segment: 'tasks' }];
-        // My Work is an assignment inbox, not a paginated browsing surface.
-        // Load the complete visible task set before rendering so counts/cards do
-        // not grow several seconds later as auto-pagination catches up.
-        if (normalized === 'mywork') return [{ segment: 'tasks', allPages: true }];
+        // My Work uses the same stable page-by-page loading contract as the
+        // other operational screens. Only the first task page is required for
+        // initial paint; later pages are appended when the user reaches the end.
+        if (normalized === 'mywork') return [];
         if (normalized === 'documents') return [{ segment: 'documents' }];
         if (normalized === 'reports') return [{ segment: 'jobs' }, { segment: 'tasks' }];
         return [];
@@ -1645,6 +2107,8 @@ function flowtrackToArray(value) {
     function flowtrackIsPageDataReady(page) {
         const normalized = flowtrackNormalizePageName(page || 'dashboard');
         if (flowtrackPageNeedsContext(normalized) && pageContextState.get(normalized) !== 'loaded') return false;
+        if (normalized === 'notifications') return notificationPageLoaded;
+        if (normalized === 'mywork') return flowtrackMyWorkSnapshotFresh() || flowtrackRestoreMyWorkSnapshotCache();
         return flowtrackPageDataRequirements(normalized).every(({ segment, allPages }) => {
             const state = segmentLoadState[segment] || 'none';
             return state === 'all' || (!allPages && state === 'page');
@@ -1660,6 +2124,27 @@ function flowtrackToArray(value) {
 
         const request = (async () => {
             await flowtrackEnsurePageContext(normalized, { force });
+            if (normalized === 'mywork') {
+                await flowtrackEnsureMyWorkSnapshot({ force });
+                if (currentPage === normalized) {
+                    renderPage(normalized);
+                    applyActionPermissions();
+                }
+                return;
+            }
+            if (normalized === 'notifications') {
+                await refreshNotificationFeed({
+                    page: force ? notificationPagination.currentPage : 1,
+                    perPage: notificationPagination.perPage,
+                    trackPagination: true,
+                    render: false,
+                });
+                if (currentPage === normalized) {
+                    renderPage(normalized);
+                    applyActionPermissions();
+                }
+                return;
+            }
             const requirements = flowtrackPageDataRequirements(normalized);
             for (let attempt = 0; attempt < 2; attempt += 1) {
                 // Load page segments in a deterministic order. Task list responses
@@ -1732,10 +2217,26 @@ function flowtrackToArray(value) {
     }
 
     function applyNavigationPermissions() {
-        document.querySelectorAll('[data-page]').forEach((button) => {
-            const allowed = canOpenPage(button.dataset.page);
-            button.classList.toggle('hidden', !allowed);
-            button.disabled = !allowed;
+        document.querySelectorAll('[data-page]').forEach((control) => {
+            const allowed = canOpenPage(control.dataset.page);
+            control.classList.toggle('hidden', !allowed);
+            if (control instanceof HTMLButtonElement) control.disabled = !allowed;
+            if (control instanceof HTMLAnchorElement) {
+                control.setAttribute('aria-disabled', allowed ? 'false' : 'true');
+                if (!allowed) control.setAttribute('tabindex', '-1');
+                else control.removeAttribute('tabindex');
+            }
+        });
+    }
+
+    function flowtrackSyncNavigationAccessibility(page) {
+        const pageName = flowtrackNormalizePageName(page);
+        document.querySelectorAll('[data-page]').forEach((control) => {
+            const active = control.dataset.page === pageName;
+            if (control instanceof HTMLAnchorElement) {
+                if (active) control.setAttribute('aria-current', 'page');
+                else control.removeAttribute('aria-current');
+            }
         });
     }
 
@@ -1743,44 +2244,186 @@ function flowtrackToArray(value) {
         document.querySelectorAll(selector).forEach((element) => element.classList.toggle('hidden', !visible));
     }
 
+    let flowtrackNavigationProgressActive = false;
+    let flowtrackNavigationProgressHideTimer = null;
+    let flowtrackNavigationProgressSafetyTimer = null;
+    let flowtrackNavigationProgressFrame = null;
+    let flowtrackNavigationProgressLastFrame = 0;
+    let flowtrackNavigationProgressCurrent = 0;
+    let flowtrackNavigationProgressTarget = 0;
+    let flowtrackNavigationProgressFinishing = false;
+    let flowtrackNavigationProgressFinishLabel = 'Ready';
+
     function flowtrackEnsurePageProgress() {
-        let bar = document.getElementById('flowtrackPageProgress');
-        if (!bar) {
-            bar = document.createElement('div');
-            bar.id = 'flowtrackPageProgress';
-            bar.className = 'flowtrack-page-progress hidden';
-            bar.innerHTML = '<div class="flowtrack-page-progress-track"><span></span></div><small>Loading…</small>';
-            document.body.appendChild(bar);
+        let loader = document.getElementById('flowtrackPageProgress');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'flowtrackPageProgress';
+            loader.className = 'flowtrack-page-progress hidden';
+            loader.setAttribute('role', 'status');
+            loader.setAttribute('aria-live', 'polite');
+            loader.innerHTML = '<div class="flowtrack-page-progress-card"><div class="flowtrack-page-progress-ring" aria-hidden="true"><strong>0%</strong></div><small>Loading page…</small></div>';
+            document.body.appendChild(loader);
         }
-        return bar;
+        return loader;
+    }
+
+    function flowtrackRenderPageProgress(percent, label = null) {
+        const value = Math.max(0, Math.min(100, Number(percent) || 0));
+        const loader = flowtrackEnsurePageProgress();
+        loader.classList.remove('hidden');
+        const ring = loader.querySelector('.flowtrack-page-progress-ring');
+        ring?.style.setProperty('--flowtrack-page-progress', `${value * 3.6}deg`);
+        const percentage = ring?.querySelector('strong');
+        if (percentage) percentage.textContent = `${Math.round(value)}%`;
+        if (label != null) {
+            const copy = loader.querySelector('small');
+            if (copy) copy.textContent = label;
+        }
+    }
+
+    function flowtrackNavigationCreepRate(value) {
+        if (value < 30) return 7.5;
+        if (value < 55) return 5.2;
+        if (value < 75) return 3.2;
+        if (value < 88) return 1.7;
+        if (value < 94.5) return .7;
+        return 0;
+    }
+
+    function flowtrackNavigationProgressTick(timestamp) {
+        flowtrackNavigationProgressFrame = null;
+        if (!flowtrackNavigationProgressActive) return;
+
+        if (!flowtrackNavigationProgressLastFrame) flowtrackNavigationProgressLastFrame = timestamp;
+        const elapsedMs = Math.max(0, Math.min(50, timestamp - flowtrackNavigationProgressLastFrame));
+        flowtrackNavigationProgressLastFrame = timestamp;
+        const elapsedSeconds = elapsedMs / 1000;
+
+        const current = flowtrackNavigationProgressCurrent;
+        const target = flowtrackNavigationProgressFinishing ? 100 : Math.max(flowtrackNavigationProgressTarget, current);
+        const gap = Math.max(0, target - current);
+        let next = current;
+
+        if (gap > .02) {
+            // Move toward real navigation milestones at a bounded speed. This is
+            // intentionally time-based so the percentage never jumps when a
+            // module/data request completes between two frames.
+            const chaseRate = flowtrackNavigationProgressFinishing
+                ? Math.min(72, Math.max(38, gap * 4.2))
+                : Math.min(54, Math.max(18, gap * 3.2));
+            next = Math.min(target, current + (chaseRate * elapsedSeconds));
+        } else if (!flowtrackNavigationProgressFinishing) {
+            // While waiting on a request, keep the indicator alive with a very
+            // gentle slowdown toward 95%. It never reaches 100 until navigation
+            // has actually completed.
+            const creepRate = flowtrackNavigationCreepRate(current);
+            next = Math.min(95, current + (creepRate * elapsedSeconds));
+        }
+
+        flowtrackNavigationProgressCurrent = next;
+        flowtrackRenderPageProgress(next);
+
+        if (flowtrackNavigationProgressFinishing && next >= 99.85) {
+            flowtrackNavigationProgressCurrent = 100;
+            flowtrackRenderPageProgress(100, flowtrackNavigationProgressFinishLabel);
+            window.clearTimeout(flowtrackNavigationProgressHideTimer);
+            flowtrackNavigationProgressHideTimer = window.setTimeout(flowtrackResetNavigationProgress, 220);
+            return;
+        }
+
+        flowtrackNavigationProgressFrame = window.requestAnimationFrame(flowtrackNavigationProgressTick);
+    }
+
+    function flowtrackStartNavigationProgressLoop() {
+        if (flowtrackNavigationProgressFrame != null) return;
+        flowtrackNavigationProgressLastFrame = 0;
+        flowtrackNavigationProgressFrame = window.requestAnimationFrame(flowtrackNavigationProgressTick);
+    }
+
+    function flowtrackResetNavigationProgress() {
+        flowtrackNavigationProgressActive = false;
+        flowtrackNavigationProgressFinishing = false;
+        flowtrackNavigationProgressFinishLabel = 'Ready';
+        flowtrackNavigationProgressCurrent = 0;
+        flowtrackNavigationProgressTarget = 0;
+        flowtrackNavigationProgressLastFrame = 0;
+        window.clearTimeout(flowtrackNavigationProgressHideTimer);
+        window.clearTimeout(flowtrackNavigationProgressSafetyTimer);
+        if (flowtrackNavigationProgressFrame != null) window.cancelAnimationFrame(flowtrackNavigationProgressFrame);
+        flowtrackNavigationProgressFrame = null;
+        flowtrackNavigationProgressHideTimer = null;
+        flowtrackNavigationProgressSafetyTimer = null;
+        const loader = document.getElementById('flowtrackPageProgress');
+        if (!loader) return;
+        loader.classList.add('hidden');
+        loader.querySelector('.flowtrack-page-progress-ring')?.style.setProperty('--flowtrack-page-progress', '0deg');
+        const percentage = loader.querySelector('.flowtrack-page-progress-ring strong');
+        if (percentage) percentage.textContent = '0%';
+    }
+
+    function flowtrackSetNavigationProgress(percent, label = 'Loading page…') {
+        const requested = Math.max(0, Math.min(96, Number(percent) || 0));
+        if (!flowtrackNavigationProgressActive) {
+            flowtrackNavigationProgressCurrent = 0;
+            flowtrackNavigationProgressTarget = 0;
+        }
+        flowtrackNavigationProgressActive = true;
+        flowtrackNavigationProgressFinishing = false;
+        flowtrackNavigationProgressTarget = Math.max(flowtrackNavigationProgressTarget, requested);
+        window.clearTimeout(flowtrackNavigationProgressHideTimer);
+        window.clearTimeout(flowtrackNavigationProgressSafetyTimer);
+        flowtrackRenderPageProgress(flowtrackNavigationProgressCurrent, label);
+        flowtrackStartNavigationProgressLoop();
+        // A failed/aborted request must never leave the navigation loader on screen.
+        flowtrackNavigationProgressSafetyTimer = window.setTimeout(flowtrackResetNavigationProgress, 20000);
+    }
+
+    function flowtrackFinishNavigationProgress(label = 'Ready') {
+        if (!flowtrackNavigationProgressActive) return;
+        window.clearTimeout(flowtrackNavigationProgressSafetyTimer);
+        flowtrackNavigationProgressFinishing = true;
+        flowtrackNavigationProgressFinishLabel = label;
+        flowtrackNavigationProgressTarget = 100;
+        flowtrackRenderPageProgress(flowtrackNavigationProgressCurrent, label);
+        flowtrackStartNavigationProgressLoop();
+        // Keep a safety reset even while easing to 100 in case requestAnimationFrame
+        // is suspended by an unusual browser lifecycle transition.
+        flowtrackNavigationProgressSafetyTimer = window.setTimeout(flowtrackResetNavigationProgress, 3000);
     }
 
     function flowtrackSetLoadingProgress(percent, label = 'Loading workspace…') {
         const value = Math.max(0, Math.min(100, Number(percent) || 0));
         const auth = document.getElementById('authLoadingScreen');
-        auth?.querySelector('[data-auth-loading-progress]')?.style.setProperty('width', `${value}%`);
+        const authRing = auth?.querySelector('.flowtrack-auth-progress-ring');
+        authRing?.style.setProperty('--flowtrack-page-progress', `${value * 3.6}deg`);
         const authLabel = auth?.querySelector('[data-auth-loading-label]');
         if (authLabel) authLabel.textContent = label;
         const authPct = auth?.querySelector('[data-auth-loading-percent]');
         if (authPct) authPct.textContent = `${Math.round(value)}%`;
 
-        const appVisible = !document.getElementById('appScreen')?.classList.contains('hidden');
-        if (appVisible) {
-            const bar = flowtrackEnsurePageProgress();
-            bar.classList.remove('hidden');
-            bar.querySelector('span')?.style.setProperty('width', `${value}%`);
-            const small = bar.querySelector('small');
-            if (small) small.textContent = `${label} ${Math.round(value)}%`;
-        }
+        // Shared data refreshes (edit/delete/save) no longer own the page loader.
+        // Only an explicit page navigation may update the circular percentage UI.
+        if (flowtrackNavigationProgressActive) flowtrackSetNavigationProgress(value, label);
     }
 
     function flowtrackFinishLoadingProgress(label = 'Ready') {
-        flowtrackSetLoadingProgress(100, label);
-        window.setTimeout(() => document.getElementById('flowtrackPageProgress')?.classList.add('hidden'), 350);
+        const auth = document.getElementById('authLoadingScreen');
+        auth?.querySelector('.flowtrack-auth-progress-ring')?.style.setProperty('--flowtrack-page-progress', '360deg');
+        const authLabel = auth?.querySelector('[data-auth-loading-label]');
+        if (authLabel) authLabel.textContent = label;
+        const authPct = auth?.querySelector('[data-auth-loading-percent]');
+        if (authPct) authPct.textContent = '100%';
+        if (flowtrackNavigationProgressActive) flowtrackFinishNavigationProgress(label);
     }
 
+    // Expose navigation-only progress helpers to the lazy module loader.
+    window.flowtrackSetNavigationProgress = flowtrackSetNavigationProgress;
+    window.flowtrackFinishNavigationProgress = flowtrackFinishNavigationProgress;
+    window.flowtrackResetNavigationProgress = flowtrackResetNavigationProgress;
+
     function flowtrackInlineProgress(label = 'Loading latest data…') {
-        return `<div class="flowtrack-inline-progress"><div class="flowtrack-inline-progress-copy"><b>${html(label)}</b><span>Refreshing assigned task setup, due dates and history.</span></div><div class="flowtrack-inline-progress-track"><span></span></div></div>`;
+        return `<div class="flowtrack-inline-progress"><span class="flowtrack-inline-spinner" aria-hidden="true"></span><div class="flowtrack-inline-progress-copy"><b>${html(label)}</b><span>Refreshing latest data…</span></div></div>`;
     }
 
     function applyActionPermissions() {
@@ -1843,6 +2486,7 @@ function flowtrackToArray(value) {
         }
 
         const result = originalNavigate(pageName);
+        flowtrackSyncNavigationAccessibility(pageName);
         queueMicrotask(() => {
             applyActionPermissions();
             window.FlowtrackSearchableDropdown?.enhance?.(target);
@@ -1852,9 +2496,14 @@ function flowtrackToArray(value) {
     };
 
     function showApplication(requestedPage = null) {
-        $('#loginScreen')?.classList.add('hidden');
-        $('#authLoadingScreen')?.classList.add('hidden');
-        $('#appScreen')?.classList.remove('hidden');
+        // During a hard-refresh restore the loader owns screen visibility. Keep
+        // the application and all temporary modal source markup hidden until the
+        // exact requested route has finished mounting.
+        if (window.FLOWTRACK_BOOT_IN_PROGRESS !== true) {
+            $('#loginScreen')?.classList.add('hidden');
+            $('#authLoadingScreen')?.classList.add('hidden');
+            $('#appScreen')?.classList.remove('hidden');
+        }
         updateBadges();
         applyActionPermissions();
 

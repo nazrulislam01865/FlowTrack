@@ -10,6 +10,71 @@ function masterSection(category = selectedMasterCategory) {
         return masterSection(category)?.label || masterLabels[category] || 'Master Data';
     }
 
+    const masterPaginatedSections = new Set(['productCategories', 'products', 'documentCategories', 'departments']);
+    let masterListPage = 1;
+    let masterListPageSize = 10;
+    let masterListQuery = '';
+
+    function masterSectionUsesPagination(category = selectedMasterCategory) {
+        return masterPaginatedSections.has(category);
+    }
+
+    function filteredMasterRows(rows, query = masterListQuery) {
+        const normalized = String(query || '').trim().toLocaleLowerCase();
+        if (!normalized) return rows.slice();
+        return rows.filter((record) => `${record.code || ''} ${record.name || ''} ${masterParentName(record)} ${record.detail || record.description || ''}`.toLocaleLowerCase().includes(normalized));
+    }
+
+    function masterPaginationState(rows) {
+        if (!masterSectionUsesPagination()) {
+            return { items: rows, total: rows.length, page: 1, pageCount: 1, start: 0, end: rows.length };
+        }
+        const total = rows.length;
+        const pageCount = Math.max(1, Math.ceil(total / masterListPageSize));
+        masterListPage = Math.max(1, Math.min(masterListPage, pageCount));
+        const start = (masterListPage - 1) * masterListPageSize;
+        const end = Math.min(total, start + masterListPageSize);
+        return { items: rows.slice(start, end), total, page: masterListPage, pageCount, start, end };
+    }
+
+    function masterPaginationHtml(pagination) {
+        if (!masterSectionUsesPagination()) return '';
+        const showingStart = pagination.total ? pagination.start + 1 : 0;
+        return `<div class="jobs-v2-pagination master-data-pagination" id="masterPagination">
+            <div class="jobs-v2-page-count">Showing <b>${showingStart}</b>–<b>${pagination.end}</b> of <b>${pagination.total}</b> Records</div>
+            <label class="jobs-v2-page-size">Show <select id="masterPageSize" aria-label="Master Data records per page"><option value="10" ${masterListPageSize === 10 ? 'selected' : ''}>10</option><option value="20" ${masterListPageSize === 20 ? 'selected' : ''}>20</option><option value="30" ${masterListPageSize === 30 ? 'selected' : ''}>30</option><option value="50" ${masterListPageSize === 50 ? 'selected' : ''}>50</option></select> per page</label>
+            <div class="jobs-v2-page-buttons"><button type="button" id="masterPrevPage" ${pagination.page <= 1 ? 'disabled' : ''}>Previous</button><span>Page ${pagination.page} of ${pagination.pageCount}</span><button type="button" id="masterNextPage" ${pagination.page >= pagination.pageCount ? 'disabled' : ''}>Next</button></div>
+        </div>`;
+    }
+
+    function renderMasterRowsPage(rows = masterData[selectedMasterCategory] || []) {
+        const filtered = filteredMasterRows(rows);
+        const pagination = masterPaginationState(filtered);
+        const body = $('#masterRows');
+        if (body) body.innerHTML = masterRowsHtmlDynamic(pagination.items);
+        const paginationHost = $('#masterPaginationHost');
+        if (paginationHost) paginationHost.innerHTML = masterPaginationHtml(pagination);
+
+        bindDynamicMasterRows();
+        applyActionPermissions();
+
+        $('#masterPageSize')?.addEventListener('change', (event) => {
+            masterListPageSize = Math.max(10, Number(event.target.value) || 10);
+            masterListPage = 1;
+            renderMasterRowsPage(rows);
+        });
+        $('#masterPrevPage')?.addEventListener('click', () => {
+            if (masterListPage <= 1) return;
+            masterListPage -= 1;
+            renderMasterRowsPage(rows);
+        });
+        $('#masterNextPage')?.addEventListener('click', () => {
+            if (masterListPage >= pagination.pageCount) return;
+            masterListPage += 1;
+            renderMasterRowsPage(rows);
+        });
+    }
+
     function masterParentName(record, category = selectedMasterCategory) {
         const section = masterSection(category);
         if (!section?.parentKey) return '';
@@ -23,20 +88,34 @@ function masterSection(category = selectedMasterCategory) {
         return {
             type: section?.type,
             parent_id: section?.parentKey && $('#masterParent')?.value ? Number($('#masterParent').value) : null,
-            name: $('#masterName').value.trim(),
+            name: $('#masterName').value.trim().replace(/\s+/g, ' '),
             description: $('#masterDetail').value.trim() || null,
             status: $('#masterStatus').value.toLowerCase(),
             sort_order: Number($('#masterSortOrder').value || 0),
+            color: $('#masterColorCode')?.value ? flowtrackNormalizeHexColor($('#masterColorCode').value) : null,
         };
+    }
+
+    function nextMasterSortOrder(category = selectedMasterCategory) {
+        const rows = masterData[category] || [];
+        const maximum = rows.reduce((value, record) => Math.max(value, Number(record.sort_order || 0)), 0);
+        return Math.max(1, maximum + 1);
     }
 
     function masterRowsHtmlDynamic(rows) {
         const section = masterSection();
         const hasParent = Boolean(section?.parentKey);
-        const colspan = hasParent ? 6 : 5;
+        const hasDocumentOrder = section?.type === 'document_category';
+        const hasColorCode = ['priority', 'task_status'].includes(section?.type);
+        const colspan = 5 + (hasParent ? 1 : 0) + (hasDocumentOrder ? 1 : 0) + (hasColorCode ? 1 : 0);
         return rows.map((record) => {
             const parentCell = hasParent ? `<td data-label="Parent">${html(masterParentName(record) || '—')}</td>` : '';
-            return `<tr><td data-label="Code"><b>${html(record.code)}</b></td><td data-label="Name">${html(record.name)}</td>${parentCell}<td data-label="Description / Use">${html(record.detail || record.description || '')}</td><td data-label="Status"><span class="badge ${String(record.status).toLowerCase() === 'active' ? 'b-green' : 'b-gray'}">${html(record.status)}</span></td><td data-label="Actions"><div class="row-actions"><button class="mini-btn" data-master-edit="${record.id}">Edit</button><button class="mini-btn" data-master-toggle="${record.id}">${String(record.status).toLowerCase() === 'active' ? 'Deactivate' : 'Activate'}</button><button class="mini-btn danger-btn" data-master-delete="${record.id}">Delete</button></div></td></tr>`;
+            const orderCell = hasDocumentOrder ? `<td data-label="Sort Order"><b>${Number(record.sort_order || 0)}</b></td>` : '';
+            const resolvedColor = hasColorCode
+                ? (section.type === 'task_status' ? flowtrackTaskStatusColor(record) : flowtrackPriorityColor(record))
+                : '';
+            const colorCell = hasColorCode ? `<td data-label="Color"><span style="display:inline-flex;align-items:center;gap:8px;font-weight:650"><i aria-hidden="true" style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${html(resolvedColor)};box-shadow:0 0 0 1px rgba(15,23,42,.12)"></i><code style="font:inherit;font-size:11px;color:#52637b">${html(resolvedColor)}</code></span></td>` : '';
+            return `<tr><td data-label="Code"><b>${html(record.code)}</b></td><td data-label="Name">${html(record.name)}</td>${colorCell}${parentCell}<td data-label="Description / Use">${html(record.detail || record.description || '')}</td>${orderCell}<td data-label="Status"><span class="badge ${String(record.status).toLowerCase() === 'active' ? 'b-green' : 'b-gray'}">${html(record.status)}</span></td><td data-label="Actions"><div class="row-actions"><button class="mini-btn" data-master-edit="${record.id}">Edit</button><button class="mini-btn" data-master-toggle="${record.id}">${String(record.status).toLowerCase() === 'active' ? 'Deactivate' : 'Activate'}</button><button class="mini-btn danger-btn" data-master-delete="${record.id}">Delete</button></div></td></tr>`;
         }).join('') || `<tr><td colspan="${colspan}"><div class="empty-state">No records found.</div></td></tr>`;
     }
 
@@ -89,25 +168,29 @@ function masterSection(category = selectedMasterCategory) {
         const label = currentMasterLabel();
         const section = masterSection();
         const parentHeader = section?.parentKey ? '<th>Parent</th>' : '';
+        const orderHeader = section?.type === 'document_category' ? '<th>Sort Order</th>' : '';
+        const colorHeader = ['priority', 'task_status'].includes(section?.type) ? '<th>Color</th>' : '';
         const allRows = masterCatalog.flatMap((item) => masterData[item.key] || []);
+        const initialFilteredRows = filteredMasterRows(rows);
+        const initialPagination = masterPaginationState(initialFilteredRows);
         $('#page-masterdata').innerHTML = `<div class="page-head"><div><h1>Master Data</h1><p>Maintain the values used in Jobs, tasks, documents, production and shipment forms</p></div><div class="actions"><button class="ghost" id="masterImport">Import</button><button class="primary" id="addMasterRecord">＋ Add Record</button></div></div>
         <div class="config-summary"><div class="card config-stat"><span>Master Categories</span><b>${masterCatalog.length}</b></div><div class="card config-stat"><span>Total Records</span><b>${allRows.length}</b></div><div class="card config-stat"><span>Active Records</span><b>${allRows.filter((item) => String(item.status).toLowerCase() === 'active').length}</b></div><div class="card config-stat"><span>Selected Category</span><b style="font-size:15px">${html(label)}</b></div></div>
-        <div class="master-layout"><div class="card master-categories">${masterCatalog.map((item) => `<button class="${item.key === selectedMasterCategory ? 'active' : ''}" data-master-category="${html(item.key)}"><b>${html(item.label)}</b><small>${(masterData[item.key] || []).length} records</small></button>`).join('')}</div><div><div class="card section-card"><div class="master-head"><div><h3 style="margin:0 0 4px">${html(label)}</h3><div class="small muted">All records in this section are loaded from the database. Codes are generated automatically and cannot be changed.</div></div><input id="masterSearch" style="max-width:260px;border:1px solid var(--line);border-radius:8px;padding:9px" placeholder="Search records…"></div><div class="table-wrap"><table class="master-table"><thead><tr><th>Code</th><th>Name</th>${parentHeader}<th>Description / Use</th><th>Status</th><th>Actions</th></tr></thead><tbody id="masterRows">${masterRowsHtmlDynamic(rows)}</tbody></table></div></div></div></div>`;
+        <div class="master-layout"><div class="card master-categories">${masterCatalog.map((item) => `<button class="${item.key === selectedMasterCategory ? 'active' : ''}" data-master-category="${html(item.key)}"><b>${html(item.label)}</b><small>${(masterData[item.key] || []).length} records</small></button>`).join('')}</div><div><div class="card section-card"><div class="master-head"><div><h3 style="margin:0 0 4px">${html(label)}</h3><div class="small muted">All records in this section are loaded from the database. Codes are generated automatically and cannot be changed.</div></div><input id="masterSearch" value="${html(masterListQuery)}" style="max-width:260px;border:1px solid var(--line);border-radius:8px;padding:9px" placeholder="Search records…"></div><div class="table-wrap"><table class="master-table"><thead><tr><th>Code</th><th>Name</th>${colorHeader}${parentHeader}<th>Description / Use</th>${orderHeader}<th>Status</th><th>Actions</th></tr></thead><tbody id="masterRows">${masterRowsHtmlDynamic(initialPagination.items)}</tbody></table></div><div id="masterPaginationHost">${masterPaginationHtml(initialPagination)}</div></div></div></div>`;
 
         $$('[data-master-category]').forEach((button) => button.addEventListener('click', () => {
             selectedMasterCategory = button.dataset.masterCategory;
+            masterListPage = 1;
+            masterListQuery = '';
             renderMasterData();
         }));
         $('#addMasterRecord')?.addEventListener('click', () => openMasterModal(selectedMasterCategory));
         $('#masterImport')?.addEventListener('click', () => showToast('Excel/CSV import will use the database section and automatic code sequence.'));
         $('#masterSearch')?.addEventListener('input', (event) => {
-            const query = event.target.value.toLowerCase();
-            $('#masterRows').innerHTML = masterRowsHtmlDynamic(rows.filter((record) => `${record.code} ${record.name} ${masterParentName(record)} ${record.detail || record.description || ''}`.toLowerCase().includes(query)));
-            bindDynamicMasterRows();
-            applyActionPermissions();
+            masterListQuery = event.target.value;
+            masterListPage = 1;
+            renderMasterRowsPage(rows);
         });
-        bindDynamicMasterRows();
-        applyActionPermissions();
+        renderMasterRowsPage(rows);
     };
 
     openMasterModal = async function (category, existing = null) {
@@ -126,14 +209,22 @@ function masterSection(category = selectedMasterCategory) {
         }
 
         const parentRecords = section.parentKey ? (masterData[section.parentKey] || []).filter((record) => String(record.status).toLowerCase() === 'active') : [];
+        const isDocumentCategory = section.type === 'document_category';
+        const hasColorCode = ['priority', 'task_status'].includes(section.type);
+        const defaultColor = section.type === 'task_status'
+            ? flowtrackTaskStatusColor(existing || (existing?.name || 'Ready'))
+            : flowtrackPriorityColor(existing || (existing?.name || 'Medium'));
+        const colorValue = flowtrackNormalizeHexColor(existing?.color, defaultColor);
+        const sortOrderValue = existing ? Number(existing.sort_order || 0) : nextMasterSortOrder(category);
         $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>${existing ? 'Edit' : 'Add'} ${html(section.label)} Record</h2><div class="small muted" style="margin-top:5px">The code follows this section's automatic sequence and is permanently locked.</div></div><button class="close-btn" data-close>×</button></div>
         <div class="modal-body"><div class="form-grid">
             <div class="field"><label>Code</label><input id="masterCode" value="${html(code)}" readonly aria-readonly="true"><div class="inline-help">Automatically generated. This field cannot be edited.</div></div>
             <div class="field"><label>Status</label><select id="masterStatus"><option value="active" ${String(existing?.status || 'Active').toLowerCase() === 'active' ? 'selected' : ''}>Active</option><option value="inactive" ${String(existing?.status || '').toLowerCase() === 'inactive' ? 'selected' : ''}>Inactive</option></select></div>
             <div class="field full"><label>Name *</label><input id="masterName" value="${html(existing?.name)}" placeholder="Enter the record name"></div>
+            ${hasColorCode ? `<div class="field full"><label>Color code *</label><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><input id="masterColorPicker" type="color" value="${html(colorValue)}" aria-label="Choose color" style="width:52px;height:42px;padding:4px;cursor:pointer"><input id="masterColorCode" value="${html(colorValue)}" maxlength="7" placeholder="#2563EB" spellcheck="false" style="min-width:160px;flex:1 1 180px"><span class="inline-help" style="margin:0;flex:1 0 100%">This color is used for this ${section.type === 'task_status' ? 'Task Status' : 'Priority'} across the system.</span></div></div>` : ''}
             ${section.parentKey ? `<div class="field full"><label>${html(masterLabels[section.parentKey] || 'Parent')}</label><select id="masterParent" data-searchable data-search-placeholder="Search parent…"><option value="">No parent</option>${parentRecords.map((parent) => `<option value="${parent.id}" ${Number(existing?.parent_id) === Number(parent.id) ? 'selected' : ''}>${html(parent.code)} · ${html(parent.name)}</option>`).join('')}</select></div>` : ''}
             <div class="field full"><label>Description / Use</label><textarea id="masterDetail" rows="3">${html(existing?.detail || existing?.description)}</textarea></div>
-            <div class="field"><label>Display order</label><input id="masterSortOrder" type="number" min="0" value="${Number(existing?.sort_order || 0)}"></div>
+            <div class="field"><label>${isDocumentCategory ? 'Order *' : 'Display order'}</label><input id="masterSortOrder" type="number" min="${isDocumentCategory ? 1 : 0}" value="${sortOrderValue}">${isDocumentCategory ? '<div class="inline-help">Controls the document-category sequence across document and workflow selectors. Each order must be unique.</div>' : ''}</div>
         </div></div>
         <div class="modal-foot"><button class="ghost" data-close>Cancel</button><button class="primary" id="saveMasterRecord">Save Record</button></div>`;
 
@@ -143,12 +234,50 @@ function masterSection(category = selectedMasterCategory) {
             window.FlowtrackSearchableDropdown.enhance($('#jobModal'));
         }
         $$('[data-close]').forEach((button) => button.addEventListener('click', closeAll));
+        if (hasColorCode) {
+            const picker = $('#masterColorPicker');
+            const codeInput = $('#masterColorCode');
+            picker?.addEventListener('input', () => { if (codeInput) codeInput.value = String(picker.value || '').toUpperCase(); });
+            codeInput?.addEventListener('input', () => {
+                const value = String(codeInput.value || '').trim().toUpperCase();
+                if (/^#[0-9A-F]{6}$/.test(value) && picker) picker.value = value;
+            });
+            codeInput?.addEventListener('blur', () => {
+                const value = flowtrackNormalizeHexColor(codeInput.value, colorValue);
+                codeInput.value = value;
+                if (picker) picker.value = value;
+            });
+        }
         $('#saveMasterRecord').addEventListener('click', async () => {
             const payload = masterRecordPayload();
             if (!payload.name) {
                 showToast('Name is required.');
                 $('#masterName').focus();
                 return;
+            }
+            const duplicateName = (masterData[category] || []).some((record) => Number(record.id) !== Number(existing?.id) && String(record.name || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase() === payload.name.toLocaleLowerCase());
+            if (duplicateName) {
+                showToast('This name already exists in this Master Data section. Duplicate entries are not allowed.');
+                $('#masterName').focus();
+                return;
+            }
+            if (hasColorCode && !/^#[0-9A-F]{6}$/.test(String(payload.color || '').toUpperCase())) {
+                showToast('Use a valid 6-digit HEX color code, for example #2563EB.');
+                $('#masterColorCode')?.focus();
+                return;
+            }
+            if (isDocumentCategory) {
+                if (!Number.isInteger(payload.sort_order) || payload.sort_order < 1) {
+                    showToast('Document order must start from 1.');
+                    $('#masterSortOrder').focus();
+                    return;
+                }
+                const duplicateOrder = (masterData[category] || []).some((record) => Number(record.id) !== Number(existing?.id) && Number(record.sort_order) === Number(payload.sort_order));
+                if (duplicateOrder) {
+                    showToast('This document order is already in use. Choose a different order.');
+                    $('#masterSortOrder').focus();
+                    return;
+                }
             }
             const button = $('#saveMasterRecord');
             button.disabled = true;
@@ -209,6 +338,16 @@ function masterSection(category = selectedMasterCategory) {
         return normalized;
     }
 
+    async function flowtrackFetchTaskPack(taskPackId) {
+        const id = Number(taskPackId);
+        if (!id) return null;
+        const result = await api(`/flowtrack/template-api/task-packs/${id}`);
+        const pack = upsertTaskPack(result?.taskPack);
+        if (!pack) throw new Error('The requested Task Pack could not be loaded.');
+        return pack;
+    }
+    window.flowtrackFetchTaskPack = flowtrackFetchTaskPack;
+
     function blankTaskPackItem() {
         return {
             id: null,
@@ -235,17 +374,32 @@ function masterSection(category = selectedMasterCategory) {
                 <div class="field"><label>Default assignee</label><select data-pack-field="default_assignee_id" data-pack-index="${index}"><option value="">Job coordinator</option>${users.map((user) => `<option value="${user.id}" ${Number(item.default_assignee_id) === Number(user.id) ? 'selected' : ''}>${html(user.name)}</option>`).join('')}</select></div>
                 <div class="field"><label>Default department</label><select data-pack-field="default_department_id" data-pack-index="${index}"><option value="">No department default</option>${departments.map((department) => `<option value="${department.id}" ${Number(item.default_department_id) === Number(department.id) ? 'selected' : ''}>${html(department.name)}</option>`).join('')}</select></div>
                 <div class="field"><label>Priority</label><select data-pack-field="priority_id" data-pack-index="${index}"><option value="">Use Job priority</option>${priorities.map((priority) => `<option value="${priority.id}" ${Number(item.priority_id) === Number(priority.id) ? 'selected' : ''}>${html(priority.name)}</option>`).join('')}</select></div>
-                <div class="field"><label>Required document</label><select data-pack-field="document_category_id" data-pack-index="${index}"><option value="">No task-specific file</option>${documentCategories.map((category) => `<option value="${category.id}" ${Number(item.document_category_id) === Number(category.id) ? 'selected' : ''}>${html(category.name)}</option>`).join('')}</select><div class="inline-help">The file must be attached to the Job before this task can be completed.</div></div>
+                <div class="field"><label>Required document</label><select data-pack-field="document_category_id" data-pack-index="${index}"><option value="">No task-specific file</option>${documentCategories.map((category) => `<option value="${category.id}" ${Number(item.document_category_id) === Number(category.id) ? 'selected' : ''}>${html(category.name)}</option>`).join('')}</select><div class="inline-help">The required file must be uploaded or linked before this task status can be changed.</div></div>
             </div>
             <label class="check-row"><input data-pack-field="is_required" data-pack-index="${index}" type="checkbox" ${item.is_required ? 'checked' : ''}> <span>Required task</span></label>
         </div>`).join('');
     }
 
-    function openTaskPackModal(existing = null) {
+    function openTaskPackModal(existing = null, options = {}) {
+        const mount = options?.mount instanceof Element ? options.mount : $('#jobModal');
+        const standalone = Boolean(options?.standalone);
+        const onReady = typeof options?.onReady === 'function' ? options.onReady : null;
+        const query = (selector) => mount?.querySelector(selector) || null;
+        const queryAll = (selector) => Array.from(mount?.querySelectorAll(selector) || []);
         const items = (existing?.items?.length ? existing.items : [blankTaskPackItem()]).map((item) => ({ ...blankTaskPackItem(), ...item }));
+
+        if (!mount) {
+            showToast('The Task Pack form could not be opened.');
+            return null;
+        }
+
+        mount.removeAttribute('data-task-pack-form-ready');
+
         const renderItems = () => {
-            $('#taskPackItemsEditor').innerHTML = taskPackItemEditorHtml(items);
-            $$('[data-pack-field]').forEach((control) => {
+            const editor = query('#taskPackItemsEditor');
+            if (!editor) return;
+            editor.innerHTML = taskPackItemEditorHtml(items);
+            queryAll('[data-pack-field]').forEach((control) => {
                 const eventName = control.type === 'checkbox' || control.tagName === 'SELECT' ? 'change' : 'input';
                 control.addEventListener(eventName, () => {
                     const index = Number(control.dataset.packIndex);
@@ -255,17 +409,17 @@ function masterSection(category = selectedMasterCategory) {
                     items[index][field] = value;
                 });
             });
-            $$('[data-pack-up]').forEach((button) => button.addEventListener('click', () => {
+            queryAll('[data-pack-up]').forEach((button) => button.addEventListener('click', () => {
                 const index = Number(button.dataset.packUp);
                 [items[index - 1], items[index]] = [items[index], items[index - 1]];
                 renderItems();
             }));
-            $$('[data-pack-down]').forEach((button) => button.addEventListener('click', () => {
+            queryAll('[data-pack-down]').forEach((button) => button.addEventListener('click', () => {
                 const index = Number(button.dataset.packDown);
                 [items[index + 1], items[index]] = [items[index], items[index + 1]];
                 renderItems();
             }));
-            $$('[data-pack-remove]').forEach((button) => button.addEventListener('click', () => {
+            queryAll('[data-pack-remove]').forEach((button) => button.addEventListener('click', () => {
                 if (items.length === 1) {
                     showToast('A Task Pack must contain at least one task.');
                     return;
@@ -273,10 +427,11 @@ function masterSection(category = selectedMasterCategory) {
                 items.splice(Number(button.dataset.packRemove), 1);
                 renderItems();
             }));
+            window.FlowtrackSearchableDropdown?.enhance(mount);
         };
 
-        const showModal = (code) => {
-            $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>${existing ? 'Edit Task Pack' : 'Create Task Pack'}</h2><div class="small muted" style="margin-top:5px">Build the complete reusable task sequence activated by workflow phases.</div></div><button class="close-btn" data-close>×</button></div>
+        const showForm = (code) => {
+            mount.innerHTML = `<div class="modal-head"><div><h2>${existing ? 'Edit Task Pack' : 'Create Task Pack'}</h2><div class="small muted" style="margin-top:5px">Build the complete reusable task sequence activated by workflow phases.</div></div><button class="close-btn" data-close>×</button></div>
             <div class="modal-body"><div class="form-grid">
                 <div class="field"><label>Task Pack code</label><input id="taskPackCode" value="${html(code)}" readonly aria-readonly="true"><div class="inline-help">Automatically generated and permanently locked.</div></div>
                 <div class="field"><label>Status</label><select id="taskPackStatus"><option value="active" ${(existing?.active ?? existing?.is_active ?? true) ? 'selected' : ''}>Active</option><option value="inactive" ${(existing?.active ?? existing?.is_active ?? true) ? '' : 'selected'}>Inactive</option></select></div>
@@ -286,40 +441,52 @@ function masterSection(category = selectedMasterCategory) {
             <div class="section-head" style="margin-top:8px"><div><h3>Task sequence</h3><div class="small muted">Tasks are created in this order when the phase becomes active.</div></div><button type="button" class="secondary" id="addTaskPackItem">＋ Add Task</button></div>
             <div id="taskPackItemsEditor" class="task-pack-items-editor"></div></div>
             <div class="modal-foot"><button class="ghost" data-close>Cancel</button><button class="primary" id="saveTaskPack">${existing ? 'Save Task Pack' : 'Create Task Pack'}</button></div>`;
-            openOverlay();
-            $('#jobModal').classList.add('open');
-            $$('[data-close]').forEach((button) => button.addEventListener('click', closeAll));
-            $('#addTaskPackItem').addEventListener('click', () => {
+
+            if (!standalone) {
+                openOverlay();
+                mount.classList.add('open');
+            } else {
+                mount.classList.remove('open', 'document-job-chooser');
+                $('#overlay')?.classList.remove('open');
+            }
+
+            queryAll('[data-close]').forEach((button) => button.addEventListener('click', closeAll));
+            query('#addTaskPackItem')?.addEventListener('click', () => {
                 items.push(blankTaskPackItem());
                 renderItems();
-                $('#jobModal').scrollTo({ top: $('#jobModal').scrollHeight, behavior: 'smooth' });
+                if (standalone) {
+                    window.setTimeout(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 30);
+                } else {
+                    mount.scrollTo({ top: mount.scrollHeight, behavior: 'smooth' });
+                }
             });
             renderItems();
 
-            $('#saveTaskPack').addEventListener('click', async () => {
-                const name = $('#taskPackName').value.trim();
+            query('#saveTaskPack')?.addEventListener('click', async () => {
+                const nameInput = query('#taskPackName');
+                const name = nameInput?.value.trim() || '';
                 if (!name) {
                     showToast('Task Pack name is required.');
-                    $('#taskPackName').focus();
+                    nameInput?.focus();
                     return;
                 }
                 const missingTitleIndex = items.findIndex((item) => !String(item.title || '').trim());
                 if (missingTitleIndex >= 0) {
                     showToast(`Task ${missingTitleIndex + 1} needs a title.`);
-                    $(`[data-pack-field="title"][data-pack-index="${missingTitleIndex}"]`)?.focus();
+                    query(`[data-pack-field="title"][data-pack-index="${missingTitleIndex}"]`)?.focus();
                     return;
                 }
 
-                const button = $('#saveTaskPack');
+                const button = query('#saveTaskPack');
                 button.disabled = true;
-                button.textContent = 'Saving…';
+                const originalText = button.textContent;
                 try {
                     const result = await api(existing ? `/flowtrack/template-api/task-packs/${existing.id}` : '/flowtrack/template-api/task-packs', {
                         method: existing ? 'PUT' : 'POST',
                         body: {
                             name,
-                            description: $('#taskPackDescription').value.trim() || null,
-                            is_active: $('#taskPackStatus').value === 'active',
+                            description: query('#taskPackDescription')?.value.trim() || null,
+                            is_active: query('#taskPackStatus')?.value === 'active',
                             items: items.map((item) => ({
                                 id: item.id || null,
                                 title: String(item.title).trim(),
@@ -340,33 +507,39 @@ function masterSection(category = selectedMasterCategory) {
                     renderTaskPackSetup();
                     showToast(existing ? 'Task Pack updated successfully.' : 'Task Pack and its task sequence created successfully.');
 
-                    // Refresh related generated tasks and workflow data without hiding the
-                    // authoritative Task Pack that was just returned by the save request.
                     void loadBootstrap()
                         .then(() => {
                             upsertTaskPack(savedTaskPack);
                             if (currentPage === 'taskpacksetup') renderTaskPackSetup();
                         })
-                        .catch(() => {
-                            // The local save response is already authoritative; a temporary
-                            // refresh failure must not make the new Task Pack disappear.
-                        });
+                        .catch(() => {});
                 } catch (error) {
                     showToast(error.message);
                 } finally {
                     button.disabled = false;
-                    button.textContent = existing ? 'Save Task Pack' : 'Create Task Pack';
+                    button.textContent = originalText || (existing ? 'Save Task Pack' : 'Create Task Pack');
                 }
             });
+
+            mount.dataset.taskPackFormReady = '1';
+            onReady?.(mount);
         };
 
         if (existing) {
-            showModal(existing.code);
-        } else {
-            api('/flowtrack/template-api/task-packs/next-code')
-                .then((result) => showModal(result.code))
-                .catch((error) => showToast(error.message));
+            showForm(existing.code);
+            return mount;
         }
+
+        if (standalone) {
+            mount.innerHTML = flowtrackInlineProgress('Preparing Task Pack form…');
+        }
+        api('/flowtrack/template-api/task-packs/next-code')
+            .then((result) => showForm(result.code))
+            .catch((error) => {
+                mount.innerHTML = `<div class="empty-state">${html(error.message || 'The Task Pack form could not be loaded.')}</div>`;
+                showToast(error.message);
+            });
+        return mount;
     }
 
     renderTaskPackSetup = function () {
@@ -376,11 +549,17 @@ function masterSection(category = selectedMasterCategory) {
         const mappedPhases = workflowTemplates.reduce((sum, workflow) => sum + (workflow.phases || []).filter((phase) => phase.taskPackId).length, 0);
         page.innerHTML = `<div class="page-head"><div><h1>Task Pack Setup</h1><p>Create reusable task sequences that activate when a Job enters a workflow phase</p></div><div class="actions"><button class="primary" id="addTaskPack">＋ Add Task Pack</button></div></div>
         <div class="config-summary"><div class="card config-stat"><span>Total Task Packs</span><b>${taskPacks.length}</b></div><div class="card config-stat"><span>Active Task Packs</span><b>${taskPacks.filter((pack) => pack.active).length}</b></div><div class="card config-stat"><span>Configured Tasks</span><b>${configuredTasks}</b></div><div class="card config-stat"><span>Mapped Phases</span><b>${mappedPhases}</b></div></div>
-        <div id="taskPackSetupContent"><div class="pack-list">${taskPacks.map((pack) => `<div class="card pack"><div class="section-head"><div><h4>${html(pack.name)} Task Pack</h4><div class="small muted">${html(pack.code)} · ${(pack.items || []).length} predefined tasks · ${pack.active ? 'Active' : 'Inactive'}</div></div><button class="mini-btn" data-edit-pack-id="${pack.id}">Edit</button></div><div class="small muted">${html(pack.description || 'No description')}</div><ul class="pack-tasks">${(pack.items || []).map((item, index) => `<li><div><span>${index + 1}. ${html(item.title)}</span><div class="small muted" style="margin-top:3px">${html(item.default_assignee_name || item.default_department_name || 'Job coordinator')} · Due set from Task details${item.priority_name ? ` · ${html(item.priority_name)}` : ''}${item.document_category_name ? ` · Required file: ${html(item.document_category_name)}` : ''}</div></div><span class="badge ${item.is_required ? 'b-blue' : 'b-gray'}">${item.is_required ? 'Mandatory' : 'Optional'}</span></li>`).join('') || '<li><span class="muted">No tasks configured</span></li>'}</ul></div>`).join('') || '<div class="card empty-state">No Task Packs have been created.</div>'}</div></div>`;
+        <div id="taskPackSetupContent"><div class="pack-list">${taskPacks.map((pack) => `<div class="card pack"><div class="section-head"><div><h4>${html(pack.name)} Task Pack</h4><div class="small muted">${html(pack.code)} · ${(pack.items || []).length} predefined tasks · ${pack.active ? 'Active' : 'Inactive'}</div></div><button class="mini-btn" data-edit-pack-id="${pack.id}">Edit</button></div><div class="small muted">${html(pack.description || 'No description')}</div><ul class="pack-tasks">${(pack.items || []).map((item, index) => `<li><div><span>${index + 1}. ${html(item.title)}</span><div class="small muted" style="margin-top:3px">${html(item.default_assignee_name || item.default_department_name || 'Job coordinator')} · Due set from Task details${item.priority_name ? ` · <span style="color:${html(flowtrackPriorityColor(item.priority_name))};font-weight:700">${html(item.priority_name)}</span>` : ''}${item.document_category_name ? ` · Required file: ${html(item.document_category_name)}` : ''}</div></div><span class="badge ${item.is_required ? 'b-blue' : 'b-gray'}">${item.is_required ? 'Mandatory' : 'Optional'}</span></li>`).join('') || '<li><span class="muted">No tasks configured</span></li>'}</ul></div>`).join('') || '<div class="card empty-state">No Task Packs have been created.</div>'}</div></div>`;
         $('#addTaskPack')?.addEventListener('click', () => openTaskPackModal());
-        $$('[data-edit-pack-id]').forEach((button) => button.addEventListener('click', () => {
-            const pack = taskPacks.find((item) => Number(item.id) === Number(button.dataset.editPackId));
-            if (pack) openTaskPackModal(pack);
+        $$('[data-edit-pack-id]').forEach((button) => button.addEventListener('click', async () => {
+            const id = Number(button.dataset.editPackId);
+            if (!id) return;
+            try {
+                const pack = await flowtrackFetchTaskPack(id);
+                if (pack) openTaskPackModal(pack);
+            } catch (error) {
+                showToast(error.message || 'The Task Pack could not be loaded.');
+            }
         }));
         queueMicrotask(applyActionPermissions);
     };
@@ -391,7 +570,7 @@ function masterSection(category = selectedMasterCategory) {
 
     function jobPriorityOptions(name, selectedId) {
         const priorities = activeMaster('priorities');
-        return `<div class="job-priority-options">${priorities.map((item) => `<label class="job-priority-option"><input type="radio" name="${name}" value="${item.id}" ${Number(item.id) === Number(selectedId) ? 'checked' : ''}><span class="job-priority-check">✓</span><span>${html(item.name)}</span></label>`).join('')}</div>`;
+        return `<div class="job-priority-options">${priorities.map((item) => `<label class="job-priority-option"><input type="radio" name="${name}" value="${item.id}" ${Number(item.id) === Number(selectedId) ? 'checked' : ''}><span class="job-priority-check">✓</span><i aria-hidden="true" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${html(flowtrackPriorityColor(item))}"></i><span>${html(item.name)}</span></label>`).join('')}</div>`;
     }
 
     function canEditJobRecord() {
@@ -624,10 +803,15 @@ function masterSection(category = selectedMasterCategory) {
         const attachmentDrop = $('#newJobAttachmentDrop');
         const attachmentInput = $('#newJobAttachments');
         $('[data-new-job-browse]')?.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); attachmentInput.click(); });
-        $('[data-new-job-choose-documents]')?.addEventListener('click', (event) => {
+        $('[data-new-job-choose-documents]')?.addEventListener('click', async (event) => {
             event.preventDefault(); event.stopPropagation();
             if (!canFlow('documents', 'view')) return showToast('Your role cannot view stored documents.');
-            const available = flowtrackToArray(docs).filter((item) => Number(item?.dbId));
+            let available;
+            try {
+                available = await flowtrackEnsureStoredDocumentsForChooser();
+            } catch (error) {
+                return showToast(error.message || 'Stored documents could not be loaded.');
+            }
             if (!available.length) return showToast('There are no stored documents available.');
             let chooser = $('#newJobStoredDocumentChooser');
             if (chooser) { chooser.remove(); return; }

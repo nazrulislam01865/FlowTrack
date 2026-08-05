@@ -1,0 +1,29 @@
+/* Search stability + simplified Job Details document filtering. */
+.job-v6-filters.job-v6-filters-simple{
+    display:grid!important;
+    grid-template-columns:minmax(260px,1fr) minmax(150px,220px)!important;
+    gap:10px!important;
+    align-items:center!important;
+}
+.job-v6-filters-simple .job-v6-search{
+    grid-column:auto!important;
+    min-width:0!important;
+}
+.job-v6-filters-simple .job-v6-search svg{
+    width:16px!important;
+    height:16px!important;
+    flex:0 0 16px!important;
+    fill:none!important;
+    stroke:currentColor!important;
+    stroke-width:2!important;
+    stroke-linecap:round!important;
+    stroke-linejoin:round!important;
+}
+.job-v6-filters-simple select[data-job-doc-type-filter]{
+    width:100%!important;
+    min-width:0!important;
+}
+@media(max-width:760px){
+    .job-v6-filters.job-v6-filters-simple{grid-template-columns:1fr!important}
+    .job-v6-filters-simple .job-v6-search{grid-column:1!important}
+}

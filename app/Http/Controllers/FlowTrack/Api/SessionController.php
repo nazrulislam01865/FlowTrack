@@ -4,12 +4,13 @@ namespace App\Http\Controllers\FlowTrack\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SessionController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request): JsonResponse|RedirectResponse
     {
         $user = $request->user();
         $sessionToken = (string) $request->session()->get('flowtrack.active_session_token', '');
@@ -25,6 +26,10 @@ class SessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json(['message' => 'Signed out successfully.']);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Signed out successfully.']);
+        }
+
+        return redirect('/login');
     }
 }

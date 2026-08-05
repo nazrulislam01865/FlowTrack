@@ -31,3 +31,6 @@
         .job-detail-v4-content .job-v4-inline-editor input,.job-detail-v4-content .job-v4-inline-editor select,.job-detail-v4-content .job-v4-inline-editor textarea{min-height:40px!important;font-size:12.5px!important;padding:8px 10px!important}
         .job-v4-required-doc{font-weight:650!important;margin-top:4px!important}.job-v4-required-doc.is-missing{color:#c2410c!important}.job-v4-required-doc.is-present{color:#15803d!important}
         @media(max-width:900px){.job-v4-title-row[data-editing="1"]{width:100%!important}.job-v4-title-row[data-editing="1"] .job-v4-inline-editor{min-width:0!important;grid-template-columns:1fr!important}.job-v4-title-row[data-editing="1"] .job-v4-inline-actions{justify-content:flex-start!important}}
+
+/* Task Pack required-document status gate */
+.ft-task-meta-text .ft-task-status-doc-lock{display:block;margin-top:3px;color:#c2410c;font-size:9.5px;font-weight:650;line-height:1.25;white-space:normal}.job-v4-status-select:disabled{cursor:not-allowed!important;opacity:.68!important;background-image:none!important}

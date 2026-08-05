@@ -1,5 +1,5 @@
-/* Generated from resources/js/flowtrack/loader.js. Build: f400609959067571. */
-const build = "f400609959067571";
+/* Generated from resources/js/flowtrack/loader.js. Build: 30e4f82686c91463. */
+const build = "30e4f82686c91463";
 const files = Object.freeze({
     "core": "core.js",
     "workspace": "workspace.js",
@@ -19,7 +19,25 @@ const files = Object.freeze({
     const pending = new Map();
     let clickNavigationSequence = 0;
     let deferredNavigationSequence = 0;
+    let foregroundNavigationCount = 0;
+    let pageLoadingDelayTimer = null;
+    let pageLoadingVisible = false;
+    let pendingPageLoading = null;
+    const prefetched = new Set();
     const root = new URL('/flowtrack/modules/', window.location.origin);
+
+    function beginForegroundNavigation() {
+        foregroundNavigationCount += 1;
+        window.FLOWTRACK_NAVIGATION_IN_FLIGHT = true;
+    }
+
+    function endForegroundNavigation() {
+        foregroundNavigationCount = Math.max(0, foregroundNavigationCount - 1);
+        window.FLOWTRACK_NAVIGATION_IN_FLIGHT = foregroundNavigationCount > 0;
+    }
+
+    window.flowtrackBeginNavigation = beginForegroundNavigation;
+    window.flowtrackEndNavigation = endForegroundNavigation;
 
     function load(name) {
         if (loaded.has(name)) return Promise.resolve();
@@ -54,13 +72,45 @@ const files = Object.freeze({
         const parts = path.startsWith(prefix)
             ? path.slice(prefix.length).split('/').filter(Boolean).map(decodeURIComponent)
             : [];
-        if (!parts.length) return { page: 'dashboard', kind: 'page' };
-        if (parts[0] === 'tasks' && parts[1]) return { page: 'board', kind: 'task' };
-        if (parts[0] === 'jobs' && parts[1]) return { page: 'jobs', kind: 'job' };
-        if (parts[0] === 'clients' && parts[1]) return { page: 'clients', kind: 'client' };
-        if (parts[0] === 'workflows' && parts[1]) return { page: 'workflowsetup', kind: 'configuration-record' };
-        if (parts[0] === 'task-packs' && parts[1]) return { page: 'taskpacksetup', kind: 'configuration-record' };
-        return { page: parts[0], kind: 'page' };
+        if (!parts.length) return { page: 'dashboard', kind: 'page', type: 'page' };
+
+        // Compatibility for malformed URLs produced by older route-sync code.
+        // These must be classified as Task Pack/Workflow forms before the generic
+        // `/tasks/{record}` route is considered.
+        if (parts[0] === 'tasks' && parts[1] === 'pack-new') {
+            return { page: 'taskpacksetup', kind: 'configuration-record', type: 'task-pack-new', canonicalPath: `${prefix}task-packs/new` };
+        }
+        if (parts[0] === 'tasks' && /^pack-edit-(.+)$/.test(parts[1] || '')) {
+            const slug = String(parts[1]).replace(/^pack-edit-/, '');
+            return { page: 'taskpacksetup', kind: 'configuration-record', type: 'task-pack-edit', slug, canonicalPath: `${prefix}task-packs/${encodeURIComponent(slug)}/edit` };
+        }
+        if (parts[0] === 'record-task-pack-new') {
+            return { page: 'taskpacksetup', kind: 'configuration-record', type: 'task-pack-new', canonicalPath: `${prefix}task-packs/new` };
+        }
+        if (/^record-task-pack-edit-(.+)$/.test(parts[0] || '')) {
+            const slug = String(parts[0]).replace(/^record-task-pack-edit-/, '');
+            return { page: 'taskpacksetup', kind: 'configuration-record', type: 'task-pack-edit', slug, canonicalPath: `${prefix}task-packs/${encodeURIComponent(slug)}/edit` };
+        }
+        if (/^record-workflow-copy-(.+)$/.test(parts[0] || '')) {
+            const slug = String(parts[0]).replace(/^record-workflow-copy-/, '');
+            return { page: 'workflowsetup', kind: 'configuration-record', type: 'workflow-copy', slug, canonicalPath: `${prefix}workflows/${encodeURIComponent(slug)}/copy` };
+        }
+
+        // Static/form routes first; dynamic detail routes last.
+        if (parts[0] === 'jobs' && parts[1] === 'new') return { page: 'jobs', kind: 'job-new', type: 'job-new' };
+        if (parts[0] === 'jobs' && parts[1] && parts[2] === 'edit') return { page: 'jobs', kind: 'job-edit', type: 'job-edit', slug: parts[1] };
+        if (parts[0] === 'clients' && parts[1] === 'new') return { page: 'clients', kind: 'client-new', type: 'client-new' };
+        if (parts[0] === 'clients' && parts[1] && parts[2] === 'edit') return { page: 'clients', kind: 'client-edit', type: 'client-edit', slug: parts[1] };
+        if (parts[0] === 'workflows' && parts[1] === 'new') return { page: 'workflowsetup', kind: 'configuration-record', type: 'workflow-new' };
+        if (parts[0] === 'workflows' && parts[1] && parts[2] === 'edit') return { page: 'workflowsetup', kind: 'configuration-record', type: 'workflow-edit', slug: parts[1] };
+        if (parts[0] === 'workflows' && parts[1] && parts[2] === 'copy') return { page: 'workflowsetup', kind: 'configuration-record', type: 'workflow-copy', slug: parts[1] };
+        if (parts[0] === 'task-packs' && parts[1] === 'new') return { page: 'taskpacksetup', kind: 'configuration-record', type: 'task-pack-new' };
+        if (parts[0] === 'task-packs' && parts[1] && parts[2] === 'edit') return { page: 'taskpacksetup', kind: 'configuration-record', type: 'task-pack-edit', slug: parts[1] };
+
+        if (parts[0] === 'tasks' && parts[1]) return { page: 'board', kind: 'task', type: 'task', slug: parts[1] };
+        if (parts[0] === 'jobs' && parts[1]) return { page: 'jobs', kind: 'job', type: 'job', slug: parts[1] };
+        if (parts[0] === 'clients' && parts[1]) return { page: 'clients', kind: 'client', type: 'client', slug: parts[1] };
+        return { page: parts[0], kind: 'page', type: 'page' };
     }
 
     async function ensureWorkspace() {
@@ -101,7 +151,7 @@ const files = Object.freeze({
         } else if (info.kind === 'task') {
             await load('board');
             await ensureDetail('task');
-        } else if (info.kind === 'client' || info.kind === 'configuration-record') {
+        } else if (['client', 'client-new', 'client-edit', 'configuration-record'].includes(info.kind)) {
             await ensureDetail('shared');
         }
         return info;
@@ -112,6 +162,124 @@ const files = Object.freeze({
         if (!normalized || normalized.startsWith('record-') || !window.history?.pushState) return;
         const path = '/flowtrack/view/' + encodeURIComponent(normalized);
         if (window.location.pathname !== path) window.history.pushState({ flowtrackPage: normalized }, '', path);
+    }
+
+    function pageLoadingLabel(page) {
+        const labels = {
+            dashboard: 'Dashboard',
+            mywork: 'My Work',
+            jobs: 'Jobs',
+            clients: 'Clients',
+            board: 'Board',
+            documents: 'Documents',
+            reports: 'Reports',
+            workflowsetup: 'Workflow Setup',
+            taskpacksetup: 'Task Pack Setup',
+            masterdata: 'Master Data',
+            setup: 'Setup',
+            notifications: 'Notifications',
+            profile: 'Profile',
+        };
+        return labels[String(page || '').trim()] || 'page';
+    }
+
+    function showPageLoading(page, percent = 12, message = null) {
+        pendingPageLoading = {
+            page,
+            percent,
+            label: message || `Loading ${pageLoadingLabel(page)}…`,
+        };
+        if (pageLoadingVisible) {
+            window.flowtrackSetNavigationProgress?.(pendingPageLoading.percent, pendingPageLoading.label);
+            return;
+        }
+        // Do not flash a loader for navigation that completes from memory/browser
+        // cache in a fraction of a second. Slow navigation still receives the
+        // existing circular percentage feedback.
+        if (!pageLoadingDelayTimer) {
+            const delay = String(page || '').trim() === 'mywork' ? 0 : 140;
+            pageLoadingDelayTimer = window.setTimeout(() => {
+                pageLoadingDelayTimer = null;
+                if (!pendingPageLoading) return;
+                pageLoadingVisible = true;
+                window.flowtrackSetNavigationProgress?.(pendingPageLoading.percent, pendingPageLoading.label);
+            }, delay);
+        }
+    }
+
+    function finishPageLoading(page) {
+        window.clearTimeout(pageLoadingDelayTimer);
+        pageLoadingDelayTimer = null;
+        pendingPageLoading = null;
+        if (pageLoadingVisible) {
+            window.flowtrackFinishNavigationProgress?.(`${pageLoadingLabel(page)} ready`);
+        } else {
+            window.flowtrackResetNavigationProgress?.();
+        }
+        pageLoadingVisible = false;
+    }
+
+    function cancelPageLoading() {
+        window.clearTimeout(pageLoadingDelayTimer);
+        pageLoadingDelayTimer = null;
+        pendingPageLoading = null;
+        pageLoadingVisible = false;
+        window.flowtrackResetNavigationProgress?.();
+    }
+
+    function finalRouteMounted(info) {
+        if (!info || info.kind === 'page') return true;
+        if (info.kind === 'task') {
+            return Boolean(document.querySelector('.page.active.ft-task-final-host[data-flowtrack-final-task="1"]'));
+        }
+        if (info.kind === 'job') {
+            return Boolean(document.querySelector('.page.active .standalone-record-page.job-detail-v4-page .job-detail-v4-content'));
+        }
+        if (info.kind === 'client') {
+            return Boolean(document.querySelector('.page.active .standalone-record-page .standalone-record-content'));
+        }
+        if (['job-new', 'job-edit', 'client-new', 'client-edit', 'configuration-record'].includes(info.kind)) {
+            return Boolean(document.querySelector('.page.active .standalone-record-page.standalone-record-form .standalone-record-content'));
+        }
+        return true;
+    }
+
+    function waitForFinalRouteMount(info, timeoutMs = 5000) {
+        if (finalRouteMounted(info)) return Promise.resolve(true);
+        const started = performance.now();
+        return new Promise((resolve, reject) => {
+            const inspect = () => {
+                if (finalRouteMounted(info)) {
+                    resolve(true);
+                    return;
+                }
+                if ((performance.now() - started) >= timeoutMs) {
+                    reject(new Error('The final FlowTrack page renderer did not finish mounting.'));
+                    return;
+                }
+                requestAnimationFrame(inspect);
+            };
+            requestAnimationFrame(inspect);
+        });
+    }
+
+    function prefetchRemainingModules() {
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if (connection?.saveData) return;
+        const run = () => {
+            Object.entries(files).forEach(([name, filename]) => {
+                if (loaded.has(name) || pending.has(name) || prefetched.has(name)) return;
+                prefetched.add(name);
+                const link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.as = 'script';
+                link.href = new URL(filename + '?v=' + build, root).href;
+                link.dataset.flowtrackPrefetch = name;
+                document.head.appendChild(link);
+            });
+        };
+        if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 1800 });
+        else window.setTimeout(run, 700);
     }
 
     function installRouteSync() {
@@ -125,14 +293,18 @@ const files = Object.freeze({
                 && !window.flowtrackIsPageDataReady(normalized)) {
                 const context = this;
                 const args = arguments;
+                showPageLoading(normalized, 14);
                 void window.flowtrackEnsurePageData(normalized).then(() => {
                     // Ignore an older async navigation if the user has already
                     // selected another screen while its data was loading.
                     if (navigationId !== deferredNavigationSequence) return;
+                    showPageLoading(normalized, 88, `Rendering ${pageLoadingLabel(normalized)}…`);
                     const result = implementation.apply(context, args);
                     if (result !== false) syncPageRoute(normalized);
+                    finishPageLoading(normalized);
                 }).catch((error) => {
                     if (navigationId !== deferredNavigationSequence) return;
+                    finishPageLoading(normalized);
                     if (typeof window.showToast === 'function') window.showToast(error?.message || 'This page could not be loaded.');
                     else console.error(error);
                 });
@@ -170,52 +342,91 @@ const files = Object.freeze({
         const navigation = target.closest('[data-page],[data-page-jump],[data-go]');
         const page = navigation?.dataset.page || navigation?.dataset.pageJump || navigation?.dataset.go;
         if (page) {
+            // Real anchors must retain native browser behaviors: right-click
+            // context menus, Cmd/Ctrl-click new tabs, Shift-click new windows,
+            // and middle-click. Only plain primary activation is upgraded to
+            // FlowTrack's in-place navigation. Keyboard Enter on an anchor
+            // produces the same plain activation and therefore works here too.
+            if (navigation instanceof HTMLAnchorElement && (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return;
             const navigationId = ++clickNavigationSequence;
-            const needs = (!['clients', 'documents'].includes(page) && !loaded.has('operations'))
-                || (['board', 'mywork'].includes(page) && !loaded.has('board'))
-                || (['workflowsetup', 'taskpacksetup', 'masterdata', 'setup', 'profile'].includes(page) && !loaded.has('records'))
-                || (page === 'jobs' && !loaded.has('job-details'));
-            const needsData = typeof window.flowtrackIsPageDataReady === 'function'
-                && !window.flowtrackIsPageDataReady(page);
-            if (needs || needsData) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            beginForegroundNavigation();
+            showPageLoading(page, 8);
+            try {
                 await ensureForPage(page);
-                if (typeof window.flowtrackEnsurePageData === 'function') await window.flowtrackEnsurePageData(page);
                 if (navigationId !== clickNavigationSequence) return;
+                showPageLoading(page, 38, `Loading ${pageLoadingLabel(page)} data…`);
+                const needsData = typeof window.flowtrackIsPageDataReady === 'function'
+                    && !window.flowtrackIsPageDataReady(page);
+                if (needsData && typeof window.flowtrackEnsurePageData === 'function') {
+                    await window.flowtrackEnsurePageData(page);
+                }
+                if (navigationId !== clickNavigationSequence) return;
+                showPageLoading(page, 82, `Rendering ${pageLoadingLabel(page)}…`);
                 installRouteSync();
                 window.dispatchEvent(new Event('flowtrack:assets-ready'));
-                window.navigate(page);
+                const result = window.navigate(page);
+                if (result === false) cancelPageLoading();
+            } catch (error) {
+                if (navigationId === clickNavigationSequence) cancelPageLoading();
+                throw error;
+            } finally {
+                endForegroundNavigation();
             }
             return;
         }
 
         const blockedAction = target.closest('[data-delete-job],[data-edit-job],[data-job-action],[data-delete-task],[data-task-action]');
+        // Task links exist in several renderers. Job Details rows use
+        // data-job-v4-open-task rather than data-task, so they must also pass
+        // through the lazy task-details loader before their page handler runs.
+        const jobDetailTask = !blockedAction ? target.closest('[data-job-v4-open-task]') : null;
         const task = !blockedAction ? target.closest('[data-task]') : null;
         const job = !blockedAction ? target.closest('[data-job]') : null;
         const client = target.closest('[data-client]');
         const documentRecord = target.closest('[data-doc]');
         const quickCreate = target.closest('#quickCreateBtn,[data-dashboard-action="create"],[data-new-client-job]');
-        const kind = task ? 'task' : (job || quickCreate ? 'job' : (client ? 'client' : (documentRecord ? 'document' : null)));
+        const kind = (task || jobDetailTask) ? 'task' : (job || quickCreate ? 'job' : (client ? 'client' : (documentRecord ? 'document' : null)));
         const requiredModule = kind === 'task' ? 'task-details' : (kind === 'job' ? 'job-details' : 'job-shared');
         if (!kind || loaded.has(requiredModule)) return;
 
         event.preventDefault();
         event.stopImmediatePropagation();
-        await ensureDetail(kind === 'document' || kind === 'client' ? 'shared' : kind);
-        installRouteSync();
-        window.dispatchEvent(new Event('flowtrack:assets-ready'));
-        if (task) window.openTask(task.dataset.task);
-        else if (job) window.openJob(job.dataset.job);
-        else if (client) window.openClient(client.dataset.client);
-        else if (documentRecord) window.openDoc(documentRecord.dataset.doc);
-        else if (quickCreate) window.openJobModal(quickCreate.dataset.newClientJob || undefined);
+        beginForegroundNavigation();
+        try {
+            showPageLoading(kind === 'task' ? 'board' : kind === 'client' ? 'clients' : kind === 'document' ? 'documents' : 'jobs', 18);
+            await ensureDetail(kind === 'document' || kind === 'client' ? 'shared' : kind);
+            installRouteSync();
+            window.dispatchEvent(new Event('flowtrack:assets-ready'));
+            if (jobDetailTask) {
+                const row = jobDetailTask.closest('[data-job-v4-task-row]');
+                const taskIdentifier = row?.dataset.taskId || jobDetailTask.dataset.task || jobDetailTask.dataset.taskId;
+                if (taskIdentifier) await Promise.resolve(window.openTask(taskIdentifier));
+            } else if (task) await Promise.resolve(window.openTask(task.dataset.task));
+            else if (job) await Promise.resolve(window.openJob(job.dataset.job));
+            else if (client) await Promise.resolve(window.openClient(client.dataset.client));
+            else if (documentRecord) await Promise.resolve(window.openDoc(documentRecord.dataset.doc));
+            else if (quickCreate) window.openJobModal(quickCreate.dataset.newClientJob || undefined);
+        } finally {
+            finishPageLoading(kind === 'task' ? 'board' : kind === 'client' ? 'clients' : kind === 'document' ? 'documents' : 'jobs');
+            endForegroundNavigation();
+        }
         } catch (error) {
+            if (typeof window.flowtrackResetNavigationProgress === 'function') {
+                window.flowtrackResetNavigationProgress();
+            }
             const message = error?.message || 'This section could not be loaded. Please try again.';
             if (typeof window.showToast === 'function') window.showToast(message);
             else console.error(error);
         }
     }, true);
+
+    window.addEventListener('flowtrack:navigation-complete', (event) => {
+        finishPageLoading(event?.detail?.page || 'page');
+    });
+    window.addEventListener('pageshow', cancelPageLoading);
+    window.addEventListener('unhandledrejection', cancelPageLoading);
 
     const ready = (async () => {
         await load('core');
@@ -226,17 +437,63 @@ const files = Object.freeze({
             return;
         }
 
+        window.FLOWTRACK_BOOT_IN_PROGRESS = true;
+        document.body.classList.add('flowtrack-booting');
+        beginForegroundNavigation();
         const info = await ensureForPage(window.location.pathname);
+        if (info.canonicalPath && info.canonicalPath !== window.location.pathname && window.history?.replaceState) {
+            window.history.replaceState({ flowtrackCanonical: true }, '', info.canonicalPath);
+        }
+        if (info.kind === 'task' && window.FLOWTRACK_FINAL_TASK_RENDERER_READY !== true) {
+            throw new Error('The final Task Details module did not initialize.');
+        }
+        if (info.kind === 'job' && window.FLOWTRACK_FINAL_JOB_RENDERER_READY !== true) {
+            throw new Error('The final Job Details module did not initialize.');
+        }
         installRouteSync();
-        await window.loadBootstrap();
-        // Load only the requested page's data before its first paint. This keeps
-        // lazy login behavior, but avoids briefly rendering empty/partial cards
-        // and then making records appear several seconds later.
-        if (typeof window.flowtrackEnsurePageData === 'function') await window.flowtrackEnsurePageData(info.page);
-        window.showApplication(info.page);
+        await window.loadBootstrap({ resetOperational: true });
+        // Keep the existing authoritative page-by-page loading contract. No
+        // persisted page-data cache is restored here, so reloads cannot show an
+        // old workspace snapshot. Direct read-only detail routes only need their
+        // page configuration before the authoritative detail endpoint runs; they
+        // no longer download the entire parent list first. Create/edit screens
+        // still load their parent-page data because their forms depend on it.
+        const directDetail = ['job', 'task', 'client'].includes(info.kind);
+        if (directDetail && typeof window.flowtrackEnsurePageContext === 'function') {
+            await window.flowtrackEnsurePageContext(info.page);
+        } else if (typeof window.flowtrackEnsurePageData === 'function') {
+            await window.flowtrackEnsurePageData(info.page);
+        }
+
+        // Hard refresh is an atomic boot: while the exact route/form/detail is
+        // constructed, the application shell and temporary modal/drawer sources
+        // remain hidden behind the same circular loader. This prevents form-modal
+        // flashes and legacy detail templates from becoming visible.
+        await Promise.resolve(window.showApplication(info.page));
+        await waitForFinalRouteMount(info);
+
+        // Let synchronous final renderers and their microtasks settle, then remove
+        // any transient modal/drawer source state before revealing the app.
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        document.querySelector('#overlay')?.classList.remove('open');
+        const jobModal = document.querySelector('#jobModal');
+        jobModal?.classList.remove('open', 'document-job-chooser');
+        const detailDrawer = document.querySelector('#detailDrawer');
+        detailDrawer?.classList.remove('open');
+
         if (typeof window.flowtrackFinishLoadingProgress === 'function') window.flowtrackFinishLoadingProgress('FlowTrack loaded');
+        document.querySelector('#loginScreen')?.classList.add('hidden');
+        document.querySelector('#authLoadingScreen')?.classList.add('hidden');
+        document.querySelector('#appScreen')?.classList.remove('hidden');
+        window.FLOWTRACK_BOOT_IN_PROGRESS = false;
+        document.body.classList.remove('flowtrack-booting');
         window.dispatchEvent(new Event('flowtrack:assets-ready'));
+        prefetchRemainingModules();
+        endForegroundNavigation();
     })().catch((error) => {
+        window.FLOWTRACK_BOOT_IN_PROGRESS = false;
+        document.body.classList.remove('flowtrack-booting');
+        endForegroundNavigation();
         if ([401, 419].includes(error?.status)) {
             window.location.replace('/login?session=' + (error?.payload?.reason === 'replaced' ? 'replaced' : 'expired'));
             return;

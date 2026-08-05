@@ -7,6 +7,7 @@ use App\Modules\OrderFlow\Business\Services\ActivityLogger;
 use App\Modules\OrderFlow\Business\Services\IdentifierGenerator;
 use App\Modules\OrderFlow\Data\Models\FlowDocument;
 use App\Modules\OrderFlow\Data\Models\FlowJob;
+use App\Modules\OrderFlow\Data\Models\FlowTask;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
@@ -21,19 +22,23 @@ class UploadJobAttachmentAction
         private readonly ActivityLogger $activityLogger,
     ) {}
 
-    public function execute(FlowJob $job, UploadedFile $file, User $actor): FlowDocument
+    public function execute(FlowJob $job, UploadedFile $file, User $actor, ?FlowTask $task = null): FlowDocument
     {
         $job->loadMissing('currentPhase');
+        if ($task && (int) $task->flow_job_id !== (int) $job->id) {
+            throw ValidationException::withMessages(['task_id' => 'The selected Task does not belong to this Job.']);
+        }
         $disk = (string) config('flowtrack.documents_disk', 'flowtrack_documents');
         $storedPath = null;
 
         try {
-            return DB::transaction(function () use ($job, $file, $actor, $disk, &$storedPath): FlowDocument {
+            return DB::transaction(function () use ($job, $file, $actor, $task, $disk, &$storedPath): FlowDocument {
                 $document = FlowDocument::create([
                     'workspace_id' => $job->workspace_id,
                     'flow_job_id' => $job->id,
-                    'workflow_phase_id' => $job->current_phase_id,
+                    'workflow_phase_id' => $task?->workflow_phase_id ?: $job->current_phase_id,
                     'task_pack_item_id' => null,
+                    'flow_task_id' => $task?->id,
                     'document_category_id' => null,
                     'uploaded_by' => $actor->id,
                     'linked_by' => $actor->id,
@@ -60,19 +65,22 @@ class UploadJobAttachmentAction
                     'original_name' => $file->getClientOriginalName(),
                     'mime_type' => $file->getMimeType(),
                     'size' => $file->getSize(),
-                    'notes' => 'Uploaded while creating the Job.',
+                    'notes' => $task ? 'Attached to Task '.$task->code.'.' : 'Uploaded as a Job attachment.',
                 ]);
 
                 $this->activityLogger->log(
                     $job->workspace_id,
                     $actor,
                     $document,
-                    'job.attachment_uploaded',
-                    "{$file->getClientOriginalName()} attached to {$job->code} during Job creation",
+                    $task ? 'task.attachment_uploaded' : 'job.attachment_uploaded',
+                    $task
+                        ? "{$file->getClientOriginalName()} attached to {$task->code}"
+                        : "{$file->getClientOriginalName()} attached to {$job->code}",
                     [
                         'flow_job_id' => $job->id,
-                        'workflow_phase_id' => $job->current_phase_id,
-                        'source' => 'job_creation',
+                        'workflow_phase_id' => $task?->workflow_phase_id ?: $job->current_phase_id,
+                        'flow_task_id' => $task?->id,
+                        'source' => $task ? 'task_attachment' : 'job_attachment',
                     ],
                 );
 
@@ -86,7 +94,7 @@ class UploadJobAttachmentAction
             throw $exception;
         }
     }
-    public function copyExisting(FlowJob $job, FlowDocument $source, User $actor): FlowDocument
+    public function copyExisting(FlowJob $job, FlowDocument $source, User $actor, ?FlowTask $task = null): FlowDocument
     {
         $source->loadMissing('currentVersion');
         $version = $source->currentVersion;
@@ -123,7 +131,7 @@ class UploadJobAttachmentAction
                 true,
             );
 
-            return $this->execute($job, $uploadedFile, $actor);
+            return $this->execute($job, $uploadedFile, $actor, $task);
         } finally {
             if (is_resource($sourceStream)) fclose($sourceStream);
             if (is_resource($targetStream)) fclose($targetStream);

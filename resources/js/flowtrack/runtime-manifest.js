@@ -1,4 +1,4 @@
-export const build = "f400609959067571";
+export const build = "30e4f82686c91463";
 export const files = Object.freeze({
     "core": "core.js",
     "workspace": "workspace.js",

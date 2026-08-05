@@ -35,9 +35,15 @@ class NotificationController extends Controller
     {
         $user = $request->user();
         $authorityView = $feed->isAuthority($user);
-        $limit = max(10, min(100, (int) $request->integer('limit', 50)));
+        // Keep backwards compatibility with the old ?limit=50 feed while
+        // allowing the Notifications page to request real server pagination.
+        $perPage = max(10, min(100, (int) $request->integer(
+            'per_page',
+            $request->integer('limit', 20),
+        )));
+        $paginator = $feed->paginate($user, $perPage);
 
-        $notifications = $feed->latest($user, $limit)->map(function ($notification) use ($authorityView): array {
+        $notifications = $paginator->getCollection()->map(function ($notification) use ($authorityView): array {
             $data = $notification->data;
 
             return [
@@ -66,6 +72,17 @@ class NotificationController extends Controller
             'unread_count' => $feed->unreadCount($user),
             'latest_signature' => $feed->latestSignature($user),
             'authority_view' => $authorityView,
+            'pagination' => [
+                'current_page' => $paginator->currentPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'last_page' => max(1, $paginator->lastPage()),
+                'from' => $paginator->firstItem() ?? 0,
+                'to' => $paginator->lastItem() ?? 0,
+                'has_more_pages' => $paginator->hasMorePages(),
+                'previous_page_url' => $paginator->previousPageUrl(),
+                'next_page_url' => $paginator->nextPageUrl(),
+            ],
         ])->header('Cache-Control', 'private, no-store');
     }
 

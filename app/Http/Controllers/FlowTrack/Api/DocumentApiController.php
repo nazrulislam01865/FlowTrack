@@ -238,7 +238,9 @@ final class DocumentApiController extends BaseApiController
         abort_unless($authorization->allows($request->user(), 'documents', 'create', $targetJob), 403);
         abort_unless($authorization->allows($request->user(), 'documents', 'link', $targetJob), 403);
 
-        $request->validate([
+        $data = $request->validate([
+            'task_id' => ['nullable', 'integer', Rule::exists('flow_tasks', 'id')
+                ->where(fn ($query) => $query->where('flow_job_id', $targetJob->id)->whereNull('deleted_at'))],
             'file' => ['bail', 'required', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,png,jpg,jpeg,webp,zip,txt,csv'],
         ], [
             'file.required' => 'Choose a document before uploading.',
@@ -247,7 +249,8 @@ final class DocumentApiController extends BaseApiController
             'file.mimes' => 'Use a PDF, Office, image, ZIP, TXT, or CSV document.',
         ]);
 
-        $document = $attachmentAction->execute($targetJob, $request->file('file'), $request->user());
+        $task = isset($data['task_id']) ? FlowTask::query()->where('flow_job_id', $targetJob->id)->findOrFail((int) $data['task_id']) : null;
+        $document = $attachmentAction->execute($targetJob, $request->file('file'), $request->user(), $task);
         $document->loadMissing(['job.client', 'category', 'phase', 'taskPackItem', 'task', 'uploader', 'currentVersion', 'versions.uploader']);
         $updatedJob = $this->loadJob($targetJob);
         $tasks = $this->loadJobTasks($updatedJob, $request->user());
@@ -276,6 +279,8 @@ final class DocumentApiController extends BaseApiController
                 ->where(fn ($query) => $query
                     ->where('workspace_id', $request->user()->currentWorkspaceId())
                     ->whereNull('deleted_at'))],
+            'task_id' => ['nullable', 'integer', Rule::exists('flow_tasks', 'id')
+                ->where(fn ($query) => $query->where('flow_job_id', $targetJob->id)->whereNull('deleted_at'))],
         ]);
 
         $source = FlowDocument::query()
@@ -285,7 +290,8 @@ final class DocumentApiController extends BaseApiController
             ->findOrFail((int) $data['source_document_id']);
         abort_unless($source->job && $authorization->allows($request->user(), 'documents', 'view', $source), 403);
 
-        $document = $attachmentAction->copyExisting($targetJob, $source, $request->user());
+        $task = isset($data['task_id']) ? FlowTask::query()->where('flow_job_id', $targetJob->id)->findOrFail((int) $data['task_id']) : null;
+        $document = $attachmentAction->copyExisting($targetJob, $source, $request->user(), $task);
         $document->loadMissing(['job.client', 'category', 'phase', 'taskPackItem', 'task', 'uploader', 'currentVersion', 'versions.uploader']);
         $updatedJob = $this->loadJob($targetJob);
         $tasks = $this->loadJobTasks($updatedJob, $request->user());

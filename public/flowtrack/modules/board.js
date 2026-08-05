@@ -1,4 +1,4 @@
-/* FlowTrack runtime module: board. Build: f400609959067571. */
+/* FlowTrack runtime module: board. Build: 30e4f82686c91463. */
 /* FlowTrack Job Board card-width refinement: slightly wider phase columns/cards for readability. */
 (() => {
     if (document.getElementById('flowtrack-job-board-wider-cards')) return;

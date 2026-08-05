@@ -82,6 +82,100 @@ class FlowTrackDynamicBackendSmokeTest extends TestCase
             ->assertJsonCount(20, 'data');
     }
 
+    public function test_my_work_snapshot_is_strictly_read_only(): void
+    {
+        $this->seed(FlowTrackSeeder::class);
+
+        $superAdmin = User::query()->where('email', 'superadmin@flowtrack.cn')->firstOrFail();
+        $jobCount = FlowJob::query()->withTrashed()->count();
+        $taskCount = FlowTask::query()->withTrashed()->count();
+
+        $this->actingAs($superAdmin)
+            ->getJson('/flowtrack/template-api/my-work-snapshot')
+            ->assertOk()
+            ->assertJsonPath('source', 'database')
+            ->assertJsonPath('readOnly', true);
+
+        $this->assertSame($jobCount, FlowJob::query()->withTrashed()->count());
+        $this->assertSame($taskCount, FlowTask::query()->withTrashed()->count());
+    }
+
+    public function test_browsing_job_details_does_not_restore_or_create_tasks(): void
+    {
+        $this->seed(FlowTrackSeeder::class);
+
+        $superAdmin = User::query()->where('email', 'superadmin@flowtrack.cn')->firstOrFail();
+        $task = FlowTask::query()->whereNotNull('task_pack_item_id')->firstOrFail();
+        $job = $task->job;
+        $task->delete();
+        $activeBefore = FlowTask::query()->where('flow_job_id', $job->id)->count();
+        $allBefore = FlowTask::withTrashed()->where('flow_job_id', $job->id)->count();
+
+        $this->actingAs($superAdmin)
+            ->getJson('/flowtrack/template-api/jobs/'.urlencode((string) $job->code))
+            ->assertOk()
+            ->assertJsonPath('taskSet.readOnly', true)
+            ->assertJsonPath('taskSet.createdOrRestored', 0);
+
+        $this->assertSame($activeBefore, FlowTask::query()->where('flow_job_id', $job->id)->count());
+        $this->assertSame($allBefore, FlowTask::withTrashed()->where('flow_job_id', $job->id)->count());
+        $this->assertSoftDeleted('flow_tasks', ['id' => $task->id]);
+
+        $this->actingAs($superAdmin)
+            ->getJson('/flowtrack/template-api/jobs/'.$job->id.'/tasks')
+            ->assertOk()
+            ->assertJsonPath('taskSet.readOnly', true)
+            ->assertJsonPath('taskSet.createdOrRestored', 0);
+
+        $this->assertSame($activeBefore, FlowTask::query()->where('flow_job_id', $job->id)->count());
+        $this->assertSame($allBefore, FlowTask::withTrashed()->where('flow_job_id', $job->id)->count());
+        $this->assertSoftDeleted('flow_tasks', ['id' => $task->id]);
+    }
+
+    public function test_master_task_status_and_priority_colors_are_persisted_and_exposed(): void
+    {
+        $this->seed(FlowTrackSeeder::class);
+
+        $superAdmin = User::query()->where('email', 'superadmin@flowtrack.cn')->firstOrFail();
+        $priority = MasterRecord::query()->where('type', MasterDataType::Priority->value)->where('code', 'MED')->firstOrFail();
+        $status = MasterRecord::query()->where('type', MasterDataType::TaskStatus->value)->where('code', 'READY')->firstOrFail();
+
+        $this->actingAs($superAdmin)->putJson('/flowtrack/template-api/master-data/'.$priority->id, [
+            'type' => MasterDataType::Priority->value,
+            'parent_id' => null,
+            'name' => $priority->name,
+            'description' => $priority->description,
+            'status' => $priority->status,
+            'sort_order' => $priority->sort_order,
+            'color' => '#123456',
+        ])->assertOk()->assertJsonPath('record.color', '#123456');
+
+        $this->actingAs($superAdmin)->putJson('/flowtrack/template-api/master-data/'.$status->id, [
+            'type' => MasterDataType::TaskStatus->value,
+            'parent_id' => null,
+            'name' => $status->name,
+            'description' => $status->description,
+            'status' => $status->status,
+            'sort_order' => $status->sort_order,
+            'color' => '#ABCDEF',
+        ])->assertOk()->assertJsonPath('record.color', '#ABCDEF');
+
+        $this->assertSame('#123456', MasterRecord::query()->findOrFail($priority->id)->metadata['color'] ?? null);
+        $this->assertSame('#ABCDEF', MasterRecord::query()->findOrFail($status->id)->metadata['color'] ?? null);
+
+        $priorityTask = FlowTask::query()->where('priority_id', $priority->id)->firstOrFail();
+        $this->actingAs($superAdmin)
+            ->getJson('/flowtrack/template-api/tasks/'.urlencode((string) $priorityTask->code))
+            ->assertOk()
+            ->assertJsonPath('task.priorityColor', '#123456');
+
+        $statusTask = FlowTask::query()->where('task_status_id', $status->id)->firstOrFail();
+        $this->actingAs($superAdmin)
+            ->getJson('/flowtrack/template-api/tasks/'.urlencode((string) $statusTask->code))
+            ->assertOk()
+            ->assertJsonPath('task.statusColor', '#ABCDEF');
+    }
+
     public function test_task_detail_api_exposes_final_template_fields(): void
     {
         $this->seed(FlowTrackSeeder::class);
@@ -126,13 +220,18 @@ class FlowTrackDynamicBackendSmokeTest extends TestCase
             ->assertJsonPath('task.canUploadDocument', false);
     }
 
-    public function test_task_pack_required_document_blocks_completion_until_evidence_exists(): void
+    public function test_task_pack_required_document_is_visible_and_blocks_every_status_change_until_evidence_exists(): void
     {
+        Storage::fake('flowtrack_documents');
+        config(['flowtrack.documents_disk' => 'flowtrack_documents']);
         $this->seed(FlowTrackSeeder::class);
 
         $superAdmin = User::query()->where('email', 'superadmin@flowtrack.cn')->firstOrFail();
+        $job = FlowJob::query()->whereNotNull('current_phase_id')->firstOrFail();
         $task = FlowTask::query()
-            ->with('packItem')
+            ->with(['packItem', 'job'])
+            ->where('flow_job_id', $job->id)
+            ->where('workflow_phase_id', $job->current_phase_id)
             ->whereNull('completed_at')
             ->whereNotNull('task_pack_item_id')
             ->firstOrFail();
@@ -141,10 +240,12 @@ class FlowTrackDynamicBackendSmokeTest extends TestCase
             ->where('type', MasterDataType::DocumentCategory->value)
             ->where('status', 'active')
             ->firstOrFail();
-        $completedStatus = MasterRecord::query()
+        $targetStatus = MasterRecord::query()
             ->where('workspace_id', $task->job->workspace_id)
             ->where('type', MasterDataType::TaskStatus->value)
-            ->where('code', 'CMP')
+            ->where('status', 'active')
+            ->whereKeyNot($task->task_status_id)
+            ->whereNotIn('code', ['CMP', 'COMPLETED'])
             ->firstOrFail();
 
         $task->packItem->update(['document_category_id' => $category->id]);
@@ -154,13 +255,54 @@ class FlowTrackDynamicBackendSmokeTest extends TestCase
         ]);
 
         $this->actingAs($superAdmin)
+            ->getJson('/flowtrack/template-api/jobs/'.urlencode((string) $job->code))
+            ->assertOk()
+            ->assertJsonFragment([
+                'task_pack_item_id' => (int) $task->task_pack_item_id,
+                'category_id' => (int) $category->id,
+                'category_name' => $category->name,
+                'flow_task_id' => (int) $task->id,
+                'present' => false,
+            ]);
+
+        $this->actingAs($superAdmin)
+            ->getJson('/flowtrack/template-api/tasks/'.urlencode((string) $task->code))
+            ->assertOk()
+            ->assertJsonPath('task.documentRequirement.categoryId', (int) $category->id)
+            ->assertJsonPath('task.documentRequirementSatisfied', false)
+            ->assertJsonPath('task.statusChangeBlockedByDocument', true);
+
+        // The document prerequisite applies to every real status transition,
+        // not only to the Completed status.
+        $this->actingAs($superAdmin)
             ->putJson('/flowtrack/template-api/tasks/'.$task->id, [
-                'task_status_id' => $completedStatus->id,
+                'task_status_id' => $targetStatus->id,
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('document');
 
-        $this->assertNull($task->fresh()->completed_at);
+        $this->assertSame((int) $task->task_status_id, (int) $task->fresh()->task_status_id);
+
+        $this->actingAs($superAdmin)
+            ->post('/flowtrack/template-api/documents', [
+                'job_id' => $job->id,
+                'workflow_phase_id' => $task->workflow_phase_id,
+                'task_pack_item_id' => $task->task_pack_item_id,
+                'task_id' => $task->id,
+                'document_category_id' => $category->id,
+                'file' => UploadedFile::fake()->create('required-evidence.pdf', 64, 'application/pdf'),
+            ])
+            ->assertOk();
+
+        $task->refresh();
+        $this->actingAs($superAdmin)
+            ->putJson('/flowtrack/template-api/tasks/'.$task->id, [
+                'task_status_id' => $targetStatus->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('task.statusId', (int) $targetStatus->id)
+            ->assertJsonPath('task.documentRequirementSatisfied', true)
+            ->assertJsonPath('task.statusChangeBlockedByDocument', false);
     }
 
     public function test_super_admin_can_add_and_delete_task_checklist_items(): void

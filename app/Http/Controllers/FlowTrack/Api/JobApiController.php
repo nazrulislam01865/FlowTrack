@@ -460,10 +460,24 @@ final class JobApiController extends BaseApiController
         $visible = $jobs->findVisible($request->user(), $job->id);
         abort_unless($authorization->allows($request->user(), 'tasks', 'view', $visible), 403);
 
+        // Read-only authoritative Task source. Browsing Job Details must never
+        // create/restore Tasks. Task generation belongs to Job creation or an
+        // explicit synchronization action only.
+        $loadedJob = $this->loadJob($visible);
+        $loadedTasks = $this->loadJobTasks($loadedJob, $request->user());
+
         return response()->json([
-            'job' => $this->mapJob($this->loadJob($visible), $this->canViewFinancials($request->user())),
-            'tasks' => $this->loadJobTasks($visible, $request->user())->map(fn (FlowTask $task) => $this->mapTask($task)),
-        ])->header('Cache-Control', 'private, no-cache, must-revalidate');
+            'job' => $this->mapJob($loadedJob, $this->canViewFinancials($request->user())),
+            'tasks' => $loadedTasks->map(fn (FlowTask $task) => $this->mapTask($task)),
+            'taskSet' => [
+                'complete' => true,
+                'persisted' => true,
+                'count' => $loadedTasks->count(),
+                'jobDbId' => (int) $loadedJob->id,
+                'readOnly' => true,
+                'createdOrRestored' => 0,
+            ],
+        ])->header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
     }
 
     public function moveJob(

@@ -65,6 +65,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -215,6 +216,7 @@ final class ReadApiController extends BaseApiController
                 'parent_name' => $record->parent?->name,
                 'parent_code' => $record->parent?->code,
                 'sort_order' => (int) $record->sort_order,
+                'color' => $record->metadata['color'] ?? null,
             ])->values());
     }
 
@@ -282,6 +284,7 @@ final class ReadApiController extends BaseApiController
         return [
             'currentUser' => $currentUserPresenter->toArray($user),
             'notifications' => $notifications,
+            'notificationUnreadCount' => $notificationFeed->unreadCount($user),
             'notificationAccess' => [
                 'authorityView' => $authorityNotificationView,
                 'statusEndpoint' => route('flowtrack.notifications.status'),
@@ -317,10 +320,11 @@ final class ReadApiController extends BaseApiController
                 'perPage' => max(20, min(100, (int) config('flowtrack.list_per_page', 50))),
             ],
             'contextBaseUrl' => '/flowtrack/template-api/context',
-            'clients' => [],
-            'jobs' => [],
-            'tasks' => [],
-            'documents' => [],
+            // Operational collections are deliberately omitted. The frontend
+            // initializes them only on first startup and thereafter accepts
+            // records exclusively from the paginated list endpoints. Returning
+            // empty placeholders here previously let background bootstrap
+            // refreshes erase Clients, Jobs and My Work state.
             'capabilities' => $this->capabilitiesPayload($user, $roleCatalog, $authorization),
         ];
     }
@@ -405,7 +409,7 @@ final class ReadApiController extends BaseApiController
                     'items' => fn ($query) => $query->orderBy('sort_order')->orderBy('id'),
                     'items.defaultAssignee:id,name,initials',
                     'items.defaultDepartment:id,name,code',
-                    'items.priority:id,name,code',
+                    'items.priority:id,name,code,metadata',
                     'items.documentCategory:id,name,code',
                 ])->orderBy('name')->get();
             $payload['taskPacks'] = $taskPacks->map(fn (TaskPack $taskPack) => $this->mapTaskPack($taskPack));
@@ -513,7 +517,7 @@ final class ReadApiController extends BaseApiController
                         'client:id,name,code', 'currentPhase:id,name,short_name,sequence', 'startedPhase:id,name,short_name,sequence',
                         'product:id,name,code', 'productCategory:id,name,code',
                         'items.product:id,name,code', 'items.productCategory:id,name,code',
-                        'currency:id,name,code', 'priority:id,name,code',
+                        'currency:id,name,code', 'priority:id,name,code,metadata',
                         'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
                         'members.user:id,name,initials', 'workflow:id,name',
                     ])
@@ -530,7 +534,7 @@ final class ReadApiController extends BaseApiController
                         'documentCategory:id,name', 'assignee:id,name,initials', 'setupAssignee:id,name,initials',
                         'setupAssignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $workspaceId)->with('department:id,name'),
                         'assignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $workspaceId)->with('department:id,name'),
-                        'status:id,name,code', 'priority:id,name,code',
+                        'status:id,name,code,metadata', 'priority:id,name,code,metadata',
                     ])
                     ->orderByRaw('due_date is null')
                     ->orderBy('due_date')
@@ -575,7 +579,7 @@ final class ReadApiController extends BaseApiController
                     'client:id,name,code', 'currentPhase:id,name,short_name,sequence', 'startedPhase:id,name,short_name,sequence',
                     'product:id,name,code', 'productCategory:id,name,code',
                     'items.product:id,name,code', 'items.productCategory:id,name,code',
-                    'currency:id,name,code', 'priority:id,name,code',
+                    'currency:id,name,code', 'priority:id,name,code,metadata',
                     'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
                     'members.user:id,name,initials', 'workflow:id,name',
                 ])
@@ -616,6 +620,120 @@ final class ReadApiController extends BaseApiController
         ])->header('Cache-Control', 'private, no-cache, must-revalidate');
     }
 
+    public function myWorkSnapshot(
+        Request $request,
+        FlowAuthorizationService $authorization,
+        OperationalMetricsService $metrics,
+        FlowTrackBootstrapCache $bootstrapCache,
+    ): JsonResponse {
+        $user = $request->user();
+        abort_unless($user && $authorization->allows($user, 'tasks', 'view'), 403);
+
+        $workspaceId = (int) $user->currentWorkspaceId();
+        $workspaceVersion = $bootstrapCache->currentVersion($workspaceId);
+        $cacheSeconds = max(15, (int) config('flowtrack.my_work_snapshot_cache_seconds', 60));
+        $cacheKey = "flowtrack:mywork:schema:2:workspace:{$workspaceId}:user:{$user->id}:v{$workspaceVersion}";
+
+        $payload = Cache::remember($cacheKey, $cacheSeconds, function () use (
+            $user,
+            $authorization,
+            $metrics,
+            $workspaceId,
+            $workspaceVersion
+        ): array {
+            $tasks = $authorization->applyTaskVisibility(FlowTask::query(), $user)
+                ->with([
+                    'job:id,workspace_id,code,title,client_id,current_phase_id,workflow_template_id,progress,created_by,owner_id,coordinator_id,health,health_reason,delivery_date,status,attention_required',
+                    'job.client:id,name',
+                    'job.members:id,flow_job_id,user_id,can_manage_tasks',
+                    'phase:id,name,short_name,sequence,task_pack_id',
+                    'phase.taskPack:id,name',
+                    'packItem:id,task_pack_id,title,document_category_id,is_required',
+                    'packItem.documentCategory:id,name',
+                    'documentCategory:id,name',
+                    'assignee:id,name,initials',
+                    'setupAssignee:id,name,initials',
+                    'setupAssignee.workspaceMemberships' => fn ($query) => $query
+                        ->where('workspace_id', $workspaceId)
+                        ->with('department:id,name'),
+                    'assignee.workspaceMemberships' => fn ($query) => $query
+                        ->where('workspace_id', $workspaceId)
+                        ->with('department:id,name'),
+                    'status:id,name,code,metadata',
+                    'priority:id,name,code,metadata',
+                ])
+                ->orderByRaw('due_date is null')
+                ->orderBy('due_date')
+                ->orderBy('id')
+                ->get();
+
+            $jobIds = $tasks->pluck('flow_job_id')
+                ->filter()
+                ->map(fn ($id): int => (int) $id)
+                ->unique()
+                ->values();
+
+            $jobModels = $jobIds->isEmpty()
+                ? collect()
+                : FlowJob::query()
+                    ->visibleTo($user)
+                    ->whereKey($jobIds)
+                    ->with([
+                        'client:id,name,code',
+                        'currentPhase:id,name,short_name,sequence',
+                        'startedPhase:id,name,short_name,sequence',
+                        'product:id,name,code',
+                        'productCategory:id,name,code',
+                        'items.product:id,name,code',
+                        'items.productCategory:id,name,code',
+                        'currency:id,name,code',
+                        'priority:id,name,code,metadata',
+                        'owner:id,name,initials',
+                        'coordinator:id,name,initials',
+                        'creator:id,name,initials',
+                        'members.user:id,name,initials',
+                        'workflow:id,name',
+                    ])
+                    ->get();
+
+            $clientIds = $jobModels->pluck('client_id')
+                ->filter()
+                ->map(fn ($id): int => (int) $id)
+                ->unique()
+                ->values();
+
+            $relatedClients = $clientIds->isEmpty()
+                ? collect()
+                : Client::query()
+                    ->where('workspace_id', $workspaceId)
+                    ->whereKey($clientIds)
+                    ->get(['id', 'name', 'code'])
+                    ->map(fn (Client $client): array => [
+                        'id' => $client->id,
+                        'name' => $client->name,
+                        'code' => $client->code,
+                    ])
+                    ->values();
+
+            return [
+                'tasks' => $tasks->map(fn (FlowTask $task): array => $this->mapTaskList($task))->values()->all(),
+                'relatedJobs' => $jobModels
+                    ->map(fn (FlowJob $job): array => $this->mapJobList($job, $this->canViewFinancials($user)))
+                    ->values()
+                    ->all(),
+                'relatedClients' => $relatedClients->all(),
+                'summaryMetrics' => $metrics->forPage($user, 'mywork'),
+                'workspaceVersion' => $workspaceVersion,
+                'source' => 'database',
+                'readOnly' => true,
+                'cachedAt' => now()->toIso8601String(),
+            ];
+        });
+
+        return response()->json($payload)
+            ->header('Cache-Control', 'private, no-cache, must-revalidate');
+    }
+
     public function showClient(
         Request $request,
         string $record,
@@ -640,7 +758,7 @@ final class ReadApiController extends BaseApiController
             ->with([
                 'client:id,name,code', 'currentPhase:id,name,short_name,sequence', 'startedPhase:id,name,short_name,sequence',
                 'product:id,name,code', 'productCategory:id,name,code', 'items.product:id,name,code',
-                'items.productCategory:id,name,code', 'currency:id,name,code', 'priority:id,name,code',
+                'items.productCategory:id,name,code', 'currency:id,name,code', 'priority:id,name,code,metadata',
                 'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
             ])
             ->latest('id')
@@ -666,6 +784,12 @@ final class ReadApiController extends BaseApiController
         abort_unless($user && $authorization->allows($user, 'jobs', 'view'), 403);
 
         $job = $this->whereRecordIdentifier(FlowJob::query()->visibleTo($user), $record)->firstOrFail();
+
+        // IMPORTANT: Job Details is a read path. Never materialize, restore,
+        // synchronize or otherwise create Tasks while serving a GET request.
+        // New Jobs already receive their configured phase Tasks inside the Job
+        // creation transaction. Legacy repair, when required, must be an
+        // explicit write/admin operation rather than a side effect of browsing.
         $job = $this->loadJob($job);
         $this->primeJobActivityCache(collect([$job]));
         $tasks = $this->loadJobTasks($job, $user);
@@ -682,8 +806,18 @@ final class ReadApiController extends BaseApiController
         return response()->json([
             'job' => [...$this->mapJob($job, $this->canViewFinancials($user)), '_detailLoaded' => true],
             'tasks' => $tasks->map(fn (FlowTask $task) => [...$this->mapTask($task), '_detailLoaded' => true]),
+            'taskSet' => [
+                'complete' => true,
+                'persisted' => true,
+                'count' => $tasks->count(),
+                'jobDbId' => (int) $job->id,
+                // This describes the complete persisted Task snapshot returned
+                // by this read endpoint; it does not imply any setup synchronization.
+                'readOnly' => true,
+                'createdOrRestored' => 0,
+            ],
             'documents' => $documents->map(fn (FlowDocument $document) => [...$this->mapDocument($document), '_detailLoaded' => true]),
-        ]);
+        ])->header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
     }
 
     public function showTask(

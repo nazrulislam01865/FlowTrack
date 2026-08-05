@@ -57,4 +57,24 @@ class FlowTrackRoutePageStructureTest extends TestCase
             ->assertOk()
             ->assertSee('id="page-board"', false);
     }
+    public function test_configuration_form_routes_cannot_be_swallowed_by_task_detail_route(): void
+    {
+        $this->seed(FlowTrackSeeder::class);
+        $user = User::query()->where('email', 'superadmin@flowtrack.cn')->firstOrFail();
+
+        $this->actingAs($user)->get('/flowtrack/view/task-packs/new')
+            ->assertOk()
+            ->assertSee('id="page-taskpacksetup"', false);
+
+        $this->actingAs($user)->get('/flowtrack/view/workflows/1/copy')
+            ->assertOk()
+            ->assertSee('id="page-workflowsetup"', false);
+
+        $this->actingAs($user)->get('/flowtrack/view/tasks/pack-new')
+            ->assertRedirect(route('flowtrack.view.task-packs.create'));
+
+        $this->actingAs($user)->get('/flowtrack/view/tasks/pack-edit-17')
+            ->assertRedirect(route('flowtrack.view.task-packs.edit', ['record' => '17']));
+    }
+
 }

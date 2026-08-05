@@ -9,7 +9,7 @@ window.FLOWTRACK_PAGE_ROUTES = {{ Illuminate\Support\Js::from($flowtrackPageRout
 </script>
 <script defer src="{{ asset('flowtrack/searchable-dropdown.js') }}"></script>
 <script defer src="{{ asset('flowtrack/interaction-feedback.js') }}?v={{ file_exists(public_path('flowtrack/interaction-feedback.js')) ? filemtime(public_path('flowtrack/interaction-feedback.js')) : 1 }}"></script>
-<script defer src="{{ asset('flowtrack/loader.js') }}"></script>
+<script defer src="{{ asset('flowtrack/loader.js') }}?v={{ file_exists(public_path('flowtrack/loader.js')) ? filemtime(public_path('flowtrack/loader.js')) : 1 }}"></script>
 
 @if($flowtrackAuthenticated && filled(config('services.pusher.key')))
 <script

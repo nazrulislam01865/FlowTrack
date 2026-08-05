@@ -1,4 +1,4 @@
-/* FlowTrack runtime module: job-shared. Build: f400609959067571. */
+/* FlowTrack runtime module: job-shared. Build: 30e4f82686c91463. */
 /* FlowTrack lazy module boundary: job-shared. */
 
     /* Final Job Detail Redesign: matches the supplied Overview, Workflow and Documents reference screens. */
@@ -8,7 +8,13 @@
 
     function flowtrackJobAllTasks(job) {
         const phaseOrder = new Map(flowtrackActivePhases(job || {}).map((phase, index) => [Number(phase.id), Number(phase.sequence || index + 1)]));
-        return flowtrackTasksForJob(job || {})
+        // Standalone Job Details owns an authoritative complete Task snapshot.
+        // Never rebuild it from the shared paginated tasks[] array because Board,
+        // My Work and other pages are allowed to replace that array as they lazy-load.
+        const source = job?._completeTaskSetLoaded && Array.isArray(job?._detailTasks)
+            ? job._detailTasks
+            : flowtrackTasksForJob(job || {});
+        return flowtrackToArray(source)
             .map((task) => flowtrackHydrateTaskAssignee(task))
             .sort((left, right) => {
                 const leftPhase = phaseOrder.get(Number(left.phaseId)) ?? Number(left.phaseIndex ?? 999);
@@ -215,6 +221,9 @@
                 phaseId: Number(requirement.phaseId || requirement.workflow_phase_id || job.phaseId || 0),
                 phaseName: requirement.phaseName || requirement.workflow_phase_name || phaseNameFor(job),
                 taskPackItemId: Number(requirement.taskPackItemId || requirement.task_pack_item_id || 0) || null,
+                taskId: Number(requirement.taskId || requirement.task_id || requirement.flow_task_id || 0) || null,
+                taskCode: requirement.taskCode || requirement.task_code || requirement.flow_task_code || null,
+                taskTitle: requirement.taskTitle || requirement.task_title || requirement.flow_task_title || null,
                 categoryId: Number(requirement.categoryId || requirement.category_id || 0),
                 categoryName: requirement.categoryName || requirement.category_name || 'Required document',
                 sourceLabel: requirement.sourceLabel || requirement.source_label || 'Workflow requirement',
@@ -272,7 +281,6 @@
     function flowtrackDocumentsPanel(job, allJobDocs, activePhases) {
         const actualTasks = flowtrackJobAllTasks(job);
         const requirements = flowtrackJobDocumentPurposeOptions(job, activePhases).filter((item) => item.requiredForReadiness);
-        const uploadPurposes = flowtrackJobDocumentPurposeOptions(job, activePhases);
         const missing = requirements.filter((item) => !item.present);
         const statusRows = allJobDocs.map((documentRecord) => ({ documentRecord, meta: flowtrackJobDocumentViewStatus(documentRecord) }));
         const approved = statusRows.filter((item) => item.meta.tone === 'b-green').length;
@@ -287,9 +295,11 @@
         const phasePalette = ['blue','violet','orange','green','cyan','purple','teal','amber','rose','brown','slate'];
         const ownerOptions = [...new Set(allJobDocs.map((item) => item.uploadedBy).filter(Boolean))].sort();
         const typeOptions = [...new Set([...allJobDocs.map((item) => item.type), ...requirements.map((item) => item.categoryName)].filter(Boolean))].sort();
+        const configuredUploadRequirements = flowtrackToArray(jobDocumentRequirements(job));
+        const uploadPurposes = configuredUploadRequirements.length ? flowtrackJobDocumentPurposeOptions(job, activePhases) : [];
+        const uploadTypeOptions = [...new Map(uploadPurposes.map((item) => [Number(item.categoryId), { id: Number(item.categoryId), name: item.categoryName }])).values()]
+            .filter((item) => item.id && item.name);
         const taskOptions = [...new Map(actualTasks.map((task) => [String(task.id), task])).values()];
-        const purposeOptions = uploadPurposes.map((item) => `<option value="${html(item.key)}">${html(item.phaseName)} · ${html(item.sourceLabel)} · ${html(item.categoryName)}</option>`).join('');
-        const firstPurpose = uploadPurposes.find((item) => !item.present) || uploadPurposes[0] || null;
         const firstExpandedPhaseId = (activePhases.find((phase) => requirements.some((requirement) => Number(requirement.phaseId) === Number(phase.id) && !requirement.present)) || activePhases.find((phase) => allJobDocs.some((documentRecord) => Number(documentRecord.phaseId || 0) === Number(phase.id))) || currentPhase || activePhases[0])?.id;
 
         const phaseGroups = activePhases.map((phase, phaseIndex) => {
@@ -323,14 +333,15 @@
             const phaseRequirementRows = phaseRequirements.length ? `<div class="job-v6-phase-requirements"><div class="job-v6-phase-requirements-title"><b>Required documents</b><span>${phaseReceived} of ${phaseRequirements.length} received</span></div>${phaseRequirements.map((item) => {
                 const taskForRequirement = item.taskPackItemId ? phaseTasks.find((task) => Number(task.taskPackItemId || 0) === Number(item.taskPackItemId || 0)) : null;
                 const requirementStatus = item.present ? 'approved' : 'needs action';
-                return `<div class="job-v6-requirement-row ${item.present ? 'is-complete' : 'is-missing'}" data-job-doc-requirement-row data-phase="${html(phase.id)}" data-task="${html(taskForRequirement?.id || '')}" data-type="${html(normalizedStatusValue(item.categoryName))}" data-status="${html(requirementStatus)}" data-purpose-key="${html(item.key)}"><span class="job-v6-requirement-icon">${item.present ? '✓' : '!'}</span><div><b>${html(item.categoryName)}</b><small>${html(item.sourceLabel)}${item.present ? ' · Document received' : ' · Required document missing'}</small></div><em>${item.present ? 'Received' : 'Needs action'}</em>${item.present ? '' : `<button type="button" class="job-v6-upload-required" data-job-doc-upload-requirement="${html(item.key)}">Upload</button>`}</div>`;
+                const taskAttribute = taskForRequirement?.id ? ` data-requirement-task="${html(taskForRequirement.id)}"` : '';
+                return `<div class="job-v6-requirement-row ${item.present ? 'is-complete' : 'is-missing'}" data-job-doc-requirement-row data-phase="${html(phase.id)}"${taskAttribute} data-type="${html(normalizedStatusValue(item.categoryName))}" data-status="${html(requirementStatus)}" data-purpose-key="${html(item.key)}"><span class="job-v6-requirement-icon">${item.present ? '✓' : '!'}</span><div><b>${html(item.categoryName)}</b><small>${html(item.sourceLabel)}${item.present ? ' · Document received' : ' · Required document missing'}</small></div><em>${item.present ? 'Received' : 'Needs action'}</em>${item.present ? '' : `<button type="button" class="job-v6-upload-required" data-job-doc-upload-requirement="${html(item.key)}">Upload</button>`}</div>`;
             }).join('')}</div>` : '';
             const ungroupedDocs = phaseDocs.filter((item) => !matchedDocIds.has(String(item.id)));
             const ungroupedRows = ungroupedDocs.length ? `<div class="job-v6-task-group" data-job-doc-task-group data-task-id="general-${html(phase.id)}"><button type="button" class="job-v6-task-head" data-job-doc-task-toggle><span class="job-v6-caret">⌄</span><span class="job-v6-task-icon">▧</span><b>Phase documents</b><small>${html(phase.name)} · ${html(job.owner || 'Unassigned')}</small><span>${ungroupedDocs.length} document${ungroupedDocs.length === 1 ? '' : 's'}</span></button><div class="job-v6-task-body">${ungroupedDocs.map((documentRecord) => {
                 const statusMeta = flowtrackJobDocumentViewStatus(documentRecord);
                 const fileBadge = flowtrackDocumentFileBadge(documentRecord);
                 const isRequired = requirements.some((item) => Number(item.phaseId) === Number(documentRecord.phaseId || phase.id) && Number(item.categoryId) === Number(documentRecord.categoryId) && !item.taskPackItemId);
-                return `<div class="job-v6-doc-row" data-job-doc-row="${html(documentRecord.id)}" data-phase="${html(phase.id)}" data-task="" data-type="${html(normalizedStatusValue(documentRecord.type || ''))}" data-status="${html(normalizedStatusValue(statusMeta.status))}" data-owner="${html(normalizedStatusValue(documentRecord.uploadedBy || ''))}" data-required="${isRequired ? '1' : '0'}" data-recent="${recentIds.has(String(documentRecord.id)) ? '1' : '0'}"><div class="job-v6-doc-file"><span class="job-v6-file-icon ${html(fileBadge.toLowerCase())}">${html(fileBadge)}</span><div>${documentRecord.previewUrl ? `<a href="${html(documentRecord.previewUrl)}" target="_blank" rel="noopener">${html(documentRecord.name || 'Document')}</a>` : `<b>${html(documentRecord.name || 'Document')}</b>`}<small>${html(documentRecord.id || '')}</small></div></div><span>${html(documentRecord.type || fileBadge)}</span><span>${html(documentRecord.version || 'v1')}</span><span>${html(documentRecord.uploadedBy || job.owner || '—')}</span><span><em class="job-v6-status ${statusMeta.tone}">${html(statusMeta.status)}</em></span><span>${documentRecord.date ? html(formatDate(documentRecord.date)) : '—'}</span><span class="job-v6-row-actions"><button type="button" class="job-v6-row-more" data-doc="${html(documentRecord.id)}">•••</button>${canFlow('documents', 'delete') ? `<button type="button" class="job-v6-row-delete" data-job-doc-delete="${html(documentRecord.dbId)}" title="Delete document">×</button>` : ''}</span></div>`;
+                return `<div class="job-v6-doc-row" data-job-doc-row="${html(documentRecord.id)}" data-phase="${html(phase.id)}" data-type="${html(normalizedStatusValue(documentRecord.type || ''))}" data-status="${html(normalizedStatusValue(statusMeta.status))}" data-owner="${html(normalizedStatusValue(documentRecord.uploadedBy || ''))}" data-required="${isRequired ? '1' : '0'}" data-recent="${recentIds.has(String(documentRecord.id)) ? '1' : '0'}"><div class="job-v6-doc-file"><span class="job-v6-file-icon ${html(fileBadge.toLowerCase())}">${html(fileBadge)}</span><div>${documentRecord.previewUrl ? `<a href="${html(documentRecord.previewUrl)}" target="_blank" rel="noopener">${html(documentRecord.name || 'Document')}</a>` : `<b>${html(documentRecord.name || 'Document')}</b>`}<small>${html(documentRecord.id || '')}</small></div></div><span>${html(documentRecord.type || fileBadge)}</span><span>${html(documentRecord.version || 'v1')}</span><span>${html(documentRecord.uploadedBy || job.owner || '—')}</span><span><em class="job-v6-status ${statusMeta.tone}">${html(statusMeta.status)}</em></span><span>${documentRecord.date ? html(formatDate(documentRecord.date)) : '—'}</span><span class="job-v6-row-actions"><button type="button" class="job-v6-row-more" data-doc="${html(documentRecord.id)}">•••</button>${canFlow('documents', 'delete') ? `<button type="button" class="job-v6-row-delete" data-job-doc-delete="${html(documentRecord.dbId)}" title="Delete document">×</button>` : ''}</span></div>`;
             }).join('')}</div></div>` : '';
             const emptyBody = !taskGroups && !ungroupedRows && !phaseRequirementRows ? '<div class="job-v6-phase-empty">No documents or document requirements</div>' : '';
             const requirementSummary = phaseRequirements.length ? `${phaseReceived} of ${phaseRequirements.length} required` : 'No requirements';
@@ -342,10 +353,10 @@
         return `<section id="detailPanel8" class="detail-panel job-v3-doc-template job-v6-doc-template">
             <div class="job-v6-doc-shell">
                 <main class="job-v6-doc-main">
-                    <div class="job-v6-title-row"><div><h3>Documents</h3><p>${allJobDocs.length} files · ${receivedCount} of ${requirements.length} required received</p></div><div class="job-v6-title-actions"><button type="button" class="job-v6-outline" data-job-doc-request="${html(job.id)}">Request document</button><button type="button" class="job-v6-icon-button" data-job-doc-more>•••</button></div></div>
+                    <div class="job-v6-title-row"><div><h3>Documents</h3><p>${allJobDocs.length} files · ${receivedCount} of ${requirements.length} required received</p></div><div class="job-v6-title-actions"><button type="button" class="job-v6-icon-button" data-job-doc-more>•••</button></div></div>
                     <div class="job-v6-chips" data-job-doc-chips><button type="button" class="is-active" data-job-doc-chip="all">All files <span>${allJobDocs.length}</span></button><button type="button" data-job-doc-chip="required">Required <span>${requirements.length}</span></button><button type="button" class="needs" data-job-doc-chip="needs-action">Needs action <span>${missing.length + needsActionDocuments}</span></button><button type="button" class="approved" data-job-doc-chip="approved">Approved <span>${approved}</span></button><button type="button" data-job-doc-chip="recent">Recently updated <span>${recentlyUpdatedCount}</span></button></div>
-                    <section class="job-v6-add-card"><div class="job-v6-card-title"><b>Add documents</b><span>Upload a new file or choose one already stored in Documents.</span></div><div class="job-v6-dropzone" data-job-doc-dropzone tabindex="0"><input type="file" data-job-doc-file-input accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.zip"><span class="job-v6-paperclip">⌕</span><div><b>Drop files here or <button type="button" data-job-doc-browse>browse</button></b><small>PDF, DOCX, XLSX, JPG, PNG or ZIP · Max 20 MB</small></div><button type="button" class="job-v6-outline" data-job-doc-choose>Choose from Documents</button></div><div class="job-v6-upload-progress is-hidden" data-job-doc-upload-progress><span></span><b data-job-doc-upload-name></b><em data-job-doc-upload-state>Uploading…</em></div><label class="job-v6-purpose"><span>Document purpose</span><select data-job-doc-purpose ${uploadPurposes.length ? '' : 'disabled'}><option value="">Select phase, task or requirement</option>${purposeOptions}</select><small>Choose where this document belongs before uploading.</small></label></section>
-                    <section class="job-v6-list-card"><div class="job-v6-list-head"><div><b>Job documents</b><span>Grouped by phase and related task</span></div></div><div class="job-v6-filters"><label class="job-v6-search">⌕<input type="search" placeholder="Search documents or file names" data-job-doc-search></label><select data-job-doc-phase-filter><option value="">Phase</option>${activePhases.map((phase) => `<option value="${html(phase.id)}">${html(phase.name)}</option>`).join('')}</select><select data-job-doc-task-filter><option value="">Task</option>${taskOptions.map((task) => `<option value="${html(task.id)}">${html(task.title || task.id)}</option>`).join('')}</select><select data-job-doc-type-filter><option value="">Document type</option>${typeOptions.map((type) => `<option value="${html(normalizedStatusValue(type))}">${html(type)}</option>`).join('')}</select><select data-job-doc-status-filter><option value="">Status</option><option value="approved">Approved</option><option value="in review">In review</option><option value="needs action">Needs action</option></select><select data-job-doc-owner-filter><option value="">Owner</option>${ownerOptions.map((owner) => `<option value="${html(normalizedStatusValue(owner))}">${html(owner)}</option>`).join('')}</select><button type="button" class="job-v6-filter-button" data-job-doc-more-filters>☷ More filters</button><select data-job-doc-sort><option value="latest">Last updated</option><option value="latest">Newest first</option><option value="oldest">Oldest first</option></select><div class="job-v6-view-toggle"><button type="button" class="is-active" data-job-doc-view="list">☷ List</button><button type="button" data-job-doc-view="grid">▦ Grid</button></div></div><div class="job-v6-extra-filters is-hidden" data-job-doc-extra-filters><label><input type="checkbox" data-job-doc-current-phase-only> Current phase only</label><button type="button" data-job-doc-clear-filters>Clear filters</button></div><div class="job-v6-groupby"><span>Group by:</span><select data-job-doc-groupby><option value="phase-task">Phase → Task</option><option value="phase">Phase only</option></select></div><div class="job-v6-doc-columns"><span>Document</span><span>Type</span><span>Version</span><span>Owner</span><span>Status</span><span>Updated</span><span>Actions</span></div><div class="job-v6-phase-list" data-job-doc-phase-list>${phaseGroups || '<div class="job-v6-side-empty">No workflow phases configured.</div>'}</div><div class="job-v6-filter-empty is-hidden" data-job-doc-filter-empty>No documents match these filters.</div></section>
+                    <section class="job-v6-add-card"><div class="job-v6-card-title"><b>Add documents</b><span>Select the document type first. FlowTrack will automatically link the upload to the matching Workflow/Task Pack document requirement and Task.</span></div><label class="job-v6-purpose job-v6-upload-type"><span>Document type</span><select data-job-doc-upload-type ${uploadTypeOptions.length ? '' : 'disabled'}><option value="">${uploadTypeOptions.length ? 'Select document type' : 'No document types configured'}</option>${uploadTypeOptions.map((item) => `<option value="${html(item.id)}">${html(item.name)}</option>`).join('')}</select><small>The matching phase and Task Pack requirement are resolved automatically.</small></label><div class="job-v6-dropzone" data-job-doc-dropzone tabindex="0"><input type="file" data-job-doc-file-input accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.zip"><span class="job-v6-paperclip">⌕</span><div><b>Drop files here or <button type="button" data-job-doc-browse>browse</button></b><small>PDF, DOCX, XLSX, JPG, PNG or ZIP · Max 20 MB</small></div><button type="button" class="job-v6-outline" data-job-doc-choose>Choose from Documents</button></div><div class="job-v6-upload-progress is-hidden" data-job-doc-upload-progress><span></span><b data-job-doc-upload-name></b><em data-job-doc-upload-state>Uploading…</em></div></section>
+                    <section class="job-v6-list-card"><div class="job-v6-list-head"><div><b>Job documents</b><span>Grouped by phase and related task</span></div></div><div class="job-v6-filters job-v6-filters-simple"><label class="job-v6-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg><input type="search" placeholder="Search documents or file names" data-job-doc-search data-no-searchbar></label><select data-job-doc-type-filter aria-label="Filter documents"><option value="">Document</option>${typeOptions.map((type) => `<option value="${html(normalizedStatusValue(type))}">${html(type)}</option>`).join('')}</select></div><div class="job-v6-doc-columns"><span>Document</span><span>Type</span><span>Version</span><span>Owner</span><span>Status</span><span>Updated</span><span>Actions</span></div><div class="job-v6-phase-list" data-job-doc-phase-list>${phaseGroups || '<div class="job-v6-side-empty">No workflow phases configured.</div>'}</div><div class="job-v6-filter-empty is-hidden" data-job-doc-filter-empty>No documents match these filters.</div></section>
                 </main>
                 <aside class="job-v6-doc-side"><section class="job-v6-side-card"><div class="job-v6-required-head"><b>Required documents</b><span>${receivedCount} of ${requirements.length} received</span></div><div class="job-v6-required-progress"><span style="width:${completionPercent}%"></span></div><div class="job-v6-required-percent">${completionPercent}%</div><div class="job-v6-required-list">${requiredRows}</div><button type="button" class="job-v6-side-link" data-job-doc-view-requirements>View all requirements</button></section><section class="job-v6-side-card job-v6-health"><b>Document health</b><dl><dt>Approved</dt><dd class="green">${approved}</dd><dt>In review</dt><dd class="blue">${inReview}</dd><dt>Draft / needs action</dt><dd class="orange">${missing.length + needsActionDocuments}</dd></dl><div class="job-v6-health-divider"></div><dl><dt>Latest update</dt><dd>${latestDocument?.date ? html(formatDate(latestDocument.date)) : '—'}</dd></dl><button type="button" class="job-v6-side-link" data-job-doc-activity>View document activity</button></section></aside>
             </div>
@@ -385,7 +396,6 @@
         return `<section id="detailPanel0" class="detail-panel active job-v3-overview">${alertHtml}<div class="job-v3-metric-grid">${flowtrackJobMetricCard('▣', 'Current phase', `<span>${html(phaseNameFor(j))}</span>`, `Phase ${Number(currentPhase?.sequence || j.phase || 0)} of ${activePhases.length}`)}${flowtrackJobMetricCard('↗', 'Overall progress', `<span>${Number(j.progress || 0)}%</span>`, `<div class="job-v3-progress"><span style="width:${Math.max(0, Math.min(100, Number(j.progress || 0)))}%"></span></div>`)}${flowtrackJobMetricCard('$', 'Commercial', `<span>${j.price ? currency(j.price, j.currency) : 'Not recorded'}</span>`, `<em>${html(commercialStatus)}</em>`)}${flowtrackJobMetricCard('⬡', 'Product', `<span>${html(currentProduct)}</span>`, `${totalQty.toLocaleString()} units`)}</div>${flowtrackMiniTimeline(j, activePhases, currentPhase)}<div class="job-v3-overview-grid"><main class="job-v3-main-panel"><div class="job-v3-panel-head"><div><h3>All phase tasks</h3><p>${allTasks.length} tasks across ${activePhases.length} phases</p></div><div class="job-v3-summary-pills"><span>${completedTasks} completed</span><span>${openTasks} open</span><span>${currentTasks.length} current</span></div></div><div class="job-v3-task-source-note">Tasks are generated from Task Pack Setup and reflect the latest configured assignee, due date and status.</div>${overviewTasks}</main><aside class="job-v3-side-panel"><div class="job-v3-next-card"><h3>Next required action</h3><b>${html(nextTask?.title || j.next || 'Review current phase')}</b><div>${nextTask ? `<span class="avatar">${userInitials(nextTask.assignee || 'U')}</span> ${html(nextTask.assignee || 'Unassigned')} · <span class="due ${nextTask.due && nextTask.due < today ? 'overdue' : ''}">${nextTask.due ? formatDate(nextTask.due) : 'No due date'}</span>` : html(j.next || 'No pending task')}</div>${nextTask ? `<button type="button" class="link-btn" data-task="${html(nextTask.id)}">View task details</button>` : ''}</div><div class="job-v3-side-card"><h3>Job details</h3><dl><dt>Workflow</dt><dd>${html(wf.name || 'Workflow')}</dd><dt>Job started</dt><dd>${html(phaseNameFor(j, j.createdFromPhase ?? 0))}</dd><dt>Job lead</dt><dd>${html(j.owner || 'Unassigned')}</dd><dt>Delivery</dt><dd class="${overdue ? 'due overdue' : ''}">${j.delivery ? formatDate(j.delivery) : '—'}</dd>${jobIsCompleted(j) ? `<dt>Completed</dt><dd>${html(boardCompletedDateTime(j) || 'Not recorded')}</dd>` : ''}</dl></div><div class="job-v3-side-card"><h3>Latest update</h3><p>${latestUpdate ? `${html(latestUpdate.title || 'Updated')} · ${html(latestUpdate.time || '')}` : html(j.next || 'No update recorded yet.')}</p><button type="button" class="link-btn" data-detailtab="9">View activity</button></div></aside></div></section>
 <section id="detailPanel2" class="detail-panel job-v3-tasks"><div class="job-v3-panel-card"><div class="job-v3-panel-head"><div><h3>All phase tasks</h3><p>Generated from Task Pack Setup with the latest assignee, due date, progress and status.</p></div></div>${flowtrackPhaseAccordion(j, allTasks, activePhases, currentPhase, true)}</div></section>
 <section id="detailPanel1" class="detail-panel job-v3-workflow"><div class="job-v3-workflow-title"><div><h3>Workflow</h3><p>${html(wf.name || 'Workflow')} · Version ${html(wf.version || '3')} · <button type="button" class="link-btn" data-detailtab="2">View phase tasks</button></p></div></div>${/block|risk|attention|overdue|delay/i.test(`${j.health || ''} ${j.status || ''}`) || missingRequirements.length ? `<div class="job-v3-alert"><span>!</span><div><b>${html(phaseNameFor(j))} is blocked</b><small>${html((j.phaseReadinessDetails?.blockers || []).join(' ') || missingRequirements[0]?.label || j.next || 'Resolve open requirements before completion.')}</small></div><div><b>${missingRequirements.length} blocker${missingRequirements.length === 1 ? '' : 's'}</b><small>${openTasks} open tasks</small></div></div>` : ''}<div class="job-v3-workflow-metrics">${flowtrackJobMetricCard(Number(currentPhase?.sequence || j.phase || 0), 'Current phase', `<span>${html(phaseNameFor(j))}</span>`, `Phase ${Number(currentPhase?.sequence || j.phase || 0)} of ${activePhases.length}`)}${flowtrackJobMetricCard('▣', 'Phase started', `<span>${flowtrackFormatDateTime(flowtrackPhaseHistoryFor(j, currentPhase)?.enteredAt).split(',')[0]}</span>`, `${currentTasks.length} tasks in phase`)}${flowtrackJobMetricCard('□', 'Target completion', `<span class="${overdue ? 'due overdue' : ''}">${j.delivery ? formatDate(j.delivery) : 'No target'}</span>`, overdue ? 'Overdue' : 'On schedule')}${flowtrackJobMetricCard('⌁', 'Overall progress', `<span>${Number(j.progress || 0)}%</span>`, `<div class="job-v3-progress"><span style="width:${Number(j.progress || 0)}%"></span></div>`)}</div><div class="timeline clickable-workflow-timeline job-v3-workflow-line">${activePhases.map((phase, index) => flowtrackPhaseTimelineStep(j, phase, index, currentPhase, j.skippedPhases || [])).join('')}</div><div class="job-v3-workflow-grid">${flowtrackWorkflowHistoryTable(j, activePhases, allTasks)}${flowtrackCurrentGatesCard(j, currentTasks, requirements)}</div></section>
-<section id="detailPanel7" class="detail-panel job-v3-commercial"><div class="job-v3-panel-card"><div class="job-v3-panel-head"><div><h3>Commercial</h3><p>Quotation, invoice and payment status.</p></div></div><div class="job-v3-metric-grid">${flowtrackJobMetricCard('$', 'Commercial value', `<span>${j.price ? currency(j.price, j.currency) : 'Not recorded'}</span>`, html(commercialStatus))}${flowtrackJobMetricCard('▣', 'Client', `<span>${html(clientName(j.client))}</span>`, html(j.order || j.id))}${flowtrackJobMetricCard('○', 'Invoice', `<span>${html(commercialStatus)}</span>`, `${allDocs.filter((doc) => documentMatchesKeywords(doc, ['invoice', 'payment', 'receipt'])).length} commercial documents`)}</div><div style="margin-top:16px">${documentPanelFor(j, 'Invoice Documents', ['invoice', 'payment', 'receipt', 'commercial'])}</div></div></section>
 ${flowtrackDocumentsPanel(j, allDocs, activePhases)}
 ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
     };
@@ -394,9 +404,74 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
         if (!content || !job) return;
         const panel = content.querySelector('.job-v6-doc-template');
         if (!panel) return;
-        const purposes = flowtrackJobDocumentPurposeOptions(job, flowtrackActivePhases(job));
-        const purposeSelect = panel.querySelector('[data-job-doc-purpose]');
-        const currentPurpose = () => purposes.find((item) => String(item.key) === String(purposeSelect?.value || '')) || null;
+        const configuredUploadRequirements = flowtrackToArray(jobDocumentRequirements(job));
+        const purposes = configuredUploadRequirements.length ? flowtrackJobDocumentPurposeOptions(job, flowtrackActivePhases(job)) : [];
+        const uploadTypeSelect = panel.querySelector('[data-job-doc-upload-type]');
+        const purposeForPhase = (phaseId) => {
+            const phasePurposes = purposes.filter((item) => Number(item.phaseId) === Number(phaseId));
+            return phasePurposes.find((item) => item.requiredForReadiness && !item.present)
+                || phasePurposes.find((item) => !item.present)
+                || phasePurposes.find((item) => item.requiredForReadiness)
+                || phasePurposes[0]
+                || null;
+        };
+        const purposeForCategory = (categoryId, preferredPhaseId = null) => {
+            const categoryPurposes = purposes.filter((item) => Number(item.categoryId) === Number(categoryId));
+            if (!categoryPurposes.length) return null;
+            const preferred = preferredPhaseId
+                ? categoryPurposes.filter((item) => Number(item.phaseId) === Number(preferredPhaseId))
+                : [];
+            return preferred.find((item) => item.requiredForReadiness && !item.present)
+                || preferred.find((item) => !item.present)
+                || categoryPurposes.find((item) => item.requiredForReadiness && !item.present)
+                || categoryPurposes.find((item) => !item.present)
+                || preferred.find((item) => item.requiredForReadiness)
+                || preferred[0]
+                || categoryPurposes.find((item) => item.requiredForReadiness)
+                || categoryPurposes[0]
+                || null;
+        };
+        let activeUploadPhaseId = Number(job.phaseId || 0);
+        let activePurposeKey = '';
+        let activeUploadCategoryId = 0;
+        const setAutomaticPurpose = (purpose) => {
+            if (!purpose) return false;
+            activeUploadPhaseId = Number(purpose.phaseId || activeUploadPhaseId || 0);
+            activePurposeKey = String(purpose.key || '');
+            activeUploadCategoryId = Number(purpose.categoryId || 0);
+            if (uploadTypeSelect && activeUploadCategoryId) uploadTypeSelect.value = String(activeUploadCategoryId);
+            return true;
+        };
+        const setAutomaticPurposeForPhase = (phaseId) => {
+            activeUploadPhaseId = Number(phaseId || 0);
+            const selectedCategoryId = Number(uploadTypeSelect?.value || activeUploadCategoryId || 0);
+            const purpose = selectedCategoryId
+                ? purposeForCategory(selectedCategoryId, activeUploadPhaseId)
+                : purposeForPhase(activeUploadPhaseId);
+            if (purpose) setAutomaticPurpose(purpose);
+            return purpose;
+        };
+        const currentPurpose = () => {
+            const exact = purposes.find((item) => String(item.key) === activePurposeKey);
+            if (exact && (!activeUploadCategoryId || Number(exact.categoryId) === Number(activeUploadCategoryId))) return exact;
+            const selectedCategoryId = Number(uploadTypeSelect?.value || activeUploadCategoryId || 0);
+            if (!selectedCategoryId) return null;
+            const resolved = purposeForCategory(selectedCategoryId, activeUploadPhaseId || job.phaseId);
+            if (resolved) setAutomaticPurpose(resolved);
+            return resolved;
+        };
+        uploadTypeSelect?.addEventListener('change', () => {
+            activeUploadCategoryId = Number(uploadTypeSelect.value || 0);
+            activePurposeKey = '';
+            if (!activeUploadCategoryId) return;
+            const resolved = purposeForCategory(activeUploadCategoryId, activeUploadPhaseId || job.phaseId);
+            if (!resolved) {
+                uploadTypeSelect.value = '';
+                activeUploadCategoryId = 0;
+                return showToast('This document type is not configured for the Job workflow or Task Pack.');
+            }
+            setAutomaticPurpose(resolved);
+        });
         const refresh = (updatedJob = job) => flowtrackJobDocumentRefreshView(updatedJob);
 
         const uploadExistingResult = (result, successMessage) => {
@@ -417,8 +492,7 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
             if (!(canFlow('documents', 'create') && canFlow('documents', 'link'))) return showToast('Your role does not have Document Upload & Link access.');
             const purpose = currentPurpose();
             if (!purpose) {
-                showToast('Choose a document purpose before uploading.');
-                purposeSelect?.focus();
+                showToast('Choose the document type before uploading. FlowTrack will link it to the matching Task Pack or Workflow requirement automatically.');
                 return;
             }
             if (Number(file.size || 0) > 20 * 1024 * 1024) return showToast('The document must be 20 MB or smaller.');
@@ -434,6 +508,7 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
             formData.append('job_id', String(job.dbId));
             formData.append('workflow_phase_id', String(purpose.phaseId));
             if (purpose.taskPackItemId) formData.append('task_pack_item_id', String(purpose.taskPackItemId));
+            if (purpose.taskId) formData.append('task_id', String(purpose.taskId));
             formData.append('document_category_id', String(purpose.categoryId));
             formData.append('file', file);
             try {
@@ -456,25 +531,30 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
             if (!(canFlow('documents', 'create') && canFlow('documents', 'link'))) return showToast('Your role does not have Document Upload & Link access.');
             const purposeKey = String(button.dataset.jobDocUploadRequirement || '');
             const purpose = purposes.find((item) => String(item.key) === purposeKey);
-            if (!purpose || !purposeSelect) return showToast('This document requirement is no longer available. Refresh the Job and try again.');
-            purposeSelect.value = purposeKey;
-            purposeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            if (!purpose) return showToast('This document requirement is no longer available. Refresh the Job and try again.');
+            setAutomaticPurpose(purpose);
             panel.querySelector('.job-v6-add-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             if (fileInput) fileInput.value = '';
             fileInput?.click();
         }));
-        panel.querySelector('[data-job-doc-browse]')?.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); fileInput?.click(); });
+        panel.querySelector('[data-job-doc-browse]')?.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); if (!currentPurpose()) return showToast('Choose the document type first.'); if (fileInput) fileInput.value = ''; fileInput?.click(); });
         fileInput?.addEventListener('change', () => { const file = fileInput.files?.[0]; if (file) void uploadInline(file); });
         dropzone?.addEventListener('dragover', (event) => { event.preventDefault(); dropzone.classList.add('is-dragging'); });
         dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('is-dragging'));
         dropzone?.addEventListener('drop', (event) => { event.preventDefault(); dropzone.classList.remove('is-dragging'); const file = event.dataTransfer?.files?.[0]; if (file) void uploadInline(file); });
-        dropzone?.addEventListener('keydown', (event) => { if (['Enter', ' '].includes(event.key) && !event.target.closest('button,select,input')) { event.preventDefault(); fileInput?.click(); } });
+        dropzone?.addEventListener('keydown', (event) => { if (['Enter', ' '].includes(event.key) && !event.target.closest('button,select,input')) { event.preventDefault(); if (!currentPurpose()) return showToast('Choose the document type first.'); if (fileInput) fileInput.value = ''; fileInput?.click(); } });
 
-        const openExistingChooser = () => {
+        const openExistingChooser = async () => {
             if (!(canFlow('documents', 'create') && canFlow('documents', 'link'))) return showToast('Your role does not have Document Upload & Link access.');
             const purpose = currentPurpose();
-            if (!purpose) return showToast('Choose a document purpose first.');
-            const available = (docs || []).filter((item) => Number(item.dbId) && String(item.job || '') !== String(job.id));
+            if (!purpose) return showToast('Choose the document type first.');
+            let available;
+            try {
+                available = (await flowtrackEnsureStoredDocumentsForChooser())
+                    .filter((item) => Number(item.dbId) && String(item.job || '') !== String(job.id));
+            } catch (error) {
+                return showToast(error.message || 'Stored documents could not be loaded.');
+            }
             if (!available.length) return showToast('There are no other stored documents available to link.');
             $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>Choose from Documents</h2><div class="small muted">Link an existing stored file to ${html(job.id)} · ${html(purpose.phaseName)} · ${html(purpose.categoryName)}</div></div><button class="close-btn" data-doc-chooser-close>×</button></div><div class="modal-body"><label class="field full"><span>Search documents</span><input type="search" placeholder="Search by file, type or Job" data-existing-doc-search></label><div class="job-v6-existing-list" data-existing-doc-list>${available.map((item) => `<div class="job-v6-existing-row" data-existing-doc-row data-search="${html(normalizedStatusValue(`${item.name} ${item.type} ${item.job} ${item.uploadedBy}`))}"><span class="job-v6-file-icon ${html(flowtrackDocumentFileBadge(item).toLowerCase())}">${html(flowtrackDocumentFileBadge(item))}</span><div><b>${html(item.name || 'Document')}</b><small>${html(item.job || '')} · ${html(item.type || 'Document')} · ${html(item.uploadedBy || 'System')}</small></div><button type="button" class="primary" data-existing-doc-link="${html(item.dbId)}">Link</button></div>`).join('')}</div></div><div class="modal-foot"><button class="ghost" data-doc-chooser-close>Cancel</button></div>`;
             openOverlay(); $('#jobModal').classList.add('open');
@@ -483,7 +563,7 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
             $$('[data-existing-doc-link]').forEach((button) => button.addEventListener('click', async () => {
                 button.disabled = true; button.textContent = 'Linking…';
                 try {
-                    const result = await api(`/flowtrack/template-api/jobs/${job.dbId}/documents/link-existing`, { method: 'POST', body: { source_document_id: Number(button.dataset.existingDocLink), workflow_phase_id: purpose.phaseId, task_pack_item_id: purpose.taskPackItemId, document_category_id: purpose.categoryId } });
+                    const result = await api(`/flowtrack/template-api/jobs/${job.dbId}/documents/link-existing`, { method: 'POST', body: { source_document_id: Number(button.dataset.existingDocLink), workflow_phase_id: purpose.phaseId, task_pack_item_id: purpose.taskPackItemId, task_id: purpose.taskId, document_category_id: purpose.categoryId } });
                     flowtrackCloseModalOnly(); uploadExistingResult(result, 'Stored document linked.');
                 } catch (error) { button.disabled = false; button.textContent = 'Link'; showToast(error.message || 'Stored document could not be linked.'); }
             }));
@@ -520,18 +600,18 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
                 refresh(updated);
             });
         }));
-        panel.querySelectorAll('[data-job-doc-phase-toggle]').forEach((button) => button.addEventListener('click', () => { const group = button.closest('[data-job-doc-phase-group]'); group?.classList.toggle('is-expanded'); const caret = button.querySelector('.job-v6-phase-caret'); if (caret) caret.textContent = group?.classList.contains('is-expanded') ? '⌄' : '›'; }));
+        panel.querySelectorAll('[data-job-doc-phase-toggle]').forEach((button) => button.addEventListener('click', () => { const group = button.closest('[data-job-doc-phase-group]'); if (group?.dataset.phaseId) setAutomaticPurposeForPhase(Number(group.dataset.phaseId)); group?.classList.toggle('is-expanded'); const caret = button.querySelector('.job-v6-phase-caret'); if (caret) caret.textContent = group?.classList.contains('is-expanded') ? '⌄' : '›'; }));
         panel.querySelectorAll('[data-job-doc-task-toggle]').forEach((button) => button.addEventListener('click', () => { const group = button.closest('[data-job-doc-task-group]'); group?.classList.toggle('is-collapsed'); const caret = button.querySelector('.job-v6-caret'); if (caret) caret.textContent = group?.classList.contains('is-collapsed') ? '›' : '⌄'; }));
 
         let chip = 'all';
         const applyFilters = () => {
             const term = normalizedStatusValue(panel.querySelector('[data-job-doc-search]')?.value || '');
-            const phase = String(panel.querySelector('[data-job-doc-phase-filter]')?.value || '');
-            const task = String(panel.querySelector('[data-job-doc-task-filter]')?.value || '');
+            const phase = '';
+            const task = '';
             const type = String(panel.querySelector('[data-job-doc-type-filter]')?.value || '');
-            const status = String(panel.querySelector('[data-job-doc-status-filter]')?.value || '');
-            const owner = String(panel.querySelector('[data-job-doc-owner-filter]')?.value || '');
-            const currentOnly = Boolean(panel.querySelector('[data-job-doc-current-phase-only]')?.checked);
+            const status = '';
+            const owner = '';
+            const currentOnly = false;
             let visibleRows = 0;
             panel.querySelectorAll('[data-job-doc-phase-group]').forEach((phaseGroup) => {
                 const phaseMatchesBase = (!phase || String(phaseGroup.dataset.phaseId) === phase) && (!currentOnly || Number(phaseGroup.dataset.phaseId) === Number(job.phaseId));
@@ -572,15 +652,10 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
             const anyPhase = [...panel.querySelectorAll('[data-job-doc-phase-group]')].some((group) => !group.classList.contains('is-filtered-out'));
             panel.querySelector('[data-job-doc-filter-empty]')?.classList.toggle('is-hidden', anyPhase);
         };
-        ['[data-job-doc-search]','[data-job-doc-phase-filter]','[data-job-doc-task-filter]','[data-job-doc-type-filter]','[data-job-doc-status-filter]','[data-job-doc-owner-filter]','[data-job-doc-current-phase-only]'].forEach((selector) => {
+        ['[data-job-doc-search]','[data-job-doc-type-filter]'].forEach((selector) => {
             const input = panel.querySelector(selector); if (!input) return; input.addEventListener(input.tagName === 'INPUT' && input.type === 'search' ? 'input' : 'change', applyFilters);
         });
         panel.querySelectorAll('[data-job-doc-chip]').forEach((button) => button.addEventListener('click', () => { chip = button.dataset.jobDocChip || 'all'; panel.querySelectorAll('[data-job-doc-chip]').forEach((other) => other.classList.toggle('is-active', other === button)); applyFilters(); }));
-        panel.querySelector('[data-job-doc-more-filters]')?.addEventListener('click', () => panel.querySelector('[data-job-doc-extra-filters]')?.classList.toggle('is-hidden'));
-        panel.querySelector('[data-job-doc-clear-filters]')?.addEventListener('click', () => { panel.querySelectorAll('[data-job-doc-search],[data-job-doc-phase-filter],[data-job-doc-task-filter],[data-job-doc-type-filter],[data-job-doc-status-filter],[data-job-doc-owner-filter]').forEach((input) => { input.value = ''; }); const currentOnly = panel.querySelector('[data-job-doc-current-phase-only]'); if (currentOnly) currentOnly.checked = false; chip = 'all'; panel.querySelectorAll('[data-job-doc-chip]').forEach((button) => button.classList.toggle('is-active', button.dataset.jobDocChip === 'all')); applyFilters(); });
-        panel.querySelector('[data-job-doc-sort]')?.addEventListener('change', (event) => { const oldest = event.target.value === 'oldest'; panel.querySelectorAll('[data-job-doc-task-group]').forEach((group) => { const body = group.querySelector('.job-v6-task-body'); if (!body) return; const rows = [...body.querySelectorAll('[data-job-doc-row]')]; rows.sort((a,b) => { const da = docs.find((item) => String(item.id) === String(a.dataset.jobDocRow))?.date || ''; const db = docs.find((item) => String(item.id) === String(b.dataset.jobDocRow))?.date || ''; return oldest ? String(da).localeCompare(String(db)) : String(db).localeCompare(String(da)); }).forEach((row) => body.appendChild(row)); }); });
-        panel.querySelectorAll('[data-job-doc-view]').forEach((button) => button.addEventListener('click', () => { const view = button.dataset.jobDocView; panel.classList.toggle('is-grid-view', view === 'grid'); panel.querySelectorAll('[data-job-doc-view]').forEach((other) => other.classList.toggle('is-active', other === button)); }));
-        panel.querySelector('[data-job-doc-groupby]')?.addEventListener('change', (event) => panel.classList.toggle('is-phase-only', event.target.value === 'phase'));
         panel.querySelector('[data-job-doc-view-requirements]')?.addEventListener('click', () => { const button = panel.querySelector('[data-job-doc-chip="required"]'); button?.click(); panel.querySelector('.job-v6-list-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
         panel.querySelector('[data-job-doc-activity]')?.addEventListener('click', () => { const activityTab = content.querySelector('[data-detailtab="9"]'); if (activityTab) activityTab.click(); else showToast('Document uploads and requests are recorded in Job activity.'); });
         applyFilters();
@@ -606,7 +681,7 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
         }
         const tabs = content.querySelector('.detail-tabs');
         if (tabs) {
-            tabs.innerHTML = `<button class="detail-tab active" data-detailtab="0">Overview</button><button class="detail-tab" data-detailtab="2">Tasks <span>${allTasks.length}</span></button><button class="detail-tab" data-detailtab="1">Workflow</button><button class="detail-tab" data-detailtab="7">Commercial</button><button class="detail-tab" data-detailtab="8">Documents <span>${allDocs.length}</span></button><button class="detail-tab" data-detailtab="9">Activity</button>`;
+            tabs.innerHTML = `<button class="detail-tab active" data-detailtab="0">Overview</button><button class="detail-tab" data-detailtab="2">Tasks <span>${allTasks.length}</span></button><button class="detail-tab" data-detailtab="1">Workflow</button><button class="detail-tab" data-detailtab="8">Documents <span>${allDocs.length}</span></button><button class="detail-tab" data-detailtab="9">Activity</button>`;
         }
         bindStandaloneBack(page);
         bindStandaloneDetailTabs(content);
@@ -637,6 +712,9 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
         flowtrackJobDetailPreviousOpenJob(id);
         const job = flowtrackFindJob(id);
         if (!job) return;
+        // The v3 reference design is only a compatibility fallback. When the v4
+        // final module is present it must never schedule a repaint after v4.
+        if (window.FLOWTRACK_FINAL_JOB_RENDERER_READY === true) return job;
         setTimeout(() => flowtrackApplyJobDetailReferenceDesign(job), 0);
         if (job._detailLoaded) return;
         window.setTimeout(async () => {
@@ -660,6 +738,10 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
     const flowtrackJobDetailPreviousEnsurePanels = flowtrackEnsureJobPanels;
     flowtrackEnsureJobPanels = function (job, preferredTab = null) {
         flowtrackJobDetailPreviousEnsurePanels(job, preferredTab);
+        if (window.FLOWTRACK_FINAL_JOB_RENDERER_READY === true && typeof flowtrackJobV4Apply === 'function') {
+            flowtrackJobV4Apply(job, preferredTab ?? 0);
+            return;
+        }
         flowtrackApplyJobDetailReferenceDesign(job);
         const content = document.querySelector(`#page-record-job-${flowtrackJobDetailSlug(job)} .standalone-record-content`);
         if (content && preferredTab !== null && preferredTab !== undefined) activateScopedDetailTab(content, preferredTab);
@@ -684,17 +766,44 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
     /* CSS externalized: flowtrackAttachmentTemplateStyles. */
 
 
-    function flowtrackMergeDetailPayload(payload) {
+    function flowtrackReplaceDocumentsForJob(job, newDocuments) {
+        if (!job) return;
+        const jobCode = String(job.id || '');
+        const jobDbId = Number(job.dbId || 0);
+        for (let index = docs.length - 1; index >= 0; index -= 1) {
+            const documentRecord = docs[index];
+            if (String(documentRecord?.job || '') === jobCode || (jobDbId > 0 && Number(documentRecord?.jobDbId || 0) === jobDbId)) {
+                docs.splice(index, 1);
+            }
+        }
+        flowtrackToArray(newDocuments).forEach((documentRecord) => docs.push(documentRecord));
+    }
+
+    function flowtrackMergeDetailPayload(payload, options = {}) {
         if (!payload || typeof payload !== 'object') return payload;
         const mergedJob = payload.job ? flowtrackUpsertRecord(jobs, payload.job) : null;
         if (payload.client) flowtrackUpsertRecord(clients, payload.client);
         if (payload.task) flowtrackUpsertRecord(tasks, payload.task);
         if (payload.document) flowtrackUpsertRecord(docs, payload.document);
 
-        if (Array.isArray(payload.tasks)) {
+        const completeJob = mergedJob || payload.job || null;
+        const completeTaskSet = Boolean(options.completeJobSnapshot && payload?.taskSet?.complete && completeJob && Array.isArray(payload.tasks));
+        if (completeTaskSet) {
+            // Job Details must own one authoritative task snapshot. Keep a private
+            // copy on the Job as well as updating the shared cache; later paginated
+            // page loads are then unable to make phase Tasks disappear underneath an
+            // already-open Job Details screen.
+            const completeTasks = payload.tasks.map((task) => flowtrackHydrateTaskAssignee({ ...task }));
+            completeJob._detailTasks = completeTasks;
+            completeJob._completeTaskSetLoaded = true;
+            replaceTasksForJob(completeJob.id, completeTasks);
+        } else if (Array.isArray(payload.tasks)) {
             payload.tasks.forEach((task) => flowtrackUpsertRecord(tasks, task, false));
         }
-        if (Array.isArray(payload.documents)) {
+
+        if (options.completeJobSnapshot && completeJob && Array.isArray(payload.documents)) {
+            flowtrackReplaceDocumentsForJob(completeJob, payload.documents);
+        } else if (Array.isArray(payload.documents)) {
             payload.documents.forEach((document) => flowtrackUpsertRecord(docs, document, false));
         }
         if (Array.isArray(payload.jobs)) {
@@ -703,18 +812,81 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
         return { ...payload, job: mergedJob || payload.job };
     }
 
-    async function flowtrackEnsureJobDetail(identifier) {
+    const flowtrackJobDetailRequests = new Map();
+
+    async function flowtrackEnsureJobDetail(identifier, forceFresh = true) {
         const current = jobs.find((item) => String(item.id) === String(identifier) || Number(item.dbId) === Number(identifier));
-        if (current?._detailLoaded) return current;
-        const payload = flowtrackMergeDetailPayload(await api(`/flowtrack/template-api/jobs/${encodeURIComponent(identifier)}`, { cache: 'no-store' }));
-        return payload?.job || current || null;
+        if (!forceFresh && current?._detailLoaded && current?._completeTaskSetLoaded) return current;
+
+        const requestIdentifier = current?.dbId || current?.id || identifier;
+        const requestKey = String(requestIdentifier);
+        if (flowtrackJobDetailRequests.has(requestKey)) return flowtrackJobDetailRequests.get(requestKey);
+
+        const request = (async () => {
+            let payload = flowtrackMergeDetailPayload(await api(
+                `/flowtrack/template-api/jobs/${encodeURIComponent(requestIdentifier)}?_=${Date.now()}`,
+                { cache: 'no-store' },
+            ), { completeJobSnapshot: true });
+
+            const completePersistedTaskSet = (candidate) => Boolean(
+                candidate?.taskSet?.complete
+                && candidate?.taskSet?.persisted
+                && Array.isArray(candidate?.tasks)
+                && Number(candidate.taskSet.count) === candidate.tasks.length
+            );
+
+            // Older/cached API responses may not carry the persisted completeness
+            // marker. In that case fetch the dedicated authoritative Task endpoint
+            // before allowing Job Details to render.
+            if (!completePersistedTaskSet(payload)) {
+                const refreshedJob = payload?.job || current;
+                const jobTaskIdentifier = refreshedJob?.dbId || requestIdentifier;
+                const taskPayload = await api(
+                    `/flowtrack/template-api/jobs/${encodeURIComponent(jobTaskIdentifier)}/tasks?_=${Date.now()}`,
+                    { cache: 'no-store' },
+                );
+                payload = flowtrackMergeDetailPayload(taskPayload, { completeJobSnapshot: true }) || payload;
+            }
+
+            if (!completePersistedTaskSet(payload)) {
+                throw new Error('The complete phase Task set could not be loaded. Please try again.');
+            }
+
+            const job = payload?.job || jobs.find((item) => String(item.id) === String(identifier) || Number(item.dbId) === Number(identifier)) || current || null;
+            if (job) {
+                job._detailLoaded = true;
+                job._completeTaskSetLoaded = true;
+                job._detailTaskCount = Number(payload.taskSet.count);
+                job._detailLoadedAt = Date.now();
+            }
+            return job;
+        })().finally(() => flowtrackJobDetailRequests.delete(requestKey));
+
+        flowtrackJobDetailRequests.set(requestKey, request);
+        return request;
     }
 
-    async function flowtrackEnsureTaskDetail(identifier) {
-        const current = tasks.find((item) => String(item.id) === String(identifier) || Number(item.dbId) === Number(identifier));
-        if (current?._detailLoaded) return current;
-        const payload = flowtrackMergeDetailPayload(await api(`/flowtrack/template-api/tasks/${encodeURIComponent(identifier)}`, { cache: 'no-store' }));
-        return payload?.task || current || null;
+    const flowtrackTaskDetailRequests = new Map();
+
+    async function flowtrackEnsureTaskDetail(identifier, forceFresh = true) {
+        const normalizedIdentifier = String(identifier ?? '').trim();
+        if (!normalizedIdentifier) return null;
+        const current = tasks.find((item) => String(item.id) === normalizedIdentifier || Number(item.dbId) === Number(identifier));
+        if (!forceFresh && current?._detailLoaded) return current;
+
+        const requestIdentifier = current?.dbId || current?.id || identifier;
+        const requestKey = String(requestIdentifier);
+        if (flowtrackTaskDetailRequests.has(requestKey)) return flowtrackTaskDetailRequests.get(requestKey);
+
+        const request = (async () => {
+            const payload = flowtrackMergeDetailPayload(await api(
+                `/flowtrack/template-api/tasks/${encodeURIComponent(requestIdentifier)}`,
+                { cache: 'no-store' },
+            ));
+            return payload?.task || current || null;
+        })().finally(() => flowtrackTaskDetailRequests.delete(requestKey));
+        flowtrackTaskDetailRequests.set(requestKey, request);
+        return request;
     }
 
     async function flowtrackEnsureClientDetail(identifier) {
@@ -732,24 +904,36 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
     }
 
     const flowtrackPerformanceOpenJob = currentFlowtrackImplementation('openJob');
+    let flowtrackJobOpenSequence = 0;
     registerFlowtrackExtension('openJob', 'openJob-performance-detail-loader', async function (id) {
+        const sequence = ++flowtrackJobOpenSequence;
         try {
-            const job = await flowtrackEnsureJobDetail(id);
+            // Always refresh the full Job snapshot before rendering. Jobs, Board and
+            // My Work may each hold different paginated task slices; none of those
+            // slices is authoritative for the standalone Job Details screen.
+            const job = await flowtrackEnsureJobDetail(id, true);
+            if (sequence !== flowtrackJobOpenSequence) return null;
             if (!job) return showToast('Job could not be loaded.');
             return flowtrackPerformanceOpenJob(job.id || job.dbId);
         } catch (error) {
-            showToast(error.message || 'Job could not be loaded.');
+            if (sequence === flowtrackJobOpenSequence) showToast(error.message || 'Job could not be loaded.');
         }
     });
 
     const flowtrackPerformanceOpenTask = currentFlowtrackImplementation('openTask');
+    let flowtrackTaskOpenSequence = 0;
     registerFlowtrackExtension('openTask', 'openTask-performance-detail-loader', async function (id) {
+        const sequence = ++flowtrackTaskOpenSequence;
         try {
-            const task = await flowtrackEnsureTaskDetail(id);
+            // Always fetch Task Details from its authoritative endpoint. Job Details can
+            // preload a task snapshot, but that snapshot must never become a permanent
+            // cache for the standalone Task Details screen.
+            const task = await flowtrackEnsureTaskDetail(id, true);
+            if (sequence !== flowtrackTaskOpenSequence) return null;
             if (!task) return showToast('Task could not be loaded.');
             return flowtrackPerformanceOpenTask(task.id || task.dbId);
         } catch (error) {
-            showToast(error.message || 'Task could not be loaded.');
+            if (sequence === flowtrackTaskOpenSequence) showToast(error.message || 'Task could not be loaded.');
         }
     });
 
@@ -806,7 +990,7 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
     function flowtrackPaginationSegmentsForPage(page) {
         if (page === 'clients') return ['clients'];
         if (page === 'documents') return ['documents'];
-        if (page === 'mywork') return ['tasks'];
+        if (page === 'mywork') return [];
         if (page === 'board') return ['jobs', 'tasks'];
         if (page === 'jobs') return ['jobs'];
         if (page === 'reports') return ['jobs', 'tasks'];
@@ -883,7 +1067,10 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
             }
         } finally {
             flowtrackAutoLoadRunning = false;
-            setTimeout(flowtrackScheduleAutoPaginationCheck, 120);
+            // Board may keep filling its viewport automatically. My Work must
+            // wait for another real scroll event so it loads one page at a time
+            // instead of silently fetching the entire task dataset.
+            if (page === 'board') setTimeout(flowtrackScheduleAutoPaginationCheck, 120);
         }
     }
 
@@ -903,8 +1090,9 @@ ${flowtrackActivityPanel(j, j.activity || [], allTasks)}`;
             return;
         }
         if (page === 'mywork') {
+            // Bind the scroll listener, but do not immediately schedule another
+            // fetch after render. This keeps My Work genuinely page-by-page.
             flowtrackBindAutoPaginationScrollers(page);
-            flowtrackScheduleAutoPaginationCheck();
             return;
         }
         controls.innerHTML = segments.map((segment) => `<button type="button" class="ghost" data-load-segment="${segment}">Load more ${segment === 'documents' ? 'documents' : segment}</button>`).join('');

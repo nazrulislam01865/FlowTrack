@@ -84,7 +84,7 @@ abstract class BaseApiController extends Controller
         return $job->fresh([
             'client:id,name,code', 'workflow.phases', 'currentPhase.documentCategory', 'currentPhase.taskPack.items.documentCategory', 'startedPhase',
             'product:id,name,code', 'productCategory:id,name,code', 'items.product:id,name,code', 'items.productCategory:id,name,code', 'currency:id,name,code',
-            'priority:id,name,code', 'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
+            'priority:id,name,code,metadata', 'owner:id,name,initials', 'coordinator:id,name,initials', 'creator:id,name,initials',
             'members.user:id,name,initials', 'excludedPhases.phase:id,name,short_name,sequence', 'phaseHistory.phase:id,name,short_name,sequence', 'phaseHistory.changedBy:id,name,initials', 'phaseHistory.phaseOwner:id,name,initials',
             'transitionEvents.actor:id,name,initials', 'transitionEvents.phase:id,name,short_name', 'transitionEvents.task:id,code,title',
         ]);
@@ -103,9 +103,9 @@ abstract class BaseApiController extends Controller
                 'packItem:id,task_pack_id,title,document_category_id,is_required', 'packItem.documentCategory:id,name',
                 'documentCategory:id,name',
                 'assignee:id,name,initials', 'setupAssignee:id,name,initials', 'setupAssignee.workspaceMemberships.department', 'assignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $job->workspace_id)->with('department:id,name'),
-                'status:id,name,code', 'priority:id,name,code', 'creator:id,name,initials',
-                'dependency:id,code,title,task_status_id,completed_at', 'dependency.status:id,name,code',
-                'dependents:id,dependency_id,code,title,task_status_id,completed_at', 'dependents.status:id,name,code',
+                'status:id,name,code,metadata', 'priority:id,name,code,metadata', 'creator:id,name,initials',
+                'dependency:id,code,title,task_status_id,completed_at', 'dependency.status:id,name,code,metadata',
+                'dependents:id,dependency_id,code,title,task_status_id,completed_at', 'dependents.status:id,name,code,metadata',
                 'checklistItems', 'comments.user:id,name,initials',
                 'activities.user:id,name,initials', 'transitionEvents.actor:id,name,initials',
             ])
@@ -135,9 +135,9 @@ abstract class BaseApiController extends Controller
             'setupAssignee:id,name,initials',
             'setupAssignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $workspaceId)->with('department:id,name'),
             'assignee.workspaceMemberships' => fn ($query) => $query->where('workspace_id', $workspaceId)->with('department:id,name'),
-            'status:id,name,code', 'priority:id,name,code', 'checklistItems', 'comments.user:id,name,initials',
-            'dependency:id,code,title,task_status_id,completed_at', 'dependency.status:id,name,code',
-            'dependents:id,dependency_id,code,title,task_status_id,completed_at', 'dependents.status:id,name,code',
+            'status:id,name,code,metadata', 'priority:id,name,code,metadata', 'checklistItems', 'comments.user:id,name,initials',
+            'dependency:id,code,title,task_status_id,completed_at', 'dependency.status:id,name,code,metadata',
+            'dependents:id,dependency_id,code,title,task_status_id,completed_at', 'dependents.status:id,name,code,metadata',
             'activities.user:id,name,initials', 'transitionEvents.actor:id,name,initials',
         ]);
     }
@@ -224,6 +224,7 @@ abstract class BaseApiController extends Controller
             'delivery' => $job->delivery_date?->toDateString() ?? '',
             'priority' => $job->priority?->name ?? 'Medium',
             'priorityId' => $job->priority_id,
+            'priorityColor' => data_get($job->priority?->metadata, 'color'),
             'next' => $job->next_action ?? 'Review current phase',
             'milestone' => $job->milestone ?? '',
             'attention' => (bool) $job->attention_required,
@@ -285,6 +286,7 @@ abstract class BaseApiController extends Controller
             'status' => $task->status?->name ?? 'Not Started',
             'statusId' => $task->task_status_id,
             'statusCode' => $task->status?->code,
+            'statusColor' => data_get($task->status?->metadata, 'color'),
             'createdAt' => $task->created_at?->toIso8601String(),
             'createdBy' => $task->creator?->name ?? 'System',
             'createdByInitials' => $task->creator?->initials ?: $this->initials($task->creator?->name ?? 'System'),
@@ -306,6 +308,7 @@ abstract class BaseApiController extends Controller
             'due' => $task->due_date?->toDateString() ?? '',
             'priority' => $task->priority?->name ?? 'Medium',
             'priorityId' => $task->priority_id,
+            'priorityColor' => data_get($task->priority?->metadata, 'color'),
             'progress' => (int) $task->progress,
             'phase' => $task->phase?->name ?? $task->phase?->short_name ?? 'General',
             'phaseName' => $task->phase?->name ?? 'General',
@@ -329,6 +332,7 @@ abstract class BaseApiController extends Controller
             ] : null,
             'documents' => [],
             'canUploadDocument' => false,
+            'canUploadAttachment' => false,
             'mentionableUsers' => [],
             'history' => [],
             'checklist' => [],
@@ -455,6 +459,7 @@ abstract class BaseApiController extends Controller
             'delivery' => $job->delivery_date?->toDateString() ?? '',
             'priority' => $job->priority?->name ?? 'Medium',
             'priorityId' => $job->priority_id,
+            'priorityColor' => data_get($job->priority?->metadata, 'color'),
             'next' => $job->next_action ?? 'Review current phase',
             'milestone' => $job->milestone ?? '',
             'attention' => (bool) $job->attention_required,
@@ -504,7 +509,7 @@ abstract class BaseApiController extends Controller
     {
         $task->loadMissing([
             'packItem.documentCategory', 'documentCategory', 'setupAssignee.workspaceMemberships.department',
-            'creator:id,name,initials', 'dependency.status:id,name,code', 'dependents.status:id,name,code',
+            'creator:id,name,initials', 'dependency.status:id,name,code,metadata', 'dependents.status:id,name,code,metadata',
         ]);
         $effectiveAssignee = $task->assignee ?: ((! $task->assignee_overridden_at && $task->setup_assignee_id) ? $task->setupAssignee : null);
         $effectiveAssigneeId = $task->assignee_id ?: ((! $task->assignee_overridden_at && $task->setup_assignee_id) ? $task->setup_assignee_id : null);
@@ -516,13 +521,19 @@ abstract class BaseApiController extends Controller
             ?: ($task->packItem?->document_category_id ? 'task_pack_item' : null);
         $isConfiguredDocumentTask = (bool) ($documentCategory && $documentSource === 'task_pack_item');
         $isAttachmentTask = $isConfiguredDocumentTask;
+        $documentRequirementSatisfied = ! $isConfiguredDocumentTask
+            || $this->documentRequirements->isTaskRequirementSatisfiedReadOnly($task);
 
-        $canViewDocuments = (bool) ($actor && $isAttachmentTask
+        // Every Task may hold ordinary attachments. A configured document Task
+        // additionally has a strict Task Pack requirement that can satisfy
+        // workflow readiness. Keep those two concepts separate.
+        $canViewDocuments = (bool) ($actor
             && $authorization->allows($actor, 'documents', 'view', $task->job));
-        $canUploadDocument = (bool) ($actor && $isAttachmentTask
-            && (int) $task->workflow_phase_id === (int) $task->job?->current_phase_id
+        $canUploadAttachment = (bool) ($actor
             && $authorization->allows($actor, 'documents', 'create', $task->job)
             && $authorization->allows($actor, 'documents', 'link', $task->job));
+        $canUploadDocument = (bool) ($canUploadAttachment && $isAttachmentTask
+            && (int) $task->workflow_phase_id === (int) $task->job?->current_phase_id);
 
         $documentRows = collect();
         if ($canViewDocuments) {
@@ -534,23 +545,24 @@ abstract class BaseApiController extends Controller
 
             $documentRows = ($task->job?->documents ?? collect())
                 ->filter(function (FlowDocument $document) use ($task, $documentSource, $documentCategory, $isConfiguredDocumentTask): bool {
-                    if ((int) $document->workflow_phase_id !== (int) $task->workflow_phase_id) {
-                        return false;
-                    }
-
-                    if ($isConfiguredDocumentTask && (int) $document->document_category_id !== (int) $documentCategory?->id) {
-                        return false;
-                    }
-
+                    // Explicit task links are authoritative for both required
+                    // documents and ordinary task attachments.
                     if ($document->flow_task_id) {
                         return (int) $document->flow_task_id === (int) $task->id;
                     }
 
+                    // Backward compatibility for required Task Pack documents
+                    // created before flow_task_id was persisted.
+                    if (! $isConfiguredDocumentTask || (int) $document->workflow_phase_id !== (int) $task->workflow_phase_id) {
+                        return false;
+                    }
+                    if ((int) $document->document_category_id !== (int) $documentCategory?->id) {
+                        return false;
+                    }
                     if ($documentSource === 'task_pack_item') {
                         return (int) ($document->task_pack_item_id ?? 0) === (int) ($task->task_pack_item_id ?? 0);
                     }
-
-                    return $document->task_pack_item_id === null;
+                    return false;
                 })
                 ->sortByDesc('id')
                 ->map(function (FlowDocument $document) use ($authorization, $actor): array {
@@ -698,6 +710,7 @@ abstract class BaseApiController extends Controller
             'status' => $task->status?->name ?? 'Not Started',
             'statusId' => $task->task_status_id,
             'statusCode' => $task->status?->code,
+            'statusColor' => data_get($task->status?->metadata, 'color'),
             'createdAt' => $task->created_at?->toIso8601String(),
             'createdBy' => $task->creator?->name ?? 'System',
             'createdByInitials' => $task->creator?->initials ?: $this->initials($task->creator?->name ?? 'System'),
@@ -719,6 +732,7 @@ abstract class BaseApiController extends Controller
             'due' => $task->due_date?->toDateString() ?? '',
             'priority' => $task->priority?->name ?? 'Medium',
             'priorityId' => $task->priority_id,
+            'priorityColor' => data_get($task->priority?->metadata, 'color'),
             'progress' => (int) $task->progress,
             'phase' => $task->phase?->name ?? $task->phase?->short_name ?? 'General',
             'phaseName' => $task->phase?->name ?? 'General',
@@ -737,6 +751,7 @@ abstract class BaseApiController extends Controller
                 'title' => $task->dependency->title,
                 'status' => $task->dependency->status?->name ?? ($task->dependency->completed_at ? 'Completed' : 'Not Started'),
                 'statusCode' => $task->dependency->status?->code,
+                'statusColor' => data_get($task->dependency->status?->metadata, 'color'),
                 'completed' => (bool) $task->dependency->completed_at,
             ] : null,
             'dependents' => $task->dependents->map(fn (FlowTask $dependent): array => [
@@ -745,6 +760,7 @@ abstract class BaseApiController extends Controller
                 'title' => $dependent->title,
                 'status' => $dependent->status?->name ?? ($dependent->completed_at ? 'Completed' : 'Not Started'),
                 'statusCode' => $dependent->status?->code,
+                'statusColor' => data_get($dependent->status?->metadata, 'color'),
                 'completed' => (bool) $dependent->completed_at,
             ])->values()->all(),
             'isDocumentTask' => (bool) $isAttachmentTask,
@@ -758,9 +774,16 @@ abstract class BaseApiController extends Controller
                 'categoryId' => (int) $documentCategory->id,
                 'categoryName' => $documentCategory->name,
                 'genericAttachment' => false,
+                'satisfied' => $documentRequirementSatisfied,
             ] : null,
+            'documentRequirementSatisfied' => $documentRequirementSatisfied,
+            'statusChangeBlockedByDocument' => $isConfiguredDocumentTask && ! $documentRequirementSatisfied,
+            'statusChangeBlockMessage' => $isConfiguredDocumentTask && ! $documentRequirementSatisfied
+                ? 'Upload or link the required '.$documentCategory->name.' document before changing this Task status.'
+                : null,
             'documents' => $documentRows->all(),
             'canUploadDocument' => $canUploadDocument,
+            'canUploadAttachment' => $canUploadAttachment,
             'mentionableUsers' => $mentionableUsers->all(),
             'history' => $history->all(),
             'checklist' => $task->checklistItems

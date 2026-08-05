@@ -198,7 +198,10 @@ class TaskPackActivator
             $this->logTaskAdded($job, $createdTask, $actor, $source);
         }
 
-        if ($source !== 'job_creation' && $generatedTaskIds !== []) {
+        // Initial creation and silent legacy/detail reconciliation should not
+        // emit a second wave of "new phase task" notifications. Interactive
+        // phase/task-setup synchronization still notifies assignees normally.
+        if (! in_array($source, ['job_creation', 'job_detail_repair', 'job_tasks_repair'], true) && $generatedTaskIds !== []) {
             $jobId = (int) $job->id;
             $phaseId = (int) $phase->id;
             $actorId = $actor?->id ? (int) $actor->id : null;

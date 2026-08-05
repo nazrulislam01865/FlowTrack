@@ -26,6 +26,10 @@ return [
     // Lightweight list pages. Full details are fetched only when a record opens.
     'list_per_page' => (int) env('FLOWTRACK_LIST_PER_PAGE', 50),
 
+    // My Work is rendered from one complete, versioned snapshot so scrolling is
+    // stable. Mutations invalidate the workspace version automatically.
+    'my_work_snapshot_cache_seconds' => (int) env('FLOWTRACK_MY_WORK_SNAPSHOT_CACHE_SECONDS', 60),
+
     // User/workspace dashboard calculations are cached for 1-5 minutes.
     'metrics_cache_seconds' => (int) env('FLOWTRACK_METRICS_CACHE_SECONDS', 120),
 

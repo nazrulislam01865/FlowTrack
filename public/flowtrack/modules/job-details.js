@@ -1,5 +1,13 @@
-/* FlowTrack runtime module: job-details. Build: f400609959067571. */
-function flowtrackJobV4Workflow(job) {
+/* FlowTrack runtime module: job-details. Build: 30e4f82686c91463. */
+async function flowtrackOpenFinalTaskDetailsFromJob(identifier) {
+        if (!identifier) return null;
+        if (window.FlowTrackAssets?.ensureDetail) {
+            await window.FlowTrackAssets.ensureDetail('task');
+        }
+        return window.openTask(identifier);
+    }
+
+    function flowtrackJobV4Workflow(job) {
         return getWorkflow(job?.workflow || 'standard') || { phases: [], name: job?.workflowName || 'Workflow' };
     }
     function flowtrackJobV4BulkIcon(kind) {
@@ -123,15 +131,16 @@ function flowtrackJobV4Workflow(job) {
         const sequence = `${Number(phase.sequence || 0)}.${index + 1}`;
         const documentRequirement = flowtrackJobV4TaskDocumentRequirement(task, phase.id, task.taskPackItemId);
         const evidencePresent = documentRequirement ? flowtrackJobV4TaskHasRequiredEvidence(job, task, documentRequirement) : true;
+        const statusLockedByDocument = Boolean(documentRequirement && !evidencePresent);
         const requirementNote = documentRequirement
-            ? `<small class="job-v4-required-doc ${evidencePresent ? 'is-present' : 'is-missing'}">${evidencePresent ? '✓' : '!'} ${html(documentRequirement.categoryName)} ${evidencePresent ? 'uploaded' : 'required before completion'}</small>`
+            ? `<small class="job-v4-required-doc ${evidencePresent ? 'is-present' : 'is-missing'}">${evidencePresent ? '✓' : '!'} ${html(documentRequirement.categoryName)} ${evidencePresent ? 'uploaded' : 'required before status change'}</small>`
             : (task.planned ? `<small>Planned from ${html(task.setupLabel || 'Task Setup')}</small>` : '');
         return `<tr class="job-v4-task-row" data-job-v4-task-row data-task-id="${html(task.id)}" data-task-db-id="${html(task.dbId || '')}" data-phase-id="${html(phase.id)}" data-pack-item-id="${html(task.taskPackItemId || '')}" data-status="${html(normalizedStatusValue(status))}" data-assignee="${html(normalizedStatusValue(assigneeName))}" data-assignee-id="${html(task.assigneeId || '')}" data-planned="${task.planned ? '1' : '0'}" data-requires-document="${documentRequirement ? '1' : '0'}">
             <td class="job-v4-task-seq">${html(sequence)}</td>
             <td><button type="button" class="job-v4-task-title" data-job-v4-open-task ${task.planned ? 'disabled' : ''}>${html(task.title || task.id)}</button>${requirementNote}</td>
             <td><div class="job-v4-assignee-cell"><span class="job-v4-person" data-job-v4-assignee-label><span class="avatar">${userInitials(assigneeName)}</span><span>${html(assigneeName)}</span></span>${canAssign ? `<button type="button" class="job-v4-icon-btn" data-job-v4-edit-assignee title="Edit assignee" aria-label="Edit assignee">✎</button>` : ''}</div></td>
             <td><div class="job-v4-due-cell"><span data-job-v4-due-label>${due ? formatDate(due) : 'Not set'}</span>${canDue ? `<button type="button" class="job-v4-icon-btn" data-job-v4-edit-due title="Edit due date">✎</button><input type="date" class="job-v4-hidden-date" data-job-v4-due-input value="${html(due)}">` : ''}</div></td>
-            <td>${canUpdate ? `<select class="job-v4-task-inline-select job-v4-status-select" data-job-v4-task-status data-native-select aria-label="Task status" data-previous-value="${html(task.statusId || '')}">${flowtrackJobV4TaskStatusOptions(task)}</select>` : statusBadge(status)}</td>
+            <td>${canUpdate ? `<select class="job-v4-task-inline-select job-v4-status-select" style="${flowtrackMasterToneStyle(flowtrackTaskStatusColor(task, task.statusColor || ''), { backgroundAlpha: 0.06, borderAlpha: 0.32 })}" data-job-v4-task-status data-native-select aria-label="Task status" data-previous-value="${html(task.statusId || '')}" ${statusLockedByDocument ? `disabled title="Upload ${html(documentRequirement.categoryName)} before changing status"` : ''}>${flowtrackJobV4TaskStatusOptions(task)}</select>` : statusBadge(status, task.statusColor)}</td>
             <td class="job-v4-task-actions"><button type="button" class="job-v4-row-menu" data-job-v4-open-task ${task.planned ? 'disabled' : ''} aria-label="Open task">•••</button></td>
         </tr>`;
     }
@@ -210,7 +219,7 @@ function flowtrackJobV4Workflow(job) {
         const rows = products.length ? products : [{ category: job.category || '', product: job.product || '', productCode: '', categoryId: job.categoryId, productId: job.productId, qty: job.qty || 1 }];
         const totalQty = rows.reduce((sum, item) => sum + Number(item.qty || 0), 0);
         return `<div class="job-v4-products-head"><b>Products & quantities</b><span>${rows.length} product${rows.length === 1 ? '' : 's'} · ${totalQty.toLocaleString()} total units</span></div>
-            <table class="job-v4-products-table"><thead><tr><th>Category</th><th>Product</th><th>Quantity</th></tr></thead><tbody>${rows.map((item, index) => `<tr data-job-v4-product-row="${index}"><td>${html(item.category || '—')}</td><td><span>${item.productCode ? `${html(item.productCode)} · ` : ''}${html(item.product || 'Unspecified')}</span>${canEditJobRecord() ? `<button type="button" class="job-v4-icon-btn" data-job-v4-edit-product="${index}">✎</button>` : ''}</td><td><span>${Number(item.qty || 0).toLocaleString()}</span>${canEditJobRecord() ? `<button type="button" class="job-v4-icon-btn" data-job-v4-edit-product="${index}">✎</button>` : ''}</td></tr>`).join('')}</tbody></table>
+            <table class="job-v4-products-table"><thead><tr><th>Category</th><th>Product</th><th>Quantity</th></tr></thead><tbody>${rows.map((item, index) => `<tr data-job-v4-product-row="${index}"><td><span>${html(item.category || '—')}</span>${canEditJobRecord() ? `<button type="button" class="job-v4-icon-btn" data-job-v4-edit-product="${index}" title="Edit category, product and quantity" aria-label="Edit category, product and quantity">✎</button>` : ''}</td><td><span>${item.productCode ? `${html(item.productCode)} · ` : ''}${html(item.product || 'Unspecified')}</span>${canEditJobRecord() ? `<button type="button" class="job-v4-icon-btn" data-job-v4-edit-product="${index}" title="Edit category, product and quantity" aria-label="Edit category, product and quantity">✎</button>` : ''}</td><td><span>${Number(item.qty || 0).toLocaleString()}</span>${canEditJobRecord() ? `<button type="button" class="job-v4-icon-btn" data-job-v4-edit-product="${index}" title="Edit category, product and quantity" aria-label="Edit category, product and quantity">✎</button>` : ''}</td></tr>`).join('')}</tbody></table>
             ${canEditJobRecord() ? '<button type="button" class="job-v4-link" data-job-v4-add-product>＋ Add product</button>' : ''}`;
     }
 
@@ -262,7 +271,7 @@ function flowtrackJobV4Workflow(job) {
                 <section class="job-v4-card job-v4-overview-card"><h3>Job overview</h3><div class="job-v4-description-row"><span data-job-v4-description-text>${html(job.requestDescription || 'No job description recorded.')}</span>${canEditJobRecord() ? '<button type="button" class="job-v4-icon-btn" data-job-v4-edit-description>✎</button>' : ''}</div>${flowtrackJobV4ProductTable(job)}</section>
                 <section class="job-v4-card job-v4-planning"><h3>Planning & ownership</h3>
                     <div class="job-v4-plan-row"><span>Required delivery</span><b>${job.delivery ? formatDate(job.delivery) : 'Not set'}</b>${canEditJobRecord() ? '<button type="button" class="job-v4-icon-btn" data-job-v4-edit-field="delivery">✎</button>' : ''}</div>
-                    <div class="job-v4-plan-row"><span>Priority</span><b>${html(job.priority || 'Medium')}</b>${canEditJobRecord() ? '<button type="button" class="job-v4-icon-btn" data-job-v4-edit-field="priority">✎</button>' : ''}</div>
+                    <div class="job-v4-plan-row"><span>Priority</span><b>${priorityBadge(job.priority || 'Medium', job.priorityColor)}</b>${canEditJobRecord() ? '<button type="button" class="job-v4-icon-btn" data-job-v4-edit-field="priority">✎</button>' : ''}</div>
                     <div class="job-v4-plan-row"><span>Job owner</span><b><span class="avatar">${userInitials(job.owner || 'U')}</span>${html(job.owner || 'Unassigned')}</b>${canEditJobRecord() ? '<button type="button" class="job-v4-icon-btn" data-job-v4-edit-field="owner">✎</button>' : ''}</div>
                     <div class="job-v4-plan-row"><span>Coordinator</span><b><span class="avatar">${userInitials(job.coordinator || 'U')}</span>${html(job.coordinator || 'Unassigned')}</b>${canEditJobRecord() ? '<button type="button" class="job-v4-icon-btn" data-job-v4-edit-field="coordinator">✎</button>' : ''}</div>
                     <div class="job-v4-plan-row"><span>Workflow</span><b>▣ ${html(job.workflowName || wf.name || 'Workflow')}</b><span></span></div>
@@ -387,7 +396,7 @@ function flowtrackJobV4Workflow(job) {
                             <div class="job-v5-gate-row is-complete"><span class="job-v5-gate-icon">✓</span><b>3</b><span>Approvals</span><strong>Not required</strong><em>Complete</em><button type="button" class="job-v5-link" data-job-v5-view-approvals>View approvals</button></div>
                             <div class="job-v5-gate-row ${state.readiness.has_blocking_task ? 'is-warning' : 'is-complete'}"><span class="job-v5-gate-icon">${state.readiness.has_blocking_task ? '!' : '✓'}</span><b>4</b><span>Other blockers</span><strong>${state.readiness.has_blocking_task ? 'Active blocker' : 'None'}</strong><em>${state.readiness.has_blocking_task ? 'Review' : 'Clear'}</em><button type="button" class="job-v5-link" data-job-v5-view-blockers>View details</button></div>
                         </div>
-                        ${state.nextPhase ? `<div class="job-v5-next-phase"><span class="job-v5-lock">▣</span><div><b>Next phase: ${html(nextName)}</b><p>${job.phaseReadiness === 'ready' ? 'All transition requirements are satisfied.' : html(blockingSummary)}</p></div>${job.phaseReadiness === 'ready' ? '' : '<button type="button" class="job-v5-outline" data-job-v5-open-blocker>Open blocking task</button>'}<button type="button" class="job-v5-move" data-job-v5-move-next ${job.phaseReadiness === 'ready' ? '' : 'disabled'}>Move to ${html(nextName)}</button><button type="button" class="job-v5-more" data-job-v5-transition-rules>•••</button></div>` : `<div class="job-v5-next-phase"><span class="job-v5-lock is-done">✓</span><div><b>Workflow completed</b><p>This is the final active workflow phase.</p></div></div>`}
+                        ${state.nextPhase ? `<div class="job-v5-next-phase"><span class="job-v5-lock">▣</span><div><b>Next phase: ${html(nextName)}</b><p>${job.phaseReadiness === 'ready' ? 'All transition requirements are satisfied.' : html(blockingSummary)}</p></div>${job.phaseReadiness === 'ready' ? '' : '<button type="button" class="job-v5-outline" data-job-v5-open-blocker>Open blocking task</button>'}<button type="button" class="job-v5-move" data-job-v5-move-next ${job.phaseReadiness === 'ready' ? '' : 'disabled'}>Move to ${html(nextName)}</button></div>` : `<div class="job-v5-next-phase"><span class="job-v5-lock is-done">✓</span><div><b>Workflow completed</b><p>This is the final active workflow phase.</p></div></div>`}
                     </section>
                     ${flowtrackJobV5PhaseHistoryTable(job, activePhases, actualTasks, currentPhase)}
                 </div>
@@ -416,7 +425,6 @@ function flowtrackJobV4Workflow(job) {
         const commercialStatus = typeof boardJobCommercialLabel === 'function' ? boardJobCommercialLabel(job) : (job.price ? 'Invoice pending' : 'Quotation pending');
         return `${flowtrackJobV4Overview(job, actualTasks, allDocs, activePhases, currentPhase)}
             ${flowtrackJobV5WorkflowPanel(job, actualTasks, activePhases, currentPhase)}
-            <section id="detailPanel7" class="detail-panel job-v3-commercial"><div class="job-v3-panel-card"><div class="job-v3-panel-head"><div><h3>Commercial</h3><p>Quotation, invoice and payment status.</p></div></div><div class="job-v3-metric-grid">${flowtrackJobMetricCard('$', 'Commercial value', `<span>${job.price ? currency(job.price, job.currency) : 'Not recorded'}</span>`, html(commercialStatus))}${flowtrackJobMetricCard('▣', 'Client', `<span>${html(clientName(job.client))}</span>`, html(job.order || job.id))}${flowtrackJobMetricCard('○', 'Invoice', `<span>${html(commercialStatus)}</span>`, `${allDocs.filter((doc) => documentMatchesKeywords(doc, ['invoice', 'payment', 'receipt'])).length} commercial documents`)}</div><div style="margin-top:16px">${documentPanelFor(job, 'Invoice Documents', ['invoice', 'payment', 'receipt', 'commercial'])}</div></div></section>
             ${flowtrackDocumentsPanel(job, allDocs, activePhases)}`;
     }
 
@@ -524,14 +532,14 @@ function flowtrackJobV4Workflow(job) {
             window.setTimeout(() => content.querySelector('.job-v4-all-tasks')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
         };
         content.querySelectorAll('[data-job-v5-view-phase-tasks]').forEach((button) => button.addEventListener('click', () => {
-            if (/open task/i.test(button.textContent || '') && state.firstOpenTask?.id) void openTask(state.firstOpenTask.id);
+            if (/open task/i.test(button.textContent || '') && state.firstOpenTask?.id) void flowtrackOpenFinalTaskDetailsFromJob(state.firstOpenTask.id);
             else showPhaseTasks();
         }));
         content.querySelector('[data-job-v5-view-documents]')?.addEventListener('click', () => activateScopedDetailTab(content, 8));
         content.querySelector('[data-job-v5-view-approvals]')?.addEventListener('click', () => showToast('This workflow does not require a separate approval operation.'));
         content.querySelector('[data-job-v5-view-blockers]')?.addEventListener('click', () => showToast(state.blockerMessages.join(' ') || (state.readiness.has_blocking_task ? 'A task blocker is active in this phase.' : 'No active blockers.')));
         content.querySelectorAll('[data-job-v5-open-blocker]').forEach((button) => button.addEventListener('click', () => {
-            if (state.firstOpenTask?.id) void openTask(state.firstOpenTask.id); else showPhaseTasks();
+            if (state.firstOpenTask?.id) void flowtrackOpenFinalTaskDetailsFromJob(state.firstOpenTask.id); else showPhaseTasks();
         }));
 
         content.querySelectorAll('[data-job-v5-edit-control]').forEach((button) => button.addEventListener('click', () => {
@@ -654,10 +662,10 @@ function flowtrackJobV4Workflow(job) {
         const header = content.querySelector('.drawer-head');
         if (header) {
             header.className = 'drawer-head job-v4-header';
-            header.innerHTML = `<div class="job-v4-head-main"><div class="job-v4-breadcrumb">Jobs / ${html(job.id)}</div><div class="job-v4-title-row"><h2 data-job-v4-title-text>${html(job.title || job.id)}</h2>${canEditJobRecord() ? '<button type="button" class="job-v4-icon-btn job-v4-title-edit" data-job-v4-edit-title>✎</button>' : ''}</div><div class="job-v4-head-meta"><span>${html(clientName(job.client))}</span>${flowtrackJobHealthPill(job)}<span class="badge b-red">${html(job.priority || 'Medium')}</span><span class="badge b-purple">${html(phaseNameFor(job))}</span><button type="button" class="job-v4-code job-v4-code-copy" data-job-v4-copy-id="${html(job.id)}" title="Copy Job ID" aria-label="Copy Job ID ${html(job.id)}"><span>${html(job.id)}</span><span class="job-v4-copy-icon" aria-hidden="true">⧉</span></button></div></div><div class="job-v4-team">${team.slice(0, 4).map((member) => `<span class="avatar" title="${html(member.name)}">${html(member.initials)}</span>`).join('')}${team.length > 4 ? `<span class="job-v4-more">+${team.length - 4}</span>` : ''}</div><button type="button" class="close-btn" data-standalone-back aria-label="Close">×</button>`;
+            header.innerHTML = `<div class="job-v4-head-main"><div class="job-v4-breadcrumb">Jobs / ${html(job.id)}</div><div class="job-v4-title-row"><h2 data-job-v4-title-text>${html(job.title || job.id)}</h2>${canEditJobRecord() ? '<button type="button" class="job-v4-icon-btn job-v4-title-edit" data-job-v4-edit-title>✎</button>' : ''}</div><div class="job-v4-head-meta"><span>${html(clientName(job.client))}</span>${flowtrackJobHealthPill(job)}${priorityBadge(job.priority || 'Medium', job.priorityColor)}<span class="badge b-purple">${html(phaseNameFor(job))}</span><button type="button" class="job-v4-code job-v4-code-copy" data-job-v4-copy-id="${html(job.id)}" title="Copy Job ID" aria-label="Copy Job ID ${html(job.id)}"><span>${html(job.id)}</span><span class="job-v4-copy-icon" aria-hidden="true">⧉</span></button></div></div><div class="job-v4-team">${team.slice(0, 4).map((member) => `<span class="avatar" title="${html(member.name)}">${html(member.initials)}</span>`).join('')}${team.length > 4 ? `<span class="job-v4-more">+${team.length - 4}</span>` : ''}</div><button type="button" class="close-btn" data-standalone-back aria-label="Close">×</button>`;
         }
         const tabs = content.querySelector('.detail-tabs');
-        if (tabs) tabs.innerHTML = `<button class="detail-tab active" data-detailtab="0">Overview</button><button class="detail-tab" data-detailtab="1">Workflow</button><button class="detail-tab" data-detailtab="7">Commercial</button><button class="detail-tab" data-detailtab="8">Documents <span>${allDocs.length}</span></button>`;
+        if (tabs) tabs.innerHTML = `<button class="detail-tab active" data-detailtab="0">Overview</button><button class="detail-tab" data-detailtab="1">Workflow</button><button class="detail-tab" data-detailtab="8">Documents <span>${allDocs.length}</span></button>`;
         const panels = content.querySelector('#jobDetailPanels');
         if (panels) panels.innerHTML = flowtrackJobV4Panels(job);
         bindStandaloneBack(page);
@@ -759,7 +767,7 @@ function flowtrackJobV4Workflow(job) {
         content.querySelectorAll('[data-job-v4-open-task]').forEach((button) => button.addEventListener('click', () => {
             const row = button.closest('[data-job-v4-task-row]');
             if (!row || row.dataset.planned === '1') return;
-            void openTask(row.dataset.taskId);
+            void flowtrackOpenFinalTaskDetailsFromJob(row.dataset.taskId);
         }));
         const closeAssigneeEditor = (select) => {
             if (!select || select.disabled) return;
@@ -821,10 +829,10 @@ function flowtrackJobV4Workflow(job) {
                 ? flowtrackJobV4ConfiguredPhaseTasks(job, flowtrackActivePhases(job).find((phase) => Number(phase.id) === Number(row.dataset.phaseId)) || { id: Number(row.dataset.phaseId), sequence: 0, name: '' }, flowtrackJobAllTasks(job)).find((item) => String(item.id) === String(row.dataset.taskId) || Number(item.taskPackItemId || 0) === Number(row.dataset.packItemId || 0))
                 : tasks.find((item) => Number(item.dbId) === Number(row?.dataset.taskDbId) || String(item.id) === String(row?.dataset.taskId));
             const requirement = flowtrackJobV4TaskDocumentRequirement(task, Number(row?.dataset.phaseId || 0), Number(row?.dataset.packItemId || 0));
-            if (flowtrackJobV4StatusIsComplete(select.value) && requirement && !flowtrackJobV4TaskHasRequiredEvidence(job, task, requirement)) {
+            if (Number(select.value) !== Number(previousValue) && requirement && !flowtrackJobV4TaskHasRequiredEvidence(job, task, requirement)) {
                 select.value = previousValue;
-                showToast(`Upload or provide the required ${requirement.categoryName || 'document'} before completing this task.`);
-                if (task && !task.planned && task.id) window.setTimeout(() => void openTask(task.id), 120);
+                showToast(`Upload or link the required ${requirement.categoryName || 'document'} before changing this task status.`);
+                if (task && !task.planned && task.id) window.setTimeout(() => void flowtrackOpenFinalTaskDetailsFromJob(task.id), 120);
                 return;
             }
             select.disabled = true;
@@ -911,11 +919,16 @@ function flowtrackJobV4Workflow(job) {
         const result = await flowtrackJobV4PreviousOpenJob(id);
         const job = flowtrackFindJob(id) || flowtrackFindJob(result?.job?.id || result?.id);
         if (job) {
-            setTimeout(() => flowtrackJobV4Apply(flowtrackFindJob(job.id) || job, 0), 0);
+            // Apply the approved Job Details template before openJob resolves. On
+            // hard refresh the loader keeps the content hidden until this promise
+            // resolves, so a delayed setTimeout here used to expose the legacy
+            // Job template first.
+            flowtrackJobV4Apply(flowtrackFindJob(job.id) || job, 0);
             setTimeout(() => flowtrackJobV4Apply(flowtrackFindJob(job.id) || job, 0), 180);
         }
         return result;
     });
+    window.FLOWTRACK_FINAL_JOB_RENDERER_READY = true;
 
     
     /* CSS externalized: flowtrackJobV4Styles. */

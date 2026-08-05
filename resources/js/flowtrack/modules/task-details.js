@@ -137,8 +137,11 @@ function flowtrackTaskTemplateSlug(value) {
         const priorityName = priorityRecord?.name || task.priority || 'Medium';
         const documentVersions = flowtrackTaskTemplateDocumentVersions(task);
         const requirement = task.documentRequirement || null;
-        const hasRequiredEvidence = Boolean(documentVersions.length);
-        const canUpload = Boolean(task.canUploadDocument && requirement);
+        const hasRequiredEvidence = requirement
+            ? (task.documentRequirementSatisfied !== false && !task.statusChangeBlockedByDocument)
+            : true;
+        const statusLockedByDocument = Boolean(requirement && !hasRequiredEvidence);
+        const canUpload = Boolean(requirement ? task.canUploadDocument : task.canUploadAttachment);
         const checklist = flowtrackToArray(task.checklist);
         const checklistDone = checklist.filter((item) => item.done).length;
         const comments = flowtrackToArray(task.comments);
@@ -154,12 +157,14 @@ function flowtrackTaskTemplateSlug(value) {
         const updatedLabel = flowtrackTaskTemplateRelative(task.updatedAt, 'Not recorded');
         const currentStatusTone = flowtrackTaskTemplateStatusTone(status);
         const currentPriorityTone = flowtrackTaskTemplatePriorityTone(priorityName);
+        const currentStatusColor = flowtrackTaskStatusColor(status, task.statusColor || '');
+        const currentPriorityColor = flowtrackPriorityColor(priorityRecord || priorityName, task.priorityColor || '');
         const attentionLockedByStatus = taskStatusMatches(status, ['BLK', 'BLOCKED', 'ATTN', 'ATTENTION', 'HOLD', 'ON HOLD']);
         const statusOptions = statuses.map((item) => {
-            const tone = flowtrackTaskTemplateStatusTone(item);
+            const color = flowtrackTaskStatusColor(item);
             const selected = Number(item.id) === Number(status.id) || normalizedStatusValue(item.code || item.name) === normalizedStatusValue(status.code || status.name);
             return `<button type="button" class="ft-task-status-option ${selected ? 'is-selected' : ''}" data-ft-task-status-value="${html(item.id)}">
-                <span class="ft-task-dot is-${tone}"></span><span>${html(item.name)}</span>${selected ? '<b>✓</b>' : ''}
+                <span class="ft-task-dot" style="${flowtrackMasterDotStyle(color)}"></span><span>${html(item.name)}</span>${selected ? '<b>✓</b>' : ''}
             </button>`;
         }).join('');
         const assigneeEditor = `<select data-ft-task-assignee ${canAssign ? '' : 'disabled'}>
@@ -179,13 +184,13 @@ function flowtrackTaskTemplateSlug(value) {
                 value: html(assigneeName), editor: assigneeEditor,
             }),
             flowtrackTaskTemplateMetaCard({
-                key: 'status', label: 'Status', editable: canUpdate,
-                icon: `<span class="ft-task-dot is-${currentStatusTone}"></span>`, value: html(status.name || task.status || 'Not Started'),
+                key: 'status', label: 'Status', editable: canUpdate && !statusLockedByDocument,
+                icon: `<span class="ft-task-dot" style="${flowtrackMasterDotStyle(currentStatusColor)}"></span>`, value: `${html(status.name || task.status || 'Not Started')}${statusLockedByDocument ? `<small class="ft-task-status-doc-lock">Required ${html(requirement.categoryName || 'document')} missing</small>` : ''}`,
                 editor: `<div class="ft-task-status-menu">${statusOptions}</div>`, extraClass: 'ft-task-status-card',
             }),
             flowtrackTaskTemplateMetaCard({
                 key: 'priority', label: 'Priority', editable: canUpdate,
-                icon: `<span class="ft-task-dot is-${currentPriorityTone}"></span>`, value: html(priorityName), editor: priorityEditor,
+                icon: `<span class="ft-task-dot" style="${flowtrackMasterDotStyle(currentPriorityColor)}"></span>`, value: html(priorityName), editor: priorityEditor,
             }),
             flowtrackTaskTemplateMetaCard({
                 key: 'phase', label: 'Phase', editable: false,
@@ -269,7 +274,7 @@ function flowtrackTaskTemplateSlug(value) {
                 <main class="ft-task-final-main">
                     <header class="ft-task-header">
                         <div class="ft-task-heading">
-                            <div class="ft-task-code">${flowtrackCopyIdentifierButton(job?.id || task.job || '', 'Job ID', 'flow-id-copy-task-job')}</div>
+                            <div class="ft-task-code">${job?.id || task.job ? `<span class="ft-task-job-code-row"><a class="ft-task-job-code flow-id-copy-task-job" href="/flowtrack/view/jobs/${encodeURIComponent(job?.id || task.job)}" data-ft-task-open-job>${html(job?.id || task.job)} ↗</a>${flowtrackCopyIdentifierButton(job?.id || task.job || '', 'Job ID', 'flow-id-copy-icon-only')}</span>` : ''}</div>
                             <h1 data-ft-task-title-view>${html(task.title || 'Untitled task')}</h1>
                         </div>
                         <div class="ft-task-header-actions">
@@ -307,7 +312,7 @@ function flowtrackTaskTemplateSlug(value) {
                             <div><b>Drop files here or <button type="button" data-ft-task-browse ${canUpload ? '' : 'disabled'}>browse</button></b><small>PDF, DOCX, XLSX, JPG, PNG or ZIP · Max 20 MB${requirement?.categoryName ? ` · ${html(requirement.categoryName)}` : ''}</small></div>
                             <button type="button" class="ft-task-btn ft-task-btn-secondary" data-ft-task-choose-documents>Choose from Documents</button>
                         </div>
-                        ${!canUpload && !hasRequiredEvidence ? '<div class="ft-task-upload-note">File upload is available only for document tasks in the job’s current phase and for users with document upload access.</div>' : ''}
+                        ${!canUpload && !hasRequiredEvidence ? '<div class="ft-task-upload-note">You do not have permission to add attachments to this task.</div>' : ''}
                         ${filesHtml}
                     </section>
 
@@ -340,18 +345,10 @@ function flowtrackTaskTemplateSlug(value) {
 
                     <section class="ft-task-side-card ft-task-job-card">
                         <h2>Job context</h2>
-                        ${job ? `<div class="ft-task-job-code-row"><button type="button" class="ft-task-job-code" data-ft-task-open-job>${html(job.id || task.job)} ↗</button>${flowtrackCopyIdentifierButton(job.id || task.job, 'Job ID', 'flow-id-copy-icon-only')}</div>
+                        ${job ? `<div class="ft-task-job-code-row"><a class="ft-task-job-code" href="/flowtrack/view/jobs/${encodeURIComponent(job.id || task.job)}" data-ft-task-open-job>${html(job.id || task.job)} ↗</a>${flowtrackCopyIdentifierButton(job.id || task.job, 'Job ID', 'flow-id-copy-icon-only')}</div>
                         <h3>${html(job.title || task.jobTitle || task.job || 'Job')}</h3>
                         <dl><dt>Client</dt><dd>${html(job.clientName || clientName(job.client) || 'Unknown client')}</dd><dt>Job health</dt><dd><span class="ft-task-health is-${healthTone}"><i></i>${html(health)}</span></dd><dt>Delivery</dt><dd>${html(flowtrackTaskTemplateDate(job.delivery))}</dd><dt>Job progress</dt><dd><b>${jobProgress}%</b><span class="ft-task-job-progress"><i style="width:${jobProgress}%"></i></span></dd></dl>
                         <button type="button" class="ft-task-open-job-link" data-ft-task-open-job>Open job details ↗</button>` : `<h3>${html(task.jobTitle || task.job || 'No linked job')}</h3>`}
-                    </section>
-
-                    <section class="ft-task-side-card ft-task-dependency-card">
-                        <h2>Dependencies</h2>
-                        <div class="ft-task-blocker-state ${activeBlocker ? 'is-blocked' : ''}"><i>${activeBlocker ? '!' : '✓'}</i><span>${activeBlocker ? '1 active blocker' : 'No active blockers'}</span></div>
-                        ${dependency ? `<div class="ft-task-dependency-row"><span>Previous task:</span><button type="button" data-ft-task-open-dependency="${html(dependency.id || dependency.dbId)}">${html(dependency.title || dependency.id)} · ${html(dependency.status || (dependency.completed ? 'Completed' : 'Open'))}</button></div>` : '<div class="ft-task-dependency-row"><span>Previous task:</span><b>None</b></div>'}
-                        ${dependentTasks.length ? `<div class="ft-task-dependent-list"><span>Following tasks:</span>${dependentTasks.map((item) => `<button type="button" data-ft-task-open-dependency="${html(item.id || item.dbId)}">${html(item.title || item.id)} · ${html(item.status || 'Open')}</button>`).join('')}</div>` : ''}
-                        <button type="button" class="ft-task-link-btn" data-ft-task-add-dependency>Add dependency</button>
                     </section>
 
                     <div class="ft-task-side-footer">Created ${html(flowtrackTaskTemplateDate(String(task.createdAt || '').slice(0, 10), '—'))}<span>·</span>Updated ${html(updatedLabel || '—')}</div>
@@ -368,15 +365,31 @@ function flowtrackTaskTemplateSlug(value) {
         const task = flowtrackTaskTemplateCurrent(identifier);
         if (!task) return false;
         const pageId = `record-task-${flowtrackTaskTemplateSlug(task.id || task.dbId)}`;
-        const page = document.getElementById(`page-${pageId}`);
+
+        // The final Task Details template owns its page completely. Do not rely on
+        // the legacy drawer/standalone renderer to create the page first: that
+        // allowed a hard refresh to expose (and sometimes leave behind) the old
+        // Task UI before this final renderer ran.
+        document.querySelectorAll('.standalone-record-host').forEach((recordPage) => {
+            if (recordPage.id !== `page-${pageId}`) recordPage.innerHTML = '';
+        });
+        const page = activateStandalonePage(pageId, standaloneSourcePage('mywork'));
         if (!page) return false;
+
         page.__flowtrackTaskTemplateController?.abort();
         page.__flowtrackTaskTemplateController = new AbortController();
         page.classList.add('ft-task-final-host');
+        page.dataset.flowtrackFinalTask = '1';
         page.innerHTML = flowtrackTaskTemplateMarkup(task, activeTab);
+        $('#detailDrawer')?.classList.remove('open');
+        $('#overlay')?.classList.remove('open');
         bindStandaloneBack(page);
         flowtrackTaskTemplateBind(page, task);
         applyActionPermissions();
+        window.FlowtrackSearchableDropdown?.enhance?.(page);
+        window.dispatchEvent(new CustomEvent('flowtrack:task-final-rendered', {
+            detail: { id: task.id || task.dbId, pageId },
+        }));
         return true;
     }
 
@@ -441,10 +454,11 @@ function flowtrackTaskTemplateSlug(value) {
                 button.disabled = true;
                 const completed = taskStatusMatches(selected, ['CMP', 'COMPLETED', 'COMPLETE', 'DONE']);
                 const blocked = taskStatusMatches(selected, ['BLK', 'BLOCKED', 'ATTN', 'ATTENTION', 'HOLD', 'ON HOLD']);
-                if (completed && current.documentRequirement && flowtrackTaskTemplateDocumentVersions(current).length === 0) {
+                const statusChanged = Number(selected.id) !== Number(current.statusId || taskStatusRecord(current.status)?.id || 0);
+                if (statusChanged && current.documentRequirement && (current.documentRequirementSatisfied === false || current.statusChangeBlockedByDocument)) {
                     button.disabled = false;
                     page.querySelector('[data-ft-task-attachment-section]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    return showToast(`Upload or provide the required ${current.documentRequirement.categoryName || 'document'} before completing this task.`);
+                    return showToast(current.statusChangeBlockMessage || `Upload or link the required ${current.documentRequirement.categoryName || 'document'} before changing this task status.`);
                 }
                 try {
                     await flowtrackTaskTemplateSave(identifier, selected, {
@@ -544,9 +558,9 @@ function flowtrackTaskTemplateSlug(value) {
             const complete = taskStatusRecord('CMP') || taskStatusRecord('COMPLETED') || taskStatusRecord('Completed') || selectableTaskStatuses().find((item) => taskStatusMatches(item, ['CMP', 'COMPLETED', 'COMPLETE', 'DONE']));
             if (!complete) return showToast('A completed task status is not configured in Master Data.');
             const current = getCurrent();
-            if (current?.documentRequirement && flowtrackTaskTemplateDocumentVersions(current).length === 0) {
+            if (current?.documentRequirement && (current.documentRequirementSatisfied === false || current.statusChangeBlockedByDocument)) {
                 page.querySelector('[data-ft-task-attachment-section]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return showToast(`Upload or provide the required ${current.documentRequirement.categoryName || 'document'} before completing this task.`);
+                return showToast(current.statusChangeBlockMessage || `Upload or link the required ${current.documentRequirement.categoryName || 'document'} before changing this task status.`);
             }
             button.disabled = true;
             try {
@@ -690,33 +704,44 @@ function flowtrackTaskTemplateSlug(value) {
             const current = getCurrent();
             const requirement = current?.documentRequirement;
             if (!file) return;
-            if (!current?.canUploadDocument || !requirement) return showToast('File upload is not available for this task.');
+            const canUploadCurrent = requirement ? current?.canUploadDocument : current?.canUploadAttachment;
+            if (!canUploadCurrent) return showToast('File upload is not available for this task.');
             if (file.size > 20 * 1024 * 1024) return showToast('The document must not be larger than 20 MB.');
             const dropzone = page.querySelector('[data-ft-task-dropzone]');
             dropzone?.classList.add('is-uploading');
             try {
                 const formData = new FormData();
-                formData.append('job_id', String(current.jobDbId));
-                formData.append('workflow_phase_id', String(requirement.phaseId || current.phaseId));
-                if (requirement.taskPackItemId) formData.append('task_pack_item_id', String(requirement.taskPackItemId));
-                formData.append('document_category_id', String(requirement.categoryId));
-                formData.append('task_id', String(requirement.taskId || current.dbId));
-                const existing = flowtrackToArray(current.documents)[0];
-                if (existing?.dbId) formData.append('document_id', String(existing.dbId));
+                let endpoint = `/flowtrack/template-api/jobs/${encodeURIComponent(current.jobDbId)}/attachments`;
+                formData.append('task_id', String(current.dbId));
+                if (requirement) {
+                    endpoint = '/flowtrack/template-api/documents';
+                    formData.append('job_id', String(current.jobDbId));
+                    formData.append('workflow_phase_id', String(requirement.phaseId || current.phaseId));
+                    if (requirement.taskPackItemId) formData.append('task_pack_item_id', String(requirement.taskPackItemId));
+                    formData.append('document_category_id', String(requirement.categoryId));
+                    const existing = flowtrackToArray(current.documents).find((item) => Number(item.categoryId) === Number(requirement.categoryId));
+                    if (existing?.dbId) formData.append('document_id', String(existing.dbId));
+                }
                 formData.append('file', file);
-                const result = await api('/flowtrack/template-api/documents', { method: 'POST', body: formData });
+                const result = await api(endpoint, { method: 'POST', body: formData });
                 if (result.document) flowtrackUpsertRecord(docs, result.document);
                 if (result.job) {
                     flowtrackUpsertRecord(jobs, result.job);
                     if (Array.isArray(result.tasks)) replaceTasksForJob(result.job.id, result.tasks);
                 }
                 updateBadges();
-                const updated = flowtrackTaskTemplateCurrent(identifier);
+                // Re-fetch the authoritative task so the new file/version is
+                // visible immediately even when the response only contains a
+                // job-level attachment record.
+                const refreshed = await flowtrackEnsureTaskDetail(current.dbId || identifier, true);
+                const updated = refreshed || flowtrackTaskTemplateCurrent(identifier);
                 flowtrackTaskTemplateRender(updated?.id || identifier, getTab());
                 showToast(result.message || 'Attachment uploaded successfully.');
             } catch (error) {
                 dropzone?.classList.remove('is-uploading');
                 showToast(error.message || 'Attachment upload failed.');
+            } finally {
+                if (fileInput) fileInput.value = '';
             }
         };
         const fileInput = page.querySelector('[data-ft-task-file-input]');
@@ -755,11 +780,19 @@ function flowtrackTaskTemplateSlug(value) {
             const current = getCurrent();
             const requirement = current?.documentRequirement;
             const linkedJob = flowtrackTaskTemplateJob(current);
-            if (!current?.canUploadDocument || !requirement || !linkedJob) return showToast('Stored-document linking is not available for this task.');
-            flowtrackOpenStoredDocumentChooser(linkedJob, requirement, current, () => {
-                const updated = flowtrackTaskTemplateCurrent(identifier);
+            if (!linkedJob) return showToast('The linked Job could not be loaded.');
+            const refreshAfterLink = async () => {
+                const refreshed = await flowtrackEnsureTaskDetail(current.dbId || identifier, true);
+                const updated = refreshed || flowtrackTaskTemplateCurrent(identifier);
                 flowtrackTaskTemplateRender(updated?.id || identifier, getTab());
-            });
+            };
+            if (requirement) {
+                if (!current?.canUploadDocument) return showToast('Stored-document linking is not available for this task.');
+                void flowtrackOpenStoredDocumentChooser(linkedJob, requirement, current, refreshAfterLink);
+            } else {
+                if (!current?.canUploadAttachment) return showToast('Stored-document linking is not available for this task.');
+                void flowtrackOpenExistingJobAttachmentChooser(linkedJob, refreshAfterLink, current);
+            }
         });
         page.querySelector('[data-ft-task-upload-link]')?.addEventListener('click', () => {
             page.querySelector('[data-ft-task-attachment-section]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -782,14 +815,17 @@ function flowtrackTaskTemplateSlug(value) {
             }
         });
 
-        page.querySelectorAll('[data-ft-task-open-job]').forEach((button) => button.addEventListener('click', () => {
+        page.querySelectorAll('[data-ft-task-open-job]').forEach((button) => button.addEventListener('click', (event) => {
+            // Keep native link behavior for modified clicks/right-click so Job IDs
+            // can also be opened in a new tab/window. Normal clicks stay inside
+            // FlowTrack's existing Job Details navigation path.
+            if (button instanceof HTMLAnchorElement && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)) return;
+            event.preventDefault();
             const current = getCurrent();
             const job = flowtrackTaskTemplateJob(current);
             if (job) void openJob(job.id || job.dbId);
-            else if (current?.jobDbId) flowtrackNavigateTo(`/flowtrack/jobs/${current.jobDbId}`);
+            else if (current?.jobDbId) flowtrackNavigateTo(`/flowtrack/view/jobs/${current.jobDbId}`);
         }));
-        page.querySelectorAll('[data-ft-task-open-dependency]').forEach((button) => button.addEventListener('click', () => void openTask(button.dataset.ftTaskOpenDependency)));
-        page.querySelector('[data-ft-task-add-dependency]')?.addEventListener('click', () => showToast('Dependencies are configured from task setup and workflow rules.'));
 
         const applyActivityTab = (tab) => {
             const normalizedTab = ['all', 'comments', 'history'].includes(tab) ? tab : 'all';
@@ -874,13 +910,34 @@ function flowtrackTaskTemplateSlug(value) {
     
     /* CSS externalized: flowtrackTaskTemplateStyles. */
 
-    const flowtrackFinalTaskTemplateBase = currentFlowtrackImplementation('openTask');
-    registerFlowtrackExtension('openTask', 'openTask-stage-4-final-template', async function (id) {
-        const result = await flowtrackFinalTaskTemplateBase(id);
-        const task = flowtrackTaskTemplateCurrent(id);
-        if (task) flowtrackTaskTemplateRender(task.id || task.dbId, 'all');
-        return result;
-    });
+    let flowtrackFinalTaskOpenSequence = 0;
+
+    async function flowtrackOpenFinalTaskDetails(id) {
+        const sequence = ++flowtrackFinalTaskOpenSequence;
+        try {
+            // Always fetch the authoritative Task Details payload here. The final
+            // renderer deliberately bypasses the legacy openTask stage chain so a
+            // browser refresh and an in-app click use exactly the same template.
+            const task = await flowtrackEnsureTaskDetail(id, true);
+            if (sequence !== flowtrackFinalTaskOpenSequence) return null;
+            if (!task) {
+                showToast('Task could not be loaded.');
+                return null;
+            }
+            const rendered = flowtrackTaskTemplateRender(task.id || task.dbId, 'all');
+            if (!rendered) throw new Error('The final Task Details view could not be rendered.');
+            return task;
+        } catch (error) {
+            if (sequence === flowtrackFinalTaskOpenSequence) {
+                showToast(error?.message || 'Task could not be loaded.');
+            }
+            return null;
+        }
+    }
+
+    registerFlowtrackExtension('openTask', 'openTask-stage-4-final-template', flowtrackOpenFinalTaskDetails);
+    window.flowtrackOpenFinalTaskDetails = flowtrackOpenFinalTaskDetails;
+    window.FLOWTRACK_FINAL_TASK_RENDERER_READY = true;
 
     /* Final Job Details reference template (v4): inline editing, all configured phase tasks,
        task-style attachments, functional filters/expanders, and job activity tabs. */

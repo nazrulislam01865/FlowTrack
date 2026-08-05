@@ -314,7 +314,7 @@ class FlowAuthorizationService
             return true;
         }
 
-        $task->loadMissing('status:id,name,code');
+        $task->loadMissing('status:id,name,code,metadata');
         $status = strtoupper(trim((string) ($task->status?->code ?: $task->status?->name)));
 
         return in_array($status, ['CMP', 'COMPLETED', 'COMPLETE', 'DONE'], true);

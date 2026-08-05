@@ -722,7 +722,7 @@ class FlowNotificationService
     private function task(int $taskId): ?FlowTask
     {
         return FlowTask::query()
-            ->with(['job.currentPhase', 'phase:id,name,short_name', 'status:id,name,code', 'assignee:id,name,status'])
+            ->with(['job.currentPhase', 'phase:id,name,short_name', 'status:id,name,code,metadata', 'assignee:id,name,status'])
             ->find($taskId);
     }
 

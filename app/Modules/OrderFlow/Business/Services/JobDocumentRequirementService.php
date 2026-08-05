@@ -80,13 +80,78 @@ class JobDocumentRequirementService
             ->groupBy(fn (FlowTask $task) => (int) $task->workflow_phase_id)
             ->map(fn (Collection $tasks) => $tasks->pluck('task_pack_item_id')->map(fn ($id) => (int) $id)->values());
 
-        return $phases
+        $requirements = $phases
             ->flatMap(fn (WorkflowPhase $phase) => $this->requirementsForPhase(
                 $phase,
                 $removedByPhase->get((int) $phase->id, collect()),
             ))
             ->unique('requirement_key')
             ->values();
+
+        // Decorate every configured requirement with its concrete Task (when
+        // the requirement came from Task Pack Setup) and the current evidence
+        // state.  Job Details can therefore show required documents for every
+        // phase directly from backend configuration, even before that phase is
+        // current and without depending on whichever document page happened to
+        // be loaded in the browser.
+        $tasks = FlowTask::query()
+            ->where('flow_job_id', $job->id)
+            ->whereIn('workflow_phase_id', $phases->pluck('id'))
+            ->whereNull('removed_from_job_at')
+            ->whereNull('deleted_at')
+            ->get(['id', 'code', 'title', 'workflow_phase_id', 'task_pack_item_id'])
+            ->keyBy(fn (FlowTask $task): string => (int) $task->workflow_phase_id.':'.(int) ($task->task_pack_item_id ?? 0));
+
+        $documents = $job->documents()
+            ->whereIn('workflow_phase_id', $phases->pluck('id'))
+            ->get(['id', 'workflow_phase_id', 'task_pack_item_id', 'flow_task_id', 'document_category_id']);
+
+        return $requirements->map(function (array $requirement) use ($tasks, $documents, $job): array {
+            $task = null;
+            if ($requirement['task_pack_item_id'] !== null) {
+                $task = $tasks->get((int) $requirement['workflow_phase_id'].':'.(int) $requirement['task_pack_item_id']);
+            }
+
+            if ($task) {
+                $present = $documents->contains(function ($document) use ($task, $requirement): bool {
+                    if ((int) $document->workflow_phase_id !== (int) $requirement['workflow_phase_id']
+                        || (int) $document->document_category_id !== (int) $requirement['category_id']) {
+                        return false;
+                    }
+                    if ((int) ($document->flow_task_id ?? 0) === (int) $task->id) {
+                        return true;
+                    }
+
+                    return (int) ($document->task_pack_item_id ?? 0) === (int) ($requirement['task_pack_item_id'] ?? 0);
+                });
+            } elseif ($requirement['task_pack_item_id'] !== null) {
+                // Future/legacy phases may expose the Task Pack requirement
+                // before a concrete FlowTask row exists.  Evidence linked by the
+                // exact Task Pack item still satisfies and displays correctly.
+                $present = $documents->contains(fn ($document): bool =>
+                    (int) $document->workflow_phase_id === (int) $requirement['workflow_phase_id']
+                    && (int) $document->document_category_id === (int) $requirement['category_id']
+                    && (int) ($document->task_pack_item_id ?? 0) === (int) $requirement['task_pack_item_id']
+                );
+            } else {
+                // Phase requirements use a dedicated evidence slot; Task-linked
+                // files in the same phase/category must not satisfy them.
+                $present = $documents->contains(fn ($document): bool =>
+                    (int) $document->workflow_phase_id === (int) $requirement['workflow_phase_id']
+                    && (int) $document->document_category_id === (int) $requirement['category_id']
+                    && ! $document->task_pack_item_id
+                    && ! $document->flow_task_id
+                );
+            }
+
+            return [
+                ...$requirement,
+                'flow_task_id' => $task?->id ? (int) $task->id : null,
+                'flow_task_code' => $task?->code,
+                'flow_task_title' => $task?->title,
+                'present' => (bool) $present,
+            ];
+        })->values();
     }
 
     private function requirementsForPhase(WorkflowPhase $phase, Collection $removedTaskPackItemIds): Collection
@@ -217,6 +282,62 @@ class JobDocumentRequirementService
             ->whereNull('task_pack_item_id')
             ->whereNull('flow_task_id')
             ->exists();
+    }
+
+    /**
+     * Read-only evidence check used by GET/list presenters.  It intentionally
+     * performs no legacy-link repair so browsing a page never writes data.
+     */
+    public function isTaskRequirementSatisfiedReadOnly(FlowTask $task): bool
+    {
+        $task->loadMissing(['job', 'phase', 'packItem.documentCategory', 'documentCategory']);
+        $categoryId = (int) ($task->document_category_id ?: $task->packItem?->document_category_id ?: 0);
+        if (! $task->job || ! $task->workflow_phase_id || ! $task->task_pack_item_id || ! $categoryId) {
+            return false;
+        }
+
+        $base = $task->job->documents()
+            ->where('workflow_phase_id', $task->workflow_phase_id)
+            ->where('document_category_id', $categoryId);
+
+        if ((clone $base)->where('flow_task_id', $task->id)->exists()) {
+            return true;
+        }
+
+        if ((clone $base)
+            ->where('task_pack_item_id', $task->task_pack_item_id)
+            ->whereNull('flow_task_id')
+            ->exists()) {
+            return true;
+        }
+
+        // Old phase/category-only evidence is accepted only when the category
+        // unambiguously belongs to this single Task requirement and is not also
+        // reserved by the Workflow Phase itself.
+        if (WorkflowPhase::query()
+            ->whereKey($task->workflow_phase_id)
+            ->where('document_category_id', $categoryId)
+            ->exists()) {
+            return false;
+        }
+
+        $candidateIds = FlowTask::query()
+            ->where('flow_job_id', $task->flow_job_id)
+            ->where('workflow_phase_id', $task->workflow_phase_id)
+            ->whereNull('removed_from_job_at')
+            ->whereNotNull('task_pack_item_id')
+            ->where(function ($query) use ($categoryId): void {
+                $query->where('document_category_id', $categoryId)
+                    ->orWhereHas('packItem', fn ($packItem) => $packItem->where('document_category_id', $categoryId));
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        return $candidateIds->count() === 1
+            && (int) $candidateIds->first() === (int) $task->id
+            && (clone $base)->whereNull('flow_task_id')->whereNull('task_pack_item_id')->exists();
     }
 
     /**

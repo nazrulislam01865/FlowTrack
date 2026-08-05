@@ -1,4 +1,4 @@
-/* FlowTrack runtime module: workspace. Build: f400609959067571. */
+/* FlowTrack runtime module: workspace. Build: 30e4f82686c91463. */
 function nextClientCodePreview() {
         const max = clients.reduce((highest, client) => {
             const match = String(client.code || '').match(/^CL-(\d+)$/i);
@@ -142,26 +142,33 @@ function nextClientCodePreview() {
                 && Number(task.phaseId || 0) === phaseId
                 && Number(task.taskPackItemId || 0) === Number(itemId)
             ) : null;
-            const matchingTaskId = Number(matchingTask?.dbId || 0);
+            const matchingTaskId = Number(requirement.flow_task_id || requirement.flowTaskId || matchingTask?.dbId || 0);
+            const locallyPresent = docs.some((documentRecord) => {
+                if (String(documentRecord.job || '') !== String(job?.id || '')) return false;
+                if (Number(documentRecord.phaseId || 0) !== phaseId) return false;
+                if (Number(documentRecord.categoryId || 0) !== categoryId) return false;
+                if (itemId) {
+                    return Number(documentRecord.taskPackItemId || 0) === Number(itemId)
+                        || (matchingTaskId && Number(documentRecord.taskId || 0) === matchingTaskId);
+                }
+                return !Number(documentRecord.taskPackItemId || 0) && !Number(documentRecord.taskId || 0);
+            });
             return {
                 key: requirement.requirement_key || `${itemId ? 'task' : 'phase'}:${itemId || phaseId}:${categoryId}`,
                 phaseId,
                 phaseName: requirement.workflow_phase_name || requirement.workflowPhaseName || phaseNameFor(job),
                 taskPackItemId: itemId ? Number(itemId) : null,
+                taskId: matchingTaskId || null,
+                taskCode: requirement.flow_task_code || requirement.flowTaskCode || matchingTask?.id || null,
+                taskTitle: requirement.flow_task_title || requirement.flowTaskTitle || matchingTask?.title || null,
                 categoryId,
                 categoryName: requirement.category_name || requirement.categoryName || 'Required document',
                 sourceLabel: requirement.source_label || (requirement.sources || [])[0] || 'Workflow requirement',
                 requiredForReadiness: requirement.required_for_readiness !== false,
-                present: docs.some((documentRecord) => {
-                    if (String(documentRecord.job || '') !== String(job?.id || '')) return false;
-                    if (Number(documentRecord.phaseId || 0) !== phaseId) return false;
-                    if (Number(documentRecord.categoryId || 0) !== categoryId) return false;
-                    if (itemId) {
-                        return Number(documentRecord.taskPackItemId || 0) === Number(itemId)
-                            || (matchingTaskId && Number(documentRecord.taskId || 0) === matchingTaskId);
-                    }
-                    return !Number(documentRecord.taskPackItemId || 0) && !Number(documentRecord.taskId || 0);
-                }),
+                // Prefer the authoritative Job Details snapshot. Local document
+                // state is still OR-ed in so an upload becomes visible
+                // immediately before the refreshed Job response is applied.
+                present: Boolean(requirement.present) || locallyPresent,
             };
         }).filter((requirement) => requirement.categoryId && requirement.phaseId);
     }
@@ -218,14 +225,51 @@ function nextClientCodePreview() {
         });
     }
 
-    function flowtrackOpenExistingJobAttachmentChooser(job, onLinked = null) {
+    let flowtrackStoredDocumentChooserRequest = null;
+
+    async function flowtrackEnsureStoredDocumentsForChooser() {
+        if (!canFlow('documents', 'view')) return [];
+        if (flowtrackStoredDocumentChooserRequest) return flowtrackStoredDocumentChooserRequest;
+
+        flowtrackStoredDocumentChooserRequest = (async () => {
+            let url = '/flowtrack/template-api/lists/documents?per_page=100';
+            let pageCount = 0;
+            // The chooser is an explicit user action, so loading several bounded pages
+            // here does not undo normal page-by-page loading elsewhere in FlowTrack.
+            while (url && pageCount < 5) {
+                const payload = await api(url, { cache: 'no-store' });
+                flowtrackToArray(payload?.data).forEach((record) => flowtrackUpsertRecord(docs, record, false));
+                flowtrackToArray(payload?.relatedJobs).forEach((record) => flowtrackUpsertRecord(jobs, record, false));
+                url = payload?.pagination?.nextPageUrl || null;
+                pageCount += 1;
+            }
+            return flowtrackToArray(docs).filter((item) => Number(item?.dbId));
+        })().finally(() => {
+            flowtrackStoredDocumentChooserRequest = null;
+        });
+
+        return flowtrackStoredDocumentChooserRequest;
+    }
+
+    async function flowtrackOpenExistingJobAttachmentChooser(job, onLinked = null, task = null) {
         if (!job?.dbId) return showToast('The Job could not be loaded.');
         if (!(canFlow('documents', 'create') && canFlow('documents', 'link'))) return showToast('Your role does not have Document Upload & Link access.');
-        const available = flowtrackToArray(docs)
-            .filter((item) => Number(item?.dbId) && String(item.job || '') !== String(job.id || ''))
-            .sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')));
+        let available;
+        try {
+            available = (await flowtrackEnsureStoredDocumentsForChooser())
+                .filter((item) => {
+                    if (!Number(item?.dbId)) return false;
+                    // A Task may attach another stored file from the same Job;
+                    // only exclude a file that is already attached to this Task.
+                    if (task?.dbId) return Number(item.taskId || 0) !== Number(task.dbId);
+                    return String(item.job || '') !== String(job.id || '');
+                })
+                .sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')));
+        } catch (error) {
+            return showToast(error.message || 'Stored documents could not be loaded.');
+        }
         if (!available.length) return showToast('There are no other stored documents available to attach.');
-        $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>Choose from Documents</h2><div class="small muted" style="margin-top:5px">Attach a stored document to ${html(job.id)} without changing its original record.</div></div><button type="button" class="close-btn" data-job-attachment-chooser-close>×</button></div>
+        $('#jobModal').innerHTML = `<div class="modal-head"><div><h2>Choose from Documents</h2><div class="small muted" style="margin-top:5px">Attach a stored document to ${html(task?.id ? `${job.id} · ${task.id}` : job.id)} without changing its original record.</div></div><button type="button" class="close-btn" data-job-attachment-chooser-close>×</button></div>
             <div class="modal-body"><label class="field full"><span>Search documents</span><input type="search" placeholder="Search file, type, Job or uploader" data-job-attachment-search></label><div class="job-v6-existing-list">${available.map((item) => `<div class="job-v6-existing-row" data-job-attachment-row data-search="${html(normalizedStatusValue(`${item.name || ''} ${item.type || ''} ${item.job || ''} ${item.uploadedBy || ''}`))}"><span class="job-v6-file-icon ${html(flowtrackDocumentFileBadge(item).toLowerCase())}">${html(flowtrackDocumentFileBadge(item))}</span><div><b>${html(item.name || 'Document')}</b><small>${html(item.job || 'Stored document')} · ${html(item.type || 'Document')} · ${html(item.uploadedBy || 'System')}</small></div><button type="button" class="primary" data-job-attachment-link="${html(item.dbId)}">Attach</button></div>`).join('')}</div></div>
             <div class="modal-foot"><button type="button" class="ghost" data-job-attachment-chooser-close>Cancel</button></div>`;
         openOverlay();
@@ -239,7 +283,9 @@ function nextClientCodePreview() {
             button.disabled = true;
             button.textContent = 'Attaching…';
             try {
-                const result = await api(`/flowtrack/template-api/jobs/${job.dbId}/attachments/link-existing`, { method: 'POST', body: { source_document_id: Number(button.dataset.jobAttachmentLink) } });
+                const body = { source_document_id: Number(button.dataset.jobAttachmentLink) };
+                if (task?.dbId) body.task_id = Number(task.dbId);
+                const result = await api(`/flowtrack/template-api/jobs/${job.dbId}/attachments/link-existing`, { method: 'POST', body });
                 flowtrackApplyLinkedDocumentResult(result);
                 flowtrackCloseModalOnly();
                 if (typeof onLinked === 'function') onLinked(result);
@@ -252,7 +298,7 @@ function nextClientCodePreview() {
         }));
     }
 
-    function flowtrackOpenStoredDocumentChooser(job, requirement, task = null, onLinked = null) {
+    async function flowtrackOpenStoredDocumentChooser(job, requirement, task = null, onLinked = null) {
         if (!job || !requirement?.phaseId || !requirement?.categoryId) {
             showToast('Choose an exact document requirement first.');
             return;
@@ -262,9 +308,14 @@ function nextClientCodePreview() {
             return;
         }
 
-        const available = flowtrackToArray(docs)
-            .filter((item) => Number(item?.dbId) && (item.previewUrl || item.downloadUrl || item.versionCount || item.name))
-            .sort((left, right) => String(right.date || right.updatedAt || '').localeCompare(String(left.date || left.updatedAt || '')));
+        let available;
+        try {
+            available = (await flowtrackEnsureStoredDocumentsForChooser())
+                .filter((item) => Number(item?.dbId) && (item.previewUrl || item.downloadUrl || item.versionCount || item.name))
+                .sort((left, right) => String(right.date || right.updatedAt || '').localeCompare(String(left.date || left.updatedAt || '')));
+        } catch (error) {
+            return showToast(error.message || 'Stored documents could not be loaded.');
+        }
         if (!available.length) {
             showToast('There are no stored documents available to link.');
             return;

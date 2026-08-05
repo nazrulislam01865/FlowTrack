@@ -34,6 +34,7 @@ class ConfigurationController extends Controller
         $workspaceId = $request->user()->currentWorkspaceId();
         $data = $this->validateMaster($request, $workspaceId);
         $type = MasterDataType::from($data['type']);
+        $data = $this->applyMasterColorMetadata($data, $type);
 
         $record = DB::transaction(function () use ($workspaceId, $data, $type, $codes): MasterRecord {
             return MasterRecord::create([
@@ -62,12 +63,13 @@ class ConfigurationController extends Controller
         $this->authorizeMasterData($request, 'edit_all');
         $workspaceId = $request->user()->currentWorkspaceId();
         abort_unless($record->workspace_id === $workspaceId, 404);
-        $data = $this->validateMaster($request, $workspaceId);
+        $data = $this->validateMaster($request, $workspaceId, $record);
 
         if ($data['type'] !== $record->type) {
             throw ValidationException::withMessages(['type' => 'A master-data record cannot be moved to another section.']);
         }
 
+        $data = $this->applyMasterColorMetadata($data, MasterDataType::from($record->type), $record);
         unset($data['type']);
         $data['parent_id'] = $record->type === MasterDataType::Product->value ? ($data['parent_id'] ?? null) : null;
         $record->update($data);
@@ -105,6 +107,17 @@ class ConfigurationController extends Controller
         $this->authorizeWorkflow($request, 'create');
 
         return response()->json(['code' => $codes->taskPack($request->user()->currentWorkspaceId())]);
+    }
+
+    public function showTaskPack(Request $request, TaskPack $taskPack): JsonResponse
+    {
+        $this->authorizeWorkflow($request, 'edit_all');
+        abort_unless($taskPack->workspace_id === $request->user()->currentWorkspaceId(), 404);
+
+        return response()
+            ->json(['taskPack' => $this->mapTaskPack($this->loadTaskPack($taskPack))])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     public function storeTaskPack(Request $request, ConfigurationCodeGenerator $codes): JsonResponse
@@ -165,8 +178,42 @@ class ConfigurationController extends Controller
         return response()->json(['taskPack' => $this->mapTaskPack($this->loadTaskPack($taskPack))]);
     }
 
-    private function validateMaster(Request $request, int $workspaceId): array
+    private function validateMaster(Request $request, int $workspaceId, ?MasterRecord $record = null): array
     {
+        // Store Master Data names in one canonical form so entries that differ
+        // only by surrounding/repeated whitespace cannot be used as duplicates.
+        $normalizedName = preg_replace('/\s+/u', ' ', trim((string) $request->input('name', ''))) ?: '';
+        $request->merge(['name' => $normalizedName]);
+
+        $type = MasterDataType::tryFrom((string) $request->input('type'));
+
+        $uniqueName = Rule::unique('master_records', 'name')->where(fn ($query) => $query
+            ->where('workspace_id', $workspaceId)
+            ->where('type', (string) $request->input('type'))
+            ->whereNull('deleted_at'));
+        if ($record) {
+            $uniqueName->ignore($record->id);
+        }
+
+        $sortOrderRules = ['nullable', 'integer', 'min:0'];
+        if ($type === MasterDataType::DocumentCategory) {
+            // Document categories use an explicit, non-duplicated order because
+            // this sequence controls how document choices are presented across
+            // workflow/task/document screens.
+            $uniqueOrder = Rule::unique('master_records', 'sort_order')->where(fn ($query) => $query
+                ->where('workspace_id', $workspaceId)
+                ->where('type', MasterDataType::DocumentCategory->value)
+                ->whereNull('deleted_at'));
+            if ($record) {
+                $uniqueOrder->ignore($record->id);
+            }
+            $sortOrderRules = ['required', 'integer', 'min:1', $uniqueOrder];
+        }
+
+        $colorRules = in_array($type, [MasterDataType::Priority, MasterDataType::TaskStatus], true)
+            ? ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/']
+            : ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'];
+
         return $request->validate([
             'type' => ['required', Rule::enum(MasterDataType::class)],
             'parent_id' => [
@@ -178,11 +225,38 @@ class ConfigurationController extends Controller
                     ->where('status', 'active')
                     ->whereNull('deleted_at')),
             ],
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                $uniqueName,
+            ],
             'description' => ['nullable', 'string', 'max:3000'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'sort_order' => $sortOrderRules,
+            'color' => $colorRules,
+        ], [
+            'name.unique' => 'This name already exists in this Master Data section. Duplicate entries are not allowed.',
+            'sort_order.unique' => 'This document order is already in use. Choose a different order.',
+            'sort_order.required' => 'Document order is required.',
+            'sort_order.min' => 'Document order must start from 1.',
+            'color.required' => 'A color code is required for Task Status and Priority.',
+            'color.regex' => 'Use a valid 6-digit HEX color code, for example #2563EB.',
         ]);
+    }
+
+    private function applyMasterColorMetadata(array $data, MasterDataType $type, ?MasterRecord $record = null): array
+    {
+        $color = isset($data['color']) ? strtoupper((string) $data['color']) : null;
+        unset($data['color']);
+
+        $metadata = is_array($record?->metadata) ? $record->metadata : [];
+        if (in_array($type, [MasterDataType::Priority, MasterDataType::TaskStatus], true)) {
+            $metadata['color'] = $color;
+        }
+        $data['metadata'] = $metadata ?: null;
+
+        return $data;
     }
 
     private function validateTaskPack(Request $request, int $workspaceId, ?TaskPack $taskPack = null): array
@@ -307,7 +381,7 @@ class ConfigurationController extends Controller
             'items' => fn ($query) => $query->orderBy('sort_order')->orderBy('id'),
             'items.defaultAssignee:id,name,initials',
             'items.defaultDepartment:id,name,code',
-            'items.priority:id,name,code',
+            'items.priority:id,name,code,metadata',
             'items.documentCategory:id,name,code',
         ]);
     }
@@ -325,6 +399,7 @@ class ConfigurationController extends Controller
             'parent_name' => $record->parent?->name,
             'parent_code' => $record->parent?->code,
             'sort_order' => (int) $record->sort_order,
+            'color' => $record->metadata['color'] ?? null,
         ];
     }
 

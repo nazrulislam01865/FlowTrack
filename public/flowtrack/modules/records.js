@@ -1,4 +1,4 @@
-/* FlowTrack runtime module: records. Build: f400609959067571. */
+/* FlowTrack runtime module: records. Build: 30e4f82686c91463. */
 /* FlowTrack lazy module boundary: records. */
 
     function jobDocsFor(job) {
@@ -127,7 +127,7 @@
                 <div class="phase-event-grid">
                     <div class="phase-event-detail"><span>Task</span><b>${html(task.id)} · ${html(task.title || '')}</b></div>
                     <div class="phase-event-detail"><span>Time</span><b>${occurredAt}</b></div>
-                    <div class="phase-event-detail"><span>Status now</span><b>${html(task.status || 'Not recorded')}</b></div>
+                    <div class="phase-event-detail"><span>Status now</span><b style="color:${html(flowtrackTaskStatusColor(task, task.statusColor || ''))}">${html(task.status || 'Not recorded')}</b></div>
                     ${fileRow}${commentRow}${requirementRow}
                 </div>
                 ${changeRows}
@@ -452,6 +452,24 @@
         return true;
     }
 
+    function renderDirectRecordPage({ pageId, backPage, eyebrow, title, subtitle, form = false }) {
+        const staleModal = $('#jobModal');
+        if (staleModal) {
+            staleModal.classList.remove('open', 'document-job-chooser');
+            staleModal.innerHTML = '';
+        }
+        $('#overlay')?.classList.remove('open');
+        document.querySelectorAll('.standalone-record-host').forEach((recordPage) => {
+            if (recordPage.id !== `page-${pageId}`) recordPage.innerHTML = '';
+        });
+        const page = activateStandalonePage(pageId, backPage);
+        page.innerHTML = `<div class="standalone-record-page ${form ? 'standalone-record-form' : ''}"><div class="standalone-record-head"><div class="standalone-record-title"><p>${html(eyebrow || 'FlowTrack')}</p><h1>${html(title || 'Details')}</h1>${subtitle ? `<p>${html(subtitle)}</p>` : ''}</div><div class="standalone-record-actions">${standaloneBackButton(`Back to ${backPageLabel(backPage)}`)}</div></div><div class="standalone-record-shell"><div class="standalone-record-content"></div></div></div>`;
+        const content = page.querySelector('.standalone-record-content');
+        bindStandaloneBack(page);
+        applyActionPermissions();
+        return { page, content };
+    }
+
     function backPageLabel(page) {
         const map = { dashboard: 'Dashboard', mywork: 'My Work', jobs: 'Jobs', clients: 'Clients', board: 'Board', documents: 'Documents', workflowsetup: 'Workflow Setup', taskpacksetup: 'Task Pack Setup', masterdata: 'Master Data', setup: 'Setup' };
         return map[page] || 'Previous Page';
@@ -492,8 +510,11 @@
         }
     });
 
-    registerFlowtrackExtension('openTask', 'openTask-stage-2', function (id) {        const backPage = standaloneSourcePage('mywork');
-        const task = tasks.find((item) => item.id === id || Number(item.dbId) === Number(id));
+    registerFlowtrackExtension('openTask', 'openTask-stage-2', function (id) {
+        const safeTaskId = String(id ?? '').trim();
+        if (!safeTaskId) return null;
+        const backPage = standaloneSourcePage('mywork');
+        const task = tasks.find((item) => String(item.id) === safeTaskId || Number(item.dbId) === Number(id));
         drawerTaskDetailPage(id);
         if (!task) return;
         renderMovedRecordPage({ pageId: `record-task-${String(task.id).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`, backPage, eyebrow: 'Task Details', title: task.title || task.id, subtitle: detailSubtitleForTask(task), sourceSelector: '#detailDrawer' });
@@ -535,24 +556,31 @@
 
     openTaskPackModal = function (existing = null) {
         const backPage = standaloneSourcePage('taskpacksetup');
-        modalTaskPackFormPage(existing);
-        const moveWhenReady = () => {
-            const moved = renderMovedRecordPage({ pageId: existing ? `record-task-pack-edit-${existing.id}` : 'record-task-pack-new', backPage, eyebrow: existing ? 'Edit Task Pack' : 'Add Task Pack', title: existing ? `Edit ${existing.name}` : 'Add Task Pack', subtitle: 'Build the task sequence on a full page for easier editing.', sourceSelector: '#jobModal', form: true });
-            if (moved) {
-                const addButton = $('#addTaskPackItem');
-                if (addButton && !addButton.dataset.pageScrollBound) {
-                    addButton.dataset.pageScrollBound = '1';
-                    addButton.addEventListener('click', () => setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 30));
-                }
-            }
-            return moved;
-        };
-        if (!moveWhenReady() && !existing) {
-            const start = Date.now();
-            const timer = setInterval(() => {
-                if (moveWhenReady() || Date.now() - start > 4000) clearInterval(timer);
-            }, 50);
-        }
+        const pageId = existing ? `record-task-pack-edit-${existing.id}` : 'record-task-pack-new';
+        const { page, content } = renderDirectRecordPage({
+            pageId,
+            backPage,
+            eyebrow: existing ? 'Edit Task Pack' : 'Add Task Pack',
+            title: existing ? `Edit ${existing.name}` : 'Add Task Pack',
+            subtitle: 'Build the task sequence on a full page for easier editing.',
+            form: true,
+        });
+        if (!content) return null;
+        content.innerHTML = flowtrackInlineProgress(existing ? 'Loading Task Pack…' : 'Preparing Task Pack form…');
+
+        // Render the Task Pack editor directly into the standalone page. The old
+        // modal is no longer used as a staging surface, so it cannot flash an
+        // earlier/stale form before the full-page editor appears.
+        return modalTaskPackFormPage(existing, {
+            mount: content,
+            standalone: true,
+            onReady: () => {
+                bindStandaloneBack(page);
+                polishStandaloneContent(content);
+                applyActionPermissions();
+                window.FlowtrackSearchableDropdown?.enhance(page);
+            },
+        });
     };
 
     const standaloneRenderJobsBase = currentFlowtrackImplementation('renderJobs');
@@ -568,11 +596,6 @@
     ['.content', '#jobModal', '#detailDrawer'].forEach((selector) => {
         const target = document.querySelector(selector);
         if (target) permissionObserver.observe(target, { childList: true, subtree: true });
-    });
-
-    $('#logoutBtn')?.addEventListener('click', (event) => {
-        event.preventDefault();
-        logout();
     });
 
     window.addEventListener('pageshow', (event) => {
@@ -691,7 +714,10 @@
     }
 
     const flowtrackStableOpenTask = currentFlowtrackImplementation('openTask');
-    registerFlowtrackExtension('openTask', 'openTask-stage-3', function (id) {        const task = tasks.find((item) => item.id === id || Number(item.dbId) === Number(id));
+    registerFlowtrackExtension('openTask', 'openTask-stage-3', function (id) {
+        const safeTaskId = String(id ?? '').trim();
+        if (!safeTaskId) return null;
+        const task = tasks.find((item) => String(item.id) === safeTaskId || Number(item.dbId) === Number(id));
         if (task) flowtrackClearRecordFor('record-task', task.id);
         return flowtrackStableOpenTask(id);
     });
@@ -700,7 +726,10 @@
     registerFlowtrackExtension('openJob', 'openJob-stage-3', function (id) {        const job = jobs.find((item) => String(item.id) === String(id) || Number(item.dbId) === Number(id));
         if (job) flowtrackClearRecordFor('record-job', job.id);
         const result = flowtrackStableOpenJob(id);
-        if (job) {
+        // Once the approved final Job Details renderer is loaded it alone owns
+        // the final repaint. The old delayed panel refresh could run after the
+        // final renderer on hard refresh and restore the legacy design.
+        if (job && window.FLOWTRACK_FINAL_JOB_RENDERER_READY !== true) {
             flowtrackEnsureJobPanels(job);
             setTimeout(() => flowtrackEnsureJobPanels(job, document.querySelector('.standalone-record-content [data-detailtab].active')?.dataset.detailtab ?? null), 0);
         }
@@ -800,17 +829,26 @@
     function flowtrackRoutePath(pageId) {
         const page = String(pageId || 'dashboard');
         const base = '/flowtrack/view';
-        if (page.startsWith('record-task-')) return `${base}/tasks/${encodeURIComponent(page.slice('record-task-'.length))}`;
-        if (page.startsWith('record-job-edit-')) return `${base}/jobs/${encodeURIComponent(page.slice('record-job-edit-'.length))}/edit`;
+
+        // IMPORTANT: specific form/configuration page IDs must be resolved before
+        // broad record prefixes. `record-task-pack-*` also starts with
+        // `record-task-*`; the old ordering therefore generated `/tasks/pack-new`
+        // and hard refresh tried to load "pack-new" as a FlowTask.
         if (page === 'record-job-new') return `${base}/jobs/new`;
-        if (page.startsWith('record-job-')) return `${base}/jobs/${encodeURIComponent(page.slice('record-job-'.length))}`;
-        if (page.startsWith('record-client-edit-')) return `${base}/clients/${encodeURIComponent(page.slice('record-client-edit-'.length))}/edit`;
+        if (page.startsWith('record-job-edit-')) return `${base}/jobs/${encodeURIComponent(page.slice('record-job-edit-'.length))}/edit`;
         if (page === 'record-client-new') return `${base}/clients/new`;
-        if (page.startsWith('record-client-')) return `${base}/clients/${encodeURIComponent(page.slice('record-client-'.length))}`;
+        if (page.startsWith('record-client-edit-')) return `${base}/clients/${encodeURIComponent(page.slice('record-client-edit-'.length))}/edit`;
         if (page === 'record-workflow-new') return `${base}/workflows/new`;
         if (page.startsWith('record-workflow-edit-')) return `${base}/workflows/${encodeURIComponent(page.slice('record-workflow-edit-'.length))}/edit`;
+        if (page.startsWith('record-workflow-copy-')) return `${base}/workflows/${encodeURIComponent(page.slice('record-workflow-copy-'.length))}/copy`;
         if (page === 'record-task-pack-new') return `${base}/task-packs/new`;
         if (page.startsWith('record-task-pack-edit-')) return `${base}/task-packs/${encodeURIComponent(page.slice('record-task-pack-edit-'.length))}/edit`;
+
+        // Generic record routes come last so they can never swallow a static
+        // configuration/form page ID.
+        if (page.startsWith('record-task-')) return `${base}/tasks/${encodeURIComponent(page.slice('record-task-'.length))}`;
+        if (page.startsWith('record-job-')) return `${base}/jobs/${encodeURIComponent(page.slice('record-job-'.length))}`;
+        if (page.startsWith('record-client-')) return `${base}/clients/${encodeURIComponent(page.slice('record-client-'.length))}`;
         return `${base}/${encodeURIComponent(page)}`;
     }
 
@@ -826,17 +864,43 @@
         if (!window.location.pathname.startsWith(prefix)) return null;
         const parts = window.location.pathname.slice(prefix.length).split('/').filter(Boolean).map(decodeURIComponent);
         if (!parts.length) return { type: 'page', page: 'dashboard' };
-        if (parts[0] === 'tasks' && parts[1]) return { type: 'task', slug: parts[1] };
+
+        // Backward compatibility for URLs generated by the old prefix-order bug.
+        // They are immediately canonicalised with replaceState before rendering.
+        if (parts[0] === 'tasks' && parts[1] === 'pack-new') {
+            return { type: 'task-pack-new', canonicalPath: `${prefix}task-packs/new`, legacy: true };
+        }
+        if (parts[0] === 'tasks' && /^pack-edit-(.+)$/.test(parts[1] || '')) {
+            const slug = String(parts[1]).replace(/^pack-edit-/, '');
+            return { type: 'task-pack-edit', slug, canonicalPath: `${prefix}task-packs/${encodeURIComponent(slug)}/edit`, legacy: true };
+        }
+        if (parts[0] === 'record-task-pack-new') {
+            return { type: 'task-pack-new', canonicalPath: `${prefix}task-packs/new`, legacy: true };
+        }
+        if (/^record-task-pack-edit-(.+)$/.test(parts[0] || '')) {
+            const slug = String(parts[0]).replace(/^record-task-pack-edit-/, '');
+            return { type: 'task-pack-edit', slug, canonicalPath: `${prefix}task-packs/${encodeURIComponent(slug)}/edit`, legacy: true };
+        }
+        if (/^record-workflow-copy-(.+)$/.test(parts[0] || '')) {
+            const slug = String(parts[0]).replace(/^record-workflow-copy-/, '');
+            return { type: 'workflow-copy', slug, canonicalPath: `${prefix}workflows/${encodeURIComponent(slug)}/copy`, legacy: true };
+        }
+
+        // Static/form routes are intentionally matched before dynamic record
+        // routes so values such as "new" can never be interpreted as a record ID.
         if (parts[0] === 'jobs' && parts[1] === 'new') return { type: 'job-new' };
         if (parts[0] === 'jobs' && parts[1] && parts[2] === 'edit') return { type: 'job-edit', slug: parts[1] };
-        if (parts[0] === 'jobs' && parts[1]) return { type: 'job', slug: parts[1] };
         if (parts[0] === 'clients' && parts[1] === 'new') return { type: 'client-new' };
         if (parts[0] === 'clients' && parts[1] && parts[2] === 'edit') return { type: 'client-edit', slug: parts[1] };
-        if (parts[0] === 'clients' && parts[1]) return { type: 'client', slug: parts[1] };
         if (parts[0] === 'workflows' && parts[1] === 'new') return { type: 'workflow-new' };
         if (parts[0] === 'workflows' && parts[1] && parts[2] === 'edit') return { type: 'workflow-edit', slug: parts[1] };
+        if (parts[0] === 'workflows' && parts[1] && parts[2] === 'copy') return { type: 'workflow-copy', slug: parts[1] };
         if (parts[0] === 'task-packs' && parts[1] === 'new') return { type: 'task-pack-new' };
         if (parts[0] === 'task-packs' && parts[1] && parts[2] === 'edit') return { type: 'task-pack-edit', slug: parts[1] };
+
+        if (parts[0] === 'tasks' && parts[1]) return { type: 'task', slug: parts[1] };
+        if (parts[0] === 'jobs' && parts[1]) return { type: 'job', slug: parts[1] };
+        if (parts[0] === 'clients' && parts[1]) return { type: 'client', slug: parts[1] };
         return { type: 'page', page: parts[0] };
     }
 
@@ -845,62 +909,151 @@
             || String(item.dbId ?? item.id) === String(slug));
     }
 
-    function flowtrackOpenInitialRoute(route) {
+    function flowtrackParentPageForRoute(route) {
+        if (!route) return 'dashboard';
+        if (route.type === 'task') return 'board';
+        if (String(route.type || '').startsWith('client')) return 'clients';
+        if (String(route.type || '').startsWith('workflow')) return 'workflowsetup';
+        if (String(route.type || '').startsWith('task-pack')) return 'taskpacksetup';
+        if (String(route.type || '').startsWith('job')) return 'jobs';
+        return route.page || 'dashboard';
+    }
+
+    function flowtrackPrimeParentState(page) {
+        const parent = firstAllowedPage(page || 'dashboard');
+        currentPage = parent;
+        $$('[data-page]').forEach((button) => button.classList.toggle('active', button.dataset.page === parent));
+        $('#sidebar')?.classList.remove('open');
+        $('#sidebarShade')?.classList.remove('open');
+        return parent;
+    }
+
+    function flowtrackCanonicalizeInitialRoute(route) {
+        const path = route?.canonicalPath;
+        if (!path || path === window.location.pathname || !window.history?.replaceState) return;
+        window.history.replaceState({ flowtrackCanonical: true }, '', path);
+    }
+
+    function flowtrackWaitForStandalonePage(pageId, timeoutMs = 15000) {
+        const started = Date.now();
+        return new Promise((resolve, reject) => {
+            const inspect = () => {
+                const page = document.getElementById(`page-${pageId}`);
+                const content = page?.querySelector('.standalone-record-content');
+                const taskPackPage = String(pageId || '').startsWith('record-task-pack-');
+                const formReady = !taskPackPage || content?.dataset?.taskPackFormReady === '1';
+                if (page?.classList.contains('active') && content && content.childElementCount > 0 && formReady) {
+                    resolve(page);
+                    return;
+                }
+                if (Date.now() - started >= timeoutMs) {
+                    reject(new Error('The requested FlowTrack form could not finish loading.'));
+                    return;
+                }
+                window.setTimeout(inspect, 35);
+            };
+            inspect();
+        });
+    }
+
+    async function flowtrackOpenInitialRoute(route, options = {}) {
         if (!route) return false;
-        flowtrackRouteSyncSuppressed = true;
-        try {
-            if (route.type === 'page') {
-                const page = firstAllowedPage(route.page);
+        flowtrackCanonicalizeInitialRoute(route);
+        const prepareParent = options.prepareParent !== false;
+
+        // Normal in-app route restoration may prepare the parent page first, but
+        // an exact hard-refresh route must never navigate to Board/Jobs/Clients
+        // before opening the requested record. Doing so changed the browser URL
+        // to the parent page and could leave the user there when record loading
+        // was delayed. For exact boot we only prime the parent/sidebar state.
+        const openParent = (page) => {
+            if (!prepareParent) {
+                flowtrackPrimeParentState(page);
+                return;
+            }
+            flowtrackRouteSyncSuppressed = true;
+            try {
                 navigate(page);
+            } finally {
                 flowtrackRouteSyncSuppressed = false;
-                flowtrackSyncRoute(page, true);
-                return true;
             }
-            if (route.type === 'task') {
-                const task = flowtrackFindBySlug(tasks, route.slug);
-                navigate('board');
-                void openTask(task?.id || route.slug);
-            } else if (route.type === 'job') {
-                const job = flowtrackFindBySlug(jobs, route.slug);
-                navigate('jobs');
-                void openJob(job?.id || route.slug);
-            } else if (route.type === 'job-new') {
-                navigate('jobs');
-                openJobModal();
-            } else if (route.type === 'job-edit') {
-                const job = flowtrackFindBySlug(jobs, route.slug);
-                navigate('jobs');
-                void flowtrackEnsureJobDetail(job?.id || route.slug).then((resolved) => resolved && openEditJobModal(resolved));
-            } else if (route.type === 'client') {
-                const client = flowtrackFindBySlug(clients, route.slug);
-                navigate('clients');
-                void openClient(client?.id || route.slug);
-            } else if (route.type === 'client-new') {
-                navigate('clients');
-                openClientModal();
-            } else if (route.type === 'client-edit') {
-                const client = flowtrackFindBySlug(clients, route.slug);
-                navigate('clients');
-                void flowtrackEnsureClientDetail(client?.id || route.slug).then((resolved) => resolved && openClientModal(resolved));
-            } else if (route.type === 'workflow-new') {
-                navigate('workflowsetup');
-                openWorkflowModal();
-            } else if (route.type === 'workflow-edit') {
-                const workflow = flowtrackFindBySlug(workflowTemplates, route.slug);
-                navigate('workflowsetup');
-                if (workflow) openWorkflowModal(workflow);
-            } else if (route.type === 'task-pack-new') {
-                navigate('taskpacksetup');
-                openTaskPackModal();
-            } else if (route.type === 'task-pack-edit') {
-                const pack = flowtrackFindBySlug(taskPacks, route.slug);
-                navigate('taskpacksetup');
-                if (pack) openTaskPackModal(pack);
-            }
-        } finally {
-            flowtrackRouteSyncSuppressed = false;
+        };
+
+        if (route.type === 'page') {
+            const page = firstAllowedPage(route.page);
+            openParent(page);
+            flowtrackSyncRoute(page, true);
+            return true;
         }
-        flowtrackSyncRoute(currentPage || firstAllowedPage(), true);
+
+        if (route.type === 'task') {
+            const task = flowtrackFindBySlug(tasks, route.slug);
+            openParent('board');
+            if (typeof window.flowtrackOpenFinalTaskDetails !== 'function') {
+                throw new Error('The final Task Details renderer is not available.');
+            }
+            await window.flowtrackOpenFinalTaskDetails(task?.id || route.slug);
+        } else if (route.type === 'job') {
+            const job = flowtrackFindBySlug(jobs, route.slug);
+            openParent('jobs');
+            await openJob(job?.id || route.slug);
+        } else if (route.type === 'job-new') {
+            openParent('jobs');
+            openJobModal();
+            await flowtrackWaitForStandalonePage('record-job-new');
+        } else if (route.type === 'job-edit') {
+            const job = flowtrackFindBySlug(jobs, route.slug);
+            openParent('jobs');
+            const resolved = await flowtrackEnsureJobDetail(job?.id || route.slug);
+            if (!resolved) throw new Error('The requested Job could not be loaded.');
+            openEditJobModal(resolved);
+            await flowtrackWaitForStandalonePage(`record-job-edit-${flowtrackRecordSlug(resolved.id)}`);
+        } else if (route.type === 'client') {
+            const client = flowtrackFindBySlug(clients, route.slug);
+            openParent('clients');
+            await openClient(client?.id || route.slug);
+        } else if (route.type === 'client-new') {
+            openParent('clients');
+            openClientModal();
+            await flowtrackWaitForStandalonePage('record-client-new');
+        } else if (route.type === 'client-edit') {
+            const client = flowtrackFindBySlug(clients, route.slug);
+            openParent('clients');
+            const resolved = await flowtrackEnsureClientDetail(client?.id || route.slug);
+            if (!resolved) throw new Error('The requested Client could not be loaded.');
+            openClientModal(resolved);
+            await flowtrackWaitForStandalonePage(`record-client-edit-${resolved.id}`);
+        } else if (route.type === 'workflow-new') {
+            openParent('workflowsetup');
+            openWorkflowModal();
+            await flowtrackWaitForStandalonePage('record-workflow-new');
+        } else if (route.type === 'workflow-edit') {
+            openParent('workflowsetup');
+            const workflow = flowtrackFindBySlug(workflowTemplates, route.slug);
+            if (!workflow) throw new Error('The requested Workflow could not be loaded.');
+            openWorkflowModal(workflow);
+            await flowtrackWaitForStandalonePage(`record-workflow-edit-${workflow.id}`);
+        } else if (route.type === 'workflow-copy') {
+            openParent('workflowsetup');
+            const workflow = flowtrackFindBySlug(workflowTemplates, route.slug);
+            if (!workflow) throw new Error('The Workflow to duplicate could not be loaded.');
+            openWorkflowModal(workflow, true);
+            await flowtrackWaitForStandalonePage(`record-workflow-copy-${workflow.id}`);
+        } else if (route.type === 'task-pack-new') {
+            openParent('taskpacksetup');
+            openTaskPackModal();
+            await flowtrackWaitForStandalonePage('record-task-pack-new');
+        } else if (route.type === 'task-pack-edit') {
+            openParent('taskpacksetup');
+            const localPack = flowtrackFindBySlug(taskPacks, route.slug);
+            const pack = typeof window.flowtrackFetchTaskPack === 'function'
+                ? await window.flowtrackFetchTaskPack(localPack?.id || route.slug)
+                : localPack;
+            if (!pack) throw new Error('The requested Task Pack could not be loaded.');
+            openTaskPackModal(pack);
+            await flowtrackWaitForStandalonePage(`record-task-pack-edit-${pack.id}`);
+        }
+
         return true;
     }
 
@@ -919,14 +1072,43 @@
     };
 
     const flowtrackHistoryShowApplication = showApplication;
-    showApplication = function (requestedPage = null) {
+    showApplication = async function (requestedPage = null) {
         const initialRoute = flowtrackInitialRoute();
+
+        // Exact record/form URLs are authoritative on browser refresh. Reveal the
+        // application shell without calling the base showApplication(), because
+        // the base function navigates to the parent page first (Task -> Board,
+        // Job -> Jobs, Client -> Clients). That parent navigation was the reason a
+        // refreshed Task URL could end up on Board.
+        if (initialRoute && initialRoute.type !== 'page') {
+            if (window.FLOWTRACK_BOOT_IN_PROGRESS !== true) {
+                $('#loginScreen')?.classList.add('hidden');
+                $('#authLoadingScreen')?.classList.add('hidden');
+                $('#appScreen')?.classList.remove('hidden');
+            }
+            updateBadges();
+            applyActionPermissions();
+            flowtrackPrimeParentState(flowtrackParentPageForRoute(initialRoute));
+            scheduleSessionGuard();
+            startNotificationPolling();
+
+            const opened = await flowtrackOpenInitialRoute(initialRoute, { prepareParent: false });
+            if (!opened) {
+                throw new Error('The requested FlowTrack page could not be restored.');
+            }
+            return true;
+        }
+
         flowtrackRouteSyncSuppressed = true;
-        flowtrackHistoryShowApplication(requestedPage);
-        flowtrackRouteSyncSuppressed = false;
-        if (!flowtrackOpenInitialRoute(initialRoute)) {
+        try {
+            flowtrackHistoryShowApplication(requestedPage);
+        } finally {
+            flowtrackRouteSyncSuppressed = false;
+        }
+        if (!(await flowtrackOpenInitialRoute(initialRoute))) {
             flowtrackSyncRoute(currentPage || firstAllowedPage(currentUser?.defaultLandingPage), true);
         }
+        return true;
     };
 
     window.addEventListener('popstate', () => {
@@ -948,13 +1130,20 @@
                                 : route.type.startsWith('task-pack')
                                     ? 'taskpacksetup'
                                     : 'jobs';
-                if (window.FlowTrackAssets?.ensureForPage) await window.FlowTrackAssets.ensureForPage(targetPage);
-                if (typeof window.flowtrackEnsurePageData === 'function') await window.flowtrackEnsurePageData(targetPage);
-                flowtrackOpenInitialRoute(route);
+                window.flowtrackBeginNavigation?.();
+                if (window.FlowTrackAssets?.ensureForPage) await window.FlowTrackAssets.ensureForPage(window.location.pathname);
+                if (route.type === 'page') {
+                    if (typeof window.flowtrackEnsurePageData === 'function') await window.flowtrackEnsurePageData(targetPage);
+                } else if (typeof window.flowtrackEnsurePageContext === 'function') {
+                    await window.flowtrackEnsurePageContext(targetPage);
+                }
+                await flowtrackOpenInitialRoute(route, { prepareParent: route.type === 'page' });
                 window.dispatchEvent(new CustomEvent('flowtrack:navigation-complete', { detail: { page: targetPage, ok: true, history: true } }));
             } catch (error) {
                 console.error('FlowTrack history navigation failed.', error);
                 window.location.reload();
+            } finally {
+                window.flowtrackEndNavigation?.();
             }
         })();
     });

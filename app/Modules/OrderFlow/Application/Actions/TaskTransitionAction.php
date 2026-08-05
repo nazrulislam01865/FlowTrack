@@ -103,9 +103,16 @@ class TaskTransitionAction
             $documentCategoryId = $documentSource === 'task_pack_item'
                 ? ($task->document_category_id ?: $task->packItem?->document_category_id)
                 : null;
-            if ($isCompleted && $documentCategoryId && ! $this->documentRequirements->isTaskRequirementSatisfied($task)) {
+            $statusChanged = $previousStatusId !== (int) $status->id;
+
+            // A Required document configured on a Task Pack item is a hard
+            // prerequisite for *any* Task status transition, not only the final
+            // Completed transition.  The guard lives in the shared backend
+            // transition action, so Task Details, Job Details, My Work, Board,
+            // API calls and future interfaces all enforce the same rule.
+            if ($statusChanged && $documentCategoryId && ! $this->documentRequirements->isTaskRequirementSatisfied($task)) {
                 $name = $task->documentCategory?->name ?: $task->packItem?->documentCategory?->name ?: 'configured';
-                throw new DomainException("Upload or link the required {$name} document for this Task before completing {$task->code}.");
+                throw new DomainException("Upload or link the required {$name} document for this Task before changing the status of {$task->code}.");
             }
 
             $wasBlocked = $this->matches($task->status, ['BLK', 'BLOCKED', 'ATTN', 'ATTENTION', 'HOLD', 'ON HOLD']);

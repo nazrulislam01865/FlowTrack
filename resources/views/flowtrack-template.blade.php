@@ -9,7 +9,7 @@
 <link id="flowtrackFavicon" rel="icon" href="{{ $flowtrackBranding['faviconUrl'] ?? asset('favicon.ico') }}" />
 @vite('resources/css/flowtrack/app.css')
 </head>
-<body>
+<body class="{{ $flowtrackAuthenticated ? 'flowtrack-booting' : '' }}">
 @include('flowtrack.auth.login')
 @include('flowtrack.auth.loading')
 @include('flowtrack.layouts.workspace')

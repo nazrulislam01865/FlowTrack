@@ -4,6 +4,8 @@ namespace App\Support;
 
 final class FlowTrackPage
 {
+    public const DASHBOARD = 'dashboard';
+
     /** @var array<string, string> */
     public const ROUTE_PAGE_MAP = [
         'flowtrack.view.dashboard' => 'dashboard',
@@ -51,12 +53,12 @@ final class FlowTrackPage
 
     public static function fromRoute(?string $routeName): string
     {
-        return self::ROUTE_PAGE_MAP[$routeName ?? ''] ?? 'dashboard';
+        return self::ROUTE_PAGE_MAP[$routeName ?? ''] ?? self::DASHBOARD;
     }
 
     public static function path(string $page): string
     {
-        return self::PATHS[$page] ?? self::PATHS['dashboard'];
+        return self::PATHS[$page] ?? self::PATHS[self::DASHBOARD];
     }
 
     /** @return array<string, string> */

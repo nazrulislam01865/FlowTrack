@@ -156,6 +156,13 @@ class FlowTrackSeeder extends Seeder
             ],
         ];
 
+        $masterColors = [
+            'LOW' => '#16A34A', 'MED' => '#F59E0B', 'HIG' => '#F97316', 'CRI' => '#DC2626',
+            'NS' => '#64748B', 'READY' => '#2563EB', 'IP' => '#4F46E5', 'WC' => '#F59E0B',
+            'WS' => '#F97316', 'WIA' => '#8B5CF6', 'REV' => '#EF4444', 'BLK' => '#DC2626',
+            'HOLD' => '#A855F7', 'CMP' => '#16A34A',
+        ];
+
         $result = [];
         foreach ($groups as $type => $rows) {
             foreach ($rows as $index => [$code, $name, $description]) {
@@ -165,7 +172,8 @@ class FlowTrackSeeder extends Seeder
                     'code' => $code,
                     'name' => $name,
                     'description' => $description,
-                    'sort_order' => $index,
+                    'metadata' => isset($masterColors[$code]) ? ['color' => $masterColors[$code]] : null,
+                    'sort_order' => $type === MasterDataType::DocumentCategory->value ? $index + 1 : $index,
                 ]);
                 $result[$type][$code] = $record;
             }
@@ -393,7 +401,6 @@ class FlowTrackSeeder extends Seeder
             ['JOB-2026-00121', 'ORD-2026-00085', 'Conference drawstring backpacks', 'SM', 'PRD-005', 5000, 19500, 9, 'on_track', 82, 'Chen Mei', 'Xu Na', '2026-08-04', 'HIG', 'Complete shipment booking', false],
             ['JOB-2026-00120', 'ORD-2026-00084', 'Silicone wristbands — 6 colour mix', 'GB', 'PRD-002', 20000, 9800, 10, 'needs_attention', 91, 'Zhang Min', 'Yang Lei', '2026-07-18', 'MED', 'Follow up overdue balance', true],
             ['JOB-2026-00119', null, 'Hotel staff polo shirts', 'AH', 'PRD-007', 1800, 0, 4, 'on_track', 24, 'Chen Mei', 'Li Wei', '2026-09-18', 'MED', 'Revise quotation pricing', false],
-            ['JOB-2026-00118', 'ORD-2026-00083', 'Retail launch canvas tote bags', 'PR', 'PRD-008', 6000, 27600, 11, 'completed', 100, 'Zhang Min', 'Li Wei', '2026-07-12', 'MED', 'Closed', false],
             ['JOB-2026-00117', 'ORD-2026-00082', 'School house-colour wristbands', 'MS', 'PRD-002', 7500, 6900, 9, 'on_track', 86, 'Chen Mei', 'Xu Na', '2026-08-02', 'MED', 'Monitor DHL delivery', false],
             ['JOB-2026-00116', null, 'Festival staff badge lanyards', 'VM', 'PRD-001', 3500, 0, 3, 'on_track', 18, 'Zhang Min', 'Chen Mei', '2026-09-02', 'LOW', 'Await quotation response', false],
             ['JOB-2026-00115', 'ORD-2026-00081', 'Premium laptop backpacks', 'UT', 'PRD-005', 1500, 47250, 6, 'at_risk', 39, 'Chen Mei', 'Liu Fang', '2026-08-25', 'HIG', 'Artwork revision v3', true],

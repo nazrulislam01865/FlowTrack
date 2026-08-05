@@ -1,0 +1,234 @@
+/* Job Details mobile phase-task layout repair.
+   Keep this after all legacy responsive layers so desktop/tablet width rules
+   cannot squeeze the stacked phone cards. */
+@media (max-width: 720px) {
+    .job-detail-v4-content .job-v4-phase-body {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        padding: 0 8px 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table,
+    .job-detail-v4-content .job-v4-task-table tbody {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        table-layout: auto !important;
+        overflow: visible !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table thead {
+        display: none !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table tbody {
+        display: grid !important;
+        gap: 10px !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 0 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        border: 1px solid #dbe3ef !important;
+        border-radius: 11px !important;
+        background: #fff !important;
+        box-sizing: border-box !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row.is-filtered-out {
+        display: none !important;
+    }
+
+    /* Reset every desktop/tablet nth-child width. Those rules were the
+       source of the one-character-per-line layout on phones. */
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td,
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(1),
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(2),
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(3),
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(4),
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(5),
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(6) {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td {
+        display: grid !important;
+        grid-template-columns: 84px minmax(0, 1fr) !important;
+        gap: 10px !important;
+        align-items: center !important;
+        padding: 9px 11px !important;
+        border: 0 !important;
+        border-bottom: 1px solid #edf0f5 !important;
+        text-align: left !important;
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+        overflow: visible !important;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+        white-space: normal !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:last-child {
+        border-bottom: 0 !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td::before {
+        min-width: 0 !important;
+        color: #71809a !important;
+        font-size: 9.5px !important;
+        font-weight: 800 !important;
+        line-height: 1.2 !important;
+        text-transform: uppercase !important;
+        letter-spacing: .035em !important;
+        white-space: nowrap !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(1)::before { content: 'Task #' !important; }
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(2)::before { content: 'Task' !important; }
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(3)::before { content: 'Assignee' !important; }
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(4)::before { content: 'Due date' !important; }
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(5)::before { content: 'Status' !important; }
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(6)::before { content: 'Action' !important; }
+
+    .job-detail-v4-content .job-v4-task-table .job-v4-task-seq {
+        display: grid !important;
+        grid-template-columns: 84px minmax(0, 1fr) !important;
+        color: #526783 !important;
+        font-variant-numeric: tabular-nums !important;
+        white-space: nowrap !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(2) {
+        display: grid !important;
+        grid-template-columns: 84px minmax(0, 1fr) !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table .job-v4-task-title {
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        font-size: 13px !important;
+        font-weight: 750 !important;
+        line-height: 1.35 !important;
+        white-space: normal !important;
+        overflow-wrap: break-word !important;
+        word-break: normal !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table .job-v4-task-row small {
+        grid-column: 2 !important;
+        min-width: 0 !important;
+        font-size: 10.5px !important;
+        line-height: 1.35 !important;
+        white-space: normal !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table .job-v4-assignee-cell,
+    .job-detail-v4-content .job-v4-task-table .job-v4-due-cell {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 7px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        white-space: normal !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table .job-v4-person {
+        display: flex !important;
+        align-items: center !important;
+        gap: 7px !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: calc(100% - 36px) !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table .job-v4-person > span:last-child {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table .job-v4-due-cell > span {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        white-space: nowrap !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table .job-v4-task-inline-select,
+    .job-detail-v4-content .job-v4-task-table .job-v4-status-select[data-native-select] {
+        display: block !important;
+        width: min(100%, 260px) !important;
+        min-width: 0 !important;
+        max-width: 260px !important;
+        height: 38px !important;
+        font-size: 12px !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table .job-v4-task-actions {
+        display: grid !important;
+        grid-template-columns: 84px minmax(0, 1fr) !important;
+        justify-items: start !important;
+        text-align: left !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table .job-v4-row-menu {
+        min-width: 38px !important;
+        width: 38px !important;
+        height: 34px !important;
+        border: 1px solid #dbe3ef !important;
+        border-radius: 8px !important;
+        background: #fff !important;
+        font-size: 16px !important;
+        line-height: 1 !important;
+    }
+
+    .job-detail-v4-content .job-v4-phase-head {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .job-detail-v4-content .job-v4-phase-toggle {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .job-detail-v4-content .job-v4-phase-toggle b {
+        min-width: 0 !important;
+        overflow-wrap: break-word !important;
+        word-break: normal !important;
+    }
+}
+
+@media (max-width: 430px) {
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td,
+    .job-detail-v4-content .job-v4-task-table .job-v4-task-seq,
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td:nth-child(2),
+    .job-detail-v4-content .job-v4-task-table .job-v4-task-actions {
+        grid-template-columns: 76px minmax(0, 1fr) !important;
+    }
+
+    .job-detail-v4-content .job-v4-task-table tr.job-v4-task-row > td {
+        padding: 9px !important;
+        gap: 8px !important;
+    }
+}

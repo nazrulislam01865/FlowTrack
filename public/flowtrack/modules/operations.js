@@ -1,4 +1,4 @@
-/* FlowTrack runtime module: operations. Build: f400609959067571. */
+/* FlowTrack runtime module: operations. Build: 30e4f82686c91463. */
 function normalizedStatusValue(value) {
         return String(value ?? '').trim().toUpperCase();
     }
@@ -61,25 +61,69 @@ function normalizedStatusValue(value) {
         return 0;
     }
 
+    function flowtrackTaskFromActiveSurface(id, dbId = null) {
+        const pools = (currentPage === 'mywork' && myWorkSnapshotLoaded)
+            ? [myWorkSnapshotTasks, tasks]
+            : [tasks, myWorkSnapshotTasks];
+        for (const pool of pools) {
+            const match = flowtrackToArray(pool).find((item) => (
+                String(item?.id || '') === String(id || '')
+                || (Number(dbId || 0) > 0 && Number(item?.dbId || 0) === Number(dbId))
+                || (Number(id || 0) > 0 && Number(item?.dbId || 0) === Number(id))
+            ));
+            if (match) return flowtrackHydrateTaskAssignee(match);
+        }
+        return null;
+    }
+
     function updateTaskAndJob(result) {
         if (result.task) {
             const taskIndex = tasks.findIndex((task) => Number(task.dbId) === Number(result.task.dbId));
             const hydratedTask = flowtrackHydrateTaskAssignee(result.task);
             if (taskIndex >= 0) tasks.splice(taskIndex, 1, hydratedTask);
             else tasks.push(hydratedTask);
+            if (myWorkSnapshotLoaded) {
+                flowtrackUpsertRecord(myWorkSnapshotTasks, hydratedTask, false);
+                myWorkSnapshotSignature = flowtrackMyWorkSnapshotFingerprint();
+            }
         }
         if (result.job) {
             const jobIndex = jobs.findIndex((job) => Number(job.dbId) === Number(result.job.dbId));
             if (jobIndex >= 0) jobs.splice(jobIndex, 1, result.job);
+            if (myWorkSnapshotLoaded) {
+                flowtrackUpsertRecord(myWorkSnapshotJobs, result.job, false);
+                myWorkSnapshotSignature = flowtrackMyWorkSnapshotFingerprint();
+            }
             if (Array.isArray(result.tasks)) replaceTasksForJob(result.job.id, result.tasks);
         }
     }
 
     function replaceTasksForJob(jobCode, newTasks) {
+        const normalizedTasks = flowtrackToArray(newTasks).map((task) => flowtrackHydrateTaskAssignee({ ...task }));
+        const firstTask = normalizedTasks[0] || null;
+        const jobRecord = jobs.find((job) => String(job.id) === String(jobCode)
+            || (firstTask && Number(job.dbId || 0) > 0 && Number(job.dbId) === Number(firstTask.jobDbId || 0)));
+        const canonicalJobCode = String(jobRecord?.id || jobCode || '');
+        const canonicalJobDbId = Number(jobRecord?.dbId || firstTask?.jobDbId || 0);
+
         for (let index = tasks.length - 1; index >= 0; index -= 1) {
-            if (tasks[index].job === jobCode) tasks.splice(index, 1);
+            const task = tasks[index];
+            if (String(task.job || '') === canonicalJobCode
+                || (canonicalJobDbId > 0 && Number(task.jobDbId || 0) === canonicalJobDbId)) {
+                tasks.splice(index, 1);
+            }
         }
-        flowtrackToArray(newTasks).forEach((task) => tasks.push(flowtrackHydrateTaskAssignee(task)));
+        normalizedTasks.forEach((task) => tasks.push(task));
+
+        // If this Job already owns a complete Job Details snapshot, keep that
+        // snapshot synchronized with mutations that return the Job's full Task set.
+        // Background paginated list loaders do not call replaceTasksForJob, so they
+        // cannot shrink this private snapshot.
+        if (jobRecord?._completeTaskSetLoaded) {
+            jobRecord._detailTasks = normalizedTasks.map((task) => ({ ...task }));
+            jobRecord._detailTaskCount = normalizedTasks.length;
+            jobRecord._detailLoadedAt = Date.now();
+        }
     }
 
     async function persistTask(task, status, extras = {}) {
@@ -117,21 +161,26 @@ function normalizedStatusValue(value) {
         return Boolean(task.canChangeDueDate || task.canUpdate || isFlowAdmin || isFlowSuperAdmin);
     }
 
+    function flowtrackCalendarIconHtml(className = 'ops-due-calendar') {
+        // Keep every compact calendar mark identical to the Task Details icon.
+        return `<span class="${html(className)}" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg></span>`;
+    }
+
     function boardTaskDueHtml(task, overdueDays = 0) {
         const dueKey = boardDateOnly(task?.due);
         if (dueKey) {
-            return `<div class="ops-due ${overdueDays ? 'overdue' : ''}"><span class="ops-due-calendar" aria-hidden="true">📅</span> ${boardShortDate(dueKey)}</div>`;
+            return `<div class="ops-due ${overdueDays ? 'overdue' : ''}">${flowtrackCalendarIconHtml()}<span>${boardShortDate(dueKey)}</span></div>`;
         }
 
         if (!boardCanChangeTaskDueDate(task)) {
-            return '<div class="ops-due ops-due-missing ops-due-readonly-missing" title="No due date"><span class="ops-due-calendar" aria-hidden="true">📅</span> No due date</div>';
+            return `<div class="ops-due ops-due-missing ops-due-readonly-missing" title="No due date">${flowtrackCalendarIconHtml()}<span>No due date</span></div>`;
         }
 
         const taskId = html(task.id || '');
         const taskDbId = html(task.dbId || task.id || '');
         const title = html(task.title || task.id || 'Task');
 
-        return `<div class="ops-due ops-due-missing"><label class="ops-set-due-label" data-board-set-due="${taskId}" title="Set due date for ${title}"><span class="ops-due-calendar" aria-hidden="true">📅</span> <span>Set due date</span><input type="date" class="ops-due-picker" data-board-due-picker="${taskId}" data-board-due-db="${taskDbId}" aria-label="Set due date for ${title}"></label></div>`;
+        return `<div class="ops-due ops-due-missing"><label class="ops-set-due-label" data-board-set-due="${taskId}" title="Set due date for ${title}">${flowtrackCalendarIconHtml()}<span>Set due date</span><input type="date" class="ops-due-picker" data-board-due-picker="${taskId}" data-board-due-db="${taskDbId}" aria-label="Set due date for ${title}"></label></div>`;
     }
 
     async function persistTaskDueDate(task, dueDate) {
@@ -158,7 +207,7 @@ function normalizedStatusValue(value) {
                 event.stopPropagation();
                 const selectedDate = input.value;
                 if (!selectedDate) return;
-                const task = tasks.find((item) => String(item.id) === String(input.dataset.boardDuePicker) || Number(item.dbId) === Number(input.dataset.boardDueDb));
+                const task = flowtrackTaskFromActiveSurface(input.dataset.boardDuePicker, input.dataset.boardDueDb);
                 if (!task) {
                     showToast('The selected task is no longer available.');
                     return;
@@ -181,7 +230,10 @@ function normalizedStatusValue(value) {
         });
     }
 
-    registerFlowtrackExtension('openTask', 'openTask-stage-1', function (id) {        const task = flowtrackHydrateTaskAssignee(tasks.find((item) => item.id === id || Number(item.dbId) === Number(id)));
+    registerFlowtrackExtension('openTask', 'openTask-stage-1', function (id) {
+        const safeTaskId = String(id ?? '').trim();
+        if (!safeTaskId) return null;
+        const task = flowtrackTaskFromActiveSurface(safeTaskId, safeTaskId);
         if (!task) return;
         const job = jobs.find((item) => item.id === task.job || Number(item.dbId) === Number(task.jobDbId));
         const selectedStatus = taskStatusRecord(task.statusId || task.statusCode || task.status);
@@ -245,7 +297,7 @@ function normalizedStatusValue(value) {
             ${(entry.changes || []).length ? `<ul class="task-change-list">${entry.changes.map((change) => `<li><b>${html(change.field)}:</b> ${html(change.from)} → ${html(change.to)}</li>`).join('')}</ul>` : ''}
         </div>`).join('');
 
-        $('#detailDrawer').innerHTML = `<div class="drawer-head"><div><div class="small muted"><span class="flow-id-link-row">${flowtrackCopyIdentifierButton(task.id, 'Task ID', 'flow-id-copy-inline')}</span> · <span class="flow-id-link-row"><button type="button" class="task-job-link" data-task-job-link>${html(task.job)}</button>${flowtrackCopyIdentifierButton(task.job, 'Job ID', 'flow-id-copy-icon-only')}</span></div><h2>${html(task.title)}</h2><div>${statusBadge(task.status)} <span class="badge ${task.priority === 'Critical' ? 'b-red' : task.priority === 'High' ? 'b-amber' : 'b-gray'}">${html(task.priority)}</span></div></div><div class="task-head-actions">${canDeleteTask ? `<div class="task-menu-wrap"><button class="task-menu-button" type="button" id="taskActionMenuButton" aria-label="Task actions" aria-expanded="false">•••</button><div class="task-action-menu hidden" id="taskActionMenu"><button type="button" class="danger-option" data-delete-task="${task.dbId}">Delete Task</button></div></div>` : ''}<button class="close-btn" data-close>×</button></div></div>
+        $('#detailDrawer').innerHTML = `<div class="drawer-head"><div><div class="small muted"><span class="flow-id-link-row">${flowtrackCopyIdentifierButton(task.id, 'Task ID', 'flow-id-copy-inline')}</span> · <span class="flow-id-link-row"><button type="button" class="task-job-link" data-task-job-link>${html(task.job)}</button>${flowtrackCopyIdentifierButton(task.job, 'Job ID', 'flow-id-copy-icon-only')}</span></div><h2>${html(task.title)}</h2><div>${statusBadge(task.status, task.statusColor)} ${priorityBadge(task.priority, task.priorityColor)}</div></div><div class="task-head-actions">${canDeleteTask ? `<div class="task-menu-wrap"><button class="task-menu-button" type="button" id="taskActionMenuButton" aria-label="Task actions" aria-expanded="false">•••</button><div class="task-action-menu hidden" id="taskActionMenu"><button type="button" class="danger-option" data-delete-task="${task.dbId}">Delete Task</button></div></div>` : ''}<button class="close-btn" data-close>×</button></div></div>
         <div class="drawer-body"><div class="summary-grid"><div class="summary-box"><span>Job</span><button type="button" class="task-job-link" data-task-job-link>${html(job?.title || task.jobTitle || task.job)}</button></div><div class="summary-box"><span>Assignee</span><b>${html(taskAssigneeName)}</b></div><div class="summary-box"><span>Due Date</span><b class="${dueClass(task.due)}">${formatDate(task.due)}</b></div></div>${completedTaskLocked ? '<div class="source-note" style="margin-top:14px"><b>Completed task locked</b><div class="small muted" style="margin-top:4px">Only Admin or Super Admin can edit/update a completed Task. You can still view documents, comments and history.</div></div>' : ''}
         <div class="form-grid" style="margin-top:18px"><div class="field full"><label>Task title</label><input id="taskUpdateTitle" value="${html(task.title || '')}" maxlength="255" ${canEdit ? '' : 'disabled'}></div>
         <div class="field full"><label>Description</label><textarea id="taskUpdateDescription" rows="3" maxlength="5000" placeholder="Add clear sub task details, expected output or instructions…" ${canEdit ? '' : 'disabled'}>${html(task.description || '')}</textarea><div class="inline-help">Admins can update completed tasks. Before completion, authorised task owners can update their assigned work without changing the workflow template.</div></div>
@@ -594,7 +646,8 @@ function normalizedStatusValue(value) {
             area.innerHTML = `<div class="kanban" style="grid-template-columns:repeat(${Math.max(1, columns.length)},minmax(230px,1fr))">${columns.map((column) => {
                 const columnTasks = tasksForColumn(column);
                 const dropValue = column.configured ? String(column.id) : '';
-                return `<div class="kanban-col"><div class="kanban-head"><span>${html(column.name)}${column.configured ? '' : ' · Legacy'}</span><span class="count">${columnTasks.length}</span></div><div class="kanban-list" ${dropValue ? `data-drop-status="${html(dropValue)}"` : 'data-readonly-status="true"'}>${columnTasks.map((task) => `<article class="kanban-card" draggable="${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? 'true' : 'false'}" data-task="${task.id}" data-task-updatable="${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '1' : '0'}"><span class="badge ${task.priority === 'Critical' ? 'b-red' : task.priority === 'High' ? 'b-amber' : 'b-gray'}">${html(task.priority)}</span><div class="kanban-card-title">${html(task.title)}</div><div class="kanban-job"><button type="button" class="kanban-job-link" data-board-job-link="${html(task.job)}">${html(task.job)}</button> · ${html(task.phase)}</div><div class="kanban-meta"><span class="avatar" style="width:25px;height:25px;font-size:9px">${userInitials(task.assignee)}</span><span class="due ${dueClass(task.due)} small">${formatDate(task.due)}</span></div><div class="progress" style="margin-top:9px"><span class="${Number(task.progress) >= 100 ? 'complete' : ''}" style="width:${Math.max(0, Math.min(100, Number(task.progress) || 0))}%"></span></div></article>`).join('')}</div></div>`;
+                const statusColor = flowtrackTaskStatusColor(column, column.color || '');
+                return `<div class="kanban-col"><div class="kanban-head" style="${flowtrackMasterToneStyle(statusColor, { backgroundAlpha: 0.055, borderAlpha: 0.2 })}"><span>${html(column.name)}${column.configured ? '' : ' · Legacy'}</span><span class="count" style="${flowtrackMasterToneStyle(statusColor, { backgroundAlpha: 0.12, borderAlpha: 0.18 })}">${columnTasks.length}</span></div><div class="kanban-list" ${dropValue ? `data-drop-status="${html(dropValue)}"` : 'data-readonly-status="true"'}>${columnTasks.map((task) => `<article class="kanban-card" draggable="${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? 'true' : 'false'}" data-task="${task.id}" data-task-updatable="${task.canUpdate || isFlowAdmin || isFlowSuperAdmin ? '1' : '0'}">${priorityBadge(task.priority, task.priorityColor)}<div class="kanban-card-title">${html(task.title)}</div><div class="kanban-job"><button type="button" class="kanban-job-link" data-board-job-link="${html(task.job)}">${html(task.job)}</button> · ${html(task.phase)}</div><div class="kanban-meta"><span class="avatar" style="width:25px;height:25px;font-size:9px">${userInitials(task.assignee)}</span><span class="due ${dueClass(task.due)} small">${formatDate(task.due)}</span></div><div class="progress" style="margin-top:9px"><span class="${Number(task.progress) >= 100 ? 'complete' : ''}" style="width:${Math.max(0, Math.min(100, Number(task.progress) || 0))}%"></span></div></article>`).join('')}</div></div>`;
             }).join('')}</div>`;
         } else {
             const activeWorkflows = (workflowTemplates || []).filter((workflow) => workflow.active !== false);
@@ -657,7 +710,7 @@ function normalizedStatusValue(value) {
                         if (!list.dataset.dropStatus) {
                             throw new Error('Move the task to an active configured status.');
                         }
-                        const task = tasks.find((item) => item.id === dragged.dataset.task);
+                        const task = flowtrackTaskFromActiveSurface(dragged.dataset.task);
                         if (!task) throw new Error('The selected task is no longer available.');
                         const targetStatus = taskStatusRecord(list.dataset.dropStatus);
                         if (!targetStatus) throw new Error('The selected task status is not available in this workspace.');
@@ -713,6 +766,7 @@ function normalizedStatusValue(value) {
     let myWorkSearchValue = '';
     let myWorkQuickFilter = 'all';
     let myWorkFilters = { job: '', client: '', assignee: '', status: '', priority: '', due: '' };
+    let jobSearchRenderTimer = null;
     const collapsedBoardJobs = new Set();
     const expandedBoardJobCards = new Set();
     let jobListFilters = { owner: '', delivery: '', invoice: '', more: '', saved: 'all' };
@@ -789,7 +843,12 @@ function normalizedStatusValue(value) {
     }
 
     function boardJobForTask(task) {
-        return jobs.find((job) => String(job.id) === String(task.job) || Number(job.dbId) === Number(task.jobDbId)) || null;
+        const sourceJobs = currentPage === 'mywork' && myWorkSnapshotLoaded
+            ? myWorkSnapshotJobs
+            : jobs;
+        return flowtrackToArray(sourceJobs).find((job) => String(job.id) === String(task.job) || Number(job.dbId) === Number(task.jobDbId))
+            || flowtrackToArray(jobs).find((job) => String(job.id) === String(task.job) || Number(job.dbId) === Number(task.jobDbId))
+            || null;
     }
 
     function boardActiveJobs() {
@@ -1236,7 +1295,7 @@ function normalizedStatusValue(value) {
         const canDrag = task.canUpdate || isFlowAdmin || isFlowSuperAdmin;
         const waiting = boardTaskStatusBucket(task) === 'waiting' || task.blockerReason;
         return `<article class="ops-task-card" draggable="${canDrag ? 'true' : 'false'}" data-task="${html(task.id)}" data-task-updatable="${canDrag ? '1' : '0'}">
-            <div class="ops-task-card-top"><span class="ops-priority ${boardPriorityClass(task.priority)}">${html(task.priority || 'Medium')}</span><span class="ops-task-alerts">${overdueDays ? `<span class="ops-overdue">Overdue · ${overdueDays}d</span>` : ''}<span class="ops-board-card-menu-wrap"><button type="button" class="ops-task-menu" data-board-card-menu="${html(task.id)}" aria-label="Task actions" aria-expanded="false">⋮</button><span class="ops-board-card-action-menu hidden">${task.canDelete || isFlowAdmin || isFlowSuperAdmin ? `<button type="button" data-board-delete-task="${html(task.dbId)}" data-board-delete-task-code="${html(task.id)}">Delete Task</button>` : '<span class="ops-menu-disabled">No available actions</span>'}</span></span></span></div>
+            <div class="ops-task-card-top"><span class="ops-priority" style="${flowtrackMasterToneStyle(flowtrackPriorityColor(task, task.priorityColor || ''))}">${html(task.priority || 'Medium')}</span><span class="ops-task-alerts">${overdueDays ? `<span class="ops-overdue">Overdue · ${overdueDays}d</span>` : ''}<span class="ops-board-card-menu-wrap"><button type="button" class="ops-task-menu" data-board-card-menu="${html(task.id)}" aria-label="Task actions" aria-expanded="false">⋮</button><span class="ops-board-card-action-menu hidden">${task.canDelete || isFlowAdmin || isFlowSuperAdmin ? `<button type="button" data-board-delete-task="${html(task.dbId)}" data-board-delete-task-code="${html(task.id)}">Delete Task</button>` : '<span class="ops-menu-disabled">No available actions</span>'}</span></span></span></div>
             <h4 class="ops-card-title">${html(task.title)}</h4>
             <div class="ops-card-meta"><span class="flow-id-link-row"><button type="button" class="job-link" data-board-job-link="${html(task.job)}">${html(task.job)}</button>${flowtrackCopyIdentifierButton(task.job, 'Job ID', 'flow-id-copy-icon-only')}</span> <span>· ${html(clientName(job?.client))}</span>${boardTaskPhaseHtml(task, job)}</div>
             ${waiting ? `<div class="ops-waiting-box"><span class="ops-wait-icon">🔗</span><span><div class="ops-wait-title">Waiting on: ${html(boardWaitingLabel(task))}</div><div class="ops-wait-date">Since ${boardShortDate(task.updatedAt || task.createdAt || task.due)}</div></span></div>` : ''}
@@ -1270,7 +1329,10 @@ function normalizedStatusValue(value) {
             }
         });
         jobsWithTasks.sort((a, b) => String(a.delivery || '').localeCompare(String(b.delivery || '')) || String(a.id).localeCompare(String(b.id)));
-        const header = `<div class="ops-status-grid">${columns.map((column) => `<div class="ops-status-head"><span>${html(column.label)}</span><span class="count">${counts[column.key] || 0}</span>${['progress','review'].includes(column.bucket || column.key) && (counts[column.key] || 0) ? '<span class="warn-mark">⚠</span>' : ''}</div>`).join('')}</div>`;
+        const header = `<div class="ops-status-grid">${columns.map((column) => {
+            const color = flowtrackTaskStatusColor(column.statusRecord || column.label);
+            return `<div class="ops-status-head" style="${flowtrackMasterToneStyle(color, { backgroundAlpha: 0.055, borderAlpha: 0.22 })}"><span>${html(column.label)}</span><span class="count" style="${flowtrackMasterToneStyle(color, { backgroundAlpha: 0.12, borderAlpha: 0.18 })}">${counts[column.key] || 0}</span>${['progress','review'].includes(column.bucket || column.key) && (counts[column.key] || 0) ? '<span class="warn-mark">⚠</span>' : ''}</div>`;
+        }).join('')}</div>`;
         const body = jobsWithTasks.map((job) => {
             const jobTasks = taskList.filter((task) => String(task.job) === String(job.id) || Number(task.jobDbId) === Number(job.dbId));
             const completedCount = jobTasks.filter((task) => boardTaskStatusBucket(task) === 'done').length;
@@ -1391,12 +1453,12 @@ function normalizedStatusValue(value) {
         const phaseRows = phaseTasks.slice(0, 5).map((task, index) => `<div class="ops-phase-task-row" data-task="${html(task.id)}">
                 <span>${index === 0 && !taskIsCompleted(task) ? '<span class="ops-task-next-pill">NEXT</span>' : ''}</span>
                 <div><div class="ops-phase-task-title">${html(task.title)}</div><div class="ops-phase-task-person"><span class="avatar">${userInitials(task.assignee || 'Unassigned')}</span><span>${html(task.assignee || 'Unassigned')}</span></div></div>
-                <span class="ops-task-status-pill ${boardPhaseTaskStatusClass(task)}">${html(task.status || 'Ready')}</span>
+                <span class="ops-task-status-pill" style="${flowtrackMasterToneStyle(flowtrackTaskStatusColor(task, task.statusColor || ''))}">${html(task.status || 'Ready')}</span>
                 <span class="ops-task-date ${boardDaysOverdue(task.due) && !taskIsCompleted(task) ? 'due overdue' : ''}">${boardShortDate(task.due)}</span>
             </div>`).join('');
         const nextHtml = nextTask
-            ? `<div class="ops-next-action"><div class="ops-card-section-label">Next Action</div><div class="ops-next-title">${html(nextTask.title || job.next || 'Review current phase')}</div><div class="ops-next-meta"><span class="avatar">${userInitials(nextTask.assignee || lead)}</span><span>${html(nextTask.assignee || lead)}</span><span class="ops-next-due">▣ Due ${boardShortDate(nextTask.due || job.delivery)}</span></div></div>`
-            : `<div class="ops-next-action"><div class="ops-card-section-label">Next Action</div><div class="ops-next-title">${html(job.next || 'Review current phase')}</div><div class="ops-next-meta"><span class="avatar">${userInitials(lead)}</span><span>${html(lead)}</span><span class="ops-next-due">▣ Due ${boardShortDate(job.delivery)}</span></div></div>`;
+            ? `<div class="ops-next-action"><div class="ops-card-section-label">Next Action</div><div class="ops-next-title">${html(nextTask.title || job.next || 'Review current phase')}</div><div class="ops-next-meta"><span class="avatar">${userInitials(nextTask.assignee || lead)}</span><span>${html(nextTask.assignee || lead)}</span><span class="ops-next-due">${flowtrackCalendarIconHtml()}<span>Due ${boardShortDate(nextTask.due || job.delivery)}</span></span></div></div>`
+            : `<div class="ops-next-action"><div class="ops-card-section-label">Next Action</div><div class="ops-next-title">${html(job.next || 'Review current phase')}</div><div class="ops-next-meta"><span class="avatar">${userInitials(lead)}</span><span>${html(lead)}</span><span class="ops-next-due">${flowtrackCalendarIconHtml()}<span>Due ${boardShortDate(job.delivery)}</span></span></div></div>`;
         const phaseTasksHtml = `<div class="ops-phase-tasks-box"><div class="ops-phase-tasks-head"><span>Phase Tasks</span><b>${completedPhaseTasks} of ${phaseTasks.length} complete</b><span>⌃</span></div>${phaseRows || '<div class="ops-job-empty">No current phase tasks</div>'}</div>`;
         return `<article class="ops-phase-card ops-job-card health-${tone}" draggable="true" data-job="${html(job.id)}">
             <div class="ops-job-card-top"><span class="ops-health-pill ${tone}">${html(job.health || 'On Track')}</span><span class="ops-phase-age">◷ ${html(boardJobDaysInPhase(job))}</span><button type="button" class="ops-job-card-toggle" data-board-job-card-toggle="${html(job.id)}" aria-label="${expanded ? 'Show next action' : 'Show phase tasks'}">•••</button></div>
@@ -1407,7 +1469,7 @@ function normalizedStatusValue(value) {
             <div class="ops-job-metrics"><div class="ops-job-metric">☷ ${openPhaseTasks.length} open</div><div class="ops-job-metric warn">◷ ${dueSoon} due soon</div><div class="ops-job-metric ok">✓ ${blockedCount} blocked</div></div>
             ${expanded ? phaseTasksHtml : nextHtml}
             <div class="ops-team-row"><span>Team</span><span class="ops-team-avatars">${team.slice(0, 3).map((name) => `<span class="avatar">${userInitials(name)}</span>`).join('')}${team.length > 3 ? `<span class="ops-team-more">+${team.length - 3}</span>` : ''}</span><span class="ops-lead">Lead: ${html(lead)}</span></div>
-            <div class="ops-job-bottom"><div class="ops-bottom-item"><span class="ops-bottom-icon">▣</span><span><div class="ops-bottom-label">Delivery</div><div class="ops-bottom-value ${overdueJob ? 'due overdue' : ''}">${boardShortDate(job.delivery)}</div></span></div><div class="ops-bottom-item"><span class="ops-bottom-icon">▤</span><span><div class="ops-bottom-label">Commercial</div><div class="ops-bottom-value">${html(boardJobCommercialLabel(job))}</div></span></div></div>
+            <div class="ops-job-bottom"><div class="ops-bottom-item">${flowtrackCalendarIconHtml('ops-bottom-icon ops-due-calendar')}<span><div class="ops-bottom-label">Delivery</div><div class="ops-bottom-value ${overdueJob ? 'due overdue' : ''}">${boardShortDate(job.delivery)}</div></span></div><div class="ops-bottom-item"><span class="ops-bottom-icon">▤</span><span><div class="ops-bottom-label">Commercial</div><div class="ops-bottom-value">${html(boardJobCommercialLabel(job))}</div></span></div></div>
             ${jobIsCompleted(job) ? boardCompletedMetaHtml(job, 'Job completed') : ''}
             <div class="ops-job-card-updated">${boardJobUpdatedText(job)}</div>
         </article>`;
@@ -1605,7 +1667,7 @@ function normalizedStatusValue(value) {
         const edit = jobListCanEditDelivery()
             ? `<button type="button" class="jobs-v2-inline-edit" data-job-list-edit-delivery="${html(job.id)}" aria-label="Edit delivery date" title="Edit delivery date">✎</button>`
             : '';
-        return `<div class="jobs-v2-delivery-cell ${overdue ? 'overdue' : ''}"><span class="jobs-v2-delivery-label">${html(boardShortDate(job.delivery))}</span><span class="jobs-v2-calendar" aria-hidden="true">▣</span>${edit}</div>`;
+        return `<div class="jobs-v2-delivery-cell ${overdue ? 'overdue' : ''}">${flowtrackCalendarIconHtml('jobs-v2-calendar')}<span class="jobs-v2-delivery-label">${html(boardShortDate(job.delivery))}</span>${edit}</div>`;
     }
 
     function jobListCloseInlineEditors(except = null) {
@@ -1831,17 +1893,24 @@ function normalizedStatusValue(value) {
         $('#jobExport')?.addEventListener('click', () => showToast('Job list export prepared.'));
         $('#jobColumns')?.addEventListener('click', () => showToast('Compact columns are enabled for this view.'));
         $('#jobSearch')?.addEventListener('input', (event) => {
-            const value = event.target.value;
-            const caret = event.target.selectionStart ?? value.length;
-            jobFilter.search = value;
+            const input = event.currentTarget;
+            jobFilter.search = input.value;
             resetJobListPage();
-            renderJobs();
-            requestAnimationFrame(() => {
-                const input = $('#jobSearch');
-                if (!input) return;
-                input.focus({ preventScroll: true });
-                input.setSelectionRange(caret, caret);
-            });
+            if (jobSearchRenderTimer) window.clearTimeout(jobSearchRenderTimer);
+            // Do not replace the Jobs page DOM on every keystroke. Re-render only
+            // after the user pauses typing so the input never loses keyboard focus.
+            jobSearchRenderTimer = window.setTimeout(() => {
+                jobSearchRenderTimer = null;
+                const caret = input.selectionStart ?? jobFilter.search.length;
+                renderJobs();
+                requestAnimationFrame(() => {
+                    const nextInput = $('#jobSearch');
+                    if (!nextInput) return;
+                    nextInput.focus({ preventScroll: true });
+                    const nextCaret = Math.min(caret, nextInput.value.length);
+                    nextInput.setSelectionRange(nextCaret, nextCaret);
+                });
+            }, 400);
         });
         $('#jobPhase')?.addEventListener('change', (event) => { jobFilter.phase = event.target.value; resetJobListPage(); renderJobs(); });
         $('#jobHealth')?.addEventListener('change', (event) => { jobFilter.health = event.target.value; resetJobListPage(); renderJobs(); });
@@ -1904,16 +1973,22 @@ function normalizedStatusValue(value) {
         $$('[data-boardmode]').forEach((button) => button.addEventListener('click', () => { boardMode = button.dataset.boardmode; try { sessionStorage.setItem('flowtrackBoardModeTouched', '1'); } catch (_) {} renderBoard(); }));
         $('#boardCreate')?.addEventListener('click', openJobModal);
         $('#opsBoardSearch')?.addEventListener('input', (event) => {
-            const value = event.target.value;
-            const caret = event.target.selectionStart ?? value.length;
-            boardSearchValue = value;
-            renderBoard();
-            requestAnimationFrame(() => {
-                const input = $('#opsBoardSearch');
-                if (!input) return;
-                input.focus({ preventScroll: true });
-                input.setSelectionRange(caret, caret);
-            });
+            boardSearchValue = event.currentTarget.value;
+            // Keep the toolbar/search input mounted. Only refresh the board body
+            // and its result summary so typing remains uninterrupted.
+            renderKanban();
+            const taskList = boardFilteredTasks();
+            const jobList = boardMode === 'tasks'
+                ? Array.from(new Set(taskList.map((task) => boardJobForTask(task)?.id || task.job)))
+                    .map((id) => jobs.find((job) => String(job.id) === String(id)) || { id })
+                    .filter(Boolean)
+                : boardFilteredJobsForPhases();
+            const summary = $('#page-board .ops-status-summary span');
+            if (summary) {
+                const filteredCount = boardMode === 'tasks' ? taskList.length : jobList.length;
+                const filteredJobCount = jobList.length;
+                summary.innerHTML = `Showing <b>${filteredCount}</b> ${boardMode === 'tasks' ? 'of ' + flowtrackVisibleTaskRows(tasks).length + ' tasks' : 'Jobs'} across <b>${filteredJobCount}</b> ${filteredJobCount === 1 ? 'job' : 'jobs'}`;
+            }
         });
         $$('[data-board-filter]').forEach((select) => select.addEventListener('change', () => { boardFilters[select.dataset.boardFilter] = select.value; renderBoard(); }));
         $$('[data-board-quick]').forEach((button) => button.addEventListener('click', () => { boardQuickFilter = boardQuickFilter === button.dataset.boardQuick ? 'all' : button.dataset.boardQuick; renderBoard(); }));
@@ -1970,7 +2045,7 @@ function normalizedStatusValue(value) {
                 cell.classList.remove('drop-hover');
                 if (!dragged?.dataset.task) return;
                 try {
-                    const task = tasks.find((item) => item.id === dragged.dataset.task);
+                    const task = flowtrackTaskFromActiveSurface(dragged.dataset.task);
                     if (!task) throw new Error('The selected task is no longer available.');
                     const targetStatus = boardTargetStatusForColumn(cell.dataset.dropColumn);
                     if (!targetStatus) throw new Error('The selected task status is not available in this workspace.');
@@ -2101,11 +2176,16 @@ function normalizedStatusValue(value) {
             event.stopPropagation();
             openJob(element.dataset.job);
         }));
-        $$('[data-task]').forEach((element) => flowtrackBindOnce(element, 'open-task', 'click', (event) => {
-            if (element.classList.contains('dragging')) return;
-            event.stopPropagation();
-            openTask(element.dataset.task);
-        }));
+        $$('[data-task]').forEach((element) => {
+            const taskIdentifier = String(element.dataset.task || '').trim();
+            if (!taskIdentifier) return;
+            flowtrackBindOnce(element, 'open-task', 'click', (event) => {
+                if (element.classList.contains('dragging')) return;
+                if (event.target.closest('button, a, input, select, textarea, label')) return;
+                event.stopPropagation();
+                openTask(taskIdentifier);
+            });
+        });
         $$('[data-board-job-link]').forEach((button) => flowtrackBindOnce(button, 'board-job-link', 'click', (event) => {
             event.stopPropagation();
             openJob(button.dataset.boardJobLink);
@@ -2440,19 +2520,54 @@ function normalizedStatusValue(value) {
     }
 
     function myWorkBaseTasks() {
-        const visibleTasks = flowtrackVisibleTaskRows(tasks);
+        // My Work is strictly server-snapshot driven. Never fall back to the
+        // shared Tasks array: it can contain a different page's partial data or
+        // legacy prototype state while the real snapshot is still loading.
+        if (!myWorkSnapshotLoaded) return [];
+        const visibleTasks = flowtrackVisibleTaskRows(myWorkSnapshotTasks);
         return myWorkIsAdministrativeView() ? visibleTasks : visibleTasks.filter(taskAssignedToCurrentUser);
     }
 
     function myWorkBaseJobs() {
-        if (myWorkIsAdministrativeView()) return flowtrackToArray(jobs).filter(Boolean);
+        // My Work is task-driven for every role, including Administrators.
+        // Do not render unrelated/stale Job records just because they still
+        // exist in the shared Jobs cache. This also prevents deleted/demo Jobs
+        // from remaining as empty rows after their Tasks are gone.
+        const taskRows = myWorkBaseTasks();
+        if (!taskRows.length) return [];
 
         const taskJobKeys = new Set();
-        myWorkBaseTasks().forEach((task) => {
+        taskRows.forEach((task) => {
             if (task?.job) taskJobKeys.add(String(task.job));
             if (task?.jobDbId) taskJobKeys.add(`db:${Number(task.jobDbId)}`);
         });
-        return flowtrackToArray(jobs).filter((job) => taskJobKeys.has(String(job.id)) || taskJobKeys.has(`db:${Number(job.dbId)}`));
+
+        if (!myWorkSnapshotLoaded) return [];
+        return flowtrackToArray(myWorkSnapshotJobs).filter((job) => (
+            taskJobKeys.has(String(job?.id || ''))
+            || taskJobKeys.has(`db:${Number(job?.dbId || 0)}`)
+        ));
+    }
+
+    function myWorkVisibleJobIdsForExpandToggle() {
+        return myWorkFilteredJobs(myWorkFilteredTasks())
+            .map((job) => String(job?.id || '').trim())
+            .filter(Boolean);
+    }
+
+    function myWorkAllVisibleJobsExpanded() {
+        const ids = myWorkVisibleJobIdsForExpandToggle();
+        return Boolean(ids.length) && ids.every((id) => !collapsedBoardJobs.has(id));
+    }
+
+    function myWorkBulkToggleButton() {
+        const ids = myWorkVisibleJobIdsForExpandToggle();
+        const expanded = myWorkAllVisibleJobsExpanded();
+        const label = expanded ? 'Collapse all jobs' : 'Expand all jobs';
+        const icon = expanded
+            ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 17 5-5 5 5"/><path d="m7 12 5-5 5 5"/></svg>'
+            : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 5 5 5-5"/><path d="m7 12 5 5 5-5"/></svg>';
+        return `<button type="button" class="ops-clear flow-bulk-icon-btn" id="myWorkExpandAll" title="${label}" aria-label="${label}" ${ids.length ? '' : 'disabled'}>${icon}</button>`;
     }
 
     function myWorkOpenTaskCount() {
@@ -2555,13 +2670,14 @@ function normalizedStatusValue(value) {
             'Assignee'
         );
         const priorityOptions = boardSelectOptions(masterData.priorities || [], (priority) => priority.id || priority.name, (priority) => priority.name, myWorkFilters.priority, 'Priority');
+        const serverCounts = summaryMetrics.myWork || {};
         const quickCounts = {
-            open: myWorkOpenTaskCount(),
-            overdue: ownTasks.filter((task) => boardDaysOverdue(task.due) > 0 && boardTaskStatusBucket(task) !== 'done').length,
-            week: ownTasks.filter((task) => { const days = boardDaysUntil(task.due); return days !== null && days >= 0 && days <= 7; }).length,
-            blocked: ownTasks.filter((task) => /BLOCK|ATTENTION|HOLD/.test(normalizedStatusValue(task.status || '')) || task.attention || task.blockerReason).length,
-            waiting: ownTasks.filter((task) => boardTaskStatusBucket(task) === 'waiting').length,
-            done: ownTasks.filter(taskIsCompleted).length,
+            open: Number.isFinite(Number(serverCounts.open)) ? Number(serverCounts.open) : myWorkOpenTaskCount(),
+            overdue: Number.isFinite(Number(serverCounts.overdue)) ? Number(serverCounts.overdue) : ownTasks.filter((task) => boardDaysOverdue(task.due) > 0 && boardTaskStatusBucket(task) !== 'done').length,
+            week: Number.isFinite(Number(serverCounts.dueThisWeek)) ? Number(serverCounts.dueThisWeek) : ownTasks.filter((task) => { const days = boardDaysUntil(task.due); return days !== null && days >= 0 && days <= 7; }).length,
+            blocked: Number.isFinite(Number(serverCounts.blockedAttention)) ? Number(serverCounts.blockedAttention) : ownTasks.filter((task) => /BLOCK|ATTENTION|HOLD/.test(normalizedStatusValue(task.status || '')) || task.attention || task.blockerReason).length,
+            waiting: Number.isFinite(Number(serverCounts.waitingReview)) ? Number(serverCounts.waitingReview) : ownTasks.filter((task) => boardTaskStatusBucket(task) === 'waiting').length,
+            done: Number.isFinite(Number(serverCounts.completed)) ? Number(serverCounts.completed) : ownTasks.filter(taskIsCompleted).length,
         };
         return `<div class="ops-toolbar my-work-toolbar">
             <label class="ops-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg><input id="myWorkBoardSearch" value="${html(myWorkSearchValue)}" placeholder="${myWorkIsAdministrativeView() ? 'Search jobs, tasks, clients or assignees' : 'Search my assigned tasks, job ID or client'}"></label>
@@ -2580,12 +2696,24 @@ function normalizedStatusValue(value) {
             ['blocked', 'Blocked', quickCounts.blocked, 'danger'],
             ['waiting', 'Waiting external', quickCounts.waiting, ''],
             ['done', 'Completed', quickCounts.done, ''],
-        ].map(([key, label, count, tone]) => `<button type="button" class="ops-chip ${tone} ${myWorkQuickFilter === key ? 'active' : ''}" data-mywork-quick="${key}">${label} <span class="ops-count">${count}</span></button>`).join('')}</div></div>`;
+        ].map(([key, label, count, tone]) => `<button type="button" class="ops-chip ${tone} ${myWorkQuickFilter === key ? 'active' : ''}" data-mywork-quick="${key}">${label} <span class="ops-count">${count}</span></button>`).join('')}</div><div class="ops-quick-right">${myWorkBulkToggleButton()}</div></div>`;
     }
 
     function myWorkStatusSummary(filteredCount, filteredJobCount) {
         const taskLabel = myWorkIsAdministrativeView() ? 'visible task' : 'assigned task';
-        return `<div class="ops-status-summary my-work-footer-summary"><span>Showing <b>${filteredCount}</b> ${taskLabel}${filteredCount === 1 ? '' : 's'} across <b>${filteredJobCount}</b> ${filteredJobCount === 1 ? 'job' : 'jobs'}</span></div>`;
+        const unfiltered = !myWorkSearchValue.trim()
+            && !myWorkFilters.job
+            && !myWorkFilters.client
+            && !myWorkFilters.assignee
+            && !myWorkFilters.status
+            && !myWorkFilters.priority
+            && !myWorkFilters.due
+            && (!myWorkQuickFilter || myWorkQuickFilter === 'all');
+        const totalVisible = Number(summaryMetrics.myWork?.totalVisible);
+        const totalSuffix = unfiltered && Number.isFinite(totalVisible) && totalVisible > filteredCount
+            ? ` of <b>${totalVisible}</b>`
+            : '';
+        return `<div class="ops-status-summary my-work-footer-summary"><span>Showing <b>${filteredCount}</b>${totalSuffix} ${taskLabel}${(Number.isFinite(totalVisible) ? totalVisible : filteredCount) === 1 ? '' : 's'} across <b>${filteredJobCount}</b> ${filteredJobCount === 1 ? 'job' : 'jobs'}</span></div>`;
     }
 
     function renderMyWorkBoard() {
@@ -2620,7 +2748,7 @@ function normalizedStatusValue(value) {
                 cell.classList.remove('drop-hover');
                 if (!dragged?.dataset.task) return;
                 try {
-                    const task = tasks.find((item) => item.id === dragged.dataset.task);
+                    const task = flowtrackTaskFromActiveSurface(dragged.dataset.task);
                     if (!task) throw new Error('The selected task is no longer available.');
                     if (!taskAssignedToCurrentUser(task) && !(isFlowAdmin || isFlowSuperAdmin)) throw new Error('This Task is not assigned to your account.');
                     const targetStatus = boardTargetStatusForColumn(cell.dataset.dropColumn);
@@ -2729,19 +2857,26 @@ function normalizedStatusValue(value) {
         renderMyWorkBoard();
         requestAnimationFrame(flowtrackFitWorkSurfacesToViewport);
         $('#myWorkBoardSearch')?.addEventListener('input', (event) => {
-            const value = event.target.value;
-            const caret = event.target.selectionStart ?? value.length;
-            myWorkSearchValue = value;
-            renderMyWork();
-            requestAnimationFrame(() => {
-                const input = $('#myWorkBoardSearch');
-                if (!input) return;
-                input.focus({ preventScroll: true });
-                input.setSelectionRange(caret, caret);
-            });
+            myWorkSearchValue = event.currentTarget.value;
+            // Keep the search/filter toolbar mounted while filtering the board.
+            renderMyWorkBoard();
+            const filteredTasks = myWorkFilteredTasks();
+            const filteredJobs = myWorkFilteredJobs(filteredTasks);
+            const footer = $('#page-mywork .my-work-footer-summary');
+            if (footer) footer.outerHTML = myWorkStatusSummary(filteredTasks.length, filteredJobs.length);
+            requestAnimationFrame(flowtrackFitWorkSurfacesToViewport);
         });
         $$('[data-mywork-filter]').forEach((select) => select.addEventListener('change', () => { myWorkFilters[select.dataset.myworkFilter] = select.value; renderMyWork(); }));
         $$('[data-mywork-quick]').forEach((button) => button.addEventListener('click', () => { myWorkQuickFilter = myWorkQuickFilter === button.dataset.myworkQuick ? 'all' : button.dataset.myworkQuick; renderMyWork(); }));
+        $('#myWorkExpandAll')?.addEventListener('click', () => {
+            const ids = myWorkVisibleJobIdsForExpandToggle();
+            const allOpen = ids.length && ids.every((id) => !collapsedBoardJobs.has(id));
+            ids.forEach((id) => {
+                if (allOpen) collapsedBoardJobs.add(id);
+                else collapsedBoardJobs.delete(id);
+            });
+            renderMyWork();
+        });
         $('#myWorkBoardClear')?.addEventListener('click', () => { myWorkSearchValue = ''; myWorkQuickFilter = 'all'; myWorkFilters = { job: '', client: '', assignee: '', status: '', priority: '', due: '' }; renderMyWork(); });
         bindCommon();
         applyActionPermissions();
@@ -2791,11 +2926,14 @@ function normalizedStatusValue(value) {
     };
 
     updateBadges = function () {
-        const unread = notifications.filter((notification) => !notification.read).length;
+        const unread = Math.max(0, Number(notificationUnread) || 0);
         if ($('#notificationBadge')) $('#notificationBadge').textContent = unread;
         // The My Work navigation badge represents everything shown by the
         // unfiltered My Work page (open + completed), while the Open quick
         // filter has its own separate count. Keeping these semantics explicit
         // avoids a misleading 33-vs-50 style mismatch on the same screen.
-        if ($('#myWorkBadge')) $('#myWorkBadge').textContent = myWorkBaseTasks().length;
+        if ($('#myWorkBadge')) {
+            const serverTotal = Number(summaryMetrics.myWork?.totalVisible);
+            $('#myWorkBadge').textContent = Number.isFinite(serverTotal) ? serverTotal : myWorkBaseTasks().length;
+        }
     };
