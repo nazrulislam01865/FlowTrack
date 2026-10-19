@@ -1,0 +1,39 @@
+{
+  "model_count": 41,
+  "access_control_hash": "3c93baadba6d44e194a4010b2592871c2753dc21a2d203f16c4f1d10c70920c7",
+  "migration_tree_hash": "f24004dfe0ba7231715b51b4fb67a7479005c721a9284c51d88779ef65f66aea",
+  "css_tree_hash": "a06b5541fdd12c741d4733a0a9ba0c8bec1db41d2ce9d5cb1a4c7748e4e40a91",
+  "routes_web_hash": "b28eda429d6dccd79e50b154c0be25598ed6be46fa849e45677a4e71c51fb5e8",
+  "required_policies": [
+    "FlowJobPolicy",
+    "InquiryPolicy",
+    "TaskPolicy",
+    "InquiryTaskPolicy",
+    "DocumentPolicy",
+    "ClientPolicy"
+  ],
+  "required_fillable_fields": {
+    "Client": [
+      "phone",
+      "preferred_language",
+      "notes"
+    ],
+    "Workflow": [
+      "id"
+    ],
+    "WorkflowTemplate": [
+      "id"
+    ],
+    "WorkflowPhase": [
+      "id"
+    ],
+    "TaskPackItem": [
+      "id"
+    ],
+    "TaskPackTask": [
+      "id",
+      "source_task_pack_task_id",
+      "color"
+    ]
+  }
+}

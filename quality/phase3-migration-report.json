@@ -1,0 +1,59 @@
+{
+    "schema": 1,
+    "phase": 3,
+    "implemented_on": "2026-08-20",
+    "migration": {
+        "public_css_files": {
+            "before": 24,
+            "after": 0
+        },
+        "public_css_bytes_relocated": 857153,
+        "relocated_css_byte_identical": true,
+        "application_blade_style_blocks": {
+            "before": 5,
+            "after": 0
+        },
+        "blade_style_attributes_architecture_metric": {
+            "before": 157,
+            "after": 104
+        },
+        "blade_hardcoded_hex_colors": {
+            "before": 576,
+            "after": 196
+        },
+        "flowtrack_css_bytes": 598656,
+        "flowtrack_css_important": 1236
+    },
+    "route_scoped_modules": [
+        "resources/css/modules/orders/index.css",
+        "resources/css/modules/work/index.css",
+        "resources/css/modules/setup/index.css",
+        "resources/css/modules/dashboard/legacy-prototype.css",
+        "resources/css/modules/dashboard/migration.css"
+    ],
+    "global_compatibility_entries": [
+        "resources/css/legacy/prelude.css",
+        "resources/css/legacy/shell-a.css",
+        "resources/css/legacy/shell-b.css",
+        "resources/css/migration/components.css"
+    ],
+    "validation": {
+        "quality_phase3": "pass",
+        "php_lint": "383 files pass",
+        "vite_config_node_syntax": "pass",
+        "splitter_node_syntax": "pass",
+        "css_import_paths": "pass",
+        "full_phpunit": "rerun_required_after_test_reconciliation",
+        "vite_production_build": "pass_in_user_environment",
+        "visual_regression": "requires authenticated seeded environment"
+    },
+    "test_reconciliation": {
+        "legacy_public_css_test_references_after": 0,
+        "css_tests_use_managed_source_helper": true,
+        "obsolete_list_filter_asset_version_pin_removed": true,
+        "php_static_assertion_interpolation_defects_repaired": true,
+        "runtime_directories_preserved_with_gitkeep": true,
+        "user_environment_vite_build": "pass (reported 2026-08-20)",
+        "user_environment_phpunit_before_reconciliation": "113 failed, 155 passed (reported 2026-08-20)"
+    }
+}

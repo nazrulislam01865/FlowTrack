@@ -1,30 +1,30 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "flowtrack/exact-design-blade",
+    "name": "laravel/laravel",
     "type": "project",
-    "description": "FlowTracker modular Laravel application preserving the supplied UI and OrderFlow business logic.",
+    "description": "The skeleton application for the Laravel framework.",
     "keywords": [
         "laravel",
-        "blade",
-        "flowtrack",
-        "workflow",
-        "jobs",
-        "tasks"
+        "framework"
     ],
     "license": "MIT",
     "require": {
         "php": "^8.3",
-        "laravel/framework": "^13.17",
-        "laravel/tinker": "^3.0"
+        "chillerlan/php-qrcode": "^6.0",
+        "laravel/framework": "^13.8",
+        "laravel/reverb": "^1.11",
+        "laravel/tinker": "^3.0",
+        "livewire/livewire": "^4.3",
+        "phpoffice/phpspreadsheet": "^5.9"
     },
     "require-dev": {
-        "fakerphp/faker": "^1.24",
+        "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",
         "mockery/mockery": "^1.6",
-        "nunomaduro/collision": "^8.9.3",
-        "phpunit/phpunit": "^12.5"
+        "nunomaduro/collision": "^8.6",
+        "phpunit/phpunit": "^12.5.12"
     },
     "autoload": {
         "psr-4": {
@@ -40,16 +40,12 @@
     },
     "scripts": {
         "setup": [
-            "composer install",
+            "composer update laravel/reverb --with-all-dependencies",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
             "@php artisan migrate --force",
-            "@php artisan storage:link",
-            "@php artisan optimize:clear"
-        ],
-        "dev": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php artisan serve"
+            "npm install --ignore-scripts",
+            "npm run build"
         ],
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",
@@ -67,11 +63,20 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --graceful --ansi"
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
-        ]
+        ],
+        "deploy:optimize": [
+            "@php artisan optimize:clear",
+            "@php artisan migrate --force",
+            "@php artisan optimize",
+            "@php artisan queue:restart",
+            "@php artisan reverb:restart"
+        ],
+        "reverb:local": "@php artisan reverb:start --host=127.0.0.1 --port=8080 --debug"
     },
     "extra": {
         "laravel": {
@@ -85,9 +90,6 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        },
-        "platform": {
-            "php": "8.3.6"
         }
     },
     "minimum-stability": "stable",

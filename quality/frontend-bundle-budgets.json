@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "policy": "ceilings_after_phase15_build",
+  "note": "Budgets include route-only SheetJS and the modular FlowTrack theme package. They are ceilings, not targets; reductions are always allowed.",
+  "total_gzip_bytes": 460000,
+  "max_single_asset_gzip_bytes": 135000,
+  "entries": {
+    "resources/js/app.js": 30000,
+    "resources/css/app.css": 115000,
+    "resources/css/legacy/shell-b.css": 110000,
+    "resources/js/features/bulk-order-import.js": 130000,
+    "resources/theme/flowtrack/core.css": 12000,
+    "resources/theme/flowtrack/theme.css": 30000
+  }
+}

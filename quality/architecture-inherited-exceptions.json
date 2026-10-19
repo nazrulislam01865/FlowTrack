@@ -1,0 +1,24 @@
+{
+  "schema": 2,
+  "source": "Phase 15 final release hardening, 2026-08-22",
+  "policy": "documented_non_increasing_residual_exception",
+  "reason": "Resolved giant-file exceptions were removed. Only presentation-preparation debt and the Phase 11 reviewed get() inventory remain explicitly frozen until their owning code is migrated or eliminated.",
+  "owner": "FlowTrack architecture governance",
+  "exceptions": {
+    "blade_php_blocks": {
+      "ceiling": 208,
+      "target_phase": "post-refactor cleanup",
+      "reason": "Existing presentation-preparation blocks remain; new blocks are prohibited and the count may only fall."
+    },
+    "app_get_calls": {
+      "ceiling": 309,
+      "target_phase": "Phase 11 reviewed inventory",
+      "reason": "Each operational read is reviewed in quality/phase11-query-inventory.json; new or moved occurrences require reclassification."
+    },
+    "flowtrack_css_bytes": {
+      "ceiling": 613136,
+      "target_phase": "dashboard-theme token migration",
+      "reason": "One-time post-Phase-15 conversion replaced hard-coded legacy blue/teal literals with centralized theme variables. Text bytes increased while flowtrack.css hard-coded hex occurrences fell to 2227 and unique hex values to 956. This ceiling is frozen and may only fall."
+    }
+  }
+}

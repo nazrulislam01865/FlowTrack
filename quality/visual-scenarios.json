@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1000
+    },
+    "tablet": {
+      "width": 1024,
+      "height": 900
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "scenarios": [
+    {
+      "name": "dashboard",
+      "path": "/dashboard"
+    },
+    {
+      "name": "orders-list",
+      "path": "/orders"
+    },
+    {
+      "name": "my-work",
+      "path": "/my-work"
+    },
+    {
+      "name": "all-tasks",
+      "path": "/all-tasks"
+    },
+    {
+      "name": "inquiries-list",
+      "path": "/inquiries"
+    },
+    {
+      "name": "inquiry-intelligence",
+      "path": "/inquiry-intelligence"
+    },
+    {
+      "name": "master-data",
+      "path": "/master-data"
+    },
+    {
+      "name": "product-categories",
+      "path": "/master-data?group=product_category"
+    },
+    {
+      "name": "products",
+      "path": "/master-data?group=product"
+    },
+    {
+      "name": "clients",
+      "path": "/clients"
+    },
+    {
+      "name": "documents",
+      "path": "/documents"
+    },
+    {
+      "name": "workflow-setup",
+      "path": "/workflow-setup"
+    },
+    {
+      "name": "task-pack-setup",
+      "path": "/task-pack-setup"
+    }
+  ],
+  "notes": [
+    "Detail/task screens require stable seeded IDs and should be added to a local override when known.",
+    "Use the same seed data, locale, timezone, browser build and viewport definitions for baseline and comparison runs.",
+    "Approve baseline images manually before Phase 1 or any selector migration."
+  ]
+}

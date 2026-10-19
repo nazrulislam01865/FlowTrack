@@ -1,0 +1,384 @@
+/* Reusable Order workflow-stage overview used by Orders and Dashboard. */
+.ft-order-workflow-stage-overview {
+    --ft-order-stage-line: #d9e3ec;
+    --ft-order-stage-text: #10213b;
+    --ft-order-stage-muted: #687990;
+    --ft-order-stage-primary: var(--ft-theme-primary);
+    --ft-order-stage-shadow: 0 3px 10px rgba(10, 35, 60, .03);
+    width: 100%;
+    margin-bottom: 14px;
+    overflow: hidden;
+    border: 1px solid var(--ft-order-stage-line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ft-order-stage-text);
+    box-shadow: var(--ft-order-stage-shadow);
+    font-family: var(--ft-theme-font-family);
+    container-name: ft-order-stage-overview;
+    container-type: inline-size;
+}
+
+.ft-order-workflow-stage-overview *,
+.ft-order-workflow-stage-overview *::before,
+.ft-order-workflow-stage-overview *::after {
+    box-sizing: border-box;
+}
+
+.ft-order-workflow-stage-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--ft-order-stage-line);
+}
+
+.ft-order-workflow-stage-head h2 {
+    margin: 0;
+    color: var(--ft-order-stage-text);
+    font-size: 1rem;
+    font-weight: 850;
+    line-height: 1.2;
+}
+
+.ft-order-workflow-stage-head p {
+    margin: 2px 0 0;
+    color: var(--ft-order-stage-muted);
+    font-size: .625rem;
+    line-height: 1.45;
+}
+
+.ft-order-workflow-stage-show-all {
+    display: inline-flex;
+    flex: 0 0 auto;
+    min-height: 31px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border: 1px solid var(--ft-order-stage-primary);
+    border-radius: 8px;
+    background: var(--ft-order-stage-primary);
+    color: #fff;
+    box-shadow: none;
+    cursor: pointer;
+    font: 800 .6875rem/1 var(--ft-theme-font-family);
+    text-decoration: none;
+    transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+
+.ft-order-workflow-stage-show-all:hover {
+    color: #fff;
+    box-shadow: 0 5px 14px rgba(10, 35, 60, .1);
+    transform: translateY(-1px);
+}
+
+.ft-order-workflow-stage-show-all:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--ft-order-stage-primary) 22%, transparent);
+    outline-offset: 2px;
+}
+
+.ft-order-workflow-stage-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    gap: 12px;
+    padding: 18px;
+    overflow: hidden;
+}
+
+.ft-order-workflow-stage-card {
+    appearance: none;
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    padding: 10px 11px;
+    border: 1px solid color-mix(in srgb, var(--stage) 28%, #d9e3ec 72%);
+    border-radius: 12px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--stage) 7%, #fff 93%) 0%, color-mix(in srgb, var(--stage) 3%, #fff 97%) 100%);
+    color: var(--ft-order-stage-text);
+    box-shadow: none;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease, background .15s ease;
+}
+
+.ft-order-workflow-stage-card:hover {
+    border-color: color-mix(in srgb, var(--stage) 48%, #d9e3ec 52%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--stage) 9%, #fff 91%) 0%, color-mix(in srgb, var(--stage) 4%, #fff 96%) 100%);
+    color: var(--ft-order-stage-text);
+    box-shadow: 0 7px 18px color-mix(in srgb, var(--stage) 10%, transparent);
+    transform: translateY(-1px);
+}
+
+.ft-order-workflow-stage-card.active {
+    padding: 9px 10px;
+    border: 2px solid var(--stage);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--stage) 9%, #fff 91%) 0%, color-mix(in srgb, var(--stage) 4%, #fff 96%) 100%);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--stage) 18%, transparent), 0 9px 20px color-mix(in srgb, var(--stage) 13%, rgba(15, 23, 42, .08));
+    transform: translateY(-2px);
+}
+
+.ft-order-workflow-stage-card:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--stage) 24%, transparent);
+    outline-offset: 2px;
+}
+
+.ft-order-workflow-stage-kicker {
+    display: block;
+    color: color-mix(in srgb, var(--stage) 82%, #334155 18%);
+    font-size: .625rem;
+    font-weight: 900;
+    letter-spacing: .015em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.ft-order-workflow-stage-card > b {
+    display: block;
+    max-width: 100%;
+    margin: 4px 0 7px;
+    overflow: hidden;
+    color: var(--ft-order-stage-text);
+    font-size: .875rem;
+    font-weight: 900;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-workflow-stage-count {
+    display: flex;
+    width: 100%;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: auto;
+    color: var(--ft-order-stage-muted);
+    font-size: .65625rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.ft-order-workflow-stage-count em {
+    font-style: normal;
+    font-weight: 500;
+}
+
+.ft-order-workflow-stage-count strong {
+    flex: 0 0 auto;
+    color: color-mix(in srgb, var(--stage) 82%, #10213b 18%);
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.ft-order-workflow-stage-selected {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 999px;
+    background: var(--stage);
+    color: var(--stage-text);
+    box-shadow: 0 3px 8px color-mix(in srgb, var(--stage) 20%, transparent);
+    font-size: .75rem;
+    font-weight: 950;
+    line-height: 1;
+}
+
+.ft-order-workflow-stage-card.active .ft-order-workflow-stage-kicker {
+    padding-right: 26px;
+}
+
+@media (max-width: 1240px) {
+    .ft-order-workflow-stage-strip {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .ft-order-workflow-stage-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ft-order-workflow-stage-show-all {
+        align-self: flex-start;
+    }
+
+    .ft-order-workflow-stage-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        padding: 14px;
+    }
+}
+
+@media (max-width: 460px) {
+    .ft-order-workflow-stage-strip {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* CHANGE 2026-08-26: account for the persistent desktop sidebar on tablets
+   and small laptops. The usable content width is much smaller than viewport. */
+.ft-order-workflow-stage-overview,
+.ft-order-workflow-stage-strip,
+.ft-order-workflow-stage-card {
+    min-width: 0;
+    max-width: 100%;
+}
+
+@media (max-width:1180px) and (min-width:901px) {
+    .ft-order-workflow-stage-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        padding: 14px;
+    }
+}
+
+@media (max-width:560px) {
+    .ft-order-workflow-stage-strip {
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .ft-order-workflow-stage-card {
+        padding: 9px 10px;
+    }
+
+    .ft-order-workflow-stage-card.active {
+        padding: 8px 9px;
+    }
+
+    .ft-order-workflow-stage-selected {
+        top: 7px;
+        right: 7px;
+    }
+}
+
+
+/* CHANGE 2026-08-26: make workflow-stage cards respond to their real content
+   width (including layouts with a persistent sidebar), not only viewport width. */
+@container ft-order-stage-overview (max-width: 1240px) {
+    .ft-order-workflow-stage-strip {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        padding: 14px;
+    }
+}
+
+@container ft-order-stage-overview (max-width: 900px) {
+    .ft-order-workflow-stage-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@container ft-order-stage-overview (max-width: 620px) {
+    .ft-order-workflow-stage-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ft-order-workflow-stage-show-all {
+        align-self: flex-start;
+    }
+
+    .ft-order-workflow-stage-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px;
+    }
+}
+
+@container ft-order-stage-overview (max-width: 360px) {
+    .ft-order-workflow-stage-strip {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Order-list summary metrics reuse the workflow-card visual system so the
+   Created Today and Completed cards are exactly the same size as stage cards. */
+.ft-order-workflow-metric-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    gap: 12px;
+    padding: 0 18px 18px;
+    margin-top: -4px;
+}
+
+.ft-order-workflow-metric-card {
+    min-width: 0;
+    min-height: 0;
+}
+
+@media (max-width: 1240px) {
+    .ft-order-workflow-metric-strip {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        padding: 0 14px 14px;
+    }
+}
+
+@media (max-width: 1180px) and (min-width: 901px) {
+    .ft-order-workflow-metric-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .ft-order-workflow-metric-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 0 10px 10px;
+    }
+}
+
+@media (max-width: 460px) {
+    .ft-order-workflow-metric-strip {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+
+@container ft-order-stage-overview (max-width: 1240px) {
+    .ft-order-workflow-metric-strip {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        padding: 0 14px 14px;
+    }
+}
+
+@container ft-order-stage-overview (max-width: 900px) {
+    .ft-order-workflow-metric-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@container ft-order-stage-overview (max-width: 620px) {
+    .ft-order-workflow-metric-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 0 10px 10px;
+    }
+}
+
+@container ft-order-stage-overview (max-width: 360px) {
+    .ft-order-workflow-metric-strip {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

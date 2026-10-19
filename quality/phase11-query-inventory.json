@@ -1,0 +1,2518 @@
+{
+    "generated_for_phase": 11,
+    "total_get_calls": 312,
+    "classification_counts": {
+        "background_batch": 12,
+        "bounded_detail_lookup": 3,
+        "bounded_id_scope": 14,
+        "bounded_page_window": 3,
+        "explicitly_bounded": 54,
+        "parent_scoped": 17,
+        "reference_selector": 1,
+        "report_read_model": 42,
+        "scoped_domain_read": 62,
+        "setup_reference": 104
+    },
+    "unsafe_unbounded_count": 0,
+    "entries": [
+        {
+            "file": "app/Actions/Orders/BulkUpdateOrders.php",
+            "line": 24,
+            "method": "handle",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "$orders = $this->reads->visibleQuery($actor)->whereIn('id', $ids)->get();"
+        },
+        {
+            "file": "app/Console/Commands/MigrateProductPricingOptions.php",
+            "line": 130,
+            "method": "handle",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Console/Commands/MigrateProductPricingOptions.php",
+            "line": 232,
+            "method": "handle",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "$existing = $existingByLabel->get($normalizedLabel);"
+        },
+        {
+            "file": "app/Console/Commands/SyncOrderWorkflow.php",
+            "line": 21,
+            "method": "handle",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "->get(['id', 'name']);"
+        },
+        {
+            "file": "app/Console/Commands/UpgradeOrderWorkflow.php",
+            "line": 53,
+            "method": "handle",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "->get(['id', 'sequence', 'name', 'task_pack_id']);"
+        },
+        {
+            "file": "app/Console/Commands/UpgradeOrderWorkflow.php",
+            "line": 108,
+            "method": "handle",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Http/Controllers/Auth/AuthController.php",
+            "line": 58,
+            "method": "destroy",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$sessionToken = (string) $request->session()->get('flowtrack_login_token', '');"
+        },
+        {
+            "file": "app/Http/Middleware/EnsureSingleLoginSession.php",
+            "line": 19,
+            "method": "handle",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$sessionToken = (string) $request->session()->get('flowtrack_login_token', '');"
+        },
+        {
+            "file": "app/Http/Middleware/PreventDynamicPageCaching.php",
+            "line": 36,
+            "method": "handle",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$contentType = strtolower((string) $response->headers->get('Content-Type'));"
+        },
+        {
+            "file": "app/Livewire/Clients/Concerns/BuildsClientPageData.php",
+            "line": 36,
+            "method": "createPageData",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Livewire/Documents/Index.php",
+            "line": 297,
+            "method": "documentsPageData",
+            "classification": "bounded_page_window",
+            "reason": "Document Archive hydrates only IDs from the current paginated union page.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Livewire/Documents/Index.php",
+            "line": 302,
+            "method": "documentsPageData",
+            "classification": "bounded_page_window",
+            "reason": "Document Archive hydrates only IDs from the current paginated union page.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Livewire/Documents/Index.php",
+            "line": 307,
+            "method": "documentsPageData",
+            "classification": "bounded_page_window",
+            "reason": "Document Archive hydrates only IDs from the current paginated union page.",
+            "snippet": "$document = $inquiryModels->get((int) $archive->source_id);"
+        },
+        {
+            "file": "app/Livewire/Documents/Index.php",
+            "line": 337,
+            "method": "documentsPageData",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$document = $orderModels->get((int) $archive->source_id);"
+        },
+        {
+            "file": "app/Livewire/Documents/Index.php",
+            "line": 386,
+            "method": "documentsPageData",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Livewire/Inquiries/Concerns/BuildsInquiryPageData.php",
+            "line": 73,
+            "method": "createPageData",
+            "classification": "bounded_detail_lookup",
+            "reason": "Detail/create lookup constrained by selected product names/IDs or explicit small limits.",
+            "snippet": "->get(['id', 'name', 'code']);"
+        },
+        {
+            "file": "app/Livewire/Inquiries/Concerns/BuildsInquiryPageData.php",
+            "line": 117,
+            "method": "createPageData",
+            "classification": "bounded_detail_lookup",
+            "reason": "Detail/create lookup constrained by selected product names/IDs or explicit small limits.",
+            "snippet": "->get(['id', 'name', 'code']);"
+        },
+        {
+            "file": "app/Livewire/Inquiries/Concerns/BuildsInquiryPageData.php",
+            "line": 143,
+            "method": "createPageData",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'code']);"
+        },
+        {
+            "file": "app/Livewire/Inquiries/Concerns/BuildsInquiryPageData.php",
+            "line": 167,
+            "method": "createPageData",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'type', 'parent_id', 'name', 'code', 'metadata', 'status']);"
+        },
+        {
+            "file": "app/Livewire/Inquiries/Concerns/BuildsInquiryPageData.php",
+            "line": 263,
+            "method": "detailPageData",
+            "classification": "bounded_detail_lookup",
+            "reason": "Detail/create lookup constrained by selected product names/IDs or explicit small limits.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Livewire/Inquiries/Concerns/BuildsInquiryPageData.php",
+            "line": 300,
+            "method": "detailPageData",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id','name','flow_job_id','task_id','client_id'])"
+        },
+        {
+            "file": "app/Livewire/Inquiries/Concerns/BuildsInquiryPageData.php",
+            "line": 312,
+            "method": "detailPageData",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'flow_job_id', 'task_id', 'client_id', 'size', 'mime_type'])"
+        },
+        {
+            "file": "app/Livewire/Inquiries/Concerns/ManagesInquiryCreation.php",
+            "line": 156,
+            "method": "loadClientContactOptions",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$contacts = $client->contacts()->get(['name', 'email', 'job_title', 'is_primary', 'sort_order']);"
+        },
+        {
+            "file": "app/Livewire/Inquiries/Concerns/ManagesInquiryTasks.php",
+            "line": 282,
+            "method": "loadUserOptions",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name'])"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 48,
+            "method": "createPageData",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get(['id', 'name', 'contact_name'])"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 57,
+            "method": "createPageData",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id', 'client_id', 'label', 'recipient', 'address_line1', 'suite', 'city', 'state', 'zip', 'country', 'is_default', 'sort_order'])"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 83,
+            "method": "createPageData",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 106,
+            "method": "createPageData",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id', 'name', 'code']);"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 161,
+            "method": "createPageData",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'code']);"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 187,
+            "method": "createPageData",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'code']);"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 211,
+            "method": "createPageData",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'type', 'parent_id', 'name', 'code', 'metadata', 'status']);"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 302,
+            "method": "taskPageData",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 355,
+            "method": "jobPageData",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 407,
+            "method": "jobPageData",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$financeUsers = User::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'profile_image_path']);"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/BuildsOrderPageData.php",
+            "line": 507,
+            "method": "userOptions",
+            "classification": "reference_selector",
+            "reason": "Legacy user option collection for an editor/modal; not the Orders operational list. Search/filter selectors remain remote-bounded.",
+            "snippet": "? User::where('is_active', true)->orderBy('name')->get(['id', 'name', 'profile_image_path'])"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/ManagesOrderCreation.php",
+            "line": 333,
+            "method": "synchronizeCreateOrderProductSuppliersFromCatalog",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$product = $products->get($productId);"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/ManagesOrderCreation.php",
+            "line": 336,
+            "method": "synchronizeCreateOrderProductSuppliersFromCatalog",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$supplier = $suppliers->get($productId);"
+        },
+        {
+            "file": "app/Livewire/Jobs/Concerns/ManagesOrderTaskResources.php",
+            "line": 244,
+            "method": "uploadOverviewTaskFile",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "foreach ($validator->errors()->get($property) as $message) {"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 33,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 51,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$selected = $summaries->get($this->group);"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 158,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['metadata'])"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 217,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'code', 'name', 'status', 'sort_order', 'updated_at']);"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 256,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'name']);"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 272,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'code', 'name', 'status', 'sort_order', 'metadata']);"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 369,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'metadata'])"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 463,
+            "method": "render",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'code', 'name', 'status', 'sort_order', 'metadata', 'updated_at']);"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 525,
+            "method": "render",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'parent_id', 'code', 'name', 'status', 'sort_order', 'updated_at']);"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 547,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "if ($sub === '' || ! $visibleSubNamesByProduct->get($parentId, collect())->has($sub)) continue;"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 560,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'parent_id', 'code', 'name', 'status', 'sort_order']);"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 572,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['parent_id', 'metadata'])"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 596,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['metadata'])"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 627,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/BuildsMasterDataPageData.php",
+            "line": 673,
+            "method": "render",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "fn ($label, $type) => [$type => (int) ($summaries->get($type)?->total_count ?? 0)]"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesMasterEditor.php",
+            "line": 98,
+            "method": "open",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->map(fn ($row) => data_get($remotePrices->get($row['quantity']), 'price', ''))"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesMasterEditor.php",
+            "line": 444,
+            "method": "save",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$clients = Client::query()->whereIn('id', $data['productClientIds'])->orderBy('name')->get(['id', 'name', 'code']);"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesMasterEditor.php",
+            "line": 458,
+            "method": "save",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'code', 'name'])"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesMasterEditor.php",
+            "line": 463,
+            "method": "save",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$urgency = $shipmentUrgencies->get($urgencyId);"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductBulkActions.php",
+            "line": 181,
+            "method": "applyBulkProductClients",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "? Client::query()->whereIn('id', $this->bulkProductClientIds)->where('is_active', true)->orderBy('name')->get(['id', 'name', 'code'])"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductBulkActions.php",
+            "line": 236,
+            "method": "applyBulkProductCategory",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['metadata'])"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductBulkActions.php",
+            "line": 274,
+            "method": "exportSelectedProducts",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$products = $this->selectedProductsQuery()->orderBy('id')->get();"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductBulkActions.php",
+            "line": 302,
+            "method": "bulkDeleteProducts",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$products = $this->selectedProductsQuery()->get(['id', 'name']);"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductCategoryEditor.php",
+            "line": 181,
+            "method": "saveCategoryEditor",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "MasterRecord::query()->forWorkspace($workspaceId)->ofType('product_category')->get()->each(function (MasterRecord $category) use ($oldName, $record): void {"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductCategoryEditor.php",
+            "line": 191,
+            "method": "saveCategoryEditor",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "MasterRecord::query()->forWorkspace($category->workspace_id)->ofType('product')->where('parent_id', $category->id)->get()->each(function (MasterRecord $product) use ($record): void {"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductCategoryEditor.php",
+            "line": 204,
+            "method": "saveCategoryEditor",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "MasterRecord::query()->forWorkspace($workspaceId)->ofType('product')->where('parent_id', $record->id)->get()->each(function (MasterRecord $product) use ($main): void {"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductCategoryEditor.php",
+            "line": 215,
+            "method": "saveCategoryEditor",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "MasterRecord::query()->forWorkspace($workspaceId)->ofType('product')->where('parent_id', $oldParentId)->get()->each(function (MasterRecord $product) use ($oldName, $record): void {"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductCategorySelection.php",
+            "line": 51,
+            "method": "toggleCategoryPageSelection",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$ids = collect($parsedKeys->get($level, collect()))->pluck(1)->map(fn ($id) => (int) $id)->unique()->values();"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductCategorySelection.php",
+            "line": 84,
+            "method": "selectedCategoryRecords",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$ids = collect($grouped->get($level, collect()))->pluck(1)->map(fn ($id) => (int) $id)->unique()->values();"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductCategorySelection.php",
+            "line": 90,
+            "method": "selectedCategoryRecords",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Livewire/MasterData/Concerns/ManagesProductTaxonomyCreation.php",
+            "line": 360,
+            "method": "createProductSubcategory",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['metadata'])"
+        },
+        {
+            "file": "app/Livewire/TaskPackSetup/Form.php",
+            "line": 292,
+            "method": "validateTaskReferences",
+            "classification": "setup_reference",
+            "reason": "Setup/configuration reference read; bounded by the setup context rather than an operational list.",
+            "snippet": "->get(['id', 'type']);"
+        },
+        {
+            "file": "app/Livewire/TaskPackSetup/Form.php",
+            "line": 315,
+            "method": "validateTaskReferences",
+            "classification": "setup_reference",
+            "reason": "Setup/configuration reference read; bounded by the setup context rather than an operational list.",
+            "snippet": "->get(['type', 'code']);"
+        },
+        {
+            "file": "app/Livewire/UserEditor/Index.php",
+            "line": 273,
+            "method": "loadAccessOptions",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id', 'name'])"
+        },
+        {
+            "file": "app/Livewire/WorkflowSetup/Index.php",
+            "line": 295,
+            "method": "workflowPageData",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": ": TaskPack::query()->where('workspace_id', $workspaceId)->where('is_snapshot', false)->where('is_active', true)->orderBy('name')->get(['id', 'name']))"
+        },
+        {
+            "file": "app/Models/User.php",
+            "line": 108,
+            "method": "assignedRoles",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$roles = $this->roles()->get();"
+        },
+        {
+            "file": "app/Queries/Orders/OrderListQuery.php",
+            "line": 60,
+            "method": "visibleOrders",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/AccessControlService.php",
+            "line": 825,
+            "method": "accessRows",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/AdminService.php",
+            "line": 33,
+            "method": "users",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "return $this->usersQuery()->get();"
+        },
+        {
+            "file": "app/Services/AdminService.php",
+            "line": 64,
+            "method": "roles",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/AdminService.php",
+            "line": 73,
+            "method": "roleOptions",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'workspace_id', 'name', 'slug', 'code', 'description', 'default_scope', 'is_system', 'is_active']);"
+        },
+        {
+            "file": "app/Services/AdminService.php",
+            "line": 76,
+            "method": "notificationRules",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "public function notificationRules() { return NotificationRule::orderBy('name')->get(); }"
+        },
+        {
+            "file": "app/Services/AdminService.php",
+            "line": 77,
+            "method": "taskPacks",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "public function taskPacks() { return TaskPack::where('is_snapshot', false)->with('templates')->get(); }"
+        },
+        {
+            "file": "app/Services/AdminService.php",
+            "line": 471,
+            "method": "securitySettings",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$rows = MasterRecord::where('workspace_id', $this->workspaceId())->where('type', 'security_setting')->get()->keyBy('code');"
+        },
+        {
+            "file": "app/Services/AdminService.php",
+            "line": 473,
+            "method": "securitySettings",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$row = $rows->get($code);"
+        },
+        {
+            "file": "app/Services/AdminService.php",
+            "line": 518,
+            "method": "resolveRoles",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "return $ids->map(fn ($id) => $roles->get($id))->values();"
+        },
+        {
+            "file": "app/Services/BoardService.php",
+            "line": 76,
+            "method": "jobs",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/BoardService.php",
+            "line": 102,
+            "method": "tasks",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/BoardService.php",
+            "line": 184,
+            "method": "phases",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id', 'workflow_id', 'source_workflow_phase_id', 'name', 'short_name', 'sequence'])"
+        },
+        {
+            "file": "app/Services/BoardService.php",
+            "line": 206,
+            "method": "phases",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get(['id', 'workflow_id', 'source_workflow_phase_id', 'name', 'short_name', 'sequence'])"
+        },
+        {
+            "file": "app/Services/BoardService.php",
+            "line": 246,
+            "method": "workflowOptions",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id', 'name'])"
+        },
+        {
+            "file": "app/Services/BoardService.php",
+            "line": 296,
+            "method": "buildLookupPayload",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id', 'name'])"
+        },
+        {
+            "file": "app/Services/BoardService.php",
+            "line": 306,
+            "method": "buildLookupPayload",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id', 'name'])"
+        },
+        {
+            "file": "app/Services/BoardTaskPackService.php",
+            "line": 134,
+            "method": "paginate",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/BoardTaskPackService.php",
+            "line": 186,
+            "method": "paginate",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$tasksByJob = $tasks->get()->groupBy('flow_job_id');"
+        },
+        {
+            "file": "app/Services/BoardTaskPackService.php",
+            "line": 208,
+            "method": "paginate",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$job = $jobs->get($jobId);"
+        },
+        {
+            "file": "app/Services/BoardTaskPackService.php",
+            "line": 212,
+            "method": "paginate",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$taskRows = $tasksByJob->get($jobId, collect())"
+        },
+        {
+            "file": "app/Services/BulkOrderImportService.php",
+            "line": 602,
+            "method": "clientMaps",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "$clients = app(ClientService::class)->referenceQuery($actor, 'bulk-order-import')->where('is_active', true)->get(['id', 'code', 'name']);"
+        },
+        {
+            "file": "app/Services/BulkOrderImportService.php",
+            "line": 623,
+            "method": "productMaps",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "->get(['id', 'type', 'parent_id', 'code', 'name', 'metadata', 'status']);"
+        },
+        {
+            "file": "app/Services/BulkOrderImportService.php",
+            "line": 720,
+            "method": "urgencyMap",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "->get(['id', 'code', 'name'])"
+        },
+        {
+            "file": "app/Services/BulkOrderImportService.php",
+            "line": 753,
+            "method": "workflowTemplates",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/BulkOrderImportService.php",
+            "line": 833,
+            "method": "existingJobsByReferences",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "FlowJob::query()->whereIn('order_number', $chunk)->orderByDesc('id')->get()"
+        },
+        {
+            "file": "app/Services/BulkOrderImportService.php",
+            "line": 845,
+            "method": "existingJobsBySourceIds",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "FlowJob::withTrashed()->whereIn('source_row_id', $chunk)->get()->each(function (FlowJob $job) use (&$map): void {"
+        },
+        {
+            "file": "app/Services/BulkOrderImportService.php",
+            "line": 863,
+            "method": "loadToken",
+            "classification": "background_batch",
+            "reason": "Background/import/migration path; not an interactive operational list.",
+            "snippet": "$source = json_decode(Storage::disk('local')->get($path), true);"
+        },
+        {
+            "file": "app/Services/ClientService.php",
+            "line": 294,
+            "method": "detail",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/ClientService.php",
+            "line": 306,
+            "method": "detail",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/DocumentService.php",
+            "line": 43,
+            "method": "list",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "return $this->query($user, $filters, $permissionModule)->latest()->limit(250)->get();"
+        },
+        {
+            "file": "app/Services/DocumentService.php",
+            "line": 260,
+            "method": "versions",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->orderByDesc('version')->get();"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 202,
+            "method": "clients",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'country'])"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 274,
+            "method": "departments",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'code', 'updated_at'])"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 320,
+            "method": "jobs",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'job_number', 'title', 'client_id', 'updated_at'])"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 348,
+            "method": "users",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'department_id', 'name', 'profile_image_path'])"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 388,
+            "method": "productCategories",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'code'])"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 458,
+            "method": "products",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'parent_id', 'name', 'code', 'description'])"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 574,
+            "method": "workflows",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name'])"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 623,
+            "method": "masterOptions",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'code'])"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 644,
+            "method": "masterRecordOptions",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'code'])"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 701,
+            "method": "phoneCountryCodes",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'description', 'code'])"
+        },
+        {
+            "file": "app/Services/FilterOptionService.php",
+            "line": 817,
+            "method": "phases",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'workflow_template_id', 'name', 'short_name', 'sequence'])"
+        },
+        {
+            "file": "app/Services/InquiryIntelligenceService.php",
+            "line": 67,
+            "method": "data",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(["
+        },
+        {
+            "file": "app/Services/InquiryIntelligenceService.php",
+            "line": 147,
+            "method": "portfolio",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "'sort' => $prioritySequence->get(mb_strtolower($name), 9999),"
+        },
+        {
+            "file": "app/Services/InquiryIntelligenceService.php",
+            "line": 734,
+            "method": "reopenEventStats",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['meta', 'created_at'])"
+        },
+        {
+            "file": "app/Services/InquiryIntelligenceService.php",
+            "line": 800,
+            "method": "assigneeOptions",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['users.id', 'users.name'])"
+        },
+        {
+            "file": "app/Services/JobWorkflowSnapshotService.php",
+            "line": 83,
+            "method": "snapshot",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/JobWorkflowSnapshotService.php",
+            "line": 97,
+            "method": "snapshot",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 116,
+            "method": "attentionJobs",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 264,
+            "method": "recentInquiries",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 334,
+            "method": "mentions",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 366,
+            "method": "hydrateLegacyMentionActors",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['id', 'name', 'profile_image_path'])"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 376,
+            "method": "hydrateLegacyMentionActors",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$name = $nameByNotificationId->get((int) $notification->id);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 382,
+            "method": "hydrateLegacyMentionActors",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$notification->setRelation('actor', $usersByName->get(mb_strtolower($name)));"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 766,
+            "method": "assigneePerformance",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 775,
+            "method": "assigneePerformance",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['name', 'metadata']);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 860,
+            "method": "assigneePerformance",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$orderOpenCount = (int) ($orderOpen->get($id) ?? 0);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 861,
+            "method": "assigneePerformance",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$inquiryOpenCount = (int) ($inquiryOpen->get($id) ?? 0);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 862,
+            "method": "assigneePerformance",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$orderCompletedCount = (int) ($orderCompleted->get($id) ?? 0);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 863,
+            "method": "assigneePerformance",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$inquiryCompletedCount = (int) ($inquiryCompleted->get($id) ?? 0);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1027,
+            "method": "attentionOrders",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1084,
+            "method": "attentionInquiries",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1108,
+            "method": "attentionTasks",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1147,
+            "method": "priorityJobs",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1191,
+            "method": "priorityInquiries",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1221,
+            "method": "priorityTasks",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1238,
+            "method": "ongoingJobs",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1249,
+            "method": "ongoingTasks",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1259,
+            "method": "recentActivity",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1300,
+            "method": "recentOperationalActivity",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1322,
+            "method": "recentOperationalActivity",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['id', 'inquiry_id', 'assignee_id', 'title'])"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1353,
+            "method": "recentOperationalActivity",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$inquiryTask = $inquiryTaskId > 0 ? $inquiryTasks->get($inquiryTaskId) : null;"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1484,
+            "method": "clientPortfolio",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1512,
+            "method": "clientPortfolio",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1516,
+            "method": "clientPortfolio",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$stats = $inquiryStats->get($client->id);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1597,
+            "method": "orderWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1608,
+            "method": "orderWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['id', 'workflow_id', 'workflow_template_id', 'source_workflow_phase_id', 'name', 'short_name', 'sequence', 'task_pack_id', 'color'])"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1617,
+            "method": "orderWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['id', 'workflow_id', 'workflow_template_id', 'source_workflow_phase_id', 'name', 'short_name', 'sequence', 'task_pack_id', 'color'])"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1625,
+            "method": "orderWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$phase = $sourcePhases->get($phaseId) ?: $snapshotPhases->get($phaseId);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1625,
+            "method": "orderWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$phase = $sourcePhases->get($phaseId) ?: $snapshotPhases->get($phaseId);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1697,
+            "method": "inquiryWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1716,
+            "method": "inquiryWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['id', 'workflow_id', 'workflow_template_id', 'name', 'short_name', 'sequence', 'task_pack_id', 'color'])"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1760,
+            "method": "inquiryWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$taskCount = max(0, (int) ($packCounts->get((int) ($phase['task_pack_id'] ?? 0)) ?? 0));"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1779,
+            "method": "inquiryWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "? ($definitionsById->get($sourcePhaseId) ?: $legacyDirectPhases->get($sourcePhaseId))"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1779,
+            "method": "inquiryWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "? ($definitionsById->get($sourcePhaseId) ?: $legacyDirectPhases->get($sourcePhaseId))"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1783,
+            "method": "inquiryWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$packId = (int) ($packBySourceItem->get($sourceItemId) ?? 0);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1834,
+            "method": "workflowPhaseDefinitions",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['id', 'workflow_id', 'workflow_template_id', 'name', 'short_name', 'sequence', 'task_pack_id', 'color'])"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1855,
+            "method": "compileWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['id', 'name', 'client_availability'])"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1908,
+            "method": "compileWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$template = $templates->get($workflowId);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1920,
+            "method": "compileWorkflowPhaseDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->map(fn ($workflowId) => trim((string) ($templates->get($workflowId)?->name ?: '')))"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 1961,
+            "method": "activeClientNamesByWorkflow",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$name = trim((string) ($clientNames->get($clientId) ?? ''));"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 2047,
+            "method": "buildTaskStatusDistribution",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 2180,
+            "method": "dashboardClients",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['clients.id', 'clients.name']);"
+        },
+        {
+            "file": "app/Services/LegacyDashboardService.php",
+            "line": 2189,
+            "method": "dashboardDepartments",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "return $query->get(['id', 'name']);"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 590,
+            "method": "listRows",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": ": User::query()->whereIn('id', $assigneeIds)->get(['id', 'name', 'profile_image_path'])->keyBy('id');"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 594,
+            "method": "listRows",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "$taskAssignee = $assignees->get((int) $inquiry->current_task_assignee_id);"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 809,
+            "method": "create",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "->get(['id', 'inquiry_id', 'description'])"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 1187,
+            "method": "taskPackOptions",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name']);"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 1730,
+            "method": "saveWorkflow",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "$existing = $inquiry->tasks()->get()->keyBy('id');"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 1743,
+            "method": "saveWorkflow",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "if (!$id || !($task = $existing->get($id)) || $task->completed_at) continue;"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 1774,
+            "method": "saveWorkflow",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "$task = $id ? $existing->get($id) : null;"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 1806,
+            "method": "saveWorkflow",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "$inquiry->tasks()->whereNotIn('id', $kept ?: [0])->whereNull('completed_at')->get()->each->forceDelete();"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 2358,
+            "method": "myTaskGroups",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'inquiry_id', 'assignee_id', 'title', 'status', 'needs_attention', 'attention_reason', 'due_date', 'sequence', 'updated_at']);"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 2367,
+            "method": "myTaskGroups",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get()->keyBy('inquiry_id');"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 2372,
+            "method": "myTaskGroups",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$count = $counts->get($task->inquiry_id);"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 2498,
+            "method": "normalizeTaskStates",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "$open = $inquiry->tasks()->whereNull('completed_at')->orderBy('sequence')->get();"
+        },
+        {
+            "file": "app/Services/LegacyInquiryService.php",
+            "line": 2524,
+            "method": "syncAutomaticStatus",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "->get(['id', 'status', 'sequence', 'started_at', 'completed_at']);"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 577,
+            "method": "inquiryLinkResults",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 812,
+            "method": "hydratePublishedOrderWorkflow",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 848,
+            "method": "hydrateLoadedTaskLinks",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get(['id', 'task_id', 'created_by', 'url', 'created_at', 'updated_at']);"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 856,
+            "method": "hydrateLoadedTaskLinks",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "collect($linksByTask->get((int) $task->id, collect()))->values(),"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 883,
+            "method": "hydrateArtworkRevisionNotes",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 946,
+            "method": "loadVisibleOverviewActivity",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 1937,
+            "method": "syncItemSummary",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "$items = $job->items()->active()->orderBy('sort_order')->get();"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 2080,
+            "method": "syncAutomaticStatus",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "->get(['id', 'workflow_phase_id', 'status', 'progress', 'completed_at', 'updated_at']);"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 2353,
+            "method": "syncPhaseTaskPack",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get(['id', 'department_id', 'name', 'profile_image_path'])"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 2361,
+            "method": "syncPhaseTaskPack",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$legacyDepartmentId = (int) ($departmentIdsByCode->get($template->defaultDepartment->code) ?: 0);"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 2362,
+            "method": "syncPhaseTaskPack",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$assignee = $legacyDepartmentId ? $fallbackUsersByDepartment->get($legacyDepartmentId) : null;"
+        },
+        {
+            "file": "app/Services/LegacyJobService.php",
+            "line": 2461,
+            "method": "restoreLegacyTaskPackDocumentRequirement",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/ListExportService.php",
+            "line": 68,
+            "method": "exportOrders",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$orders = $query->with($relations)->get();"
+        },
+        {
+            "file": "app/Services/ListExportService.php",
+            "line": 99,
+            "method": "exportInquiries",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "])->get();"
+        },
+        {
+            "file": "app/Services/ListExportService.php",
+            "line": 676,
+            "method": "masterNames",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->map(fn ($id) => $map->get((int) $id))"
+        },
+        {
+            "file": "app/Services/MasterDataService.php",
+            "line": 265,
+            "method": "list",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "return $this->query($type, $search, $filters)->get();"
+        },
+        {
+            "file": "app/Services/MasterDataService.php",
+            "line": 280,
+            "method": "active",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "MasterRecord::query()->forWorkspace($workspaceId)->ofType($type)->active()->orderBy('sort_order')->orderBy('name')->get()"
+        },
+        {
+            "file": "app/Services/MasterDataService.php",
+            "line": 301,
+            "method": "colorFor",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['code', 'name', 'color'])"
+        },
+        {
+            "file": "app/Services/MasterDataService.php",
+            "line": 676,
+            "method": "syncLegacy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "foreach (MasterValue::query()->get() as $legacy) {"
+        },
+        {
+            "file": "app/Services/MasterDataService.php",
+            "line": 697,
+            "method": "syncLegacy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "foreach (MasterValue::query()->where('group_key', self::LEGACY_GROUPS['product'])->whereNotNull('parent_id')->get() as $legacyProduct) {"
+        },
+        {
+            "file": "app/Services/MasterDataService.php",
+            "line": 717,
+            "method": "syncLegacy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "foreach (MasterValue::query()->where('group_key', self::LEGACY_GROUPS['state'])->whereNotNull('parent_id')->get() as $legacyState) {"
+        },
+        {
+            "file": "app/Services/MasterDataService.php",
+            "line": 741,
+            "method": "syncLegacy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "foreach (MasterRecord::query()->forWorkspace($workspaceId)->ofType('product')->whereNull('parent_id')->get(['id', 'description', 'metadata']) as $product) {"
+        },
+        {
+            "file": "app/Services/MentionService.php",
+            "line": 64,
+            "method": "userIdsFromText",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id', 'name', 'email']);"
+        },
+        {
+            "file": "app/Services/MentionService.php",
+            "line": 128,
+            "method": "displayText",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$user = $id > 0 ? $users->get($id) : null;"
+        },
+        {
+            "file": "app/Services/MentionService.php",
+            "line": 132,
+            "method": "displayText",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$userId = $plainAlias !== '' ? $aliases->get($plainAlias) : null;"
+        },
+        {
+            "file": "app/Services/MentionService.php",
+            "line": 133,
+            "method": "displayText",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$user = $userId ? $users->get((int) $userId) : null;"
+        },
+        {
+            "file": "app/Services/MentionService.php",
+            "line": 150,
+            "method": "renderTokens",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$user = $id > 0 ? $users->get($id) : null;"
+        },
+        {
+            "file": "app/Services/MentionService.php",
+            "line": 154,
+            "method": "renderTokens",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$userId = $plainAlias !== '' ? $this->renderAliases()->get($plainAlias) : null;"
+        },
+        {
+            "file": "app/Services/MentionService.php",
+            "line": 155,
+            "method": "renderTokens",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$user = $userId ? $users->get((int) $userId) : null;"
+        },
+        {
+            "file": "app/Services/MentionService.php",
+            "line": 172,
+            "method": "activeUserOptions",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id', 'name', 'email'])"
+        },
+        {
+            "file": "app/Services/MentionService.php",
+            "line": 191,
+            "method": "renderUsers",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id', 'name', 'email'])"
+        },
+        {
+            "file": "app/Services/MyWorkService.php",
+            "line": 108,
+            "method": "paginate",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/MyWorkService.php",
+            "line": 132,
+            "method": "paginate",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$tasksByJob = $tasks->get()->groupBy('flow_job_id');"
+        },
+        {
+            "file": "app/Services/MyWorkService.php",
+            "line": 137,
+            "method": "paginate",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$job = $jobs->get($jobId);"
+        },
+        {
+            "file": "app/Services/MyWorkService.php",
+            "line": 141,
+            "method": "paginate",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$taskRows = $tasksByJob->get($jobId, collect())"
+        },
+        {
+            "file": "app/Services/MyWorkService.php",
+            "line": 319,
+            "method": "orderPhaseOptions",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['my_work_filter_phases.name', 'my_work_filter_phases.sequence'])"
+        },
+        {
+            "file": "app/Services/NotificationService.php",
+            "line": 136,
+            "method": "list",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/NotificationService.php",
+            "line": 408,
+            "method": "notifyMentionedUsers",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/NotificationService.php",
+            "line": 505,
+            "method": "notifyInquiryMentionedUsers",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/NotificationService.php",
+            "line": 553,
+            "method": "notifyInquiryAttentionUsers",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "User::query()->whereIn('id', $ids->all())->where('is_active', true)->get()->each(function (User $recipient) use ($title, $message, $inquiry, $inquiryTask, $actorId): void {"
+        },
+        {
+            "file": "app/Services/NotificationService.php",
+            "line": 688,
+            "method": "fanOutAfterCommit",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/NotificationService.php",
+            "line": 707,
+            "method": "legacyActorFromMentionTitle",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'name', 'profile_image_path']);"
+        },
+        {
+            "file": "app/Services/OrderFinanceService.php",
+            "line": 22,
+            "method": "summary",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "$invoices = $job->relationLoaded('invoices') ? $job->invoices : $job->invoices()->with('payments')->get();"
+        },
+        {
+            "file": "app/Services/OrderFinanceService.php",
+            "line": 23,
+            "method": "summary",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "$payments = $job->relationLoaded('payments') ? $job->payments : $job->payments()->get();"
+        },
+        {
+            "file": "app/Services/OrderListPrototypeService.php",
+            "line": 52,
+            "method": "stages",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "->get(['id','workflow_template_id','name','short_name','sequence','color']);"
+        },
+        {
+            "file": "app/Services/OrderListPrototypeService.php",
+            "line": 85,
+            "method": "stages",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$phase = $preferredBySequence->get($sequence);"
+        },
+        {
+            "file": "app/Services/OrderListPrototypeService.php",
+            "line": 213,
+            "method": "supplierOptions",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id','name']);"
+        },
+        {
+            "file": "app/Services/OrderListPrototypeService.php",
+            "line": 223,
+            "method": "urgencyOptions",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get(['id','name']);"
+        },
+        {
+            "file": "app/Services/OrderTaskFlagService.php",
+            "line": 239,
+            "method": "syncJob",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/OrderTaskSequenceService.php",
+            "line": 117,
+            "method": "requiredGeneratedTasks",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/OrderWorkflowActionService.php",
+            "line": 297,
+            "method": "perform",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/OrderWorkflowActionService.php",
+            "line": 330,
+            "method": "perform",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/OrderWorkflowActionService.php",
+            "line": 359,
+            "method": "perform",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/OrderWorkflowActionService.php",
+            "line": 424,
+            "method": "perform",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/OrderWorkflowActionService.php",
+            "line": 537,
+            "method": "afterDocumentAdded",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/OrderWorkflowActionService.php",
+            "line": 560,
+            "method": "restartArtwork",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/OrderWorkflowActionService.php",
+            "line": 736,
+            "method": "recordedPaymentTotal",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "->get(['meta'])"
+        },
+        {
+            "file": "app/Services/OrderWorkflowBindingService.php",
+            "line": 45,
+            "method": "captureActiveOrderTargetSequences",
+            "classification": "setup_reference",
+            "reason": "Workflow setup/binding reference read; bounded by the selected workflow context.",
+            "snippet": "->get(['id', 'workflow_phase_id', 'status'])"
+        },
+        {
+            "file": "app/Services/OrderWorkflowBindingService.php",
+            "line": 138,
+            "method": "publishedWorkflow",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 161,
+            "method": "isReadyForOrderCreation",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$phase = $workflow->phases->values()->get($index);"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 205,
+            "method": "initializeWorkflowTemplate",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 219,
+            "method": "initializeWorkflowTemplate",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$sourcePhase = $canClone ? $sourcePhases->values()->get($index) : null;"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 248,
+            "method": "compatibleTaskPacksForStage",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 293,
+            "method": "structureMatchesOrderRuntime",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$phase = $phases->values()->get($index);"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 374,
+            "method": "createStageTaskPack",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "'default_department_id' => $departments->get(mb_strtolower((string) ($task['team'] ?? '')))?->id,"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 431,
+            "method": "load",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$phase = $phases->get($sequence);"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 439,
+            "method": "load",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$task['default_department_id'] = $departmentByName->get(mb_strtolower($task['team']))?->id;"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 441,
+            "method": "load",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "? $documentByName->get(mb_strtolower($task['document_type']))?->id"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 527,
+            "method": "save",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 558,
+            "method": "save",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$existingItems = $pack->items()->orderBy('sort_order')->orderBy('id')->get()->keyBy('id');"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 650,
+            "method": "defaultState",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$task['default_department_id'] = $departments->get(mb_strtolower($task['team']))['id'] ?? null;"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 652,
+            "method": "defaultState",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "? ($documents->get(mb_strtolower($task['document_type']))['id'] ?? null)"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 684,
+            "method": "departments",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'name']);"
+        },
+        {
+            "file": "app/Services/OrderWorkflowSetupService.php",
+            "line": 694,
+            "method": "documentCategories",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'name']);"
+        },
+        {
+            "file": "app/Services/ProductCatalogService.php",
+            "line": 49,
+            "method": "searchForOrderCreation",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'type', 'parent_id', 'name', 'code', 'description', 'metadata', 'status'])"
+        },
+        {
+            "file": "app/Services/ProductCatalogService.php",
+            "line": 76,
+            "method": "mainCategories",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'parent_id', 'metadata'])"
+        },
+        {
+            "file": "app/Services/ProductCatalogService.php",
+            "line": 109,
+            "method": "selectedProducts",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'type', 'parent_id', 'name', 'code', 'description', 'metadata', 'status'])"
+        },
+        {
+            "file": "app/Services/ProductCatalogService.php",
+            "line": 158,
+            "method": "suppliersForProducts",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'name', 'code', 'status'])"
+        },
+        {
+            "file": "app/Services/ProductCatalogService.php",
+            "line": 162,
+            "method": "suppliersForProducts",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->map(fn ($supplierId) => $suppliers->get((int) $supplierId))"
+        },
+        {
+            "file": "app/Services/ProductCategoryDeletionService.php",
+            "line": 60,
+            "method": "preview",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'name']);"
+        },
+        {
+            "file": "app/Services/ProductCategoryDeletionService.php",
+            "line": 74,
+            "method": "preview",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'name', 'metadata']);"
+        },
+        {
+            "file": "app/Services/ProductCategoryDeletionService.php",
+            "line": 99,
+            "method": "preview",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'parent_id', 'name']);"
+        },
+        {
+            "file": "app/Services/ProductCategoryDeletionService.php",
+            "line": 121,
+            "method": "preview",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'parent_id', 'name', 'metadata'])"
+        },
+        {
+            "file": "app/Services/ProductCategoryDeletionService.php",
+            "line": 140,
+            "method": "preview",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$subNames = $subcategoryNamesByParent->get($parentId, collect());"
+        },
+        {
+            "file": "app/Services/ProductCategoryDeletionService.php",
+            "line": 205,
+            "method": "hardDelete",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/ProductCategoryDeletionService.php",
+            "line": 260,
+            "method": "forceDeleteIds",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/ProductOptionImageService.php",
+            "line": 43,
+            "method": "sync",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "$old = $current->get($key);"
+        },
+        {
+            "file": "app/Services/ProductTaxonomyService.php",
+            "line": 28,
+            "method": "synchronizeLegacyTaxonomy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/ProductTaxonomyService.php",
+            "line": 33,
+            "method": "synchronizeLegacyTaxonomy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'parent_id', 'metadata']);"
+        },
+        {
+            "file": "app/Services/ProductTaxonomyService.php",
+            "line": 58,
+            "method": "synchronizeLegacyTaxonomy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$mainName = $productsByCategory->get((int) $category->id, collect())"
+        },
+        {
+            "file": "app/Services/ProductTaxonomyService.php",
+            "line": 83,
+            "method": "synchronizeLegacyTaxonomy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "foreach ($productsByCategory->get((int) $category->id, collect()) as $product) {"
+        },
+        {
+            "file": "app/Services/ProductTaxonomyService.php",
+            "line": 113,
+            "method": "synchronizeLegacyTaxonomy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['metadata'])"
+        },
+        {
+            "file": "app/Services/ProductTaxonomyService.php",
+            "line": 131,
+            "method": "mainCategories",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/ProductTaxonomyService.php",
+            "line": 142,
+            "method": "productCategories",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/ProductTaxonomyService.php",
+            "line": 153,
+            "method": "subcategories",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/ReportService.php",
+            "line": 41,
+            "method": "phase",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/ReportService.php",
+            "line": 46,
+            "method": "phase",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['id', 'name', 'short_name', 'sequence'])"
+        },
+        {
+            "file": "app/Services/ReportService.php",
+            "line": 55,
+            "method": "phase",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "->get(['id', 'source_workflow_phase_id', 'name', 'short_name', 'sequence'])"
+        },
+        {
+            "file": "app/Services/ReportService.php",
+            "line": 61,
+            "method": "phase",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$row->setRelation('phase', $phases->get($key) ?: $snapshotPhases->get($key));"
+        },
+        {
+            "file": "app/Services/ReportService.php",
+            "line": 61,
+            "method": "phase",
+            "classification": "report_read_model",
+            "reason": "Analytics/report read model; Phase 12 owns deeper aggregate decomposition.",
+            "snippet": "$row->setRelation('phase', $phases->get($key) ?: $snapshotPhases->get($key));"
+        },
+        {
+            "file": "app/Services/ReportService.php",
+            "line": 87,
+            "method": "workload",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/TaskActivityModerationService.php",
+            "line": 42,
+            "method": "deleteOrderTaskComment",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/TaskActivityModerationService.php",
+            "line": 271,
+            "method": "deleteOrderMirrorActivities",
+            "classification": "parent_scoped",
+            "reason": "Relationship read is scoped to one already-authorized parent record.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/TaskActivityModerationService.php",
+            "line": 309,
+            "method": "refreshMentionRecipients",
+            "classification": "bounded_id_scope",
+            "reason": "Hydration is constrained to a previously bounded/selected ID set.",
+            "snippet": "User::query()->whereIn('id', $recipientIds)->get()->each(function (User $recipient): void {"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 78,
+            "method": "all",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 273,
+            "method": "packDeleteImpact",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'workflow_template_id', 'name', 'sequence', 'task_pack_id', 'color']);"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 295,
+            "method": "packDeleteImpact",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'job_number', 'title', 'workflow_id', 'source_workflow_id', 'deleted_at']);"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 342,
+            "method": "deletePack",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'workflow_id', 'workflow_template_id']);"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 632,
+            "method": "moveItem",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$items = TaskPackItem::where('task_pack_id', $packId)->orderBy('sort_order')->orderBy('id')->get()->values();"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 706,
+            "method": "assertOrderPackCoreSequence",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'sequence']);"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 736,
+            "method": "syncLegacy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "foreach (TaskPack::query()->where('workspace_id', $workspaceId)->where('is_snapshot', false)->where(fn ($q) => $q->whereNull('code')->orWhere('code', ''))->get() as $pack) {"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 742,
+            "method": "syncLegacy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "foreach (TaskPackTask::query()->orderBy('id')->get() as $legacy) {"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 771,
+            "method": "syncLegacyDocumentRequirements",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 785,
+            "method": "syncLegacyDocumentRequirements",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "WorkflowPhase::query()->whereNotNull('task_pack_id')->orderBy('id')->get()->each(function ($phase) {"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 792,
+            "method": "syncLegacyDocumentRequirements",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$items = TaskPackItem::query()->where('task_pack_id', $phase->task_pack_id)->orderBy('sort_order')->orderBy('id')->get();"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 811,
+            "method": "normalize",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "TaskPackTask::where('task_pack_id', $packId)->get()->each(fn ($row) => $row->update(['sequence' => 10000 + $row->id]));"
+        },
+        {
+            "file": "app/Services/TaskPackService.php",
+            "line": 813,
+            "method": "normalize",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "TaskPackItem::where('task_pack_id', $packId)->orderBy('sort_order')->orderBy('id')->get()->values()->each(function ($item, $index) {"
+        },
+        {
+            "file": "app/Services/TaskService.php",
+            "line": 35,
+            "method": "list",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get();"
+        },
+        {
+            "file": "app/Services/UserEditorService.php",
+            "line": 60,
+            "method": "update",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$roles = Role::query()->where('workspace_id', $this->workspaceId())->whereIn('id', $roleIds)->get()->keyBy('id');"
+        },
+        {
+            "file": "app/Services/UserEditorService.php",
+            "line": 62,
+            "method": "update",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "$selectedRoles = $roleIds->map(fn ($id) => $roles->get($id))->values();"
+        },
+        {
+            "file": "app/Services/WorkflowService.php",
+            "line": 29,
+            "method": "all",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->orderByDesc('is_default')->orderBy('name')->get();"
+        },
+        {
+            "file": "app/Services/WorkflowService.php",
+            "line": 135,
+            "method": "copyPhases",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "foreach ($source->phases()->orderBy('sequence')->get() as $phase) {"
+        },
+        {
+            "file": "app/Services/WorkflowService.php",
+            "line": 212,
+            "method": "workflowDeleteImpact",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'job_number', 'title', 'workflow_id', 'source_workflow_id', 'deleted_at']);"
+        },
+        {
+            "file": "app/Services/WorkflowService.php",
+            "line": 221,
+            "method": "workflowDeleteImpact",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "->get(['id', 'task_number', 'title', 'flow_job_id'])"
+        },
+        {
+            "file": "app/Services/WorkflowService.php",
+            "line": 226,
+            "method": "workflowDeleteImpact",
+            "classification": "explicitly_bounded",
+            "reason": "Query has an explicit row/window bound before hydration.",
+            "snippet": "'job_number' => (string) ($jobNumbers->get($task->flow_job_id) ?? ''),"
+        },
+        {
+            "file": "app/Services/WorkflowService.php",
+            "line": 472,
+            "method": "delete",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get()"
+        },
+        {
+            "file": "app/Services/WorkflowService.php",
+            "line": 482,
+            "method": "syncLegacy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "foreach (Workflow::query()->where('is_snapshot', false)->orderBy('id')->get() as $legacy) {"
+        },
+        {
+            "file": "app/Services/WorkflowService.php",
+            "line": 498,
+            "method": "syncLegacy",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "foreach (WorkflowPhase::query()->whereNotNull('workflow_id')->whereHas('workflow', fn ($workflow) => $workflow->where('is_snapshot', false))->get() as $phase) {"
+        },
+        {
+            "file": "app/Services/WorkflowService.php",
+            "line": 522,
+            "method": "workflowPhases",
+            "classification": "setup_reference",
+            "reason": "Administration/setup/reference-data read, not an unbounded operational record list.",
+            "snippet": "->get(['id', 'name', 'sequence']);"
+        },
+        {
+            "file": "app/Services/WorkspaceSettingsService.php",
+            "line": 38,
+            "method": "displayTimezone",
+            "classification": "scoped_domain_read",
+            "reason": "Reviewed domain read with query scope/relationship constraints; not a top-level operational list.",
+            "snippet": "? trim((string) request()->session()->get('flowtrack_timezone', ''))"
+        }
+    ],
+    "approved_later_phase_updates": {
+        "2026-08-24-current-query-inventory": "Re-indexed the reviewed Phase 11 query inventory to the current post-refactor source locations. Existing classifications are preserved where snippets match; new console/setup reads are classified by their bounded execution context."
+    }
+}

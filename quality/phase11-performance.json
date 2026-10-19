@@ -1,0 +1,25 @@
+{
+  "inventory_occurrences": 312,
+  "unsafe_unbounded": 0,
+  "required_indexes": [
+    "ft_jobs_owner_open_due_idx",
+    "ft_jobs_phase_open_idx",
+    "ft_jobs_attention_updated_idx",
+    "ft_tasks_job_open_due_idx",
+    "ft_tasks_phase_open_due_idx",
+    "ft_inquiries_workspace_open_updated_idx",
+    "ft_inquiries_owner_open_idx",
+    "ft_inquiries_client_updated_idx",
+    "ft_inquiry_tasks_parent_open_seq_idx",
+    "ft_inquiry_tasks_assignee_open_due_idx",
+    "ft_inquiry_documents_parent_updated_idx",
+    "ft_clients_active_archived_name_idx"
+  ],
+  "budgets": {
+    "standard_page_p95_ms": 500,
+    "heavy_report_p95_ms": 1000,
+    "standard_query_count": 80,
+    "standard_query_total_ms": 400,
+    "slow_query_ms": 150
+  }
+}

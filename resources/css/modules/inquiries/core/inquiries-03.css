@@ -1,0 +1,3315 @@
+/** Ordered inquiries segment 03. */
+@media(max-width:900px) {
+    .ft-inquiry-prototype .pagehead {
+        align-items: flex-start
+    }
+
+    .ft-inquiry-prototype .pagehead>div:first-child {
+        min-width: 0;
+        flex: 1
+    }
+
+    .ft-inquiry-prototype .pagehead p {
+        max-width: 620px
+    }
+
+    .ft-inquiry-prototype .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px
+    }
+
+    .ft-inquiry-prototype .metric {
+        min-width: 0;
+        min-height: 78px;
+        padding: 12px
+    }
+
+    .ft-inquiry-prototype .metric>span {
+        min-width: 0
+    }
+
+    .ft-inquiry-prototype .metric small {
+        line-height: 1.3
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 {
+        overflow: visible
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .toolbar {
+        padding: 13px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .filters {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 7px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .chip {
+        width: 100%;
+        padding-inline: 8px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .inquiry-list-table {
+        overflow: visible
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .listhead {
+        display: none
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .inquiry-list-body {
+        display: grid;
+        width: 100%;
+        min-width: 0;
+        gap: 11px;
+        padding: 12px;
+        background: #f7f9fc
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "identity controls"
+            "title title"
+            "client task"
+            "progress progress"
+            "assignee status"
+            "due priority"
+            "started started";
+        min-width: 0;
+        min-height: 0;
+        margin: 0;
+        padding: 14px;
+        gap: 13px 18px;
+        border: 1px solid #dbe4ef;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(25, 45, 75, .03);
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .row:last-child {
+        border-bottom: 1px solid #dbe4ef
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .row:hover {
+        background: #fff;
+        box-shadow: 0 3px 12px rgba(30, 65, 110, .07)
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .cell {
+        align-self: start;
+        min-width: 0
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .cell::before {
+        content: attr(data-label);
+        display: block;
+        margin: 0 0 5px;
+        color: #7b899e;
+        font-size: .53125rem;
+        font-weight: 800;
+        letter-spacing: .055em;
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-identity {
+        grid-area: identity;
+        padding-right: 0
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-title-cell {
+        grid-area: title
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-client-cell {
+        grid-area: client
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-task-cell {
+        grid-area: task
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-progress-cell {
+        grid-area: progress;
+        padding-right: 0
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-assignee-cell {
+        grid-area: assignee
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-due-cell {
+        grid-area: due
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-started-cell {
+        grid-area: started
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-priority-cell {
+        grid-area: priority;
+        display: block
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-status-cell {
+        grid-area: status;
+        display: block
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-view-cell {
+        grid-area: controls;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        padding-right: 38px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-actions-cell {
+        grid-area: controls;
+        align-self: start;
+        justify-self: end;
+        z-index: 3
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-view-cell::before,
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-actions-cell::before {
+        display: none
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .id {
+        font-size: .8125rem
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .title {
+        overflow: visible;
+        font-size: .71875rem;
+        line-height: 1.4;
+        text-overflow: clip;
+        white-space: normal;
+        overflow-wrap: anywhere
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .sub {
+        overflow: visible;
+        font-size: .625rem;
+        line-height: 1.4;
+        text-overflow: clip;
+        white-space: normal;
+        overflow-wrap: anywhere
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-title-preview {
+        display: block;
+        -webkit-line-clamp: unset
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-progress {
+        grid-template-columns: minmax(0, 1fr) auto;
+        max-width: none
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-progress-track {
+        height: 8px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-assignee-cell .title {
+        white-space: normal
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-priority-cell .pill,
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-status-cell .pill {
+        max-width: 100%;
+        white-space: normal;
+        text-align: center
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-view-cell .openbtn {
+        min-width: 68px;
+        height: 36px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-empty {
+        min-width: 0;
+        padding: 36px 14px;
+        border: 1px solid #dbe4ef;
+        border-radius: 12px;
+        background: #fff
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .footer {
+        padding: 12px 14px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .footer>span:last-child {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .footer>span:last-child .chip {
+        width: auto;
+        min-width: 34px
+    }
+}
+
+@media(max-width:640px) {
+    .ft-inquiry-prototype .pagehead {
+        gap: 12px
+    }
+
+    .ft-inquiry-prototype .pagehead h1 {
+        font-size: 1.5rem
+    }
+
+    .ft-inquiry-prototype .pagehead p {
+        font-size: .71875rem;
+        line-height: 1.45
+    }
+
+    .ft-inquiry-prototype .pagehead .actions {
+        flex: 0 0 auto
+    }
+
+    .ft-inquiry-prototype .pagehead .primary {
+        min-height: 40px;
+        padding-inline: 13px
+    }
+
+    .ft-inquiry-prototype .metric {
+        min-height: 82px;
+        gap: 9px
+    }
+
+    .ft-inquiry-prototype .metric i {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px
+    }
+
+    .ft-inquiry-prototype .metric small {
+        font-size: .625rem
+    }
+
+    .ft-inquiry-prototype .metric strong {
+        font-size: 1.25rem
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .search input {
+        height: 44px;
+        font-size: .71875rem
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .chip {
+        height: 36px;
+        border-radius: 10px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .row {
+        gap: 12px 14px;
+        padding: 13px
+    }
+}
+
+@media(max-width:500px) {
+    .ft-inquiry-prototype .pagehead {
+        flex-direction: column
+    }
+
+    .ft-inquiry-prototype .pagehead .actions {
+        width: 100%
+    }
+
+    .ft-inquiry-prototype .pagehead .primary {
+        width: 100%
+    }
+
+    .ft-inquiry-prototype .metrics {
+        gap: 8px
+    }
+
+    .ft-inquiry-prototype .metric {
+        padding: 10px;
+        min-height: 78px
+    }
+
+    .ft-inquiry-prototype .metric i {
+        width: 32px;
+        height: 32px;
+        flex-basis: 32px
+    }
+
+    .ft-inquiry-prototype .metric small {
+        font-size: .59375rem
+    }
+
+    .ft-inquiry-prototype .metric strong {
+        font-size: 1.125rem
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .inquiry-list-body {
+        padding: 9px;
+        gap: 9px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "identity controls"
+            "title title"
+            "client client"
+            "task task"
+            "progress progress"
+            "assignee assignee"
+            "due started"
+            "status status";
+        gap: 11px 12px;
+        padding: 12px;
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-status-cell {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-status-cell::before {
+        margin-bottom: 0
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-status-cell .pill {
+        margin-left: auto
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .ft-inquiry-list-view-cell .openbtn {
+        min-width: 62px;
+        padding-inline: 8px
+    }
+
+    .ft-inquiry-prototype .inquiry-list-v2 .footer {
+        gap: 7px;
+        font-size: .59375rem
+    }
+}
+
+/* 2026-08-09 Inquiry Taskflow responsive alignment.
+   Keep every task compact and readable on phones/tablets without changing task logic. */
+@media(max-width:760px) {
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .panelhead {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+        gap: 10px;
+        padding: 12px 14px;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .panelhead>div:first-child {
+        min-width: 0
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .panelhead h2 {
+        font-size: .9375rem;
+        line-height: 1.25
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .panelhead p {
+        max-width: 520px;
+        margin-top: 3px;
+        font-size: .6875rem;
+        line-height: 1.4
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-control-row {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-wrap: wrap;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-count-pill,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .manage-badge {
+        min-height: 30px;
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 9px;
+        font-size: .625rem;
+        line-height: 1.15;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-control-row .primary {
+        min-height: 36px !important;
+        margin-left: auto;
+        padding: 0 12px;
+        font-size: .65625rem;
+        font-weight: 700;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-row {
+        grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1fr);
+        grid-auto-rows: auto;
+        column-gap: 11px;
+        row-gap: 10px;
+        align-items: start;
+        min-height: 0;
+        padding: 14px 14px 14px 12px;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-step {
+        grid-column: 1;
+        grid-row: 1 / span 4;
+        align-self: start;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-step span {
+        width: 30px;
+        height: 30px;
+        font-size: .625rem;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy {
+        grid-column: 2 / 4;
+        grid-row: 1;
+        min-width: 0;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy strong {
+        font-size: .8125rem;
+        line-height: 1.3;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy p {
+        margin-top: 2px;
+        font-size: .65625rem;
+        line-height: 1.35;
+        white-space: normal;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy .reqfile {
+        margin-top: 5px;
+        padding: 3px 7px;
+        font-size: .5625rem;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline {
+        grid-column: 2;
+        grid-row: 2;
+        min-width: 0;
+        align-self: center;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date {
+        grid-column: 3;
+        grid-row: 2;
+        min-width: 0;
+        align-self: center;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell {
+        grid-column: 2;
+        grid-row: 3;
+        min-width: 0;
+        align-self: center;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files {
+        grid-column: 3;
+        grid-row: 3;
+        min-width: 0;
+        align-self: center;
+        justify-content: flex-start;
+        white-space: normal;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-action {
+        grid-column: 2 / 4;
+        grid-row: 4;
+        width: 100%;
+        max-width: none;
+        align-self: center;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-action-button {
+        width: 100%;
+        min-height: 38px;
+        font-size: .65625rem;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-display {
+        min-height: 34px;
+        gap: 7px;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-display .avatar,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-display .ft-avatar {
+        width: 30px !important;
+        height: 30px !important;
+        flex: 0 0 30px !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-name,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-inline-value {
+        min-height: 32px;
+        font-size: .65625rem;
+        line-height: 1.3;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-inline-display-row {
+        min-height: 34px;
+        gap: 6px;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inline-edit-button {
+        width: 26px;
+        height: 26px;
+        flex: 0 0 26px;
+        font-size: .5625rem;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-inline-status,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-status-pill {
+        min-height: 32px;
+        padding: 4px 9px;
+        font-size: .59375rem;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files {
+        gap: 7px;
+        font-size: .625rem;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-attach-button {
+        min-height: 34px;
+        padding: 0 10px;
+        font-size: .59375rem;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-document-list {
+        padding: 0 14px 10px 55px;
+        background: #fff;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-document-row {
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 8px 10px;
+        align-items: start;
+        padding: 10px 0;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-type {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        width: 38px;
+        height: 34px;
+        font-size: .5rem;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-copy {
+        grid-column: 2;
+        grid-row: 1;
+        display: block;
+        min-width: 0;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-copy b {
+        display: block;
+        overflow: visible;
+        font-size: .65625rem;
+        line-height: 1.3;
+        text-overflow: clip;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-copy small {
+        display: block;
+        margin-top: 3px;
+        font-size: .5625rem;
+        line-height: 1.3;
+        white-space: normal;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-actions {
+        grid-column: 2;
+        grid-row: 2;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-actions a {
+        font-size: .65625rem
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-remove {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+@media(max-width:480px) {
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .panelhead {
+        padding: 11px 12px
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-control-row .primary {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-row {
+        grid-template-columns: 30px minmax(0, 1fr);
+        column-gap: 10px;
+        row-gap: 9px;
+        padding: 12px 12px 13px 10px;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-step {
+        grid-row: 1 / span 6
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-action {
+        grid-column: 2;
+        width: 100%;
+        max-width: none;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy {
+        grid-row: 1
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline {
+        grid-row: 2
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date {
+        grid-row: 3
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell {
+        grid-row: 4
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files {
+        grid-row: 5
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-action {
+        grid-row: 6
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-document-list {
+        padding-left: 50px;
+        padding-right: 12px
+    }
+}
+
+/* 2026-08-09 Inquiry Taskflow mobile card refinement.
+   Keep task information visually grouped, compact and touch-friendly on phones. */
+@media (max-width:760px) {
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-row {
+        grid-template-columns: 34px minmax(0, 1.12fr) minmax(132px, .88fr) !important;
+        grid-auto-rows: min-content !important;
+        column-gap: 10px !important;
+        row-gap: 8px !important;
+        align-items: center !important;
+        min-height: 0 !important;
+        padding: 13px 14px 13px 11px !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-step {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        align-self: start !important;
+        margin: 0 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy {
+        grid-column: 2 / 4 !important;
+        grid-row: 1 !important;
+        align-self: start !important;
+        margin: 0 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date {
+        grid-column: 3 !important;
+        grid-row: 2 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell {
+        grid-column: 2 !important;
+        grid-row: 3 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files {
+        grid-column: 3 !important;
+        grid-row: 3 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-action {
+        grid-column: 2 / 4 !important;
+        grid-row: 4 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-action {
+        width: 100% !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        align-self: center !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-display,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-inline-display-row {
+        min-height: 32px !important;
+        margin: 0 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date .ft-inquiry-inline-display-row {
+        justify-content: flex-end !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date .ft-inquiry-inline-value {
+        justify-content: flex-end;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell .ft-inquiry-inline-display-row {
+        justify-content: flex-start !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files {
+        justify-content: flex-end !important;
+        gap: 7px !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files>span {
+        white-space: nowrap;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-attach-button {
+        min-height: 34px !important;
+        padding: 0 11px !important;
+        border-radius: 9px !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-action-button {
+        min-height: 40px !important;
+        border-radius: 9px !important;
+        font-size: .6875rem !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-document-list {
+        padding: 0 14px 12px 55px !important;
+        background: #fff !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-document-row {
+        display: grid !important;
+        grid-template-columns: 44px minmax(0, 1fr) auto !important;
+        grid-template-rows: auto auto !important;
+        gap: 6px 10px !important;
+        align-items: center !important;
+        margin-top: 0 !important;
+        padding: 10px !important;
+        border: 1px solid #e1e8f2 !important;
+        border-radius: 10px !important;
+        background: var(--ft-theme-surface-subtle) !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-type {
+        grid-column: 1 !important;
+        grid-row: 1 / 3 !important;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 9px !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-copy {
+        grid-column: 2 !important;
+        grid-row: 1 / 3 !important;
+        min-width: 0 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-copy b {
+        display: -webkit-box !important;
+        overflow: hidden !important;
+        -webkit-box-orient: vertical !important;
+        -webkit-line-clamp: 2 !important;
+        font-size: .65625rem !important;
+        line-height: 1.3 !important;
+        overflow-wrap: anywhere !important;
+        white-space: normal !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-actions {
+        grid-column: 3 !important;
+        grid-row: 1 / 3 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 7px !important;
+        white-space: nowrap !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-actions a {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 8px;
+        border-radius: 8px;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-remove {
+        width: 34px !important;
+        height: 34px !important;
+        flex: 0 0 34px !important;
+        border-radius: 8px !important;
+    }
+}
+
+@media (max-width:520px) {
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-row {
+        grid-template-columns: 32px minmax(0, 1fr) minmax(118px, .78fr) !important;
+        column-gap: 9px !important;
+        row-gap: 7px !important;
+        padding: 12px 11px 12px 9px !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy strong {
+        font-size: .78125rem !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy p {
+        font-size: .625rem !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-name,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-inline-value {
+        font-size: .625rem !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files {
+        font-size: .59375rem !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-document-list {
+        padding-left: 50px !important;
+        padding-right: 11px !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-document-row {
+        grid-template-columns: 40px minmax(0, 1fr) !important;
+        grid-template-rows: auto auto !important;
+        gap: 7px 9px !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-type {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        width: 38px !important;
+        height: 38px !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-copy {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-file-actions {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        justify-content: flex-start !important;
+    }
+}
+
+@media (max-width:380px) {
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-row {
+        grid-template-columns: 30px minmax(0, 1fr) !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-action {
+        grid-column: 2 !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-copy {
+        grid-row: 1 !important
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline {
+        grid-row: 2 !important
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date {
+        grid-row: 3 !important
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell {
+        grid-row: 4 !important
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files {
+        grid-row: 5 !important
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-action {
+        grid-row: 6 !important
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date .ft-inquiry-inline-display-row,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files {
+        justify-content: flex-start !important;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date .ft-inquiry-inline-value {
+        text-align: left
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-document-list {
+        padding-left: 48px !important;
+        padding-right: 9px !important;
+    }
+}
+
+/* Create Inquiry v3 - matches the approved prototype. */
+.ft-inquiry-prototype .ft-inquiry-create-v3 {
+    width: 100%
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-shell {
+    max-width: 1280px;
+    margin: 0 auto
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-heading {
+    margin-bottom: 12px
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-heading h1 {
+    font-size: 1.5625rem;
+    line-height: 1.1;
+    letter-spacing: -.025em
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-heading p {
+    margin-top: 5px;
+    font-size: .6875rem;
+    color: #6f7f95
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-card {
+    border-radius: 12px;
+    box-shadow: none
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-section {
+    padding: 14px 14px 16px
+}
+
+.ft-inquiry-prototype .ft-inquiry-step-title {
+    gap: 8px;
+    margin-bottom: 12px
+}
+
+.ft-inquiry-prototype .ft-inquiry-step-title span {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-step-title h2 {
+    font-size: .8125rem;
+    line-height: 1.2
+}
+
+.ft-inquiry-prototype .ft-inquiry-step-title-inline {
+    align-items: center
+}
+
+.ft-inquiry-prototype .ft-inquiry-step-title-inline p {
+    margin: 0;
+    color: #74839a;
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-step-title-inline em {
+    margin-left: 4px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .5rem;
+    font-style: normal;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 11px 48px;
+    margin-bottom: 12px
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-grid-top {
+    align-items: start
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-field {
+    display: grid;
+    gap: 5px;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-field>label,
+.ft-inquiry-prototype .ft-inquiry-create-field>span {
+    color: #1d2b42;
+    font-size: .59375rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-field input,
+.ft-inquiry-prototype .ft-inquiry-create-field select {
+    width: 100%;
+    height: 36px;
+    min-width: 0;
+    padding: 0 10px;
+    border: 1px solid #cad6e7;
+    border-radius: 7px;
+    background: #fff;
+    color: #243249;
+    font-size: .65625rem;
+    outline: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-field input:focus,
+.ft-inquiry-prototype .ft-inquiry-create-field select:focus {
+    border-color: var(--ft-theme-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-field select:disabled {
+    background: #f7f9fc;
+    color: #8a98ab;
+    cursor: not-allowed
+}
+
+.ft-inquiry-prototype .ft-inquiry-field-help,
+.ft-inquiry-prototype .ft-inquiry-field-tip {
+    color: #7b899c;
+    font-size: .53125rem;
+    line-height: 1.35
+}
+
+.ft-inquiry-prototype .ft-inquiry-field-tip b {
+    color: #5e6f88
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-field-full {
+    margin-bottom: 12px
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-field-full:last-child {
+    margin-bottom: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-source-switch {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    height: 36px;
+    border: 1px solid #cad6e7;
+    border-radius: 7px;
+    overflow: hidden;
+    background: #fff
+}
+
+.ft-inquiry-prototype .ft-inquiry-source-switch button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 0;
+    border-right: 1px solid #cad6e7;
+    background: #fff;
+    color: #27354b;
+    font-size: .59375rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-source-switch button:last-child {
+    border-right: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-source-switch button span {
+    color: #24334b;
+    font-size: .75rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-source-switch button.is-active {
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary);
+    box-shadow: inset 0 0 0 1px var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .ft-inquiry-source-switch button.is-active span {
+    color: var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .ft-inquiry-received-control {
+    height: 36px;
+    border: 1px solid #cad6e7;
+    border-radius: 7px;
+    background: #fff;
+    overflow: hidden
+}
+
+.ft-inquiry-prototype .ft-inquiry-received-control:focus-within {
+    border-color: var(--ft-theme-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-inquiry-prototype .ft-inquiry-received-control input[type="date"] {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    padding: 0 10px;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fff;
+    color: #243249;
+    font-size: .65625rem;
+    outline: 0;
+    box-shadow: none !important
+}
+
+.ft-inquiry-prototype .ft-inquiry-received-control input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: .7
+}
+
+.ft-inquiry-prototype .ft-inquiry-client-control-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: end
+}
+
+.ft-inquiry-prototype .ft-inquiry-client-selector>label,
+.ft-inquiry-prototype .ft-inquiry-owner-selector>label {
+    display: none
+}
+
+.ft-inquiry-prototype .ft-inquiry-client-selector,
+.ft-inquiry-prototype .ft-inquiry-owner-selector {
+    position: relative
+}
+
+.ft-inquiry-prototype .ft-inquiry-client-selector:before,
+.ft-inquiry-prototype .ft-inquiry-owner-selector:before {
+    content: "⌕";
+    position: absolute;
+    z-index: 2;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8290a3;
+    font-size: .8125rem;
+    pointer-events: none
+}
+
+.ft-inquiry-prototype .ft-inquiry-client-selector .ft-remote-filter-button,
+.ft-inquiry-prototype .ft-inquiry-owner-selector .ft-remote-filter-button {
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 28px 0 31px !important;
+    border: 1px solid #cad6e7 !important;
+    border-radius: 7px !important;
+    background: #fff !important;
+    color: #44536a !important;
+    font-size: .65625rem !important;
+    text-align: left
+}
+
+.ft-inquiry-prototype .ft-inquiry-client-selector .ft-filter-chevron,
+.ft-inquiry-prototype .ft-inquiry-owner-selector .ft-filter-chevron {
+    margin-left: auto
+}
+
+.ft-inquiry-prototype .ft-inquiry-new-client-btn,
+.ft-inquiry-prototype .ft-inquiry-new-contact-btn {
+    height: 36px;
+    min-height: 36px;
+    padding: 0 13px;
+    border-radius: 7px;
+    white-space: nowrap;
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-new-contact-btn:disabled {
+    opacity: .45;
+    cursor: not-allowed
+}
+
+.ft-inquiry-prototype .ft-inquiry-contact-select-wrap {
+    min-width: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-request-details .ft-rich-text {
+    border-radius: 7px;
+    border-color: #cad6e7
+}
+
+.ft-inquiry-prototype .ft-inquiry-request-details .ft-rich-text-toolbar {
+    padding: 5px 7px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .ft-inquiry-request-details .ft-rich-text-tool {
+    height: 25px;
+    min-width: 25px;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-request-details .ft-rich-text-editor {
+    min-height: 115px;
+    max-height: 300px;
+    padding: 9px 10px;
+    font-size: .625rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .ft-inquiry-request-details .ft-rich-text-footer {
+    min-height: 20px;
+    padding: 2px 7px;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachments-section {
+    padding-top: 13px
+}
+
+.ft-inquiry-prototype .ft-inquiry-prototype-dropzone {
+    position: relative;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    align-items: center;
+    min-height: 94px;
+    padding: 12px 14px;
+    border: 1.5px dashed var(--ft-theme-primary-300);
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .ft-inquiry-prototype-dropzone .inquiry-dropzone-icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+    border-radius: 50%;
+    font-size: 1.125rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-prototype-dropzone .inquiry-dropzone-copy {
+    text-align: center
+}
+
+.ft-inquiry-prototype .ft-inquiry-prototype-dropzone .inquiry-dropzone-copy strong {
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-prototype-dropzone .ft-inquiry-drop-or {
+    margin-top: 1px;
+    color: #4f6078;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-prototype-dropzone .ft-inquiry-drop-or b {
+    color: var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .ft-inquiry-prototype-dropzone .inquiry-dropzone-copy small {
+    display: block;
+    margin-top: 6px;
+    color: #7f8da0;
+    font-size: .46875rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-prototype-dropzone .inquiry-dropzone-button {
+    height: 34px;
+    min-height: 34px;
+    padding: 0 13px;
+    border-radius: 7px;
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-next-section {
+    padding-bottom: 12px
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-card {
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 8px;
+    background: var(--ft-theme-surface-subtle);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ft-theme-primary) 2%, transparent)
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-selected {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 42px minmax(0, 1fr) auto 20px;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 11px;
+    border: 0;
+    background: transparent;
+    text-align: left
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 2px solid var(--ft-theme-primary-300);
+    border-radius: 50%;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .875rem;
+    font-weight: 900
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-copy {
+    display: block;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-copy small {
+    display: block;
+    color: #6f8098;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-copy strong {
+    display: block;
+    margin-top: 2px;
+    color: #14243c;
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-copy>span {
+    display: block;
+    margin-top: 2px;
+    color: #77879c;
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-selected>a {
+    color: var(--ft-theme-primary);
+    font-size: .53125rem;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-chevron {
+    color: #536987;
+    font-size: .6875rem;
+    transition: transform .15s ease
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-card.is-open .ft-inquiry-workflow-chevron {
+    transform: rotate(180deg)
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-options {
+    border-top: 1px solid var(--ft-theme-primary-100);
+    background: #fff
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-option {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 9px;
+    align-items: center;
+    padding: 9px 12px;
+    border: 0;
+    border-bottom: 1px solid #edf1f6;
+    background: #fff;
+    text-align: left
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-option:last-child {
+    border-bottom: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-option:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-option .ft-inquiry-workflow-radio {
+    width: 13px;
+    height: 13px;
+    border: 1.5px solid #aebbd0;
+    border-radius: 50%
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-option.is-selected .ft-inquiry-workflow-radio {
+    border: 4px solid var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-option strong {
+    display: block;
+    color: #26354c;
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-option small {
+    display: block;
+    margin-top: 2px;
+    color: #7a899d;
+    font-size: .4875rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-footnote {
+    margin: 7px 0 0;
+    color: #7c8a9e;
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #fff
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-actions>span {
+    color: #596b84;
+    font-size: .53125rem;
+    font-weight: 650
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-actions>div {
+    display: flex;
+    gap: 9px
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-actions .secondary,
+.ft-inquiry-prototype .ft-inquiry-create-actions .primary {
+    height: 36px;
+    min-height: 36px;
+    padding: 0 14px;
+    border-radius: 7px;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-actions kbd {
+    margin-left: 3px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary-soft);
+    font: inherit;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+    background: rgba(20, 34, 55, .54);
+    backdrop-filter: blur(1px)
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-client-modal {
+    width: min(520px, 100%);
+    max-height: calc(100vh - 44px);
+    overflow: auto;
+    border: 1px solid #d7e0ec;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(13, 31, 54, .24)
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-client-modal>header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 17px 20px 13px
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-client-modal>header h2 {
+    margin: 0;
+    color: #17243a;
+    font-size: 1.125rem;
+    letter-spacing: -.02em
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-client-modal>header p {
+    margin: 5px 0 0;
+    color: #718198;
+    font-size: .59375rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-client-modal>header>button {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    background: transparent;
+    color: #385271;
+    font-size: 1.25rem;
+    line-height: 1
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-client-body {
+    padding: 0 20px 16px
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-field {
+    display: grid;
+    gap: 5px;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-field>span {
+    color: #26364e;
+    font-size: .59375rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-field input {
+    width: 100%;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid #cad6e7;
+    border-radius: 7px;
+    background: #fff;
+    color: #26364e;
+    font-size: .625rem;
+    outline: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-field input:focus {
+    border-color: var(--ft-theme-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-field>small:not(.field-error) {
+    color: #7c8a9e;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-divider {
+    height: 1px;
+    margin: 14px 0;
+    background: #e4e9f0
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-subhead {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 10px
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-subhead strong {
+    font-size: .625rem;
+    color: #24344c
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-subhead span {
+    font-size: .53125rem;
+    color: #78879b
+}
+
+.ft-inquiry-prototype .ft-inquiry-contact-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
+    color: #34445c;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-contact-checkbox input {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .ft-inquiry-client-info {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 12px;
+    padding: 9px 10px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 7px;
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary);
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-client-modal>footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 20px;
+    border-top: 1px solid #e5eaf1;
+    background: #fff
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-client-modal>footer>span {
+    color: #6d7d93;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-client-modal>footer>div {
+    display: flex;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-client-modal>footer .secondary,
+.ft-inquiry-prototype .ft-inquiry-quick-client-modal>footer .primary {
+    height: 36px;
+    min-height: 36px;
+    border-radius: 7px;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-quick-contact-modal {
+    width: min(460px, 100%)
+}
+
+@media (max-width:900px) {
+    .ft-inquiry-prototype .ft-inquiry-create-grid {
+        grid-template-columns: 1fr;
+        gap: 11px
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-create-grid-client {
+        gap: 12px
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-workflow-selected {
+        grid-template-columns: 40px minmax(0, 1fr) 18px
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-workflow-selected>a {
+        grid-column: 2/3;
+        justify-self: start
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-create-actions {
+        align-items: stretch;
+        flex-direction: column
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-create-actions>div {
+        justify-content: flex-end
+    }
+}
+
+@media (max-width:640px) {
+    .ft-inquiry-prototype .ft-inquiry-create-section {
+        padding: 12px
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-client-control-row {
+        grid-template-columns: 1fr
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-new-client-btn,
+    .ft-inquiry-prototype .ft-inquiry-new-contact-btn {
+        width: 100%
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-prototype-dropzone {
+        grid-template-columns: 42px minmax(0, 1fr);
+        text-align: left
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-prototype-dropzone .inquiry-dropzone-copy {
+        text-align: left
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-prototype-dropzone .inquiry-dropzone-button {
+        grid-column: 1/-1;
+        width: 100%
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-modal-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-quick-client-modal>footer {
+        align-items: stretch;
+        flex-direction: column
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-quick-client-modal>footer>div {
+        justify-content: flex-end
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-create-actions>div {
+        display: grid;
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-create-actions .primary {
+        grid-column: 1/-1
+    }
+}
+
+.ft-inquiry-prototype .ft-inquiry-workflow-selected {
+    cursor: pointer
+}
+
+/* Create Inquiry selected attachment previews. */
+.ft-inquiry-prototype .ft-inquiry-selected-files {
+    margin-top: 12px;
+    padding: 13px 14px;
+    border: 1px solid #d9e3ef;
+    border-radius: 10px;
+    background: #fff
+}
+
+.ft-inquiry-prototype .inquiry-selected-files-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: #263750;
+    font-size: .75rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .inquiry-selected-files-title span {
+    display: inline-grid;
+    min-width: 24px;
+    height: 24px;
+    place-items: center;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .6875rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 10px
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-card {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid #dfe7f1;
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-preview {
+    position: relative;
+    display: block;
+    width: 92px;
+    height: 72px;
+    overflow: hidden;
+    border: 1px solid #d6e0ec;
+    border-radius: 7px;
+    background: #eef3f8;
+    text-decoration: none
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-preview img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-preview span {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    padding: 3px 5px;
+    border-radius: 5px;
+    background: rgba(10, 25, 46, .78);
+    color: #fff;
+    font-size: .5rem;
+    font-weight: 800;
+    opacity: 0;
+    transform: translateY(2px);
+    transition: opacity .15s ease, transform .15s ease
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-preview:hover span,
+.ft-inquiry-prototype .ft-inquiry-selected-file-preview:focus-visible span {
+    opacity: 1;
+    transform: none
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-preview:focus-visible {
+    outline: 2px solid var(--ft-theme-primary);
+    outline-offset: 2px
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-type {
+    display: grid;
+    width: 92px;
+    height: 72px;
+    place-items: center;
+    align-content: center;
+    gap: 3px;
+    border: 1px solid #d6e0ec;
+    border-radius: 7px;
+    background: #eef3f8;
+    color: #4f6380
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-type span {
+    font-size: 1.25rem;
+    line-height: 1
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-type b {
+    font-size: .5625rem;
+    letter-spacing: .04em
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-meta {
+    min-width: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-meta strong {
+    display: block;
+    overflow: hidden;
+    color: #2b3d56;
+    font-size: .6875rem;
+    font-weight: 750;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .ft-inquiry-selected-file-meta span {
+    display: block;
+    margin-top: 5px;
+    color: #7c8b9f;
+    font-size: .59375rem
+}
+
+@media(max-width:640px) {
+    .ft-inquiry-prototype .ft-inquiry-selected-file-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-selected-file-card {
+        grid-template-columns: 78px minmax(0, 1fr)
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-selected-file-preview,
+    .ft-inquiry-prototype .ft-inquiry-selected-file-type {
+        width: 78px;
+        height: 62px
+    }
+}
+
+/* Inquiry detail prototype header: client/reference/creator metadata lives directly below the title. */
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-exact-header {
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-exact-header .ft-task-heading-copy {
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-top: 14px;
+    color: #6d7d94;
+    font-size: .78125rem;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta-item {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta-item>span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta-item strong {
+    color: #243650;
+    font-weight: 650;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta-icon {
+    display: inline-grid;
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    place-items: center;
+    color: #71839c;
+    font-size: .8125rem;
+    line-height: 1;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta-separator {
+    color: #8190a5;
+    font-size: .75rem;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-reference {
+    gap: 6px;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-copy {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    margin-left: 1px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .tabs {
+    margin-top: 0;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-auto-status-property .ft-task-property-display {
+    gap: 8px;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-auto-status-property .ft-property-value {
+    font-weight: 650;
+}
+
+@media(max-width:900px) {
+    .ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta {
+        gap: 8px 10px;
+        font-size: .71875rem;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta-separator {
+        display: none;
+    }
+}
+
+@media(max-width:620px) {
+    .ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta-item {
+        white-space: normal;
+    }
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-header-meta-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+/* Inquiry task document modal — matches the approved Inquiry Taskflow prototype. */
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(16, 30, 52, .58);
+    backdrop-filter: blur(1px)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal {
+    width: min(610px, calc(100vw - 32px));
+    max-height: calc(100vh - 40px);
+    overflow: auto;
+    border: 1px solid #d9e1ec;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 26px 70px rgba(15, 31, 55, .25)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 22px 26px 14px
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-head h2 {
+    margin: 0;
+    color: #16243a;
+    font-size: 1.25rem;
+    line-height: 1.25;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-head p {
+    margin: 5px 0 0;
+    color: #67778f;
+    font-size: .75rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-close {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin: -3px -4px 0 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #263a58;
+    font-size: 1.5625rem;
+    line-height: 1;
+    cursor: pointer
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-close:hover {
+    background: #f1f5fa
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-body {
+    display: grid;
+    gap: 15px;
+    padding: 0 26px 18px
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-target {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 13px 15px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-target-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: 1.1875rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-target>div {
+    display: grid;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-target small {
+    color: #41618f;
+    font-size: .5625rem;
+    font-weight: 800;
+    letter-spacing: .05em
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-target strong {
+    overflow: hidden;
+    margin-top: 2px;
+    color: #17263c;
+    font-size: .75rem;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-target div span {
+    margin-top: 3px;
+    color: #58708f;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-target .ft-inquiry-task-document-reference {
+    margin-top: 4px;
+    color: #365b8d;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    white-space: normal
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-target .ft-inquiry-task-document-reference b {
+    color: var(--ft-theme-primary-800);
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-target-lock {
+    color: #48617f;
+    font-size: .59375rem;
+    font-weight: 650;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-source-label {
+    margin-bottom: -8px;
+    color: #17263c;
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-source-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-source-tabs button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 43px;
+    border: 1px solid #cbd6e5;
+    border-radius: 7px;
+    background: #fff;
+    color: #243650;
+    font-size: .6875rem;
+    font-weight: 700;
+    cursor: pointer
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-source-tabs button.active {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-surface-subtle);
+    box-shadow: inset 0 0 0 1px var(--ft-theme-primary);
+    color: var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-source-tabs button:disabled {
+    opacity: .45;
+    cursor: not-allowed
+}
+
+
+.ft-inquiry-prototype .ft-inquiry-task-document-source-tabs.is-single-source {
+    grid-template-columns: 1fr
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-source-tabs.is-single-source button:disabled {
+    opacity: 1;
+    cursor: default
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-upload-field {
+    display: block
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-upload-progress {
+    margin-top: 8px
+}
+
+.ft-inquiry-prototype .ft-inquiry-upload-progress-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 5px;
+    color: #71839a;
+    font-size: .5625rem;
+    line-height: 1.2
+}
+
+.ft-inquiry-prototype .ft-inquiry-upload-progress-meta>b {
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    font-weight: 850;
+    font-variant-numeric: tabular-nums
+}
+
+.ft-inquiry-prototype .ft-inquiry-upload-progress-track {
+    width: 100%;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e6efed
+}
+
+.ft-inquiry-prototype .ft-inquiry-upload-progress-track>span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--ft-theme-primary);
+    transition: width .12s linear
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-dropzone {
+    position: relative;
+    display: flex;
+    min-height: 145px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border: 2px dashed var(--ft-theme-primary-300);
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle);
+    text-align: center;
+    cursor: pointer
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-dropzone:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-dropzone input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-upload-icon {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 7px;
+    color: var(--ft-theme-primary);
+    font-size: 2.1875rem;
+    font-weight: 700;
+    line-height: 1
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-dropzone strong {
+    color: #16243a;
+    font-size: .875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-dropzone b {
+    margin-top: 2px;
+    color: var(--ft-theme-primary);
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-dropzone small {
+    margin-top: 7px;
+    color: #6e7e93;
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-existing {
+    padding: 13px;
+    border: 1px solid #d9e1ec;
+    border-radius: 8px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-existing label {
+    display: grid;
+    gap: 7px
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-existing label>span {
+    color: #263850;
+    font-size: .625rem;
+    font-weight: 700
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-existing select,
+.ft-inquiry-prototype .ft-inquiry-task-document-note input {
+    width: 100%;
+    min-height: 39px;
+    padding: 0 12px;
+    border: 1px solid #cfd8e5;
+    border-radius: 7px;
+    background: #fff;
+    color: #1d2d45;
+    font-size: .6875rem;
+    outline: none
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-existing select:focus,
+.ft-inquiry-prototype .ft-inquiry-task-document-note input:focus {
+    border-color: var(--ft-theme-primary-500);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-existing-empty {
+    padding: 16px;
+    color: #6d7c91;
+    font-size: .6875rem;
+    text-align: center
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-note {
+    display: grid;
+    gap: 7px
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-note>span {
+    color: #17263c;
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-info {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 7px;
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary-800)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-info>span {
+    color: var(--ft-theme-primary);
+    font-size: .875rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-info p {
+    margin: 0;
+    font-size: .59375rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-info strong {
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-error {
+    margin: -8px 0 0;
+    color: #c62828;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 26px 18px;
+    border-top: 1px solid #e4e9f0;
+    background: #fff
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-actions button {
+    min-width: 88px;
+    min-height: 38px;
+    border-radius: 7px;
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-actions .primary {
+    min-width: 116px
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-modal-actions .primary:disabled {
+    opacity: .5;
+    cursor: not-allowed
+}
+
+/* Inquiry task attachment picker: selected-file state from the approved prototype. */
+.ft-inquiry-prototype .ft-inquiry-task-document-upload-field {
+    display: grid;
+    gap: 10px
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-field-label,
+.ft-inquiry-prototype .ft-inquiry-attachment-selected-count {
+    color: #17263c;
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-selected-count {
+    color: var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-selected-files {
+    display: grid;
+    gap: 8px;
+    max-height: 292px;
+    overflow-y: auto;
+    padding-right: 3px;
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-selected-file {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    min-height: 66px;
+    padding: 10px 14px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 8px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-selected-check {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--ft-theme-primary);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-selected-copy {
+    display: grid;
+    min-width: 0;
+    gap: 3px
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-selected-copy strong {
+    overflow: hidden;
+    color: #17263c;
+    font-size: .8125rem;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-selected-copy small {
+    color: #65768c;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-selected-file button {
+    padding: 7px 4px;
+    border: 0;
+    background: transparent;
+    color: #d42f3a;
+    font-size: .625rem;
+    font-weight: 750;
+    cursor: pointer
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-selected-file button:hover {
+    color: #aa1722;
+    text-decoration: underline
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-dropzone {
+    min-height: 188px;
+    padding: 18px 20px;
+    background: #fff
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-dropzone:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-dropzone.is-compact {
+    min-height: 120px;
+    padding: 13px 20px
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-limit-reached {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px dashed var(--ft-theme-primary-200);
+    border-radius: 8px;
+    background: var(--ft-theme-surface-subtle);
+    color: #65768c;
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-document-limit-reached strong {
+    color: #17263c;
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-upload-icon {
+    width: 38px;
+    height: 38px;
+    margin-bottom: 5px;
+    fill: none;
+    stroke: var(--ft-theme-primary);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-dropzone.is-compact .ft-inquiry-attachment-upload-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 2px
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-dropzone b {
+    color: #52647b;
+    font-weight: 500
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-dropzone b span {
+    color: var(--ft-theme-primary);
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-browse {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    margin-top: 10px;
+    padding: 0 18px;
+    border: 1px solid var(--ft-theme-primary-300);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .ft-inquiry-attachment-dropzone small {
+    margin-top: 9px
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-file-copy .ft-inquiry-task-file-note {
+    display: block;
+    margin-top: 2px;
+    color: #718097;
+    font-size: .5rem;
+    font-weight: 500
+}
+
+@media (max-width:700px) {
+    .ft-inquiry-prototype .ft-inquiry-task-document-modal-backdrop {
+        align-items: flex-end;
+        padding: 0
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-document-modal {
+        width: 100%;
+        max-height: 92vh;
+        border-radius: 16px 16px 0 0
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-document-modal-head {
+        padding: 18px 18px 12px
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-document-modal-body {
+        padding: 0 18px 15px
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-document-modal-actions {
+        padding: 13px 18px 17px
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-document-target {
+        grid-template-columns: 34px minmax(0, 1fr)
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-document-target-lock {
+        grid-column: 2;
+        white-space: normal
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-document-source-tabs {
+        grid-template-columns: 1fr
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-attachment-selected-file {
+        grid-template-columns: 34px minmax(0, 1fr)
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-attachment-selected-file button {
+        grid-column: 2;
+        justify-self: start;
+        padding: 0
+    }
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-overview-taskflow {
+    margin-top: 12px
+}
+
+/* Inquiry taskflow: keep the assignee edit control beside the assignee name. */
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-assignee-inline>.ft-inquiry-inline-display-row {
+    justify-content: flex-start;
+    gap: 3px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-assignee-inline>.ft-inquiry-inline-display-row>.ft-inquiry-assignee-display {
+    flex: 0 1 auto;
+    max-width: calc(100% - 30px)
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-assignee-inline>.ft-inquiry-inline-display-row>.ft-inline-edit-button {
+    margin-left: 0
+}
+
+/* Stable create-form validation spacing. */
+.ft-inquiry-prototype .ft-inquiry-create-grid {
+    align-items: start
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-field:not(.ft-inquiry-request-details) {
+    position: relative;
+    align-content: start;
+    padding-bottom: 16px
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-field>label,
+.ft-inquiry-prototype .ft-inquiry-create-field>span {
+    display: block;
+    min-height: 12px
+}
+
+.ft-inquiry-prototype .ft-inquiry-create-field>.field-error {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: .5625rem;
+    line-height: 12px;
+    white-space: nowrap;
+    text-overflow: ellipsis
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-grid {
+    align-items: start
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-field {
+    position: relative;
+    align-content: start;
+    padding-bottom: 28px
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-field>span {
+    display: block;
+    min-height: 12px
+}
+
+.ft-inquiry-prototype .ft-inquiry-modal-field>.field-error {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    max-width: 100%;
+    font-size: .5625rem;
+    line-height: 12px;
+    white-space: normal
+}
+
+@media(max-width:640px) {
+    .ft-inquiry-prototype .ft-inquiry-create-field:not(.ft-inquiry-request-details) {
+        padding-bottom: 17px
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-create-field>.field-error {
+        font-size: .5625rem
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-modal-field {
+        padding-bottom: 30px
+    }
+}
+
+/* 2026-08-10: Inquiry task assignee picker must remain usable on the final row.
+   The generic panel clips its children for rounded cards, which cut off the
+   remote-user menu when the last task opened downward. Only the Taskflow panel
+   is allowed to overflow, and it sits above following Overview sections while
+   a picker is open. */
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow.ft-inquiry-overview-taskflow {
+    position: relative;
+    z-index: 30;
+    overflow: visible !important;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-taskflow-panel {
+    position: relative;
+    z-index: 31;
+    overflow: visible !important;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-taskflow-panel .panelhead {
+    border-radius: 12px 12px 0 0;
+    background: #fff;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-taskflow-panel .ft-inquiry-task-list,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-taskflow-panel .ft-inquiry-task-row,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-taskflow-panel .ft-inquiry-assignee-inline,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-taskflow-panel .ft-inquiry-assignee-picker,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-taskflow-panel .ft-inline-remote-user {
+    overflow: visible !important;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-taskflow-panel .ft-inquiry-assignee-picker {
+    z-index: 80;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-taskflow-panel .ft-inline-remote-user-menu {
+    z-index: 1700 !important;
+}
+
+/* Final-row Inquiry assignee menu: keep the editor and menu above the next card. */
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline:focus-within {
+    position: relative;
+    z-index: 1800
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-picker {
+    position: relative;
+    z-index: 1801 !important
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inline-remote-user-menu {
+    z-index: 1900 !important
+}
+
+/* Inquiry Taskflow status uses the same always-visible inline selector as Order tasks. */
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell {
+    min-width: 0;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell .ft-task-inline-status-shell {
+    display: block;
+    min-width: 0;
+    width: 100%;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell .ft-inline-task-status {
+    width: 100%;
+    min-width: 0;
+    height: 32px;
+    font-size: .5625rem;
+}
+
+/* 2026-08-10: Inquiry Taskflow desktop row alignment.
+   Keep every inline control on one visual baseline and prevent the status
+   column from expanding disproportionately on wide screens. */
+@media (min-width:1201px) {
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-grid-head,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-row {
+        grid-template-columns: 34px minmax(280px, 1fr) 210px 150px 170px 180px 150px;
+        column-gap: 12px;
+    }
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-row {
+    align-items: center;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-action {
+    min-width: 0;
+    min-height: 34px;
+    align-self: center;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-date,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-action {
+    display: flex;
+    align-items: center;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-inline-display-row,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-display {
+    min-height: 34px;
+    align-items: center;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell .ft-task-inline-status-shell {
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 34px;
+    align-items: center;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell .ft-inline-task-status {
+    width: 100%;
+    min-width: 0;
+    height: 34px;
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 32px;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell .ft-inline-save-state {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 8;
+    min-height: 0;
+    margin: 2px 0 0;
+    padding: 2px 5px;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(20, 42, 72, .08);
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .task-status-cell .ft-inline-save-state:not(.is-saving):not(.is-saved):not(.is-error) {
+    display: none;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-files {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-attach-button,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-action-button {
+    height: 34px;
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-action .ft-inquiry-action-button {
+    width: 100%;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-complete-state {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+}
+
+@media (min-width:761px) and (max-width:1200px) {
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-grid-head,
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-row {
+        grid-template-columns: 30px minmax(220px, 1fr) 160px 125px 150px 155px 125px;
+        column-gap: 8px;
+    }
+}
+
+/* 2026-08-10: Keep Inquiry Taskflow assignee layout stable after completion.
+   Completed tasks do not render the assignee edit button, so the previous
+   max-width reservation for that button caused the person name to collapse.
+   The display row now owns the full Assignee column in every task state; when
+   an edit button exists it simply consumes its fixed width beside the name. */
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline {
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline>.ft-inquiry-inline-display-row {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline>.ft-inquiry-inline-display-row>.ft-inquiry-assignee-display {
+    display: flex;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    flex: 1 1 0;
+    align-items: center;
+    overflow: hidden;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-display .ft-inline-avatar-slot {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-name {
+    display: block;
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.25;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-assignee-inline>.ft-inquiry-inline-display-row>.ft-inline-edit-button {
+    flex: 0 0 24px;
+    width: 24px;
+    margin-left: 0;
+}
+
+/* Inquiry ID copy affordance: match Order/Task copy behavior in list and detail header. */
+.ft-inquiry-prototype .ft-inquiry-list-code-wrap {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 3px;
+    max-width: 100%
+}
+
+.ft-inquiry-prototype .ft-inquiry-list-code-wrap .id {
+    min-width: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-list-code-wrap .ft-copy-id-btn {
+    flex: 0 0 22px;
+    width: 22px;
+    height: 22px;
+    font-size: .8125rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-detail-code-wrap {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 3px
+}
+
+.ft-inquiry-prototype .ft-inquiry-detail-code-wrap .ft-copy-id-btn {
+    flex: 0 0 22px;
+    width: 22px;
+    height: 22px;
+    font-size: .8125rem
+}
+
+/* Inquiry Taskflow resource actions: compact +File/+Link icons and inline external links. */
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-add-actions {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-add-icon {
+    display: inline-flex;
+    width: 34px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 7px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-add-icon:hover,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-add-icon.is-active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-primary-soft);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 6%, transparent);
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-add-icon svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-add-plus {
+    font-size: .8125rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-resource-count {
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px 9px;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid #edf1f5;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-input-wrap {
+    display: flex;
+    min-width: 0;
+    height: 34px;
+    align-items: center;
+    gap: 7px;
+    padding: 0 9px;
+    border: 1px solid #cfd9e7;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 34, 63, .03);
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-input-wrap:focus-within {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent);
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-input-wrap svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    fill: none;
+    stroke: #63758d;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-input-wrap input {
+    width: 100%;
+    min-width: 0;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #1d2d45;
+    font: inherit;
+    font-size: .625rem;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-input-wrap input::placeholder {
+    color: #8a98aa
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-form-actions .secondary,
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-form-actions .primary {
+    min-height: 32px;
+    padding: 0 11px;
+    border-radius: 7px;
+    font-size: .5625rem;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-error {
+    grid-column: 1/-1;
+    color: #c5222d;
+    font-size: .546875rem;
+    font-weight: 600;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-row {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+    min-height: 38px;
+    padding: 5px 0;
+    border-top: 1px solid #edf1f5;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-type {
+    display: grid;
+    width: 34px;
+    height: 28px;
+    place-items: center;
+    border-radius: 6px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-type svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-copy {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-copy>a {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ft-theme-primary);
+    font-size: .59375rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-copy>a:hover {
+    text-decoration: underline
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-copy small {
+    flex: 0 0 auto;
+    color: #6f7e93;
+    font-size: .515625rem;
+    white-space: nowrap;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-actions>a {
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    font-weight: 650;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+@media(max-width:760px) {
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-form {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-form-actions {
+        justify-content: flex-end;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-row {
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-copy small {
+        display: none
+    }
+}
+
+@media(max-width:520px) {
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-add-icon {
+        width: 38px;
+        height: 34px;
+        border-radius: 9px;
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-row {
+        grid-template-columns: 32px minmax(0, 1fr);
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view #tab-workflow .ft-inquiry-task-link-actions {
+        grid-column: 2;
+        justify-content: flex-start;
+    }
+}
+
+/* 2026-08-11 Inquiry Taskflow: container-responsive layout.
+   The main app sidebar can make the taskflow panel much narrower than the
+   browser viewport. Use the panel's real width so columns never overlap or
+   force the Action column outside the card. */

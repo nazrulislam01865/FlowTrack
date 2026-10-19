@@ -1,0 +1,673 @@
+/** Create Inquiry RFQ selector. Mirrors the approved RFQ-create prototype. */
+.ft-inquiry-prototype .ft-create-rfq-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 286px;
+    gap: 12px;
+    padding: 8px 10px;
+    border-top: 1px solid var(--ft-border-default);
+    border-bottom: 1px solid var(--ft-border-default);
+    background: var(--ft-bg-surface-subtle);
+}
+
+.ft-inquiry-prototype .ft-create-rfq-card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid #cfdbea;
+    border-radius: 10px;
+    background: var(--ft-bg-surface);
+}
+
+.ft-inquiry-prototype .ft-create-rfq-head {
+    display: flex;
+    min-height: 62px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid #d8e2ee;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-title-wrap,
+.ft-inquiry-prototype .ft-create-rfq-supplier-copy {
+    min-width: 0;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-title-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-title-line h2,
+.ft-inquiry-prototype .ft-create-rfq-settings-head h2 {
+    margin: 0;
+    color: #17263d;
+    font-size: .9375rem;
+    font-weight: 800;
+    letter-spacing: -.018em;
+    line-height: 1.25;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-title-wrap p {
+    margin: 5px 0 0;
+    color: #718198;
+    font-size: .5625rem;
+    line-height: 1.4;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-optional,
+.ft-inquiry-prototype .ft-create-rfq-selected-pill,
+.ft-inquiry-prototype .ft-create-rfq-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 999px;
+    font-weight: 800;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-optional {
+    padding: 4px 8px;
+    background: #eef3f8;
+    color: #607189;
+    font-size: .5rem;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-pill {
+    flex: 0 0 auto;
+    margin-top: 1px;
+    padding: 5px 10px;
+    background: #eef4ff;
+    color: #2766d5;
+    font-size: .5rem;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-body {
+    padding: 16px 18px 16px;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-search-label,
+.ft-inquiry-prototype .ft-create-rfq-field > span {
+    display: block;
+    margin-bottom: 6px;
+    color: #50617a;
+    font-size: .5rem;
+    font-weight: 800;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-search svg {
+    position: absolute;
+    left: 12px;
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+    stroke: #667892;
+    stroke-width: 2.1;
+    stroke-linecap: round;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-search input,
+.ft-inquiry-prototype .ft-create-rfq-field input,
+.ft-inquiry-prototype .ft-create-rfq-field textarea {
+    width: 100%;
+    border: 1px solid #c9d6e6;
+    border-radius: 8px;
+    background: var(--ft-bg-surface);
+    color: #17263d;
+    outline: 0;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-search input {
+    height: 40px;
+    padding: 0 12px 0 38px;
+    font-size: .6875rem;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-search input::placeholder {
+    color: #7a8798;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-search input:focus,
+.ft-inquiry-prototype .ft-create-rfq-field input:focus,
+.ft-inquiry-prototype .ft-create-rfq-field textarea:focus {
+    border-color: var(--ft-color-info-500, #2d78df);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-color-info-500, #2d78df) 10%, transparent);
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier-list {
+    display: grid;
+    gap: 7px;
+    margin-top: 1px;
+    max-height: 330px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 2px;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier {
+    position: relative;
+    display: grid;
+    grid-template-columns: 16px 34px minmax(0, 1fr) max-content;
+    min-height: 55px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 11px;
+    border: 1px solid #ccd8e7;
+    border-radius: 8px;
+    background: var(--ft-bg-surface);
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier:hover {
+    border-color: #aebed2;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier.is-selected {
+    border-color: #bad0ea;
+    box-shadow: inset 3px 0 0 #1f79ef;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier > input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-check {
+    display: grid;
+    width: 14px;
+    height: 14px;
+    place-items: center;
+    border: 1px solid #9caec4;
+    border-radius: 2px;
+    background: var(--ft-bg-surface);
+}
+
+.ft-inquiry-prototype .ft-create-rfq-check svg {
+    width: 10px;
+    height: 10px;
+    stroke: transparent;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier.is-selected .ft-create-rfq-check {
+    border-color: #1f79ef;
+    background: #1f79ef;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier.is-selected .ft-create-rfq-check svg {
+    stroke: #fff;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-avatar {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 7px;
+    background: linear-gradient(145deg, #0b6170, #13958f);
+    color: #fff;
+    font-size: .5rem;
+    font-weight: 900;
+    letter-spacing: .03em;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier-copy {
+    display: grid;
+    gap: 2px;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier-copy strong {
+    overflow: hidden;
+    color: #17263d;
+    font-size: .65625rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier-copy small {
+    overflow: hidden;
+    color: #72839a;
+    font-size: .53125rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-badge {
+    padding: 5px 8px;
+    font-size: .46875rem;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-badge.is-green {
+    background: #eaf8ef;
+    color: #16854f;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-badge.is-blue {
+    background: #eef4ff;
+    color: #2c66c7;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-note {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 10px;
+    padding: 11px 13px;
+    border-left: 3px solid #0e988a;
+    border-radius: 7px;
+    background: #eefaf8;
+    color: #3d6964;
+    font-size: .5625rem;
+    line-height: 1.45;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-note strong {
+    color: #34645f;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-empty {
+    display: grid;
+    min-height: 66px;
+    place-items: center;
+    padding: 12px;
+    border: 1px dashed #c8d6e7;
+    border-radius: 8px;
+    color: #718198;
+    font-size: .5625rem;
+    text-align: center;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-settings-head {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid #d8e2ee;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-settings-body {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-field {
+    display: block;
+    min-width: 0;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-field input {
+    height: 40px;
+    padding: 0 10px;
+    font-size: .65625rem;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-field textarea {
+    display: block;
+    min-height: 82px;
+    padding: 10px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: .65625rem;
+    line-height: 1.45;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-summary {
+    padding: 10px 12px;
+    border: 1px solid #d4deea;
+    border-radius: 8px;
+    background: #f8fbfd;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-summary > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(92px, auto);
+    align-items: start;
+    gap: 12px;
+    min-height: 34px;
+    padding: 8px 0;
+    border-bottom: 1px solid #dfe6ee;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-summary > div:first-child {
+    padding-top: 2px;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-summary > div:last-child {
+    padding-bottom: 2px;
+    border-bottom: 0;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-summary span {
+    color: #718198;
+    font-size: .625rem;
+    line-height: 1.45;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-summary strong {
+    color: #17263d;
+    font-size: .65625rem;
+    font-weight: 800;
+    line-height: 1.35;
+    text-align: right;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-error {
+    display: block;
+    margin: 5px 0 0;
+    color: var(--ft-text-danger, #b42318);
+    font-size: .5rem;
+    line-height: 1.35;
+}
+
+@media (max-width: 980px) {
+    .ft-inquiry-prototype .ft-create-rfq-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-card--settings {
+        display: grid;
+        grid-template-columns: 180px minmax(0, 1fr);
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-settings-head {
+        align-items: flex-start;
+        padding-top: 18px;
+        border-right: 1px solid #d8e2ee;
+        border-bottom: 0;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-settings-body {
+        grid-template-columns: minmax(170px, .75fr) minmax(240px, 1.25fr);
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-summary {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .ft-inquiry-prototype .ft-create-rfq-layout {
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-head {
+        min-height: 0;
+        padding: 12px;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-title-line {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-body {
+        padding: 12px;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-supplier {
+        grid-template-columns: 16px 32px minmax(0, 1fr);
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-badge {
+        grid-column: 3;
+        justify-self: start;
+        margin-top: -3px;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-card--settings {
+        display: block;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-settings-head {
+        min-height: 48px;
+        align-items: center;
+        padding: 0 12px;
+        border-right: 0;
+        border-bottom: 1px solid #d8e2ee;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-settings-body {
+        display: grid;
+        grid-template-columns: 1fr;
+        padding: 12px;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-summary {
+        grid-column: auto;
+    }
+}
+
+/* Supplier directory parity: unavailable Supplier-list records remain visible
+   but cannot be selected until they are active and have a valid email. */
+.ft-inquiry-prototype .ft-create-rfq-supplier.is-unavailable {
+    cursor: default;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier.is-unavailable:hover {
+    border-color: #ccd8e7;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-supplier.is-unavailable .ft-create-rfq-check {
+    background: #f5f8fb;
+    border-color: #c7d3e1;
+}
+
+/* Selected RFQ participants are rendered below the picker just like selected
+   product rows. This gives immediate confirmation without coupling selection to
+   Inquiry persistence or the supplier search result currently on screen. */
+.ft-inquiry-prototype .ft-create-rfq-selected-section {
+    margin-top: -1px;
+    padding: 12px 10px 14px;
+    border-bottom: 1px solid var(--ft-border-default);
+    background: var(--ft-bg-surface-subtle);
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 9px;
+    padding: 0 2px;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-head > div {
+    min-width: 0;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-head h3 {
+    margin: 0;
+    color: #17263d;
+    font-size: .71875rem;
+    font-weight: 800;
+    letter-spacing: -.01em;
+    line-height: 1.25;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-head p {
+    margin: 3px 0 0;
+    color: #718198;
+    font-size: .53125rem;
+    line-height: 1.4;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-head > span {
+    flex: 0 0 auto;
+    color: #607189;
+    font-size: .53125rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-list {
+    display: grid;
+    gap: 8px;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-card {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 64px;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) max-content 88px;
+    align-items: center;
+    gap: 10px 12px;
+    padding: 10px 12px;
+    border: 1px solid #d5e0ec;
+    border-radius: 9px;
+    background: var(--ft-bg-surface);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .025);
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-avatar {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 8px;
+    background: linear-gradient(145deg, #0b6170, #13958f);
+    color: #fff;
+    font-size: .59375rem;
+    font-weight: 900;
+    letter-spacing: .03em;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-copy {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-copy strong,
+.ft-inquiry-prototype .ft-create-rfq-selected-copy small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-copy strong {
+    color: #17263d;
+    font-size: .6875rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-copy small {
+    color: #6a7f99;
+    font-size: .5625rem;
+    line-height: 1.3;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #eaf8ef;
+    color: #16854f;
+    font-size: .5rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-status svg {
+    width: 11px;
+    height: 11px;
+    stroke: currentColor;
+    stroke-width: 2.3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-remove {
+    min-width: 88px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid #e5c9c9;
+    border-radius: 7px;
+    background: #fff;
+    color: #9f3d3d;
+    padding: 0 10px;
+    font: inherit;
+    font-size: .5625rem;
+    font-weight: 750;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-remove:hover,
+.ft-inquiry-prototype .ft-create-rfq-selected-remove:focus-visible {
+    border-color: #d8aaaa;
+    background: #fff8f8;
+    outline: 0;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-remove:disabled {
+    cursor: wait;
+    opacity: .65;
+}
+
+.ft-inquiry-prototype .ft-create-rfq-selected-remove svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+    .ft-inquiry-prototype .ft-create-rfq-selected-section {
+        padding: 10px 8px 12px;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-selected-head {
+        align-items: flex-start;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-selected-card {
+        grid-template-columns: 38px minmax(0, 1fr) max-content;
+        gap: 8px 10px;
+        padding: 9px 10px;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-selected-avatar {
+        width: 38px;
+        height: 38px;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-selected-status {
+        grid-column: 2;
+        justify-self: start;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-selected-remove {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+        min-width: 36px;
+        width: 36px;
+        padding: 0;
+    }
+
+    .ft-inquiry-prototype .ft-create-rfq-selected-remove > span {
+        display: none;
+    }
+}

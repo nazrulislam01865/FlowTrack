@@ -1,0 +1,2231 @@
+/** Application CSS segment 11: my-work-task-board. Source-preserving split of the former monolith. */
+/* 2026-08-08 My Work list: exact production mapping of the supplied prototype.
+   Measurements, spacing, weights, responsive breakpoints and list proportions mirror the prototype. */
+.ft-mywork-v2-page {
+    width: 100%;
+    min-width: 0;
+    color: #172033
+}
+
+.ft-mywork-v2-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px
+}
+
+.ft-mywork-v2-head h1 {
+    margin: 0;
+    color: #172033;
+    font-size: 1.4375rem;
+    line-height: normal;
+    font-weight: 700;
+    letter-spacing: -.025em
+}
+
+.ft-mywork-v2-head p {
+    margin: 4px 0 0;
+    color: #60708b;
+    font-size: .625rem;
+    line-height: normal;
+    font-weight: 400
+}
+
+.ft-mywork-v2-all-tasks {
+    display: grid;
+    width: auto;
+    height: 28px;
+    min-height: 28px;
+    place-items: center;
+    padding: 0 10px;
+    border: 1px solid #cbd8e8;
+    border-radius: 7px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .46875rem;
+    line-height: 1;
+    font-weight: 750;
+    text-decoration: none;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-all-tasks:hover {
+    background: #fff
+}
+
+.ft-mywork-v2-tabs {
+    display: flex;
+    gap: 4px;
+    margin-top: 12px;
+    border-bottom: 1px solid #dbe3ed
+}
+
+.ft-mywork-v2-tab {
+    position: relative;
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    padding: 0 11px;
+    color: #69778e;
+    font-size: .5625rem;
+    line-height: normal;
+    font-weight: 750
+}
+
+.ft-mywork-v2-tab.active {
+    color: var(--ft-theme-primary)
+}
+
+.ft-mywork-v2-tab.active::after {
+    content: "";
+    position: absolute;
+    right: 9px;
+    bottom: -1px;
+    left: 9px;
+    height: 2px;
+    background: var(--ft-theme-primary)
+}
+
+.ft-mywork-v2-metrics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 12px
+}
+
+.ft-mywork-v2-metric {
+    display: flex;
+    min-width: 0;
+    min-height: 66px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 11px;
+    border: 1px solid #dbe3ed;
+    border-radius: 10px;
+    background: #fff;
+    color: #172033;
+    text-align: left;
+    box-shadow: none
+}
+
+.ft-mywork-v2-metric:hover,
+.ft-mywork-v2-metric.active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-mywork-v2-metric span {
+    min-width: 0
+}
+
+.ft-mywork-v2-metric small {
+    display: block;
+    overflow: hidden;
+    color: #718097;
+    font-size: .5rem;
+    line-height: normal;
+    font-weight: 400;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-metric strong {
+    display: block;
+    margin-top: 3px;
+    color: #172033;
+    font-size: 1.125rem;
+    line-height: 1;
+    font-weight: 700
+}
+
+.ft-mywork-v2-metric i {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    flex: 0 0 27px;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-style: normal
+}
+
+.ft-mywork-v2-metric.red i {
+    background: #fff0f0;
+    color: #c43f3f
+}
+
+.ft-mywork-v2-metric.amber i {
+    background: #fff6e5;
+    color: #9a6208
+}
+
+.ft-mywork-v2-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #dbe3ed;
+    border-radius: 11px;
+    background: #fff;
+    box-shadow: none
+}
+
+.ft-mywork-v2-search-wrap {
+    position: relative;
+    min-width: 240px;
+    flex: 1;
+    margin: 0
+}
+
+.ft-mywork-v2-search-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: #718198;
+    stroke-width: 1.8;
+    transform: translateY(-50%);
+    pointer-events: none
+}
+
+.ft-mywork-v2-search {
+    width: 100%;
+    height: 38px;
+    padding: 0 62px 0 34px;
+    border: 1px solid #ccd8e8;
+    border-radius: 9px;
+    background: #fff;
+    color: #172033;
+    outline: 0;
+    font-size: .5625rem;
+    line-height: normal;
+    font-weight: 400
+}
+
+.ft-mywork-v2-search::placeholder {
+    color: #7a8798
+}
+
+.ft-mywork-v2-search:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-mywork-v2-clear {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    padding: 4px 6px;
+    border: 0;
+    background: transparent;
+    color: #65748a;
+    font-size: .46875rem;
+    line-height: normal;
+    font-weight: 400;
+    transform: translateY(-50%)
+}
+
+.ft-mywork-v2-quick-filters {
+    display: flex;
+    gap: 5px;
+    min-width: 0
+}
+
+.ft-mywork-v2-chip {
+    min-height: 33px;
+    padding: 0 9px;
+    border: 1px solid #d2dce9;
+    border-radius: 8px;
+    background: #fff;
+    color: #526078;
+    font-size: .5rem;
+    line-height: normal;
+    font-weight: 720;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-chip:hover {
+    background: #fff
+}
+
+.ft-mywork-v2-chip.active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-mywork-v2-sort {
+    height: 35px;
+    min-width: 150px;
+    padding: 0 28px 0 9px;
+    border: 1px solid #d2dce9;
+    border-radius: 8px;
+    background: #fff;
+    color: #37445a;
+    font-size: .5rem;
+    line-height: normal;
+    font-weight: 400;
+    outline: 0
+}
+
+.ft-mywork-v2-sort:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: none
+}
+
+.ft-mywork-v2-load-state {
+    display: flex;
+    min-height: 28px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 3px;
+    color: #758298;
+    font-size: .46875rem;
+    line-height: normal;
+    font-weight: 400
+}
+
+.ft-mywork-v2-loading-copy {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-loading-active {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px
+}
+
+.ft-mywork-v2-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #dce5f2;
+    border-top-color: var(--ft-theme-primary);
+    border-radius: 50%;
+    animation: ftMyWorkSpin .6s linear infinite
+}
+
+.ft-mywork-v2-list-shell {
+    overflow: hidden;
+    border: 1px solid #d8e1ec;
+    border-radius: 11px;
+    background: #fff;
+    box-shadow: none
+}
+
+.ft-mywork-v2-task-head,
+.ft-mywork-v2-task-row {
+    display: grid;
+    grid-template-columns: minmax(230px, 1.75fr) minmax(115px, .75fr) 92px 124px minmax(95px, .65fr) minmax(92px, .62fr) 48px;
+    align-items: center;
+    gap: 8px
+}
+
+.ft-mywork-v2-task-head {
+    min-height: 32px;
+    padding: 0 11px;
+    border-bottom: 1px solid #dce3ec;
+    background: #f8fafc;
+    color: #69778e;
+    font-size: .4375rem;
+    line-height: normal;
+    font-weight: 780;
+    letter-spacing: .04em;
+    text-transform: uppercase
+}
+
+.ft-mywork-v2-results {
+    transition: opacity .15s ease
+}
+
+.ft-mywork-v2-results.is-refreshing {
+    opacity: .68
+}
+
+.ft-mywork-v2-job-group {
+    border-bottom: 1px solid #dce3ec;
+    content-visibility: auto;
+    contain: layout paint style;
+    contain-intrinsic-size: 205px
+}
+
+.ft-mywork-v2-job-group:last-child {
+    border-bottom: 0
+}
+
+.ft-mywork-v2-job-head {
+    display: grid;
+    grid-template-columns: 22px minmax(180px, 1.3fr) minmax(130px, .8fr) minmax(110px, .7fr) minmax(100px, .7fr) minmax(120px, .8fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 49px;
+    padding: 7px 11px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-mywork-v2-job-head:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-mywork-v2-collapse {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: #506078;
+    font-size: .6875rem;
+    line-height: 1
+}
+
+.ft-mywork-v2-job-identity {
+    display: block;
+    min-width: 0
+}
+
+.ft-mywork-v2-job-id {
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    line-height: normal;
+    font-weight: 800;
+    text-decoration: none
+}
+
+.ft-mywork-v2-job-id:hover {
+    text-decoration: none
+}
+
+.ft-mywork-v2-job-title {
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    color: #253248;
+    font-size: .5625rem;
+    line-height: normal;
+    font-weight: 730;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-job-client,
+.ft-mywork-v2-job-stage {
+    overflow: hidden;
+    color: #64738a;
+    font-size: .5rem;
+    line-height: normal;
+    font-weight: 400;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-health,
+.ft-mywork-v2-flag {
+    display: inline-flex;
+    max-width: 100%;
+    width: max-content;
+    align-items: center;
+    padding: 3px 6px;
+    border-radius: 8px;
+    font-size: .4375rem;
+    line-height: normal;
+    font-weight: 750;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.ft-mywork-v2-health.green,
+.ft-mywork-v2-flag.green {
+    background: #edf9f4;
+    color: #147e5b
+}
+
+.ft-mywork-v2-health.amber,
+.ft-mywork-v2-flag.amber {
+    background: #fff6e5;
+    color: #9a6208
+}
+
+.ft-mywork-v2-health.red,
+.ft-mywork-v2-flag.red {
+    background: #fff0f0;
+    color: #c43f3f
+}
+
+.ft-mywork-v2-health.blue,
+.ft-mywork-v2-flag.blue {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-mywork-v2-health.neutral,
+.ft-mywork-v2-flag.neutral {
+    background: #edf9f4;
+    color: #147e5b
+}
+
+.ft-mywork-v2-progress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #67768c;
+    font-size: .46875rem;
+    line-height: normal;
+    font-weight: 400;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-progress>i {
+    display: block;
+    width: 54px;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #e7ecf3
+}
+
+.ft-mywork-v2-progress>i>i {
+    display: block;
+    height: 100%;
+    border-radius: 5px;
+    background: var(--ft-theme-primary)
+}
+
+.ft-mywork-v2-task-count {
+    color: #607087;
+    font-size: .46875rem;
+    line-height: normal;
+    font-weight: 400;
+    text-align: right;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-task-row {
+    position: relative;
+    min-height: 54px;
+    padding: 6px 11px;
+    border-top: 1px solid #e5eaf1;
+    background: #fff
+}
+
+.ft-mywork-v2-task-row:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-mywork-v2-task-row.saving {
+    opacity: .55
+}
+
+.ft-mywork-v2-task-main {
+    min-width: 0
+}
+
+.ft-mywork-v2-task-link {
+    display: block;
+    overflow: hidden;
+    color: #263248;
+    font-size: .5625rem;
+    line-height: normal;
+    font-weight: 750;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-task-link:hover {
+    color: var(--ft-theme-primary);
+    text-decoration: underline
+}
+
+.ft-mywork-v2-task-ref {
+    display: block;
+    margin-top: 3px;
+    color: #7c899c;
+    font-size: .4375rem;
+    line-height: normal;
+    font-weight: 400
+}
+
+.ft-mywork-v2-row-error {
+    display: block;
+    margin-top: 3px;
+    color: #b42318;
+    font-size: .4375rem;
+    line-height: 1.25;
+    font-weight: 400
+}
+
+.ft-mywork-v2-phase {
+    overflow: hidden;
+    color: #5a687f;
+    font-size: .5rem;
+    line-height: normal;
+    font-weight: 400;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-due {
+    font-size: .5rem;
+    line-height: normal;
+    font-weight: 400;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-due.overdue {
+    color: #c43f3f;
+    font-weight: 750
+}
+
+.ft-mywork-v2-due.today {
+    color: #9a6208;
+    font-weight: 750
+}
+
+.ft-mywork-v2-status-cell {
+    min-width: 0
+}
+
+.ft-mywork-v2-status {
+    width: 100%;
+    height: 30px;
+    padding: 0 22px 0 7px;
+    border: 1px solid #cfdbea;
+    border-radius: 7px;
+    background: #fff;
+    color: #344057;
+    font-size: .46875rem;
+    line-height: normal;
+    font-weight: 400;
+    outline: 0
+}
+
+.ft-mywork-v2-status:focus {
+    border-color: #cfdbea;
+    box-shadow: none
+}
+
+.ft-mywork-v2-status:disabled {
+    opacity: .65;
+    cursor: default
+}
+
+.ft-mywork-v2-status-static {
+    display: block;
+    overflow: hidden;
+    color: #344057;
+    font-size: .46875rem;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-updated {
+    color: #718097;
+    font-size: .46875rem;
+    line-height: normal;
+    font-weight: 400;
+    white-space: nowrap
+}
+
+.ft-mywork-v2-open {
+    display: grid;
+    width: 42px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid #cbd8e8;
+    border-radius: 7px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .46875rem;
+    line-height: 1;
+    font-weight: 750;
+    text-decoration: none
+}
+
+.ft-mywork-v2-open:hover {
+    background: #fff
+}
+
+.ft-mywork-v2-row-spinner {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid #dce5f2;
+    border-top-color: var(--ft-theme-primary);
+    border-radius: 50%;
+    animation: ftMyWorkSpin .6s linear infinite
+}
+
+.ft-mywork-v2-empty {
+    padding: 40px 15px;
+    color: #718097;
+    font-size: .5625rem;
+    line-height: normal;
+    text-align: center
+}
+
+.ft-mywork-v2-empty strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #2d3950;
+    font-size: .6875rem;
+    font-weight: 700
+}
+
+.ft-mywork-v2-empty span {
+    display: block
+}
+
+.ft-mywork-v2-footer {
+    display: flex;
+    min-height: 50px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 11px;
+    border-top: 1px solid #dce3ec;
+    background: var(--ft-theme-surface-subtle);
+    color: #69778e;
+    font-size: .5rem;
+    line-height: normal;
+    font-weight: 400
+}
+
+.ft-mywork-v2-pages {
+    display: flex;
+    gap: 5px;
+    align-items: center
+}
+
+.ft-mywork-v2-page-button {
+    min-width: 31px;
+    height: 31px;
+    padding: 0 8px;
+    border: 1px solid #cfdbea;
+    border-radius: 7px;
+    background: #fff;
+    color: #40506a;
+    font-size: .5rem;
+    line-height: normal;
+    font-weight: 750
+}
+
+.ft-mywork-v2-page-button.active {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+.ft-mywork-v2-page-button:disabled {
+    opacity: .45;
+    cursor: default
+}
+
+@keyframes ftMyWorkSpin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+@keyframes ftMyWorkReveal {
+    from {
+        opacity: 0;
+        transform: translateY(5px)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0)
+    }
+}
+
+.ft-mywork-v2-metric,
+.ft-mywork-v2-list-shell {
+    animation: ftMyWorkReveal .25s ease both
+}
+
+.ft-mywork-v2-metric:nth-child(2) {
+    animation-delay: .03s
+}
+
+.ft-mywork-v2-metric:nth-child(3) {
+    animation-delay: .06s
+}
+
+.ft-mywork-v2-metric:nth-child(4) {
+    animation-delay: .09s
+}
+
+.ft-mywork-v2-metric:nth-child(5) {
+    animation-delay: .12s
+}
+
+@media(max-width:1180px) {
+    .ft-mywork-v2-metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+    }
+
+    .ft-mywork-v2-task-head {
+        display: none
+    }
+
+    .ft-mywork-v2-task-row {
+        grid-template-columns: minmax(190px, 1.35fr) minmax(105px, .75fr) 84px 116px 88px 85px 48px
+    }
+
+    .ft-mywork-v2-job-head {
+        grid-template-columns: 22px minmax(170px, 1fr) minmax(110px, .7fr) minmax(100px, .7fr) minmax(85px, .6fr) auto
+    }
+
+    .ft-mywork-v2-progress {
+        display: none
+    }
+}
+
+@media(max-width:820px) {
+    .ft-mywork-v2-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .ft-mywork-v2-toolbar {
+        align-items: stretch;
+        flex-wrap: wrap
+    }
+
+    .ft-mywork-v2-search-wrap {
+        width: 100%;
+        flex-basis: 100%
+    }
+
+    .ft-mywork-v2-sort {
+        flex: 1
+    }
+
+    .ft-mywork-v2-task-row {
+        grid-template-columns: minmax(0, 1.4fr) 86px 108px 44px;
+        grid-template-areas: "task due status action" "phase updated flag action";
+        row-gap: 6px;
+        min-height: 78px
+    }
+
+    .ft-mywork-v2-task-main {
+        grid-area: task
+    }
+
+    .ft-mywork-v2-phase {
+        grid-area: phase
+    }
+
+    .ft-mywork-v2-due {
+        grid-area: due
+    }
+
+    .ft-mywork-v2-status-cell {
+        grid-area: status
+    }
+
+    .ft-mywork-v2-updated {
+        grid-area: updated
+    }
+
+    .ft-mywork-v2-task-row>.ft-mywork-v2-flag {
+        grid-area: flag;
+        justify-self: start
+    }
+
+    .ft-mywork-v2-open {
+        grid-area: action
+    }
+
+    .ft-mywork-v2-job-head {
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        grid-template-areas: "toggle job count" "toggle client health";
+        row-gap: 4px
+    }
+
+    .ft-mywork-v2-collapse {
+        grid-area: toggle
+    }
+
+    .ft-mywork-v2-job-identity {
+        grid-area: job
+    }
+
+    .ft-mywork-v2-job-client {
+        grid-area: client
+    }
+
+    .ft-mywork-v2-job-stage {
+        display: none
+    }
+
+    .ft-mywork-v2-job-head>.ft-mywork-v2-health {
+        grid-area: health;
+        justify-self: end
+    }
+
+    .ft-mywork-v2-task-count {
+        grid-area: count
+    }
+}
+
+@media(max-width:520px) {
+    .ft-mywork-v2-head p {
+        display: none
+    }
+
+    .ft-mywork-v2-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .ft-mywork-v2-metric {
+        min-height: 59px;
+        padding: 8px
+    }
+
+    .ft-mywork-v2-metric:nth-child(5) {
+        grid-column: 1/-1
+    }
+
+    .ft-mywork-v2-toolbar {
+        padding: 8px
+    }
+
+    .ft-mywork-v2-quick-filters {
+        width: 100%;
+        overflow: auto
+    }
+
+    .ft-mywork-v2-chip {
+        flex: 0 0 auto
+    }
+
+    .ft-mywork-v2-task-row {
+        grid-template-columns: minmax(0, 1fr) 95px 42px;
+        grid-template-areas: "task status action" "phase due action" "updated flag action";
+        padding: 9px;
+        min-height: 105px
+    }
+
+    .ft-mywork-v2-footer {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-mywork-v2-pages {
+        width: 100%
+    }
+
+    .ft-mywork-v2-page-button {
+        flex: 1
+    }
+
+    .ft-mywork-v2-job-title {
+        white-space: normal
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+    .ft-mywork-v2-page *,
+    .ft-mywork-v2-page *::before,
+    .ft-mywork-v2-page *::after {
+        animation: none !important;
+        transition: none !important
+    }
+}
+
+/* Board Task Pack grouped list — mirrors the My Work task-list visual language. */
+.ft-board-taskpack-state {
+    display: flex;
+    min-height: 28px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 3px;
+    color: #758298;
+    font-size: .46875rem
+}
+
+.ft-board-taskpack-updating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap
+}
+
+.ft-board-taskpack-results {
+    min-width: 0
+}
+
+.ft-board-taskpack-list-shell {
+    overflow: hidden;
+    border: 1px solid #d8e1ec;
+    border-radius: 11px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 35, 65, .02)
+}
+
+.ft-board-taskpack-task-head,
+.ft-board-taskpack-task-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.65fr) minmax(115px, .75fr) minmax(100px, .65fr) 92px 124px minmax(95px, .65fr) minmax(92px, .62fr) 48px;
+    align-items: center;
+    gap: 8px
+}
+
+.ft-board-taskpack-task-head {
+    min-height: 32px;
+    padding: 0 11px;
+    border-bottom: 1px solid #dce3ec;
+    background: #f8fafc;
+    color: #69778e;
+    font-size: .4375rem;
+    font-weight: 780;
+    letter-spacing: .04em;
+    text-transform: uppercase
+}
+
+.ft-board-taskpack-job-group {
+    border-bottom: 1px solid #dce3ec;
+    content-visibility: auto;
+    contain: layout paint style;
+    contain-intrinsic-size: 205px
+}
+
+.ft-board-taskpack-job-group:last-child {
+    border-bottom: 0
+}
+
+.ft-board-taskpack-job-head {
+    display: grid;
+    grid-template-columns: 22px minmax(180px, 1.3fr) minmax(130px, .8fr) minmax(110px, .7fr) minmax(100px, .7fr) minmax(120px, .8fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 49px;
+    padding: 7px 11px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-board-taskpack-job-head:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-board-taskpack-collapse {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: #506078;
+    font-size: .6875rem;
+    padding: 0
+}
+
+.ft-board-taskpack-job-identity {
+    min-width: 0
+}
+
+.ft-board-taskpack-job-id {
+    display: block;
+    overflow: hidden;
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    font-weight: 800;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+a.ft-board-taskpack-job-id:hover {
+    text-decoration: underline
+}
+
+.ft-board-taskpack-job-title {
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    color: #253248;
+    font-size: .5625rem;
+    font-weight: 730;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-board-taskpack-job-client,
+.ft-board-taskpack-job-stage {
+    overflow: hidden;
+    color: #64738a;
+    font-size: .5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-board-taskpack-health,
+.ft-board-taskpack-flag {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    padding: 3px 6px;
+    border-radius: 8px;
+    font-size: .4375rem;
+    font-weight: 750;
+    white-space: nowrap
+}
+
+.ft-board-taskpack-health.green,
+.ft-board-taskpack-flag.green {
+    background: #edf9f4;
+    color: #147e5b
+}
+
+.ft-board-taskpack-health.amber,
+.ft-board-taskpack-flag.amber {
+    background: #fff6e5;
+    color: #9a6208
+}
+
+.ft-board-taskpack-health.red,
+.ft-board-taskpack-flag.red {
+    background: #fff0f0;
+    color: #c43f3f
+}
+
+.ft-board-taskpack-health.blue,
+.ft-board-taskpack-flag.blue {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-board-taskpack-progress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #67768c;
+    font-size: .46875rem
+}
+
+.ft-board-taskpack-progress>i {
+    width: 54px;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #e7ecf3
+}
+
+.ft-board-taskpack-progress>i>i {
+    display: block;
+    height: 100%;
+    border-radius: 5px;
+    background: var(--ft-theme-primary)
+}
+
+.ft-board-taskpack-task-count {
+    color: #607087;
+    font-size: .46875rem;
+    text-align: right;
+    white-space: nowrap
+}
+
+.ft-board-taskpack-task-row {
+    position: relative;
+    min-height: 54px;
+    padding: 6px 11px;
+    border-top: 1px solid #e5eaf1;
+    background: #fff
+}
+
+.ft-board-taskpack-task-row:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-board-taskpack-task-row.saving {
+    opacity: .58
+}
+
+.ft-board-taskpack-task-row.saving::after {
+    content: "";
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid #dce5f2;
+    border-top-color: var(--ft-theme-primary);
+    border-radius: 50%;
+    animation: ftBoardTaskPackSpin .6s linear infinite
+}
+
+.ft-board-taskpack-task-main {
+    min-width: 0
+}
+
+.ft-board-taskpack-task-link {
+    display: block;
+    overflow: hidden;
+    color: #263248;
+    font-size: .5625rem;
+    font-weight: 750;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+a.ft-board-taskpack-task-link:hover {
+    color: var(--ft-theme-primary);
+    text-decoration: underline
+}
+
+.ft-board-taskpack-task-link.is-static {
+    cursor: default
+}
+
+.ft-board-taskpack-task-ref {
+    display: block;
+    margin-top: 3px;
+    color: #7c899c;
+    font-size: .4375rem
+}
+
+.ft-board-taskpack-assignee {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 5px;
+    color: #52627a;
+    font-size: .5rem
+}
+
+.ft-board-taskpack-assignee b {
+    overflow: hidden;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-board-taskpack-assignee small {
+    flex: 0 0 auto;
+    padding: 2px 5px;
+    border-radius: 7px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .4375rem;
+    font-weight: 800
+}
+
+.ft-board-taskpack-phase {
+    overflow: hidden;
+    color: #5a687f;
+    font-size: .5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-board-taskpack-due {
+    font-size: .5rem;
+    white-space: nowrap
+}
+
+.ft-board-taskpack-due.overdue {
+    color: #c43f3f;
+    font-weight: 750
+}
+
+.ft-board-taskpack-due.today {
+    color: #9a6208;
+    font-weight: 750
+}
+
+.ft-board-taskpack-status-select {
+    width: 100%;
+    height: 30px;
+    padding: 0 22px 0 7px;
+    border: 1px solid #cfdbea;
+    border-radius: 7px;
+    background: #fff;
+    color: #344057;
+    font-size: .46875rem
+}
+
+.ft-board-taskpack-status-select:disabled {
+    background: #f7f9fc;
+    color: #66758c;
+    cursor: default;
+    opacity: .92
+}
+
+.ft-board-taskpack-updated {
+    overflow: hidden;
+    color: #718097;
+    font-size: .46875rem;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-board-taskpack-row-action {
+    display: grid;
+    width: 42px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid #cbd8e8;
+    border-radius: 7px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .46875rem;
+    font-weight: 750;
+    text-decoration: none
+}
+
+.ft-board-taskpack-row-action.is-disabled {
+    border-color: #e0e6ef;
+    background: #f7f9fc;
+    color: #98a3b3
+}
+
+.ft-board-taskpack-empty {
+    padding: 40px 15px;
+    color: #718097;
+    font-size: .5625rem;
+    text-align: center
+}
+
+.ft-board-taskpack-empty strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #2d3950;
+    font-size: .6875rem
+}
+
+.ft-board-taskpack-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 50px;
+    padding: 8px 11px;
+    border-top: 1px solid #dce3ec;
+    background: var(--ft-theme-surface-subtle);
+    color: #69778e;
+    font-size: .5rem
+}
+
+.ft-board-taskpack-pages {
+    display: flex;
+    gap: 5px
+}
+
+.ft-board-taskpack-page-button {
+    min-width: 31px;
+    height: 31px;
+    padding: 0 8px;
+    border: 1px solid #cfdbea;
+    border-radius: 7px;
+    background: #fff;
+    color: #40506a;
+    font-size: .5rem;
+    font-weight: 750
+}
+
+.ft-board-taskpack-page-button.active {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+.ft-board-taskpack-page-button:disabled {
+    opacity: .45;
+    cursor: default
+}
+
+@keyframes ftBoardTaskPackSpin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+@media(max-width:1320px) {
+    .ft-board-taskpack-task-head {
+        display: none
+    }
+
+    .ft-board-taskpack-task-row {
+        grid-template-columns: minmax(190px, 1.35fr) minmax(105px, .75fr) minmax(92px, .65fr) 84px 116px 88px 85px 48px
+    }
+
+    .ft-board-taskpack-job-head {
+        grid-template-columns: 22px minmax(170px, 1fr) minmax(110px, .7fr) minmax(100px, .7fr) minmax(85px, .6fr) auto
+    }
+
+    .ft-board-taskpack-progress {
+        display: none
+    }
+}
+
+@media(max-width:960px) {
+    .ft-board-taskpack-state {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 5px 2px
+    }
+
+    .ft-board-taskpack-task-row {
+        grid-template-columns: minmax(0, 1.35fr) minmax(95px, .7fr) 82px 108px 44px;
+        grid-template-areas: "task assignee due status action" "phase assignee updated flag action";
+        row-gap: 6px;
+        min-height: 78px
+    }
+
+    .ft-board-taskpack-task-main {
+        grid-area: task
+    }
+
+    .ft-board-taskpack-assignee {
+        grid-area: assignee;
+        align-self: center;
+        flex-direction: column;
+        align-items: flex-start
+    }
+
+    .ft-board-taskpack-phase {
+        grid-area: phase
+    }
+
+    .ft-board-taskpack-due {
+        grid-area: due
+    }
+
+    .ft-board-taskpack-status-select {
+        grid-area: status
+    }
+
+    .ft-board-taskpack-updated {
+        grid-area: updated
+    }
+
+    .ft-board-taskpack-task-row>.ft-board-taskpack-flag {
+        grid-area: flag;
+        justify-self: start
+    }
+
+    .ft-board-taskpack-row-action {
+        grid-area: action
+    }
+
+    .ft-board-taskpack-job-head {
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        grid-template-areas: "toggle job count" "toggle client health";
+        row-gap: 4px
+    }
+
+    .ft-board-taskpack-collapse {
+        grid-area: toggle
+    }
+
+    .ft-board-taskpack-job-identity {
+        grid-area: job
+    }
+
+    .ft-board-taskpack-job-client {
+        grid-area: client
+    }
+
+    .ft-board-taskpack-job-stage {
+        display: none
+    }
+
+    .ft-board-taskpack-job-head>.ft-board-taskpack-health {
+        grid-area: health;
+        justify-self: end
+    }
+
+    .ft-board-taskpack-task-count {
+        grid-area: count
+    }
+}
+
+@media(max-width:620px) {
+    .ft-board-taskpack-state {
+        font-size: .46875rem
+    }
+
+    .ft-board-taskpack-updating {
+        white-space: normal
+    }
+
+    .ft-board-taskpack-task-row {
+        grid-template-columns: minmax(0, 1fr) 95px 42px;
+        grid-template-areas: "task status action" "assignee due action" "phase flag action" "updated updated action";
+        padding: 9px;
+        min-height: 118px
+    }
+
+    .ft-board-taskpack-assignee {
+        flex-direction: row;
+        align-items: center
+    }
+
+    .ft-board-taskpack-job-title {
+        white-space: normal
+    }
+
+    .ft-board-taskpack-footer {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-board-taskpack-pages {
+        width: 100%
+    }
+
+    .ft-board-taskpack-page-button {
+        flex: 1
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+    .ft-board-taskpack-list-shell *,
+    .ft-board-taskpack-list-shell *::before,
+    .ft-board-taskpack-list-shell *::after {
+        animation: none !important;
+        transition: none !important
+    }
+}
+
+/* 2026-08-08: Task Board full list-page redesign.
+   Task Board intentionally leaves the legacy Operations Board shell entirely
+   and follows the Jobs list page hierarchy, spacing, controls and pagination. */
+.ft-task-board-list-page .ft-task-board-redesign {
+    width: 100%
+}
+
+.ft-task-board-list-page .ft-list-head {
+    margin-bottom: 16px
+}
+
+.ft-task-board-list-page .ft-task-board-view-tabs {
+    margin-bottom: 16px
+}
+
+.ft-task-board-list-page .ft-task-board-view-tabs button {
+    cursor: pointer
+}
+
+.ft-task-board-list-page .ft-task-board-view-tabs .active {
+    pointer-events: none
+}
+
+.ft-task-board-list-page .ft-task-board-list-card {
+    overflow: visible
+}
+
+.ft-task-board-list-page .ft-task-board-list-card>.ft-list-filter-shell {
+    border-bottom: 1px solid #e1e8f0
+}
+
+.ft-task-board-list-page .ft-task-board-filter-grid {
+    grid-template-columns: minmax(280px, 1.6fr) repeat(6, minmax(145px, 1fr)) !important;
+    padding: 14px 14px 10px
+}
+
+.ft-task-board-list-page .ft-list-active-row {
+    padding: 0 14px 12px
+}
+
+.ft-task-board-list-page .ft-task-board-group-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.ft-task-board-list-page .ft-task-board-result-state {
+    display: flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 14px;
+    border-bottom: 1px solid #e1e8f0;
+    background: var(--ft-theme-surface-subtle);
+    color: #5f7189;
+    font-size: .6875rem
+}
+
+.ft-task-board-list-page .ft-task-board-result-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #77879c;
+    white-space: nowrap
+}
+
+.ft-task-board-list-page .ft-task-board-results {
+    min-width: 0
+}
+
+.ft-task-board-list-page .ft-board-taskpack-list-shell.is-embedded {
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none
+}
+
+.ft-task-board-list-page .ft-board-taskpack-task-head,
+.ft-task-board-list-page .ft-board-taskpack-task-row {
+    grid-template-columns: minmax(240px, 1.55fr) minmax(135px, .82fr) minmax(110px, .68fr) 100px 138px minmax(100px, .65fr) minmax(105px, .65fr) 62px;
+    gap: 10px
+}
+
+.ft-task-board-list-page .ft-board-taskpack-task-head {
+    min-height: 42px;
+    padding: 0 14px;
+    background: #f8fafc;
+    color: #526780;
+    font-size: .625rem;
+    font-weight: 800;
+    letter-spacing: .02em
+}
+
+.ft-task-board-list-page .ft-board-taskpack-job-head {
+    grid-template-columns: 28px minmax(210px, 1.35fr) minmax(145px, .8fr) minmax(115px, .68fr) minmax(105px, .65fr) minmax(135px, .75fr) auto;
+    gap: 10px;
+    min-height: 58px;
+    padding: 8px 14px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-task-board-list-page .ft-board-taskpack-collapse {
+    width: 26px;
+    height: 26px;
+    font-size: .875rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-job-id {
+    font-size: .75rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-job-title {
+    margin-top: 3px;
+    font-size: .6875rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-job-client,
+.ft-task-board-list-page .ft-board-taskpack-job-stage {
+    font-size: .6875rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-health,
+.ft-task-board-list-page .ft-board-taskpack-flag {
+    padding: 5px 9px;
+    border-radius: 8px;
+    font-size: .625rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-progress {
+    font-size: .625rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-progress>i {
+    width: 72px;
+    height: 6px
+}
+
+.ft-task-board-list-page .ft-board-taskpack-task-count {
+    font-size: .625rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-task-row {
+    min-height: 62px;
+    padding: 8px 14px
+}
+
+.ft-task-board-list-page .ft-board-taskpack-task-link {
+    font-size: .75rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-task-ref {
+    margin-top: 4px;
+    font-size: .625rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-assignee,
+.ft-task-board-list-page .ft-board-taskpack-phase,
+.ft-task-board-list-page .ft-board-taskpack-due,
+.ft-task-board-list-page .ft-board-taskpack-updated {
+    font-size: .6875rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-assignee small {
+    padding: 3px 6px;
+    font-size: .5625rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-status-select {
+    height: 36px;
+    padding: 0 28px 0 10px;
+    border-radius: 8px;
+    font-size: .6875rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-row-action {
+    width: 58px;
+    height: 34px;
+    border-radius: 7px;
+    font-size: .625rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-empty {
+    padding: 48px 18px;
+    font-size: .75rem
+}
+
+.ft-task-board-list-page .ft-board-taskpack-empty strong {
+    margin-bottom: 6px;
+    font-size: .875rem
+}
+
+.ft-task-board-list-page .ft-task-board-pagination {
+    margin-top: 14px
+}
+
+.ft-task-board-list-page .ft-task-board-per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+@media(max-width:1500px) {
+    .ft-task-board-list-page .ft-task-board-filter-grid {
+        grid-template-columns: repeat(4, minmax(170px, 1fr)) !important
+    }
+}
+
+@media(max-width:1320px) {
+    .ft-task-board-list-page .ft-board-taskpack-task-head {
+        display: grid
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-task-row {
+        grid-template-columns: minmax(215px, 1.4fr) minmax(120px, .75fr) minmax(100px, .65fr) 92px 126px 92px 96px 58px
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-job-head {
+        grid-template-columns: 28px minmax(190px, 1.2fr) minmax(130px, .78fr) minmax(105px, .68fr) minmax(95px, .6fr) minmax(120px, .72fr) auto
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-progress {
+        display: flex
+    }
+}
+
+@media(max-width:1100px) {
+    .ft-task-board-list-page .ft-task-board-filter-grid {
+        grid-template-columns: repeat(3, minmax(165px, 1fr)) !important
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-task-head {
+        display: none
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-task-row {
+        grid-template-columns: minmax(0, 1.35fr) minmax(105px, .72fr) 90px 120px 58px;
+        grid-template-areas: "task assignee due status action" "phase assignee updated flag action";
+        row-gap: 7px;
+        min-height: 82px
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-task-main {
+        grid-area: task
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-assignee {
+        grid-area: assignee;
+        align-self: center;
+        flex-direction: column;
+        align-items: flex-start
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-phase {
+        grid-area: phase
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-due {
+        grid-area: due
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-status-select {
+        grid-area: status
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-updated {
+        grid-area: updated
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-task-row>.ft-board-taskpack-flag {
+        grid-area: flag;
+        justify-self: start
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-row-action {
+        grid-area: action
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-job-head {
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        grid-template-areas: "toggle job count" "toggle client health";
+        row-gap: 5px
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-collapse {
+        grid-area: toggle
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-job-identity {
+        grid-area: job
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-job-client {
+        grid-area: client
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-job-stage {
+        display: none
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-job-head>.ft-board-taskpack-health {
+        grid-area: health;
+        justify-self: end
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-task-count {
+        grid-area: count
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-progress {
+        display: none
+    }
+}
+
+@media(max-width:760px) {
+    .ft-task-board-list-page .ft-task-board-filter-grid {
+        grid-template-columns: repeat(2, minmax(150px, 1fr)) !important
+    }
+
+    .ft-task-board-list-page .ft-task-board-result-state {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-task-board-list-page .ft-task-board-result-note {
+        white-space: normal
+    }
+
+    .ft-task-board-list-page .ft-task-board-group-actions {
+        width: 100%;
+        justify-content: space-between
+    }
+}
+
+@media(max-width:520px) {
+    .ft-task-board-list-page .ft-task-board-filter-grid {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-task-row {
+        grid-template-columns: minmax(0, 1fr) 105px 52px;
+        grid-template-areas: "task status action" "assignee due action" "phase flag action" "updated updated action";
+        padding: 10px;
+        min-height: 124px
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-assignee {
+        flex-direction: row;
+        align-items: center
+    }
+
+    .ft-task-board-list-page .ft-board-taskpack-job-title {
+        white-space: normal
+    }
+
+    .ft-task-board-list-page .ft-task-board-pagination {
+        align-items: stretch
+    }
+
+    .ft-task-board-list-page .ft-task-board-per-page {
+        justify-content: space-between
+    }
+}
+
+/* Keep primary New Order / New Job action text white in every link state. */
+.ft-new-job-btn,
+a.ft-new-job-btn,
+a.ft-new-job-btn:link,
+a.ft-new-job-btn:visited,
+a.ft-new-job-btn:hover,
+a.ft-new-job-btn:focus,
+a.ft-new-job-btn:active {
+    color: #fff !important;
+}
+
+/* 2026-08-08 Clients top-section compact alignment. */
+.ft-clients-reference .ft-client-list-modes {
+    margin-bottom: 12px
+}
+
+.ft-clients-reference .ft-clients-metrics {
+    gap: 10px;
+    margin-bottom: 10px
+}
+
+.ft-clients-reference .ft-client-metric {
+    min-height: 68px;
+    padding: 9px 12px;
+    gap: 10px;
+    border-radius: 10px
+}
+
+.ft-clients-reference .ft-client-metric-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 1.125rem
+}
+
+.ft-clients-reference .ft-client-metric small {
+    margin-bottom: 1px;
+    font-size: .59375rem;
+    line-height: 1.2
+}
+
+.ft-clients-reference .ft-client-metric b {
+    font-size: 1.25rem;
+    line-height: 1
+}
+
+.ft-clients-reference .ft-list-filter-shell {
+    margin-bottom: 10px;
+    padding: 10px 12px 7px;
+    border-radius: 12px
+}
+
+.ft-clients-reference .ft-list-filter-grid {
+    gap: 8px
+}
+
+.ft-clients-reference .ft-list-filter-shell .ft-jl-control>label {
+    margin: 0 0 4px 2px;
+    font-size: .6875rem;
+    line-height: 1.2
+}
+
+.ft-clients-reference .ft-list-filter-shell .ft-jl-search,
+.ft-clients-reference .ft-list-filter-shell .ft-remote-filter-button {
+    min-height: 35px;
+    height: 35px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    font-size: .78125rem
+}
+
+.ft-clients-reference .ft-list-active-row {
+    min-height: 28px;
+    padding-top: 6px
+}
+
+.ft-clients-reference .ft-list-filter-chips {
+    font-size: .6875rem
+}
+
+.ft-clients-reference .ft-client-quick-row {
+    gap: 7px;
+    margin-bottom: 10px
+}
+
+.ft-clients-reference .ft-client-quick-row button {
+    height: 32px;
+    padding: 0 11px;
+    font-size: .625rem
+}
+
+@media(max-width:700px) {
+    .ft-clients-reference .ft-client-metric {
+        min-height: 62px;
+        padding: 8px 9px
+    }
+
+    .ft-clients-reference .ft-client-metric-icon {
+        width: 33px;
+        height: 33px;
+        font-size: 1rem
+    }
+
+    .ft-clients-reference .ft-client-metric b {
+        font-size: 1.125rem
+    }
+
+    .ft-clients-reference .ft-list-filter-shell {
+        padding: 9px 10px 6px
+    }
+}
+
+/* 2026-08-08 Client list cleanup: keep the filter row balanced after removing
+   the duplicate quick-filter strip. The search gets more room on wide screens,
+   then the controls collapse predictably without leaving awkward partial rows. */
+.ft-clients-reference .ft-client-filter-grid {
+    grid-template-columns: minmax(280px, 1.7fr) repeat(4, minmax(150px, 1fr)) !important;
+    align-items: end;
+}
+
+.ft-clients-reference .ft-list-filter-shell.is-archived .ft-client-filter-grid {
+    grid-template-columns: minmax(280px, 1.8fr) repeat(3, minmax(160px, 1fr)) !important;
+}
+
+.ft-clients-reference .ft-list-filter-shell {
+    margin-bottom: 12px
+}
+
+.ft-clients-reference .ft-list-active-row {
+    justify-content: flex-end
+}
+
+.ft-clients-reference .ft-list-filter-chips:empty {
+    display: none
+}
+
+@media(max-width:1180px) {
+
+    .ft-clients-reference .ft-client-filter-grid,
+    .ft-clients-reference .ft-list-filter-shell.is-archived .ft-client-filter-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important
+    }
+
+    .ft-clients-reference .ft-client-filter-grid>.ft-jl-control-search {
+        grid-column: span 2 !important
+    }
+}
+
+@media(max-width:760px) {
+
+    .ft-clients-reference .ft-client-filter-grid,
+    .ft-clients-reference .ft-list-filter-shell.is-archived .ft-client-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+
+    .ft-clients-reference .ft-client-filter-grid>.ft-jl-control-search {
+        grid-column: 1/-1 !important
+    }
+}
+
+@media(max-width:520px) {
+
+    .ft-clients-reference .ft-client-filter-grid,
+    .ft-clients-reference .ft-list-filter-shell.is-archived .ft-client-filter-grid {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-clients-reference .ft-client-filter-grid>.ft-jl-control-search {
+        grid-column: auto !important
+    }
+}
+
+/* Client row action menus are positioned against the viewport by Alpine/JS.
+   This lets the last table row open upward when necessary and prevents the
+   table's horizontal-scroll container from turning the menu into extra scroll. */
+.ft-clients-reference .ft-client-action-menu {
+    position: fixed !important;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: 168px;
+    z-index: 1200 !important;
+}
+
+/* Dashboard primary-action parity for Orders, Clients, and Board page headers. */
+.ft-dashboard-action-match {
+    display: inline-flex !important;
+    height: auto !important;
+    min-height: 34px !important;
+    min-width: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 0 11px !important;
+    border: 1px solid var(--ft-theme-primary) !important;
+    border-radius: 9px !important;
+    background: var(--ft-theme-primary) !important;
+    color: #fff !important;
+    font-size: .5625rem !important;
+    font-weight: 760 !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--ft-theme-primary) 16%, transparent) !important;
+}
+
+.ft-dashboard-action-match:link,
+.ft-dashboard-action-match:visited,
+.ft-dashboard-action-match:focus,
+.ft-dashboard-action-match:active {
+    color: #fff !important;
+}
+
+.ft-dashboard-action-match:hover {
+    border-color: var(--ft-theme-primary) !important;
+    background: var(--ft-theme-primary) !important;
+    color: #fff !important;
+}
+
+.ft-dashboard-action-match-icon {
+    font-size: .8125rem;
+    font-weight: 500;
+    line-height: 1;
+}
+
+
+
+/* 2026-08-08: keep Job Details task assignee avatar/fallback, name and edit icon
+   vertically centered in the Assignee column, including the Unassigned fallback. */
+.ft-exact-job-detail .ft-overview-task-card .ft-task-inline-editor {
+    align-items: center !important;
+    min-height: 28px;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-task-inline-display.ft-inline-person-live {
+    display: inline-flex;
+    align-items: center !important;
+    gap: 8px;
+    min-height: 24px;
+    line-height: 1.2;
+    overflow: visible;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-avatar-slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    line-height: 0;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-avatar-slot>.avatar,
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-generated-avatar {
+    flex: 0 0 24px;
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-person-name {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    min-height: 24px;
+    line-height: 24px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-task-inline-editor>.ft-inline-edit-button {
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    margin: 0;
+}
+
+
+/* 2026-08-08: compact Task Details @mention picker and center all avatar fallbacks. */
+.avatar>.avatar-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1 !important;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.avatar>.avatar-initials[hidden] {
+    display: none !important
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-generated-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1 !important;
+    text-align: center;
+}
+
+.ft-mention-menu {
+    max-height: 240px;
+    padding: 4px;
+    border-radius: 9px;
+}
+
+.ft-mention-option {
+    gap: 8px;
+    min-height: 36px;
+    padding: 5px 7px;
+    border-radius: 7px;
+}
+
+.ft-mention-avatar {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    font-size: .53125rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.ft-mention-copy {
+    gap: 1px;
+    line-height: 1.15
+}
+
+.ft-mention-copy strong {
+    font-size: .625rem;
+    font-weight: 700;
+    line-height: 1.15
+}
+
+.ft-mention-copy small {
+    font-size: .5rem;
+    font-weight: 500;
+    line-height: 1.15
+}
+
+
+
+/* Order Health removed from Task Board order-group summaries. */
+.ft-board-taskpack-job-head {
+    grid-template-columns:22px minmax(180px,1.3fr) minmax(130px,.8fr) minmax(110px,.7fr) minmax(120px,.8fr) auto;
+}
+.ft-task-board-list-page .ft-board-taskpack-job-head {
+    grid-template-columns:28px minmax(210px,1.35fr) minmax(145px,.8fr) minmax(115px,.68fr) minmax(135px,.75fr) auto;
+}
+@media (max-width:820px) {
+    .ft-board-taskpack-job-head { grid-template-columns:22px minmax(0,1fr) auto; }
+}

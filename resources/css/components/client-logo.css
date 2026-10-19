@@ -1,0 +1,262 @@
+.ft-client-logo-mark {
+    --ft-client-logo-size: 34px;
+    width: var(--ft-client-logo-size);
+    height: var(--ft-client-logo-size);
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 var(--ft-client-logo-size);
+    overflow: hidden;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-weight: 800;
+    font-size: max(.5625rem, calc(var(--ft-client-logo-size) / 3.2));
+    line-height: 1;
+    border: 1px solid color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-client-logo-mark.is-rounded {
+    border-radius: calc(var(--ft-client-logo-size) * .26)
+}
+
+.ft-client-logo-mark.is-circle {
+    border-radius: 50%
+}
+
+.ft-client-logo-mark.is-archived {
+    background: #edf1f5;
+    color: #62748b;
+    filter: saturate(.72)
+}
+
+.ft-client-logo-mark img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #fff
+}
+
+.ft-client-logo-fallback {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%
+}
+
+.ft-client-name-with-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0
+}
+
+.ft-client-name-with-logo>span:last-child,
+.ft-client-name-with-logo>a:last-child {
+    min-width: 0
+}
+
+.ft-client-inline-identity {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    max-width: 100%
+}
+
+.ft-client-inline-identity .ft-client-inline-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-client-logo-upload {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid #dce5ef;
+    border-radius: 11px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-client-logo-preview {
+    width: 82px;
+    height: 82px;
+    border-radius: 14px;
+    border: 1px solid #d7e1ec;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    overflow: hidden
+}
+
+.ft-client-logo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block
+}
+
+.ft-client-logo-preview .ft-client-logo-mark {
+    --ft-client-logo-size: 82px !important;
+    border: 0;
+    border-radius: 14px
+}
+
+.ft-client-logo-upload-copy {
+    min-width: 0
+}
+
+.ft-client-logo-upload-copy>b {
+    display: block;
+    color: #14233d;
+    font-size: .75rem;
+    margin-bottom: 5px
+}
+
+.ft-client-logo-upload-copy>p {
+    margin: 0 0 10px;
+    color: #677a95;
+    font-size: .65625rem;
+    line-height: 1.45
+}
+
+.ft-client-logo-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap
+}
+
+.ft-client-logo-file {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 13px;
+    border: 1px solid #b9cbe4;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .65625rem;
+    font-weight: 750;
+    cursor: pointer;
+    overflow: hidden
+}
+
+.ft-client-logo-file input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer
+}
+
+.ft-client-logo-remove,
+.ft-client-logo-undo {
+    height: 36px;
+    border: 1px solid #e0e7ef;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0 13px;
+    font: inherit;
+    font-size: .65625rem;
+    font-weight: 700;
+    cursor: pointer
+}
+
+.ft-client-logo-remove {
+    color: #c93434
+}
+
+.ft-client-logo-undo {
+    color: #536781
+}
+
+.ft-client-logo-upload .validation-error {
+    display: block;
+    color: #d92d20;
+    font-size: .625rem;
+    margin-top: 7px
+}
+
+.ft-client-logo-removal-note {
+    display: block;
+    color: #b26800;
+    font-size: .625rem;
+    margin-top: 7px
+}
+
+.ft-client-proto-logo.has-image {
+    background: #fff !important;
+    padding: 0;
+    overflow: hidden
+}
+
+.ft-client-proto-logo.has-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block
+}
+
+.ft-client-identity>.ft-client-logo-mark {
+    margin: 0
+}
+
+.ft-job-client-logo-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0
+}
+
+.ft-job-client-logo-line .ft-client {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-dashboard-client-logo-link {
+    display: flex !important;
+    align-items: center;
+    gap: 7px;
+    min-width: 0
+}
+
+.ft-dashboard-client-logo-link>span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+@media(max-width:700px) {
+    .ft-client-logo-upload {
+        grid-template-columns: 70px minmax(0, 1fr);
+        gap: 12px
+    }
+
+    .ft-client-logo-preview {
+        width: 64px;
+        height: 64px
+    }
+
+    .ft-client-logo-preview .ft-client-logo-mark {
+        --ft-client-logo-size: 64px !important
+    }
+
+    .ft-client-logo-actions {
+        align-items: stretch
+    }
+
+    .ft-client-logo-file,
+    .ft-client-logo-remove,
+    .ft-client-logo-undo {
+        min-height: 36px
+    }
+}

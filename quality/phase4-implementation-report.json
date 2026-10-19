@@ -1,0 +1,32 @@
+{
+  "phase": 4,
+  "status": "quality-gates-pass",
+  "usage": {
+    "search-select": 59,
+    "multi-select": 2,
+    "filter-bar": 5,
+    "filter-chip": 2,
+    "filter-reset": 4,
+    "search-input": 6,
+    "date-range": 3
+  },
+  "selector_limits": {
+    "max_per_page": 20,
+    "min_search_length": 2,
+    "max_selected": 100
+  },
+  "architecture": {
+    "master_data_index_lines": 3166,
+    "phase0_to_phase4_gate": "pass"
+  },
+  "validation": {
+    "php_lint": "pass",
+    "node_syntax": "pass",
+    "quality_phase4": "pass",
+    "phpunit": "user_run_before_testfix_94_failed_179_passed_rerun_required",
+    "vite_build": "pass_user_environment_2026-08-20",
+    "authenticated_visual_regression": "pending_environment",
+    "phpunit_assertions": 1647,
+    "test_reconciliation": "quality/phase4-test-reconciliation.json"
+  }
+}

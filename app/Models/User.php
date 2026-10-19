@@ -2,131 +2,166 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Carbon;
-use App\Modules\OrderFlow\Data\Models\FlowJobMember;
-use App\Modules\OrderFlow\Data\Models\WorkspaceMembership;
-use App\Modules\OrderFlow\Business\Services\FlowAuthorizationService;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-/**
- * @property int $id
- * @property string $name
- * @property string $email
- * @property Carbon|null $email_verified_at
- * @property string $password
- * @property string|null $two_factor_secret
- * @property string|null $two_factor_recovery_codes
- * @property Carbon|null $two_factor_confirmed_at
- * @property string|null $remember_token
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
- */
-#[Fillable(['name', 'initials', 'email', 'email_verified_at', 'phone', 'locale', 'status', 'default_landing_page', 'default_task_view', 'avatar_path', 'notification_preferences', 'is_super_admin', 'password', 'active_session_token', 'active_session_started_at'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'active_session_token'])]
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, MustVerifyEmailTrait, Notifiable;
+    use HasFactory, Notifiable;
 
-    /** Request-lifetime cache: prevents repeated membership/role/permission queries. */
-    private bool $flowWorkspaceMembershipResolved = false;
+    protected $fillable = [
+        'role_id', 'department_id', 'name', 'email', 'password',
+        'is_super_admin', 'is_active', 'locale', 'profile_image_path',
+        'wechat_id', 'phone', 'account_status',
+    ];
 
-    private ?WorkspaceMembership $flowWorkspaceMembershipCache = null;
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    public function workspaceMemberships(): HasMany
-    {
-        return $this->hasMany(WorkspaceMembership::class);
-    }
-
-    public function jobMemberships(): HasMany
-    {
-        return $this->hasMany(FlowJobMember::class);
-    }
-
-    public function currentWorkspaceMembership(): ?WorkspaceMembership
-    {
-        if ($this->flowWorkspaceMembershipResolved) {
-            return $this->flowWorkspaceMembershipCache;
-        }
-
-        $this->flowWorkspaceMembershipResolved = true;
-        $this->flowWorkspaceMembershipCache = $this->workspaceMemberships()
-            ->with(['workspace', 'role.permissions', 'role.moduleAccess', 'department'])
-            ->where('status', 'active')
-            ->first();
-
-        return $this->flowWorkspaceMembershipCache;
-    }
-
-    /**
-     * Prime or reset the request-lifetime membership cache. Useful for
-     * middleware and tests that already resolved the active membership.
-     */
-    public function setCurrentWorkspaceMembership(?WorkspaceMembership $membership): void
-    {
-        $this->flowWorkspaceMembershipResolved = true;
-        $this->flowWorkspaceMembershipCache = $membership;
-    }
-
-    public function forgetCurrentWorkspaceMembership(): void
-    {
-        $this->flowWorkspaceMembershipResolved = false;
-        $this->flowWorkspaceMembershipCache = null;
-    }
-
-    public function currentWorkspaceId(): int
-    {
-        return (int) $this->currentWorkspaceMembership()?->workspace_id;
-    }
-
-    public function isFlowSuperAdmin(): bool
-    {
-        return app(FlowAuthorizationService::class)->isSuperAdmin($this);
-    }
-
-    public function isFlowAdministrator(): bool
-    {
-        return app(FlowAuthorizationService::class)->isAdministrator($this);
-    }
-
-    public function hasFlowAction(string $module, string $action, ?\Illuminate\Database\Eloquent\Model $record = null): bool
-    {
-        return app(FlowAuthorizationService::class)->allows($this, $module, $action, $record);
-    }
-
-    public function hasFlowPermission(string $permission): bool
-    {
-        if ($this->isFlowAdministrator()) {
-            return true;
-        }
-
-        $membership = $this->currentWorkspaceMembership();
-
-        return (bool) $membership?->role?->permissions->contains('slug', $permission);
-    }
+    protected $hidden = ['password', 'remember_token'];
 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'is_super_admin' => 'boolean',
-            'notification_preferences' => 'array',
             'password' => 'hashed',
-            'two_factor_confirmed_at' => 'datetime',
-            'active_session_started_at' => 'datetime',
+            'is_super_admin' => 'boolean',
+            'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Keep the new pivot compatible with older integrations that still set
+        // users.role_id directly. Changing the legacy primary role replaces only
+        // the previous primary assignment and preserves any other assigned roles.
+        static::created(function (User $user): void {
+            if (! $user->role_id || ! Schema::hasTable('user_roles')) return;
+
+            DB::table('user_roles')->insertOrIgnore([[
+                'user_id' => (int) $user->id,
+                'role_id' => (int) $user->role_id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]]);
+            $user->unsetRelation('roles');
+        });
+
+        static::updated(function (User $user): void {
+            if (! $user->wasChanged('role_id') || ! Schema::hasTable('user_roles')) return;
+
+            $oldRoleId = (int) ($user->getOriginal('role_id') ?: 0);
+            $newRoleId = (int) ($user->role_id ?: 0);
+
+            if ($oldRoleId) {
+                DB::table('user_roles')
+                    ->where('user_id', $user->id)
+                    ->where('role_id', $oldRoleId)
+                    ->delete();
+            }
+
+            if ($newRoleId) {
+                DB::table('user_roles')->insertOrIgnore([[
+                    'user_id' => (int) $user->id,
+                    'role_id' => $newRoleId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]]);
+            }
+
+            $user->unsetRelation('roles');
+        });
+    }
+
+    /**
+     * Legacy/primary role retained for backwards compatibility with existing
+     * records, workspace memberships, exports and integrations. Effective
+     * authorization is calculated from roles().
+     */
+    public function role(): BelongsTo { return $this->belongsTo(Role::class); }
+
+    /** All roles assigned to the user. */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')->withTimestamps();
+    }
+
+    public function department(): BelongsTo { return $this->belongsTo(Department::class); }
+    public function assignedTasks(): HasMany { return $this->hasMany(Task::class, 'assignee_id'); }
+    public function workspaceMemberships(): HasMany { return $this->hasMany(WorkspaceMembership::class); }
+
+    /**
+     * Return assigned roles, including the legacy primary role as a safety
+     * fallback for users created by older integrations before they are synced.
+     */
+    public function assignedRoles(bool $activeOnly = false): Collection
+    {
+        if ($this->relationLoaded('roles')) {
+            $roles = $this->roles;
+        } else {
+            $roles = $this->roles()->get();
+            $this->setRelation('roles', $roles);
+        }
+
+        if ($this->role_id && ! $roles->contains('id', (int) $this->role_id)) {
+            $legacy = $this->relationLoaded('role') ? $this->role : $this->role()->first();
+            if ($legacy) $roles->push($legacy);
+        }
+
+        $roles = $roles->unique('id')->values();
+
+        if ($activeOnly) {
+            $roles = $roles->filter(fn (Role $role) => $role->is_active !== false)->values();
+        }
+
+        return $roles;
+    }
+
+    /** @return list<int> */
+    public function assignedRoleIds(bool $activeOnly = false): array
+    {
+        return $this->assignedRoles($activeOnly)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
+
+    public function hasRoleSlug(string|array $slugs, bool $activeOnly = true): bool
+    {
+        $slugs = array_map('strval', (array) $slugs);
+        return $this->assignedRoles($activeOnly)->contains(fn (Role $role) => in_array($role->slug, $slugs, true));
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin || $this->hasRoleSlug('super-admin');
+    }
+
+    public function canAccess(string $permission): bool
+    {
+        return app(\App\Services\AccessControlService::class)->canPermission($this, $permission);
+    }
+
+    public function canModule(string $module, string $action = 'view'): bool
+    {
+        return app(\App\Services\AccessControlService::class)->can($this, $module, $action);
+    }
+
+    public function accessScope(string $module): string
+    {
+        return app(\App\Services\AccessControlService::class)->scope($this, $module);
+    }
+
+    public function profileImageUrl(): ?string
+    {
+        return app(\App\Services\StoredAssetUrlService::class)
+            ->profileImageUrl((int) $this->id, $this->profile_image_path);
     }
 }

@@ -1,0 +1,46 @@
+/** Phase 3 static inline-style replacements shared across feature families. */
+.ft-activity-entry-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--ft-space-2);
+}
+
+.ft-activity-delete-action {
+    padding: var(--ft-space-1) var(--ft-space-1);
+    border: 0;
+    background: transparent;
+    color: var(--ft-text-danger);
+    font-size: var(--ft-font-size-xs);
+    font-weight: var(--ft-font-weight-bold);
+}
+
+.ft-activity-delete-action:hover {
+    text-decoration: underline;
+}
+
+.ft-runtime-flag-pill {
+    padding: var(--ft-space-1) 0.4375rem;
+    border: var(--ft-border-width-thin) solid transparent;
+    border-radius: var(--ft-radius-md);
+}
+
+.ft-summary-card-grid--4 {
+    --ft-summary-columns: 4;
+}
+
+.ft-client-logo-optional {
+    color: var(--ft-text-secondary);
+    font-weight: var(--ft-font-weight-medium);
+}
+
+.ft-inquiry-taskflow-add {
+    min-height: 2.125rem;
+}
+
+.ft-report-track-full {
+    width: 100%;
+}
+
+.ft-disabled-pointer {
+    pointer-events: none;
+}

@@ -1,0 +1,10 @@
+/**
+ * FlowTrack authenticated application stylesheet composition root.
+ * Shared foundation first, then ordered application modules.
+ */
+@import './foundation/tokens.css';
+@import './foundation/global.css';
+@import './components.css';
+@import './utilities.css';
+@import './application/core.css';
+

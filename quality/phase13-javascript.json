@@ -1,0 +1,50 @@
+{
+  "phase": 13,
+  "app_js_max_lines": 160,
+  "public_js_max_files": 0,
+  "required_core": [
+    "events.js",
+    "meta.js",
+    "navigation.js",
+    "realtime.js",
+    "session-recovery.js",
+    "session-safety.js",
+    "shell.js",
+    "timezone.js"
+  ],
+  "required_components": [
+    "attachment-auto-upload.js",
+    "file-dropzones.js",
+    "inline-edit.js",
+    "list-filters.js",
+    "master-colors.js",
+    "mentions.js",
+    "rich-text.js",
+    "sidebar-counters.js"
+  ],
+  "required_features": [
+    "bulk-order-import.js",
+    "client-validation-focus.js",
+    "notifications.js",
+    "route-loader.js",
+    "workspace-refresh.js",
+    "orders/detail.js"
+  ],
+  "legacy_aliases": [
+    "FlowTrackInlineEdit",
+    "FlowTrackFloatingActionMenu",
+    "FlowTrackRemoteFilter",
+    "FlowTrackSearchSelect",
+    "FlowTrackMultiSelect",
+    "FlowTrackLocalFilter",
+    "FlowTrackMasterColor",
+    "FlowTrackRealtime"
+  ],
+  "blade_tree_hash": "5dddfea572397a07e6e6ce862a8e7770a9a7ce62e82aeaa03d28f546bcc20fdb",
+  "css_tree_hash": "a06b5541fdd12c741d4733a0a9ba0c8bec1db41d2ce9d5cb1a4c7748e4e40a91",
+  "migration_tree_hash": "82f021a936a720149f54c0d45092bcfbf3ff8e41fff729b9a2f8c7efac52381c",
+  "routes_web_hash": "b28eda429d6dccd79e50b154c0be25598ed6be46fa849e45677a4e71c51fb5e8",
+  "access_control_hash": "3c93baadba6d44e194a4010b2592871c2753dc21a2d203f16c4f1d10c70920c7",
+  "package_lock_xlsx_version": "0.18.5",
+  "xlsx_integrity": "sha512-dmg3LCjBPHZnQp5/F/+nnTa+miPJxUXB6vtk42YjBBKayDNagxGEeIdWApkYPOf3Z3pm3k62Knjzp7lMeTEtFQ=="
+}

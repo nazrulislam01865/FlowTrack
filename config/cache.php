@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => env('CACHE_STORE', env('FLOWTRACK_HORIZONTAL_SCALING', false) ? 'redis' : 'database'),
 
     /*
     |--------------------------------------------------------------------------
@@ -81,6 +81,12 @@ return [
         'redis' => [
             'driver' => 'redis',
             'connection' => env('REDIS_CACHE_CONNECTION', 'cache'),
+            'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
+        ],
+
+        'redis-session' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_SESSION_CONNECTION', 'session'),
             'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
         ],
 

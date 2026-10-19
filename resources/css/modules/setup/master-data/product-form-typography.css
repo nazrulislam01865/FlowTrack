@@ -1,0 +1,147 @@
+/*
+ * Product create/edit typography adapter.
+ *
+ * Layout, spacing, controls and catalog behavior remain owned by the existing
+ * product styles. Only typography is normalized here to the shared
+ * .ft-form-standard contract used by Create Order.
+ */
+.ft-product-form-page.ft-form-standard--product {
+    font-family: var(--ft-form-font-family, var(--ft-font-family));
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-page-breadcrumb {
+    font-size: var(--ft-form-type-breadcrumb-size, .625rem);
+    line-height: var(--ft-line-height-normal);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-page-breadcrumb button,
+.ft-product-form-page.ft-form-standard--product .ft-product-page-breadcrumb strong {
+    font-size: inherit;
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-form-header h1 {
+    font-size: var(--ft-form-type-page-title-size, 1.3125rem);
+    font-weight: var(--ft-form-type-page-title-weight, 700);
+    line-height: var(--ft-form-type-page-title-line-height, 1.15);
+    letter-spacing: var(--ft-form-type-page-title-letter-spacing, -.03em);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-form-header p {
+    font-size: var(--ft-form-type-page-subtitle-size, .6875rem);
+    line-height: var(--ft-line-height-normal);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-page-section-heading h2 {
+    font-size: var(--ft-form-type-section-title-size, .9375rem);
+    font-weight: var(--ft-form-type-section-title-weight, 700);
+    letter-spacing: var(--ft-form-type-section-title-letter-spacing, -.015em);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-page-section-heading p {
+    font-size: var(--ft-form-type-helper-size, .53125rem);
+    line-height: var(--ft-line-height-normal);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-page-section-number {
+    font-size: var(--ft-form-type-section-marker-size, .6875rem);
+    font-weight: 800;
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-field,
+.ft-product-form-page.ft-form-standard--product .ft-product-field > span,
+.ft-product-form-page.ft-form-standard--product .ft-product-field-title,
+.ft-product-form-page.ft-form-standard--product .ft-friendly-upload-heading,
+.ft-product-form-page.ft-form-standard--product .ft-product-search-select.ft-jl-control > label,
+.ft-product-form-page.ft-form-standard--product .ft-multi-select__label {
+    font-size: var(--ft-form-type-label-size, .625rem);
+    font-weight: var(--ft-form-type-label-weight, 700);
+    line-height: var(--ft-line-height-snug);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-field input,
+.ft-product-form-page.ft-form-standard--product .ft-product-field select,
+.ft-product-form-page.ft-form-standard--product .ft-product-field textarea,
+.ft-product-form-page.ft-form-standard--product .ft-product-locked-field,
+.ft-product-form-page.ft-form-standard--product .ft-product-radio-row label,
+.ft-product-form-page.ft-form-standard--product .ft-product-search-select .ft-remote-filter-button,
+.ft-product-form-page.ft-form-standard--product .ft-product-search-select .ft-remote-filter-search,
+.ft-product-form-page.ft-form-standard--product .ft-product-search-select .ft-remote-filter-option,
+.ft-product-form-page.ft-form-standard--product .ft-multi-select__trigger,
+.ft-product-form-page.ft-form-standard--product .ft-multi-select__search,
+.ft-product-form-page.ft-form-standard--product .ft-multi-select__option,
+.ft-product-form-page.ft-form-standard--product .ft-multi-select__placeholder,
+.ft-product-form-page.ft-form-standard--product .ft-multi-select__message {
+    font-family: var(--ft-form-font-family, var(--ft-font-family));
+    font-size: var(--ft-form-type-control-size, .65625rem);
+    line-height: var(--ft-line-height-normal);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-field small,
+.ft-product-form-page.ft-form-standard--product .ft-product-help,
+.ft-product-form-page.ft-form-standard--product .ft-product-image-column > small,
+.ft-product-form-page.ft-form-standard--product .ft-friendly-upload-copy small,
+.ft-product-form-page.ft-form-standard--product .ft-friendly-upload-meta,
+.ft-product-form-page.ft-form-standard--product .ft-product-document-note,
+.ft-product-form-page.ft-form-standard--product .ft-product-shipping-empty-state small,
+.ft-product-form-page.ft-form-standard--product .ft-product-shipping-actions small,
+.ft-product-form-page.ft-form-standard--product .ft-product-shipping-master-empty,
+.ft-product-form-page.ft-form-standard--product .ft-product-search-select .ft-remote-filter-option > small,
+.ft-product-form-page.ft-form-standard--product .ft-product-search-select .ft-remote-filter-message,
+.ft-product-form-page.ft-form-standard--product .ft-multi-select__option small {
+    font-size: var(--ft-form-type-helper-size, .53125rem);
+    font-weight: var(--ft-form-type-helper-weight, 400);
+    line-height: var(--ft-line-height-normal);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-field > span em,
+.ft-product-form-page.ft-form-standard--product .ft-product-field-title em,
+.ft-product-form-page.ft-form-standard--product .ft-friendly-upload-heading em,
+.ft-product-form-page.ft-form-standard--product .ft-product-search-select .ft-filter-optional {
+    font-size: var(--ft-form-type-badge-size, .5rem);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-page-btn,
+.ft-product-form-page.ft-form-standard--product .ft-product-inline-link,
+.ft-product-form-page.ft-form-standard--product .ft-product-option-add,
+.ft-product-form-page.ft-form-standard--product .ft-product-option-remove,
+.ft-product-form-page.ft-form-standard--product .ft-product-shipping-add,
+.ft-product-form-page.ft-form-standard--product .ft-friendly-upload-button,
+.ft-product-form-page.ft-form-standard--product .ft-friendly-upload-meta a,
+.ft-product-form-page.ft-form-standard--product .ft-friendly-upload-meta button {
+    font-family: var(--ft-form-font-family, var(--ft-font-family));
+    font-size: var(--ft-form-type-button-size, .59375rem);
+    font-weight: var(--ft-form-type-button-weight, 700);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-image-drop strong,
+.ft-product-form-page.ft-form-standard--product .ft-friendly-upload-copy b,
+.ft-product-form-page.ft-form-standard--product .ft-product-shipping-empty-state strong,
+.ft-product-form-page.ft-form-standard--product .ft-product-shipping-selected-head strong {
+    font-size: var(--ft-form-type-control-size, .65625rem);
+    font-weight: var(--ft-form-type-label-weight, 700);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-form-footer {
+    font-size: var(--ft-form-type-helper-size, .53125rem);
+    line-height: var(--ft-line-height-normal);
+}
+
+/* Keep the pasted price grid monospaced for data alignment, but size it from
+   the shared form scale so it no longer feels like a separate visual system. */
+.ft-product-form-page.ft-form-standard--product .ft-product-price-table-field textarea {
+    font-size: var(--ft-form-type-control-size, .65625rem);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-price-preview {
+    font-size: var(--ft-form-type-control-size, .65625rem);
+}
+
+.ft-product-form-page.ft-form-standard--product .ft-product-price-preview thead th {
+    font-size: var(--ft-form-type-helper-size, .53125rem);
+}
+
+@media (max-width: 620px) {
+    .ft-product-form-page.ft-form-standard--product .ft-product-form-header h1 {
+        font-size: 1.1875rem;
+    }
+}

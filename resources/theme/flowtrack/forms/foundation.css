@@ -1,0 +1,66 @@
+/** Shared form typography/control contract. */
+.ft-form-standard {
+    --ft-form-page-title-size: var(--ft-theme-form-page-title-size);
+    --ft-form-page-title-weight: var(--ft-theme-form-page-title-weight);
+    --ft-form-page-title-color: var(--ft-theme-form-page-title-color);
+    --ft-form-page-copy-size: var(--ft-theme-form-page-copy-size);
+    --ft-form-page-copy-weight: var(--ft-theme-form-page-copy-weight);
+    --ft-form-page-copy-color: var(--ft-theme-form-page-copy-color);
+    --ft-form-breadcrumb-size: var(--ft-theme-form-breadcrumb-size);
+    --ft-form-breadcrumb-weight: var(--ft-theme-form-breadcrumb-weight);
+    --ft-form-breadcrumb-color: var(--ft-theme-form-breadcrumb-color);
+    --ft-form-section-title-size: var(--ft-theme-form-section-title-size);
+    --ft-form-section-title-weight: var(--ft-theme-form-section-title-weight);
+    --ft-form-section-title-color: var(--ft-theme-form-section-title-color);
+    --ft-form-label-size: var(--ft-theme-form-label-size);
+    --ft-form-label-weight: var(--ft-theme-form-label-weight);
+    --ft-form-label-color: var(--ft-theme-form-label-color);
+    --ft-form-control-size: var(--ft-theme-form-control-size);
+    --ft-form-control-weight: var(--ft-theme-form-control-weight);
+    --ft-form-control-color: var(--ft-theme-form-control-color);
+    --ft-form-placeholder-color: var(--ft-theme-form-placeholder-color);
+    --ft-form-helper-size: var(--ft-theme-form-helper-size);
+    --ft-form-helper-weight: var(--ft-theme-form-helper-weight);
+    --ft-form-helper-color: var(--ft-theme-form-helper-color);
+    --ft-form-button-size: var(--ft-theme-form-button-size);
+    --ft-form-button-weight: var(--ft-theme-form-button-weight);
+    --ft-form-control-height: var(--ft-theme-form-control-height);
+    --ft-form-control-radius: var(--ft-theme-form-control-radius);
+    --ft-form-control-border: var(--ft-theme-form-control-border);
+    --ft-form-section-border: var(--ft-theme-form-section-border);
+    --ft-form-step-size: var(--ft-theme-form-step-size);
+
+    color: var(--ft-form-page-title-color);
+    font-family: var(--ft-theme-font-family);
+}
+
+.ft-form-standard :where(input, select, textarea, button) {
+    font-family: inherit;
+}
+
+.ft-form-standard :where(input, textarea)::placeholder {
+    color: var(--ft-form-placeholder-color);
+    opacity: 1;
+}
+
+.ft-form-standard :where(.validation-error, .field-error) {
+    font-size: var(--ft-form-helper-size);
+    font-weight: var(--ft-form-helper-weight);
+}
+
+.ft-form-standard .ft-create-remote-select > label,
+.ft-form-standard .ft-search-select[data-ft-ui-component="search-select"] > label {
+    color: var(--ft-form-label-color);
+    font-size: var(--ft-form-label-size);
+    font-weight: var(--ft-form-label-weight);
+    line-height: 1.2;
+}
+
+.ft-form-standard .ft-create-remote-select .ft-remote-filter-button,
+.ft-form-standard .ft-search-select__trigger {
+    min-height: var(--ft-form-control-height);
+    border-radius: var(--ft-form-control-radius);
+    color: var(--ft-form-control-color);
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+}

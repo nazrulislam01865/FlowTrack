@@ -1,0 +1,35 @@
+{
+  "before": {
+    "flowtrack_css_bytes": 754383,
+    "flowtrack_css_lines": 36459,
+    "legacy_compatibility_files": 24,
+    "legacy_compatibility_bytes": 991126,
+    "legacy_compatibility_lines": 18773,
+    "css_files": 69,
+    "largest_css_file": "resources/css/flowtrack.css",
+    "largest_css_bytes": 754383
+  },
+  "after": {
+    "flowtrack_css_exists": false,
+    "legacy_dir_exists": false,
+    "migration_dir_exists": false,
+    "css_files": 95,
+    "largest_css_file": "resources/css/modules/application/13-inquiries-create-workflow.css",
+    "largest_css_bytes": 89643,
+    "css_files_over_100kb": 0
+  },
+  "verification": {
+    "flowtrack_exact_source_reconstruction": true,
+    "byte_identical_direct_relocations": "21/21",
+    "semantic_equivalent_split_sources": "3/3",
+    "css_parse_error_files": 0,
+    "vite_css_entries_missing_from_existing_manifest": 0,
+    "legacy_runtime_references": 0,
+    "php_lint_files": 663,
+    "php_lint_status": "PASS",
+    "vite_production_build": "NOT RUN: node_modules not present in uploaded source",
+    "phpunit_full_suite": "NOT RUN: vendor not present in uploaded source",
+    "unrelated_existing_architecture_gate": "app_get_calls 312 > inherited exception ceiling 309",
+    "unrelated_existing_phase15_gate": ".github/workflows/flowtrack-ci.yml missing in uploaded source"
+  }
+}

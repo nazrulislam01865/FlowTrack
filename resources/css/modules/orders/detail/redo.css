@@ -1,0 +1,870 @@
+/**
+ * Order Redo feature — 2026-08-25
+ * Visual contract: flowtrack-order-redo-prototype.html.
+ * Scoped to Order Details so the four-step Redo workflow cannot leak into
+ * Inquiry, Orders list, Finance, or shared modal styling.
+ */
+.ft-order-prototype-detail {
+    --redo-red: #dc3f45;
+    --redo-red-bg: #fff0f1;
+    --redo-amber: #c77800;
+    --redo-amber-bg: #fff7e8;
+    --redo-green: #198754;
+    --redo-green-bg: #eaf8f0;
+}
+
+.ft-order-prototype-detail .ft-order-header-side {
+    display: grid;
+    justify-items: end;
+    gap: 10px;
+}
+
+.ft-order-prototype-detail .ft-order-header-side-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ft-order-prototype-detail .btn.redo {
+    background: #fff;
+    border-color: #e98e92;
+    color: #c52e36;
+}
+
+.ft-order-prototype-detail .btn.redo:hover:not(:disabled) {
+    border-color: #dc3f45;
+    background: #fff7f7;
+}
+
+.ft-order-prototype-detail .pill.redo {
+    background: var(--redo-red-bg);
+    color: var(--redo-red);
+    border: 1px solid #f0b4b7;
+}
+
+/* Operational Redo state shown before the normal Order status pills. */
+.ft-order-prototype-detail .pill.redo-initiated {
+    background: var(--redo-red-bg);
+    color: var(--redo-red);
+    border: 1px solid transparent;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-redo-tab-count {
+    display: inline-flex;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    margin-left: 3px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #edf1f5;
+    color: #607087;
+    font-size: .625rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .page-tab.active .ft-redo-tab-count {
+    background: #e9f7f5;
+    color: var(--teal);
+}
+
+/* Banner */
+.ft-order-prototype-detail .ft-redo-banner {
+    display: none;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 15px;
+    margin-bottom: 13px;
+    border: 1px solid #f0a8ac;
+    border-left: 5px solid var(--redo-red);
+    border-radius: 10px;
+    background: linear-gradient(95deg, #fff0f1, #fff9f1);
+}
+
+.ft-order-prototype-detail .ft-redo-banner.show { display: grid; }
+
+.ft-order-prototype-detail .ft-redo-banner-icon {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #fee0e2;
+    color: var(--redo-red);
+    font-size: 1.0625rem;
+    font-weight: 950;
+}
+
+.ft-order-prototype-detail .ft-redo-banner h3 {
+    margin: 0 0 2px;
+    font-size: .875rem;
+}
+
+.ft-order-prototype-detail .ft-redo-banner p {
+    margin: 0;
+    color: #6f5360;
+    font-size: .6875rem;
+}
+
+/* Redo detail tab */
+.ft-order-prototype-detail .ft-redo-panel {
+    display: none;
+    margin-top: 13px;
+}
+
+.ft-order-prototype-detail .ft-redo-panel.show { display: block; }
+
+.ft-order-prototype-detail .ft-redo-grid {
+    display: grid;
+    grid-template-columns: 1.15fr .85fr;
+    gap: 12px;
+}
+
+.ft-order-prototype-detail .ft-redo-stack {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+}
+
+.ft-order-prototype-detail .ft-redo-card {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-redo-cardhead {
+    min-height: 49px;
+    padding: 13px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.ft-order-prototype-detail .ft-redo-cardhead h2 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.ft-order-prototype-detail .ft-redo-cardbody { padding: 15px; }
+
+.ft-order-prototype-detail .ft-redo-relation {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #e5ebf1;
+    border-radius: 9px;
+}
+
+.ft-order-prototype-detail .ft-redo-relation-arrow {
+    color: #9ba9b8;
+    font-size: 1.25rem;
+}
+
+.ft-order-prototype-detail .ft-redo-order-chip {
+    min-width: 0;
+    flex: 1;
+    padding: 10px;
+    border: 0;
+    border-radius: 8px;
+    background: #f5f8fb;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-redo-order-chip.current {
+    border: 1px solid #f0b4b7;
+    background: #fff0f1;
+}
+
+.ft-order-prototype-detail .ft-redo-order-chip:hover {
+    box-shadow: 0 4px 14px rgba(15, 35, 55, .08);
+}
+
+.ft-order-prototype-detail .ft-redo-order-chip-static {
+    cursor: default;
+}
+
+.ft-order-prototype-detail .ft-redo-order-chip-static:hover {
+    box-shadow: none;
+}
+
+.ft-order-prototype-detail .ft-redo-order-chip small,
+.ft-order-prototype-detail .ft-redo-order-chip span {
+    display: block;
+    color: #718198;
+    font-size: .625rem;
+}
+
+.ft-order-prototype-detail .ft-redo-order-chip b {
+    display: block;
+    margin: 2px 0;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-redo-info-row {
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid #e8edf2;
+}
+
+.ft-order-prototype-detail .ft-redo-info-row:last-of-type { border-bottom: 0; }
+.ft-order-prototype-detail .ft-redo-info-row span { color: #718198; }
+.ft-order-prototype-detail .ft-redo-info-row b { text-align: right; overflow-wrap: anywhere; }
+
+.ft-order-prototype-detail .ft-redo-history-note {
+    margin-top: 12px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    background: #f7fafc;
+    color: #718198;
+    font-size: .625rem;
+}
+
+.ft-order-prototype-detail .ft-redo-fin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ft-order-prototype-detail .ft-redo-fin-table td {
+    padding: 8px 0;
+    border-bottom: 1px solid #e8edf2;
+}
+
+.ft-order-prototype-detail .ft-redo-fin-table td:last-child {
+    text-align: right;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-redo-fin-table tr.total td {
+    padding-top: 12px;
+    border-bottom: 0;
+    color: var(--teal);
+    font-size: .875rem;
+}
+
+.ft-order-prototype-detail .ft-redo-footnote {
+    margin: 10px 0 0;
+    color: #718198;
+    font-size: .625rem;
+}
+
+.ft-order-prototype-detail .ft-redo-audit { padding-left: 19px; }
+
+.ft-order-prototype-detail .ft-redo-event {
+    display: grid;
+    grid-template-columns: 15px minmax(0, 1fr);
+    gap: 9px;
+    padding: 7px 0;
+}
+
+.ft-order-prototype-detail .ft-redo-event i {
+    width: 9px;
+    height: 9px;
+    margin-top: 4px;
+    border-radius: 50%;
+    background: var(--teal);
+}
+
+.ft-order-prototype-detail .ft-redo-event b { font-size: .6875rem; }
+.ft-order-prototype-detail .ft-redo-event small { display: block; color: #718198; }
+
+.ft-order-prototype-detail .ft-redo-empty-card {
+    padding: 34px 24px;
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-redo-empty-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 10px;
+    border-radius: 50%;
+    background: var(--redo-red-bg);
+    color: var(--redo-red);
+    font-size: 1.375rem;
+    font-weight: 950;
+}
+
+.ft-order-prototype-detail .ft-redo-empty-card h2 { margin: 0 0 5px; }
+.ft-order-prototype-detail .ft-redo-empty-card p { max-width: 520px; margin: 0 0 14px; color: #6b7c92; }
+
+/* Four-step modal */
+.ft-order-prototype-detail .ft-redo-modalwrap {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1600;
+    padding: 18px;
+    place-items: center;
+    background: rgba(5, 19, 33, .63);
+}
+
+.ft-order-prototype-detail .ft-redo-modalwrap.show { display: grid; }
+
+.ft-order-prototype-detail .ft-redo-modal {
+    width: min(920px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, .35);
+}
+
+.ft-order-prototype-detail .ft-redo-modalhead {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: 16px 19px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border-bottom: 1px solid var(--line);
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-redo-modalhead h2 {
+    margin: 0;
+    font-size: 1.1875rem;
+}
+
+.ft-order-prototype-detail .ft-redo-close {
+    width: 31px;
+    height: 31px;
+    border: 0;
+    border-radius: 7px;
+    background: #edf2f6;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-redo-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+    padding: 14px 18px 0;
+}
+
+.ft-order-prototype-detail .ft-redo-step {
+    height: 5px;
+    border-radius: 99px;
+    background: #e9edf2;
+}
+
+.ft-order-prototype-detail .ft-redo-step.on { background: var(--teal); }
+
+.ft-order-prototype-detail .ft-redo-stepnames {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 5px 18px 0;
+    color: #73839a;
+    font-size: .5625rem;
+}
+
+.ft-order-prototype-detail .ft-redo-stepnames span.on {
+    color: var(--teal);
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-redo-modalbody { padding: 18px; }
+.ft-order-prototype-detail .ft-redo-pane h3 { margin: 0 0 4px; font-size: 1.0625rem; }
+.ft-order-prototype-detail .ft-redo-pane > p { margin: 0 0 16px; color: #6b7c92; }
+
+.ft-order-prototype-detail .ft-redo-formgrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+}
+
+.ft-order-prototype-detail .ft-redo-formgrid-spaced { margin-top: 15px; }
+
+.ft-order-prototype-detail .ft-redo-field {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 13px;
+}
+
+.ft-order-prototype-detail .ft-redo-field.wide { grid-column: 1 / -1; }
+.ft-order-prototype-detail .ft-redo-field-top { margin-top: 10px; }
+
+.ft-order-prototype-detail .ft-redo-field > span {
+    color: #596b82;
+    font-size: .625rem;
+    font-weight: 850;
+}
+
+/* Reserve equal label space for the two optional freight inputs. */
+.ft-order-prototype-detail .ft-redo-freight-fields .ft-redo-field > span {
+    min-height: 2lh;
+}
+
+.ft-order-prototype-detail .ft-redo-field input,
+.ft-order-prototype-detail .ft-redo-field select,
+.ft-order-prototype-detail .ft-redo-field textarea {
+    width: 100%;
+    min-height: 40px;
+    padding: 10px 11px;
+    border: 1px solid #cbd7e2;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+}
+
+.ft-order-prototype-detail .ft-redo-field textarea { min-height: 80px; resize: vertical; }
+.ft-order-prototype-detail .ft-redo-field input:disabled { background: #f5f8fb; color: #6b7c92; }
+.ft-order-prototype-detail .ft-redo-field input:focus,
+.ft-order-prototype-detail .ft-redo-field select:focus,
+.ft-order-prototype-detail .ft-redo-field textarea:focus {
+    outline: none;
+    border-color: #79c8bc;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+
+.ft-order-prototype-detail .ft-redo-field .validation-error,
+.ft-order-prototype-detail .ft-redo-pane > .validation-error {
+    margin: 0;
+    color: #d92d20;
+    font-size: .59375rem;
+    font-weight: 650;
+}
+
+.ft-order-prototype-detail .ft-redo-choicegrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.ft-order-prototype-detail .ft-redo-choice {
+    padding: 13px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid #d6e0e9;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-redo-choice.selected {
+    border: 2px solid var(--teal);
+    background: #f1faf8;
+}
+
+.ft-order-prototype-detail .ft-redo-choice input { margin-top: 3px; }
+.ft-order-prototype-detail .ft-redo-choice b { display: block; }
+.ft-order-prototype-detail .ft-redo-choice small { display: block; margin-top: 2px; color: #6c7d93; }
+.ft-order-prototype-detail .ft-redo-evidence { cursor: default; }
+
+.ft-order-prototype-detail .ft-redo-discount-note,
+.ft-order-prototype-detail .ft-redo-fixed-resolution {
+    padding: 12px 13px;
+    border: 1px solid #d6e0e9;
+    border-radius: 10px;
+    background: #f7fafc;
+}
+
+.ft-order-prototype-detail .ft-redo-discount-note.wide {
+    grid-column: 1 / -1;
+}
+
+.ft-order-prototype-detail .ft-redo-discount-note b,
+.ft-order-prototype-detail .ft-redo-fixed-resolution b,
+.ft-order-prototype-detail .ft-redo-fixed-resolution span,
+.ft-order-prototype-detail .ft-redo-fixed-resolution small {
+    display: block;
+}
+
+.ft-order-prototype-detail .ft-redo-discount-note small,
+.ft-order-prototype-detail .ft-redo-fixed-resolution small {
+    margin-top: 3px;
+    color: #6c7d93;
+}
+
+.ft-order-prototype-detail .ft-redo-fixed-resolution {
+    margin-bottom: 13px;
+    border-color: rgba(0, 125, 112, .28);
+    background: #f1faf8;
+}
+
+.ft-order-prototype-detail .ft-redo-fixed-resolution > span {
+    margin-bottom: 4px;
+    color: #596b82;
+    font-size: .625rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-redo-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-redo-check input { margin-top: 3px; }
+.ft-order-prototype-detail .ft-redo-check b,
+.ft-order-prototype-detail .ft-redo-check small { display: block; }
+.ft-order-prototype-detail .ft-redo-check small { color: #6c7d93; }
+
+.ft-order-prototype-detail .ft-redo-amounts {
+    padding: 13px;
+    border: 1px solid #dbe4ec;
+    border-radius: 10px;
+    background: #f7fafc;
+}
+
+.ft-order-prototype-detail .ft-redo-amounts h4 { margin: 0 0 6px; }
+
+.ft-order-prototype-detail .ft-redo-calc {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 7px 0;
+    border-bottom: 1px solid #e4eaf0;
+}
+
+.ft-order-prototype-detail .ft-redo-calc:last-child { border-bottom: 0; }
+.ft-order-prototype-detail .ft-redo-calc.total { color: var(--teal); font-size: .9375rem; font-weight: 900; }
+
+.ft-order-prototype-detail .ft-redo-confirmbox {
+    overflow: hidden;
+    border: 1px solid #dbe4ec;
+    border-radius: 10px;
+}
+
+.ft-order-prototype-detail .ft-redo-confirmrow {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    padding: 10px 12px;
+    border-bottom: 1px solid #e7edf2;
+}
+
+.ft-order-prototype-detail .ft-redo-confirmrow:last-child { border-bottom: 0; }
+.ft-order-prototype-detail .ft-redo-confirmrow span { color: #6c7c91; }
+
+.ft-order-prototype-detail .ft-redo-warning {
+    padding: 11px;
+    margin-top: 12px;
+    border: 1px solid #edcf92;
+    border-radius: 9px;
+    background: var(--redo-amber-bg);
+    color: #765511;
+}
+
+.ft-order-prototype-detail .ft-redo-modalfoot {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    padding: 13px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border-top: 1px solid var(--line);
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-redo-modal-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-redo-toast {
+    position: fixed;
+    right: 20px;
+    top: 76px;
+    z-index: 1800;
+    max-width: min(420px, calc(100vw - 40px));
+    padding: 12px 15px;
+    border-radius: 9px;
+    background: #103047;
+    color: #fff;
+    box-shadow: var(--shadow);
+    font-size: .75rem;
+}
+
+@media (max-width: 1050px) {
+    .ft-order-prototype-detail .ft-redo-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+    .ft-order-prototype-detail .ft-order-header-side { justify-items: start; margin-top: 10px; }
+    .ft-order-prototype-detail .ft-redo-banner { grid-template-columns: auto 1fr; }
+    .ft-order-prototype-detail .ft-redo-banner .btn { grid-column: 1 / -1; justify-self: start; }
+    .ft-order-prototype-detail .ft-redo-formgrid,
+    .ft-order-prototype-detail .ft-redo-choicegrid { grid-template-columns: 1fr; }
+    .ft-order-prototype-detail .ft-redo-freight-fields .ft-redo-field > span { min-height: 0; }
+    .ft-order-prototype-detail .ft-redo-field.wide { grid-column: auto; }
+    .ft-order-prototype-detail .ft-redo-confirmrow { grid-template-columns: 1fr; gap: 2px; }
+    .ft-order-prototype-detail .ft-redo-relation { align-items: stretch; flex-direction: column; }
+    .ft-order-prototype-detail .ft-redo-relation-arrow { transform: rotate(90deg); align-self: center; }
+    .ft-order-prototype-detail .ft-redo-modalwrap { padding: 8px; }
+    .ft-order-prototype-detail .ft-redo-modal { max-height: 96vh; }
+}
+
+.ft-order-prototype-detail .ft-redo-finance-review {
+    margin: 0 0 14px;
+}
+
+.ft-order-prototype-detail .ft-redo-finance-review .ft-redo-cardhead > div small {
+    display: block;
+    margin-top: 2px;
+    color: #718198;
+    font-size: .625rem;
+}
+
+
+/* Redo customer/supplier amount with selectable % or pcs unit. */
+.ft-order-prototype-detail .ft-redo-unit-input {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 118px;
+    width: 100%;
+}
+
+.ft-order-prototype-detail .ft-redo-unit-input input,
+.ft-order-prototype-detail .ft-redo-unit-input select {
+    min-width: 0;
+    border-radius: 0;
+}
+
+.ft-order-prototype-detail .ft-redo-unit-input input {
+    border-radius: 8px 0 0 8px;
+    border-right: 0;
+}
+
+.ft-order-prototype-detail .ft-redo-unit-input select {
+    border-radius: 0 8px 8px 0;
+    background: #f7fafc;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-redo-field-help {
+    display: block;
+    margin-top: 1px;
+    color: #6c7d93;
+    font-size: .59375rem;
+    line-height: 1.35;
+}
+
+
+/* Compact customer/supplier adjustment cards with direct % / pcs toggles. */
+.ft-order-prototype-detail .ft-redo-adjustment-card {
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 1px solid #dbe4ec;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-head > div {
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-title {
+    display: block;
+    color: #33465f;
+    font-size: .6875rem;
+    font-weight: 900;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-head small {
+    display: block;
+    margin-top: 2px;
+    color: #77879b;
+    font-size: .59375rem;
+    line-height: 1.35;
+}
+
+.ft-order-prototype-detail .ft-redo-required-pill {
+    flex: 0 0 auto;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: #fff4f2;
+    color: #b42318;
+    font-size: .53125rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-control {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: end;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-value {
+    display: grid;
+    gap: 4px;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-value > span {
+    color: #6b7c92;
+    font-size: .5625rem;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-value input {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid #cbd7e2;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+    font-size: .8125rem;
+    font-weight: 700;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-value input:focus {
+    outline: none;
+    border-color: #79c8bc;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+
+.ft-order-prototype-detail .ft-redo-unit-toggle {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(54px, 1fr));
+    padding: 3px;
+    border: 1px solid #cbd7e2;
+    border-radius: 9px;
+    background: #f4f7fa;
+}
+
+.ft-order-prototype-detail .ft-redo-unit-toggle label {
+    position: relative;
+    min-width: 54px;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-redo-unit-toggle input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ft-order-prototype-detail .ft-redo-unit-toggle label > span {
+    min-height: 30px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: #607187;
+    font-size: .6875rem;
+    font-weight: 900;
+    user-select: none;
+    transition: background .15s ease, color .15s ease, box-shadow .15s ease;
+}
+
+.ft-order-prototype-detail .ft-redo-unit-toggle label.active > span,
+.ft-order-prototype-detail .ft-redo-unit-toggle label:has(input:checked) > span {
+    background: #fff;
+    color: var(--teal);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .12);
+}
+
+.ft-order-prototype-detail .ft-redo-unit-toggle label:focus-within > span {
+    outline: 2px solid #79c8bc;
+    outline-offset: 1px;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-note {
+    margin-top: 7px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    color: #6c7d93;
+    font-size: .5625rem;
+    line-height: 1.4;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-note.is-missing {
+    padding: 7px 8px;
+    border-radius: 7px;
+    background: #f1faf8;
+    color: #47685f;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-note b {
+    color: #315e55;
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-note-dot {
+    width: 6px;
+    height: 6px;
+    margin-top: 4px;
+    flex: 0 0 6px;
+    border-radius: 999px;
+    background: var(--teal);
+}
+
+.ft-order-prototype-detail .ft-redo-adjustment-card .validation-error {
+    display: block;
+    margin-top: 5px;
+    color: #d92d20;
+    font-size: .59375rem;
+    font-weight: 650;
+}
+
+.ft-order-prototype-detail .ft-redo-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.ft-order-prototype-detail .ft-redo-calc.adjusted {
+    color: #0f766e;
+    font-weight: 800;
+}
+
+@media (max-width: 520px) {
+    .ft-order-prototype-detail .ft-redo-unit-input {
+        grid-template-columns: minmax(0, 1fr) 104px;
+    }
+
+    .ft-order-prototype-detail .ft-redo-adjustment-control {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-redo-unit-toggle {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ft-order-prototype-detail .ft-redo-unit-toggle label > span {
+        min-height: 32px;
+    }
+}

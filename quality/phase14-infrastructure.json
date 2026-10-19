@@ -1,0 +1,30 @@
+{
+    "phase": 14,
+    "protected": {
+        "routes_web": "b28eda429d6dccd79e50b154c0be25598ed6be46fa849e45677a4e71c51fb5e8",
+        "access_control": "3c93baadba6d44e194a4010b2592871c2753dc21a2d203f16c4f1d10c70920c7",
+        "migrations": "8ea669b1207d2ff09edfe674470b8366a8422c6636ab766cc97e5c7fbeebc943",
+        "css": "61045b2d3ac2af6adcf2f33a7854e2c78803d9f4e060cce901fba6c5b86640ee",
+        "blade": "8a3a5b751bdc058f684f55977b27a7ee906993b1bd3821a7cf66e2cadebbc30a",
+        "javascript": "aecea7b24f6a224c3ff7ba18bcdda99b789854192e9b21469c325000c04a8da5"
+    },
+    "required_files": [
+        "config/scalability.php",
+        "app/Services/Infrastructure/InfrastructureHealthService.php",
+        "app/Services/Infrastructure/QueueTelemetry.php",
+        "app/Http/Controllers/Health/InfrastructureReadyController.php",
+        "app/Console/Commands/InfrastructureCheck.php",
+        "app/Console/Commands/DatabaseBackup.php",
+        "app/Console/Commands/DatabaseRestore.php",
+        "deploy/env.horizontal.example",
+        "deploy/flowtrack-workers-horizontal.conf.example",
+        "deploy/flowtrack-scheduler.conf.example",
+        "deploy/nginx-health-snippet.conf.example",
+        "deploy/mysql-performance.cnf.example",
+        "tests/Load/phase14-flowtrack.k6.js",
+        "docs/infrastructure-scalability.md",
+        "docs/backup-restore.md",
+        "docs/load-test-report-phase14.md",
+        "docs/refactor/PHASE_14_IMPLEMENTATION.md"
+    ]
+}

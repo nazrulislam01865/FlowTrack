@@ -1,0 +1,4026 @@
+/** Ordered inquiries segment 01. */
+
+.ft-inquiry-prototype {
+    color-scheme: light;
+    --navy: #0d1b2b;
+    --navy2: #1e3d61;
+    --blue: var(--ft-theme-primary);
+    --blue2: var(--ft-theme-primary-hover);
+    --blue-soft: var(--ft-theme-primary-soft);
+    --bg: var(--ft-theme-inquiries-page-bg);
+    --card: #fff;
+    --line: #dbe3ed;
+    --text: #172033;
+    --muted: #68778d;
+    --green: #147e5b;
+    --green-soft: #edf9f4;
+    --amber: #986008;
+    --amber-soft: #fff5df;
+    --red: #c43f3f;
+    --red-soft: #fff0f0;
+    --purple: #6f54cf;
+    --purple-soft: #f1edff;
+    --shadow: 0 1px 2px rgba(25, 45, 75, .04)
+}
+
+.ft-inquiry-prototype * {
+    box-sizing: border-box
+}
+
+.ft-inquiry-prototype html,
+.ft-inquiry-prototype body {
+    margin: 0;
+    min-width: 0;
+    background: var(--bg);
+    color: var(--text)
+}
+
+.ft-inquiry-prototype body {
+    font-family: var(--ft-theme-font-family)
+}
+
+.ft-inquiry-prototype button,
+.ft-inquiry-prototype input,
+.ft-inquiry-prototype select,
+.ft-inquiry-prototype textarea {
+    font: inherit
+}
+
+.ft-inquiry-prototype button {
+    cursor: pointer
+}
+
+.ft-inquiry-prototype .app {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    min-height: 100vh
+}
+
+.ft-inquiry-prototype .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 18px 14px;
+    background: var(--navy);
+    color: #c4d0df
+}
+
+.ft-inquiry-prototype .brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 6px 8px 22px;
+    color: #fff;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .brandmark {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 10px;
+    background: #fff;
+    color: var(--blue);
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .navlabel {
+    padding: 15px 10px 6px;
+    color: #72839a;
+    font-size: .5625rem;
+    letter-spacing: .12em;
+    text-transform: uppercase
+}
+
+.ft-inquiry-prototype .nav {
+    display: grid;
+    gap: 3px
+}
+
+.ft-inquiry-prototype .nav button {
+    display: flex;
+    min-height: 38px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 11px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #c4d0df;
+    text-align: left;
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .nav button.active {
+    background: var(--navy2);
+    color: #fff;
+    font-weight: 760
+}
+
+.ft-inquiry-prototype .ico {
+    width: 16px;
+    color: #9ab0c7;
+    text-align: center
+}
+
+.ft-inquiry-prototype .badge {
+    margin-left: auto;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: var(--ft-theme-primary-800);
+    color: #fff;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .profile {
+    margin-top: 24px;
+    padding: 16px 8px 0;
+    border-top: 1px solid #23364b
+}
+
+.ft-inquiry-prototype .person {
+    display: flex;
+    align-items: center;
+    gap: 9px
+}
+
+.ft-inquiry-prototype .avatar {
+    display: grid;
+    width: 31px;
+    height: 31px;
+    place-items: center;
+    border-radius: 50%;
+    background: #2b4c6b;
+    color: #fff;
+    font-size: .5625rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .person strong {
+    display: block;
+    color: #fff;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .person small {
+    display: block;
+    margin-top: 2px;
+    color: #91a3b8;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .main {
+    min-width: 0
+}
+
+.ft-inquiry-prototype .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    height: 68px;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--line);
+    background: #fff
+}
+
+.ft-inquiry-prototype .topbtn {
+    height: 36px;
+    min-width: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #fff;
+    color: #374257;
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .userbtn {
+    background: var(--blue-soft);
+    color: var(--ft-theme-primary);
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .content {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 24px
+}
+
+.ft-inquiry-prototype .view[hidden] {
+    display: none !important
+}
+
+.ft-inquiry-prototype .primary {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 13px;
+    border: 1px solid var(--blue);
+    border-radius: 9px;
+    background: var(--blue);
+    color: #fff;
+    font-size: .625rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .primary:hover {
+    background: var(--blue2)
+}
+
+.ft-inquiry-prototype .secondary {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid #d2dce9;
+    border-radius: 9px;
+    background: #fff;
+    color: #334158;
+    font-size: .625rem;
+    font-weight: 760
+}
+
+.ft-inquiry-prototype .danger {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid #efc9c9;
+    border-radius: 9px;
+    background: #fff;
+    color: var(--red);
+    font-size: .625rem;
+    font-weight: 760
+}
+
+.ft-inquiry-prototype .pagehead {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 15px
+}
+
+.ft-inquiry-prototype .pagehead h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    letter-spacing: -.025em
+}
+
+.ft-inquiry-prototype .pagehead p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .actions {
+    display: flex;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px
+}
+
+.ft-inquiry-prototype .ft-inquiry-summary-grid {
+    --ft-summary-columns: 4;
+}
+
+.ft-inquiry-prototype .metric {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: #fff
+}
+
+.ft-inquiry-prototype .metric i {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-style: normal
+}
+
+.ft-inquiry-prototype .metric small {
+    display: block;
+    color: #75849a;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .metric strong {
+    display: block;
+    margin-top: 2px;
+    font-size: 1.0625rem
+}
+
+.ft-inquiry-prototype .shell {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: var(--shadow)
+}
+
+.ft-inquiry-prototype .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--line)
+}
+
+.ft-inquiry-prototype .search {
+    position: relative;
+    min-width: 260px;
+    max-width: 620px;
+    flex: 1
+}
+
+.ft-inquiry-prototype .search span {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #75849a
+}
+
+.ft-inquiry-prototype .search input {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px 0 35px;
+    border: 1px solid #cfdae9;
+    border-radius: 10px;
+    outline: 0;
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .search input:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent)
+}
+
+.ft-inquiry-prototype .filters {
+    display: flex;
+    gap: 6px
+}
+
+.ft-inquiry-prototype .chip {
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid #d8e1ec;
+    border-radius: 15px;
+    background: #fff;
+    color: #52627a;
+    font-size: .5625rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .chip.active {
+    border-color: var(--ft-theme-primary-100);
+    background: var(--blue-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .listhead,
+.ft-inquiry-prototype .row {
+    display: grid;
+    grid-template-columns: minmax(118px, .76fr) minmax(235px, 1.55fr) minmax(160px, 1fr) minmax(110px, .72fr) minmax(120px, .78fr) minmax(105px, .72fr) minmax(115px, .78fr) 50px;
+    gap: 10px;
+    align-items: center
+}
+
+.ft-inquiry-prototype .listhead {
+    min-height: 36px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--line);
+    background: #f8fafc;
+    color: #6f7d91;
+    font-size: .475rem;
+    font-weight: 800;
+    letter-spacing: .045em;
+    text-transform: uppercase
+}
+
+.ft-inquiry-prototype .row {
+    min-height: 78px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e7ebf1
+}
+
+.ft-inquiry-prototype .row:last-child {
+    border-bottom: 0
+}
+
+.ft-inquiry-prototype .row:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .cell {
+    min-width: 0
+}
+
+.ft-inquiry-prototype .id {
+    display: block;
+    color: var(--ft-theme-primary);
+    font-size: .59375rem;
+    font-weight: 800;
+    text-decoration: none
+}
+
+.ft-inquiry-prototype .title {
+    display: block;
+    overflow: hidden;
+    color: #29354b;
+    font-size: .5625rem;
+    font-weight: 780;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .sub {
+    display: block;
+    margin-top: 3px;
+    overflow: hidden;
+    color: #7a879a;
+    font-size: .4875rem;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: .4875rem;
+    font-weight: 780;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .pill.blue {
+    background: var(--blue-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .pill.green {
+    background: var(--green-soft);
+    color: var(--green)
+}
+
+.ft-inquiry-prototype .pill.amber {
+    background: var(--amber-soft);
+    color: var(--amber)
+}
+
+.ft-inquiry-prototype .pill.red {
+    background: var(--red-soft);
+    color: var(--red)
+}
+
+.ft-inquiry-prototype .pill.purple {
+    background: var(--purple-soft);
+    color: var(--purple)
+}
+
+.ft-inquiry-prototype .progress {
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .bar {
+    width: 72px;
+    height: 6px;
+    border-radius: 10px;
+    background: #e8edf4;
+    overflow: hidden
+}
+
+.ft-inquiry-prototype .bar i {
+    display: block;
+    height: 100%;
+    border-radius: 10px;
+    background: var(--blue)
+}
+
+.ft-inquiry-prototype .progress b {
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .ownerline {
+    display: flex;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-inquiry-prototype .ownerline .avatar {
+    width: 26px;
+    height: 26px;
+    background: var(--ft-theme-primary-soft);
+    color: #335b91
+}
+
+.ft-inquiry-prototype .openbtn {
+    display: grid;
+    width: 42px;
+    height: 30px;
+    place-items: center;
+    border: 1px solid #d4deec;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .5rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-top: 1px solid var(--line);
+    background: var(--ft-theme-surface-subtle);
+    color: #718097;
+    font-size: .53125rem
+}
+
+/* form */
+.ft-inquiry-prototype .formwrap {
+    max-width: 1180px;
+    margin: 0 auto
+}
+
+.ft-inquiry-prototype .crumb {
+    margin-bottom: 7px;
+    color: #6e7d93;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .formtop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px
+}
+
+.ft-inquiry-prototype .formtop h1 {
+    margin: 0;
+    font-size: 1.5rem
+}
+
+.ft-inquiry-prototype .formtop p {
+    margin: 5px 0 0;
+    color: #6f7e93;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .codebox {
+    padding: 9px 11px;
+    border: 1px solid #dbe4ef;
+    border-radius: 9px;
+    background: #f8fafc;
+    text-align: right
+}
+
+.ft-inquiry-prototype .codebox small {
+    display: block;
+    color: #7a899c;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .codebox b {
+    display: block;
+    margin-top: 3px;
+    color: var(--ft-theme-primary);
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .formcard {
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: #fff;
+    overflow: hidden
+}
+
+.ft-inquiry-prototype .section {
+    padding: 17px 18px;
+    border-bottom: 1px solid #e5eaf1
+}
+
+.ft-inquiry-prototype .section:last-child {
+    border-bottom: 0
+}
+
+.ft-inquiry-prototype .sectiontitle {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 13px
+}
+
+.ft-inquiry-prototype .sectiontitle span {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-size: .5625rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .sectiontitle h2 {
+    margin: 0;
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px
+}
+
+.ft-inquiry-prototype .grid3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px
+}
+
+.ft-inquiry-prototype .field {
+    display: grid;
+    gap: 6px;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .field.full {
+    grid-column: 1/-1
+}
+
+.ft-inquiry-prototype .field b {
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .field input,
+.ft-inquiry-prototype .field select,
+.ft-inquiry-prototype .field textarea {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #cfd9e7;
+    border-radius: 9px;
+    background: #fff;
+    color: var(--text);
+    font-size: .625rem;
+    outline: 0
+}
+
+.ft-inquiry-prototype .field input,
+.ft-inquiry-prototype .field select {
+    height: 40px;
+    padding: 0 10px
+}
+
+.ft-inquiry-prototype .field textarea {
+    min-height: 90px;
+    padding: 10px;
+    resize: vertical
+}
+
+.ft-inquiry-prototype .field input:focus,
+.ft-inquiry-prototype .field select:focus,
+.ft-inquiry-prototype .field textarea:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 9%, transparent)
+}
+
+.ft-inquiry-prototype .help {
+    color: #7a889a;
+    font-size: .4875rem
+}
+
+.ft-inquiry-prototype .productrow {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr .6fr .55fr 34px;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 8px;
+    padding: 10px;
+    border: 1px solid #e0e7f0;
+    border-radius: 10px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .productrow label {
+    display: grid;
+    gap: 5px
+}
+
+.ft-inquiry-prototype .productrow label b {
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .productrow input,
+.ft-inquiry-prototype .productrow select {
+    height: 36px;
+    padding: 0 8px;
+    border: 1px solid #cfd9e7;
+    border-radius: 8px;
+    background: #fff;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .del {
+    height: 36px;
+    border: 1px solid #efcdcd;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--red)
+}
+
+.ft-inquiry-prototype .addrow {
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px dashed #afc2dd;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .tasktemplate {
+    display: grid;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .template-task {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) minmax(120px, .5fr) minmax(110px, .45fr);
+    gap: 9px;
+    align-items: center;
+    padding: 10px 11px;
+    border: 1px solid #dfe6ef;
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .num {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-size: .5rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .template-task strong {
+    display: block;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .template-task small {
+    display: block;
+    margin-top: 2px;
+    color: #748298;
+    font-size: .475rem
+}
+
+.ft-inquiry-prototype .template-task select,
+.ft-inquiry-prototype .template-task input {
+    height: 34px;
+    border: 1px solid #d0dae8;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0 8px;
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .formactions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 18px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .notice {
+    display: flex;
+    gap: 9px;
+    padding: 10px 11px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .notice i {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    place-items: center;
+    border-radius: 7px;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-style: normal;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .notice strong {
+    display: block;
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .notice span {
+    display: block;
+    margin-top: 2px;
+    color: #64738a;
+    font-size: .4875rem;
+    line-height: 1.45
+}
+
+/* detail */
+.ft-inquiry-prototype .detailhead {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 15px
+}
+
+.ft-inquiry-prototype .detailhead h1 {
+    margin: 0;
+    font-size: 1.4375rem;
+    letter-spacing: -.025em
+}
+
+.ft-inquiry-prototype .detailmeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-top: 8px;
+    color: #68778d;
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .detailactions {
+    display: flex;
+    gap: 7px
+}
+
+.ft-inquiry-prototype .tabs {
+    display: flex;
+    gap: 22px;
+    margin-top: 16px;
+    border-bottom: 1px solid var(--line)
+}
+
+.ft-inquiry-prototype .tab {
+    position: relative;
+    min-height: 36px;
+    padding: 0 0 10px;
+    border: 0;
+    background: transparent;
+    color: #344158;
+    font-size: .5625rem;
+    font-weight: 760
+}
+
+.ft-inquiry-prototype .tab.active {
+    color: var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .tab.active:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--blue)
+}
+
+.ft-inquiry-prototype .summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px
+}
+
+.ft-inquiry-prototype .summarycard {
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff
+}
+
+.ft-inquiry-prototype .summarycard small {
+    display: block;
+    color: #77869a;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .summarycard strong {
+    display: block;
+    margin-top: 4px;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .panel {
+    margin-top: 11px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden
+}
+
+.ft-inquiry-prototype .panelhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 13px 14px;
+    border-bottom: 1px solid #e5eaf1
+}
+
+.ft-inquiry-prototype .panelhead h2 {
+    margin: 0;
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .panelhead p {
+    margin: 3px 0 0;
+    color: #728097;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .tasklist {
+    padding: 8px 14px 14px
+}
+
+.ft-inquiry-prototype .task {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1.45fr) minmax(100px, .55fr) minmax(100px, .55fr) minmax(90px, .45fr) 36px;
+    gap: 9px;
+    align-items: center;
+    padding: 11px 0;
+    border-bottom: 1px solid #e7ebf1
+}
+
+.ft-inquiry-prototype .task:last-child {
+    border-bottom: 0
+}
+
+.ft-inquiry-prototype .taskstatus {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    border-radius: 50%;
+    font-size: .5rem;
+    font-weight: 900
+}
+
+.ft-inquiry-prototype .task.done .taskstatus {
+    background: var(--green-soft);
+    color: var(--green)
+}
+
+.ft-inquiry-prototype .task.active .taskstatus {
+    background: var(--blue-soft);
+    color: var(--blue);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-inquiry-prototype .task.wait .taskstatus {
+    background: #f1f4f8;
+    color: #7d8b9d
+}
+
+.ft-inquiry-prototype .tasktitle strong {
+    display: block;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .tasktitle small {
+    display: block;
+    margin-top: 3px;
+    color: #77859a;
+    font-size: .475rem
+}
+
+.ft-inquiry-prototype .taskmeta b {
+    display: block;
+    font-size: .51875rem
+}
+
+.ft-inquiry-prototype .taskmeta small {
+    display: block;
+    margin-top: 2px;
+    color: #7b889a;
+    font-size: .45625rem
+}
+
+.ft-inquiry-prototype .task .mini {
+    height: 28px;
+    padding: 0 8px;
+    border: 1px solid #d4deec;
+    border-radius: 7px;
+    background: #fff;
+    color: #31557e;
+    font-size: .4875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .decision {
+    margin-top: 11px;
+    padding: 14px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 12px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .decisiontop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px
+}
+
+.ft-inquiry-prototype .decision h3 {
+    margin: 0;
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .decision p {
+    margin: 4px 0 0;
+    color: #64738a;
+    font-size: .5rem;
+    line-height: 1.5
+}
+
+.ft-inquiry-prototype .decisionactions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px
+}
+
+.ft-inquiry-prototype .successbox,
+.ft-inquiry-prototype .deadbox {
+    display: none;
+    margin-top: 12px;
+    padding: 13px;
+    border-radius: 10px
+}
+
+.ft-inquiry-prototype .successbox.show {
+    display: block;
+    border: 1px solid #bfe2d4;
+    background: #fbfffd
+}
+
+.ft-inquiry-prototype .deadbox.show {
+    display: block;
+    border: 1px solid #efcaca;
+    background: #fffafa
+}
+
+.ft-inquiry-prototype .successbox strong,
+.ft-inquiry-prototype .deadbox strong {
+    display: block;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .successbox span,
+.ft-inquiry-prototype .deadbox span {
+    display: block;
+    margin-top: 4px;
+    color: #66758b;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .deadreason {
+    display: none;
+    margin-top: 10px
+}
+
+.ft-inquiry-prototype .deadreason.show {
+    display: grid;
+    grid-template-columns: minmax(180px, .7fr) minmax(220px, 1.3fr) auto;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .deadreason select,
+.ft-inquiry-prototype .deadreason input {
+    height: 36px;
+    border: 1px solid #d1dae7;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0 9px;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 99;
+    padding: 10px 13px;
+    border-radius: 9px;
+    background: #152238;
+    color: #fff;
+    font-size: .5625rem;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: .2s
+}
+
+.ft-inquiry-prototype .toast.show {
+    opacity: 1;
+    transform: none
+}
+
+.ft-inquiry-prototype .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(13, 27, 43, .46)
+}
+
+.ft-inquiry-prototype .modal.show {
+    display: flex
+}
+
+.ft-inquiry-prototype .modalcard {
+    width: min(500px, 100%);
+    overflow: hidden;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 24px 65px rgba(10, 25, 45, .28)
+}
+
+.ft-inquiry-prototype .modalhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 15px;
+    border-bottom: 1px solid var(--line)
+}
+
+.ft-inquiry-prototype .modalhead h3 {
+    margin: 0;
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .close {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #d6e0ec;
+    border-radius: 8px;
+    background: #fff
+}
+
+.ft-inquiry-prototype .modalbody {
+    padding: 15px
+}
+
+.ft-inquiry-prototype .pair {
+    display: grid;
+    grid-template-columns: 1fr 32px 1fr;
+    gap: 8px;
+    align-items: center
+}
+
+.ft-inquiry-prototype .pairbox {
+    padding: 10px;
+    border: 1px solid #dfe6ef;
+    border-radius: 9px
+}
+
+.ft-inquiry-prototype .pairbox small {
+    display: block;
+    color: #78869a;
+    font-size: .46875rem
+}
+
+.ft-inquiry-prototype .pairbox strong {
+    display: block;
+    margin-top: 4px;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .arrow {
+    text-align: center;
+    color: var(--blue)
+}
+
+.ft-inquiry-prototype .modalnote {
+    margin-top: 11px;
+    padding: 9px;
+    border-radius: 8px;
+    background: #f5f7fa;
+    color: #5f6e84;
+    font-size: .5rem;
+    line-height: 1.5
+}
+
+.ft-inquiry-prototype .modalactions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 7px;
+    padding: 0 15px 15px
+}
+
+/* Typography alignment: Add Inquiry follows Dashboard / My Task readability. */
+.ft-inquiry-prototype .formwrap .crumb {
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .formwrap .formtop h1 {
+    font-size: 1.625rem
+}
+
+.ft-inquiry-prototype .formwrap .formtop p {
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .formwrap .codebox small {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .formwrap .codebox b {
+    font-size: .71875rem
+}
+
+.ft-inquiry-prototype .formwrap .sectiontitle span {
+    width: 27px;
+    height: 27px;
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .formwrap .sectiontitle h2 {
+    font-size: 1rem
+}
+
+.ft-inquiry-prototype .formwrap .field b {
+    font-size: .75rem;
+    font-weight: 700
+}
+
+.ft-inquiry-prototype .formwrap .field input,
+.ft-inquiry-prototype .formwrap .field select,
+.ft-inquiry-prototype .formwrap .field textarea {
+    font-size: .8125rem
+}
+
+.ft-inquiry-prototype .formwrap .field input,
+.ft-inquiry-prototype .formwrap .field select {
+    height: 44px
+}
+
+.ft-inquiry-prototype .formwrap .field textarea {
+    min-height: 96px
+}
+
+.ft-inquiry-prototype .formwrap .help,
+.ft-inquiry-prototype .formwrap .field-error {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .formwrap .inquiry-create-remote .ft-remote-filter-button {
+    height: 44px;
+    min-height: 44px;
+    font-size: .8125rem
+}
+
+.ft-inquiry-prototype .formwrap .productrow label b,
+.ft-inquiry-prototype .formwrap .productrow .inquiry-row-remote>label {
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .formwrap .productrow input,
+.ft-inquiry-prototype .formwrap .productrow select,
+.ft-inquiry-prototype .formwrap .productrow .ft-remote-filter-button {
+    height: 40px;
+    min-height: 40px;
+    font-size: .71875rem
+}
+
+.ft-inquiry-prototype .formwrap .addrow {
+    min-height: 36px;
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .formwrap .initial-upload strong {
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .formwrap .initial-upload span,
+.ft-inquiry-prototype .formwrap .attach-chip {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .formwrap .notice strong {
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .formwrap .notice span {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .formwrap .workflow-builder-head>div>strong {
+    font-size: .6875rem !important
+}
+
+.ft-inquiry-prototype .formwrap .workflow-builder-head p {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .formwrap .template-pick {
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .formwrap .workflow-colheads {
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .formwrap .workflow-edit-row input,
+.ft-inquiry-prototype .formwrap .workflow-edit-row select,
+.ft-inquiry-prototype .formwrap .workflow-edit-row .inquiry-workflow-assignee .ft-remote-filter-button {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .formwrap .workflow-edit-row .desc-input {
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .formwrap .num {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .formwrap .primary,
+.ft-inquiry-prototype .formwrap .secondary {
+    font-size: .71875rem
+}
+
+@media (max-width:1200px) {
+
+    .ft-inquiry-prototype .listhead,
+    .ft-inquiry-prototype .row {
+        grid-template-columns: 120px minmax(220px, 1.6fr) 150px 105px 115px 100px 48px
+    }
+
+    .ft-inquiry-prototype .listhead>div:nth-child(6),
+    .ft-inquiry-prototype .row>.cell:nth-child(6) {
+        display: none
+    }
+
+    .ft-inquiry-prototype .summary {
+        grid-template-columns: repeat(2, 1fr)
+    }
+}
+
+@media (max-width:900px) {
+    .ft-inquiry-prototype .app {
+        grid-template-columns: 70px minmax(0, 1fr)
+    }
+
+    .ft-inquiry-prototype .sidebar {
+        padding-inline: 8px
+    }
+
+    .ft-inquiry-prototype .brand {
+        justify-content: center
+    }
+
+    .ft-inquiry-prototype .brand span:last-child,
+    .ft-inquiry-prototype .navlabel,
+    .ft-inquiry-prototype .nav button span:not(.ico),
+    .ft-inquiry-prototype .badge,
+    .ft-inquiry-prototype .profile strong,
+    .ft-inquiry-prototype .profile small {
+        display: none
+    }
+
+    .ft-inquiry-prototype .nav button,
+    .ft-inquiry-prototype .person {
+        justify-content: center
+    }
+
+    .ft-inquiry-prototype .content {
+        padding: 16px
+    }
+
+    .ft-inquiry-prototype .metrics {
+        grid-template-columns: repeat(2, 1fr)
+    }
+
+    .ft-inquiry-prototype .grid2,
+    .ft-inquiry-prototype .grid3 {
+        grid-template-columns: 1fr
+    }
+
+    .ft-inquiry-prototype .productrow {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-inquiry-prototype .productrow .del {
+        width: 36px
+    }
+
+    .ft-inquiry-prototype .task {
+        grid-template-columns: 28px minmax(0, 1fr) 95px 36px
+    }
+
+    .ft-inquiry-prototype .task .taskmeta:nth-of-type(2),
+    .ft-inquiry-prototype .task .taskmeta:nth-of-type(3) {
+        display: none
+    }
+
+    .ft-inquiry-prototype .template-task {
+        grid-template-columns: 30px minmax(0, 1fr)
+    }
+
+    .ft-inquiry-prototype .template-task select,
+    .ft-inquiry-prototype .template-task input {
+        grid-column: 2
+    }
+
+    .ft-inquiry-prototype .listhead,
+    .ft-inquiry-prototype .row {
+        grid-template-columns: 115px minmax(220px, 1fr) 120px 105px 48px
+    }
+
+    .ft-inquiry-prototype .listhead>div:nth-child(3),
+    .ft-inquiry-prototype .row>.cell:nth-child(3),
+    .ft-inquiry-prototype .listhead>div:nth-child(5),
+    .ft-inquiry-prototype .row>.cell:nth-child(5) {
+        display: none
+    }
+}
+
+/* enhanced inquiry/job parity */
+.ft-inquiry-prototype .status-control {
+    display: flex;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-inquiry-prototype .status-select {
+    height: 34px;
+    padding: 0 28px 0 9px;
+    border: 1px solid #d1dbe8;
+    border-radius: 9px;
+    background: #fff;
+    color: #334158;
+    font-size: .5625rem;
+    font-weight: 720
+}
+
+.ft-inquiry-prototype .tabpane[hidden] {
+    display: none !important
+}
+
+.ft-inquiry-prototype .overview-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(270px, .65fr);
+    gap: 11px;
+    margin-top: 11px
+}
+
+.ft-inquiry-prototype .info-card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden
+}
+
+.ft-inquiry-prototype .info-head {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e6ebf1
+}
+
+.ft-inquiry-prototype .info-head h3 {
+    margin: 0;
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .info-head p {
+    margin: 3px 0 0;
+    color: #758399;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .info-body {
+    padding: 13px 14px
+}
+
+.ft-inquiry-prototype .kv {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px 16px
+}
+
+.ft-inquiry-prototype .kv div {
+    min-width: 0
+}
+
+.ft-inquiry-prototype .kv small {
+    display: block;
+    color: #78869a;
+    font-size: .475rem
+}
+
+.ft-inquiry-prototype .kv strong {
+    display: block;
+    margin-top: 3px;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .request-note {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 9px;
+    background: #f7f9fc;
+    color: #56667d;
+    font-size: .53125rem;
+    line-height: 1.55
+}
+
+.ft-inquiry-prototype .itemtable {
+    width: 100%;
+    border-collapse: collapse
+}
+
+.ft-inquiry-prototype .itemtable th,
+.ft-inquiry-prototype .itemtable td {
+    padding: 9px 8px;
+    border-bottom: 1px solid #e7ebf1;
+    text-align: left;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .itemtable th {
+    color: #748298;
+    background: #f8fafc;
+    font-size: .4625rem;
+    text-transform: uppercase
+}
+
+.ft-inquiry-prototype .itemtable tr:last-child td {
+    border-bottom: 0
+}
+
+.ft-inquiry-prototype .side-note {
+    display: grid;
+    gap: 9px
+}
+
+.ft-inquiry-prototype .mini-card {
+    padding: 10px;
+    border: 1px solid #e0e7f0;
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .mini-card small {
+    display: block;
+    color: #77869a;
+    font-size: .475rem
+}
+
+.ft-inquiry-prototype .mini-card strong {
+    display: block;
+    margin-top: 4px;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .workflow-note {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #66758b;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .workflow-note b {
+    color: #334158
+}
+
+.ft-inquiry-prototype .task {
+    grid-template-columns: 30px minmax(0, 1.25fr) minmax(92px, .48fr) minmax(118px, .58fr) minmax(92px, .48fr) minmax(112px, .55fr) 54px
+}
+
+.ft-inquiry-prototype .task .due-edit {
+    width: 112px;
+    height: 31px;
+    padding: 0 7px;
+    border: 1px solid #d3dce8;
+    border-radius: 7px;
+    background: #fff;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .task .due-edit:disabled {
+    border-color: transparent;
+    background: transparent;
+    padding-left: 0;
+    color: #28364b
+}
+
+.ft-inquiry-prototype .reqfile {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: #fff5df;
+    color: #986008;
+    font-size: .4375rem;
+    font-weight: 760
+}
+
+.ft-inquiry-prototype .reqfile.ok {
+    background: var(--green-soft);
+    color: var(--green)
+}
+
+.ft-inquiry-prototype .task-comments {
+    color: #738197;
+    font-size: .475rem
+}
+
+.ft-inquiry-prototype .task .mini {
+    width: 52px
+}
+
+.ft-inquiry-prototype .doc-list {
+    display: grid
+}
+
+.ft-inquiry-prototype .doc-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.3fr) minmax(130px, .7fr) minmax(115px, .55fr) minmax(105px, .52fr) 54px;
+    gap: 10px;
+    align-items: center;
+    padding: 11px 14px;
+    border-bottom: 1px solid #e7ebf1
+}
+
+.ft-inquiry-prototype .doc-row:last-child {
+    border-bottom: 0
+}
+
+.ft-inquiry-prototype .doc-icon {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .doc-icon i {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-style: normal;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .doc-icon strong {
+    display: block;
+    overflow: hidden;
+    font-size: .55rem;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .doc-icon small,
+.ft-inquiry-prototype .doc-meta small {
+    display: block;
+    margin-top: 3px;
+    color: #7a879a;
+    font-size: .4625rem
+}
+
+.ft-inquiry-prototype .doc-meta b {
+    display: block;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .upload-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .file-input {
+    display: none
+}
+
+.ft-inquiry-prototype .activity-list {
+    padding: 3px 14px 14px
+}
+
+.ft-inquiry-prototype .activity-item {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 9px;
+    padding: 11px 0;
+    border-bottom: 1px solid #e8ecf2
+}
+
+.ft-inquiry-prototype .activity-item:last-child {
+    border-bottom: 0
+}
+
+.ft-inquiry-prototype .activity-dot {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    border-radius: 50%;
+    background: #f0f4f9;
+    color: #526983;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .activity-item strong {
+    display: block;
+    font-size: .55rem
+}
+
+.ft-inquiry-prototype .activity-item p {
+    margin: 3px 0 0;
+    color: #68778d;
+    font-size: .4875rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .activity-item time {
+    color: #8692a3;
+    font-size: .45625rem;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .task-modal-card {
+    width: min(920px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 24px 65px rgba(10, 25, 45, .28)
+}
+
+.ft-inquiry-prototype .task-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 9px
+}
+
+.ft-inquiry-prototype .task-modal-title i {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-style: normal;
+    font-size: .5rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .task-modal-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(270px, .75fr);
+    gap: 0
+}
+
+.ft-inquiry-prototype .task-main {
+    padding: 15px;
+    border-right: 1px solid var(--line)
+}
+
+.ft-inquiry-prototype .task-side {
+    padding: 15px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .task-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    margin-bottom: 12px
+}
+
+.ft-inquiry-prototype .task-field {
+    display: grid;
+    gap: 5px
+}
+
+.ft-inquiry-prototype .task-field b {
+    font-size: .4875rem
+}
+
+.ft-inquiry-prototype .task-field input,
+.ft-inquiry-prototype .task-field select {
+    height: 36px;
+    min-width: 0;
+    padding: 0 8px;
+    border: 1px solid #d0dae7;
+    border-radius: 8px;
+    background: #fff;
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .description-box {
+    padding: 10px;
+    border: 1px solid #e0e6ee;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #5d6c82;
+    font-size: .53125rem;
+    line-height: 1.55
+}
+
+.ft-inquiry-prototype .submission {
+    margin-top: 12px;
+    padding: 11px;
+    border: 1px solid #dce4ee;
+    border-radius: 10px
+}
+
+.ft-inquiry-prototype .submission-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px
+}
+
+.ft-inquiry-prototype .submission h4,
+.ft-inquiry-prototype .comment-section h4,
+.ft-inquiry-prototype .task-side h4 {
+    margin: 0;
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .submission p {
+    margin: 3px 0 0;
+    color: #748298;
+    font-size: .475rem
+}
+
+.ft-inquiry-prototype .upload-zone {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 9px;
+    margin-top: 9px;
+    padding: 10px;
+    border: 1px dashed #afc2dd;
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .upload-zone span {
+    color: #627189;
+    font-size: .4875rem
+}
+
+.ft-inquiry-prototype .small-primary {
+    min-height: 31px;
+    padding: 0 9px;
+    border: 1px solid var(--blue);
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    font-size: .5rem;
+    font-weight: 760
+}
+
+.ft-inquiry-prototype .task-files {
+    display: grid;
+    gap: 6px;
+    margin-top: 8px
+}
+
+.ft-inquiry-prototype .task-file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 9px;
+    padding: 8px;
+    border-radius: 8px;
+    background: #f4f7fb
+}
+
+.ft-inquiry-prototype .task-file strong {
+    font-size: .4875rem
+}
+
+.ft-inquiry-prototype .task-file small {
+    color: #7a879a;
+    font-size: .4375rem
+}
+
+.ft-inquiry-prototype .comment-section {
+    margin-top: 13px
+}
+
+.ft-inquiry-prototype .comments {
+    display: grid;
+    gap: 7px;
+    margin-top: 8px
+}
+
+.ft-inquiry-prototype .comment {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px
+}
+
+.ft-inquiry-prototype .comment .avatar {
+    width: 25px;
+    height: 25px;
+    flex: 0 0 25px;
+    background: var(--ft-theme-primary-soft);
+    color: #335b91
+}
+
+.ft-inquiry-prototype .comment strong {
+    font-size: .4875rem
+}
+
+.ft-inquiry-prototype .comment time {
+    margin-left: 5px;
+    color: #8a95a5;
+    font-size: .425rem
+}
+
+.ft-inquiry-prototype .comment p {
+    margin: 3px 0 0;
+    color: #596980;
+    font-size: .4875rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .mention {
+    color: var(--ft-theme-primary);
+    font-weight: 760
+}
+
+.ft-inquiry-prototype .comment-add {
+    display: flex;
+    gap: 7px;
+    margin-top: 8px
+}
+
+.ft-inquiry-prototype .comment-add input {
+    height: 35px;
+    min-width: 0;
+    flex: 1;
+    padding: 0 9px;
+    border: 1px solid #d0dae8;
+    border-radius: 8px;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .task-side .mini-card {
+    margin-top: 8px
+}
+
+.ft-inquiry-prototype .side-actions {
+    display: grid;
+    gap: 7px;
+    margin-top: 12px
+}
+
+.ft-inquiry-prototype .side-actions button {
+    width: 100%
+}
+
+.ft-inquiry-prototype .blocked {
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--amber-soft);
+    color: #855508;
+    font-size: .48125rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .ready {
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--green-soft);
+    color: var(--green);
+    font-size: .48125rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .initial-upload {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border: 1px dashed #afc2dd;
+    border-radius: 10px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .initial-upload strong {
+    display: block;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .initial-upload span {
+    display: block;
+    margin-top: 3px;
+    color: #75849a;
+    font-size: .4875rem
+}
+
+.ft-inquiry-prototype .attach-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px
+}
+
+.ft-inquiry-prototype .attach-chip {
+    padding: 5px 8px;
+    border-radius: 8px;
+    background: #f0f4f9;
+    color: #52637a;
+    font-size: .46875rem
+}
+
+.ft-inquiry-prototype .status-help {
+    color: #77869a;
+    font-size: .46875rem
+}
+
+/* workflow management */
+.ft-inquiry-prototype .workflow-builder-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px
+}
+
+.ft-inquiry-prototype .workflow-builder-head p {
+    margin: 3px 0 0;
+    color: #748298;
+    font-size: .5rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .workflow-tools {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap
+}
+
+.ft-inquiry-prototype .workflow-builder {
+    display: grid;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .workflow-edit-row {
+    display: grid;
+    grid-template-columns: 32px minmax(170px, 1.2fr) minmax(210px, 1.5fr) minmax(105px, .65fr) minmax(105px, .65fr) minmax(145px, .75fr) 92px;
+    gap: 7px;
+    align-items: center;
+    padding: 9px;
+    border: 1px solid #dfe6ef;
+    border-radius: 10px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .workflow-edit-row.locked {
+    background: #f6f8fb;
+    opacity: .82
+}
+
+.ft-inquiry-prototype .workflow-edit-row input,
+.ft-inquiry-prototype .workflow-edit-row select {
+    width: 100%;
+    height: 34px;
+    min-width: 0;
+    padding: 0 8px;
+    border: 1px solid #d0dae8;
+    border-radius: 8px;
+    background: #fff;
+    font-size: .5125rem
+}
+
+.ft-inquiry-prototype .workflow-edit-row .desc-input {
+    font-size: .4875rem
+}
+
+.ft-inquiry-prototype .workflow-edit-row .row-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end
+}
+
+.ft-inquiry-prototype .iconbtn {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    place-items: center;
+    border: 1px solid #d6dfeb;
+    border-radius: 7px;
+    background: #fff;
+    color: #53647a;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .iconbtn.dangerish {
+    border-color: #efcdcd;
+    color: var(--red)
+}
+
+.ft-inquiry-prototype .iconbtn:disabled {
+    cursor: default;
+    opacity: .35
+}
+
+.ft-inquiry-prototype .workflow-colheads {
+    display: grid;
+    grid-template-columns: 32px minmax(170px, 1.2fr) minmax(210px, 1.5fr) minmax(105px, .65fr) minmax(105px, .65fr) minmax(145px, .75fr) 92px;
+    gap: 7px;
+    padding: 0 9px 5px;
+    color: #7a879a;
+    font-size: .4375rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em
+}
+
+.ft-inquiry-prototype .template-pick {
+    height: 34px;
+    padding: 0 9px;
+    border: 1px solid #d1dbe8;
+    border-radius: 8px;
+    background: #fff;
+    color: #334158;
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .manage-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: 9px;
+    background: #f4f7fb;
+    color: #53647a;
+    font-size: .475rem;
+    font-weight: 760
+}
+
+.ft-inquiry-prototype .manager-card {
+    width: min(1220px, 96vw);
+    max-height: 92vh;
+    overflow: auto;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 24px 65px rgba(10, 25, 45, .28)
+}
+
+.ft-inquiry-prototype .manager-body {
+    padding: 14px 15px
+}
+
+.ft-inquiry-prototype .manager-note {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 11px;
+    padding: 9px 10px;
+    border: 1px solid #dbe4ef;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #627189;
+    font-size: .4875rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .manager-note b {
+    color: #334158
+}
+
+.ft-inquiry-prototype .manager-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 15px;
+    border-top: 1px solid var(--line);
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .manager-footer .left {
+    color: #758399;
+    font-size: .4875rem
+}
+
+.ft-inquiry-prototype .task-control-row {
+    display: flex;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-inquiry-prototype .task-count-pill {
+    display: inline-flex;
+    padding: 3px 7px;
+    border-radius: 9px;
+    background: var(--blue-soft);
+    color: var(--ft-theme-primary);
+    font-size: .46875rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .require-check {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #53647a;
+    font-size: .46875rem
+}
+
+.ft-inquiry-prototype .require-check input {
+    width: 14px;
+    height: 14px
+}
+
+.ft-inquiry-prototype .decision.ready-decision {
+    border-color: #bfe2d4;
+    background: #fbfffd
+}
+
+@media (max-width:1100px) {
+
+    .ft-inquiry-prototype .overview-grid,
+    .ft-inquiry-prototype .task-modal-body {
+        grid-template-columns: 1fr
+    }
+
+    .ft-inquiry-prototype .task-main {
+        border-right: 0;
+        border-bottom: 1px solid var(--line)
+    }
+
+    .ft-inquiry-prototype .task {
+        grid-template-columns: 30px minmax(0, 1fr) minmax(90px, .55fr) minmax(110px, .58fr) 52px
+    }
+
+    .ft-inquiry-prototype .task .task-status-cell,
+    .ft-inquiry-prototype .task .task-file-cell {
+        display: none
+    }
+
+    .ft-inquiry-prototype .doc-row {
+        grid-template-columns: minmax(200px, 1fr) minmax(130px, .7fr) minmax(100px, .5fr) 50px
+    }
+
+    .ft-inquiry-prototype .doc-row .doc-uploader {
+        display: none
+    }
+}
+
+@media (max-width:760px) {
+    .ft-inquiry-prototype .status-control {
+        align-items: flex-end;
+        flex-direction: column
+    }
+
+    .ft-inquiry-prototype .overview-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-inquiry-prototype .task-fields {
+        grid-template-columns: 1fr
+    }
+
+    .ft-inquiry-prototype .task {
+        grid-template-columns: 28px minmax(0, 1fr) 50px
+    }
+
+    .ft-inquiry-prototype .task .taskmeta,
+    .ft-inquiry-prototype .task .task-status-cell,
+    .ft-inquiry-prototype .task .task-file-cell {
+        display: none
+    }
+
+    .ft-inquiry-prototype .doc-row {
+        grid-template-columns: 1fr 46px
+    }
+
+    .ft-inquiry-prototype .doc-row .doc-meta {
+        display: none
+    }
+
+    .ft-inquiry-prototype .kv {
+        grid-template-columns: 1fr
+    }
+}
+
+@media (max-width:1050px) {
+
+    .ft-inquiry-prototype .workflow-edit-row,
+    .ft-inquiry-prototype .workflow-colheads {
+        grid-template-columns: 30px 1fr 1.2fr 100px 100px 120px 88px
+    }
+}
+
+@media (max-width:760px) {
+    .ft-inquiry-prototype .workflow-colheads {
+        display: none
+    }
+
+    .ft-inquiry-prototype .workflow-edit-row {
+        grid-template-columns: 30px 1fr
+    }
+
+    .ft-inquiry-prototype .workflow-edit-row>* {
+        grid-column: 2
+    }
+
+    .ft-inquiry-prototype .workflow-edit-row>.num {
+        grid-column: 1;
+        grid-row: 1
+    }
+
+    .ft-inquiry-prototype .workflow-edit-row .row-actions {
+        justify-content: flex-start
+    }
+}
+
+/* v3 inline status, attachments, and activity comments */
+.ft-inquiry-prototype .task {
+    grid-template-columns: 30px minmax(0, 1.25fr) minmax(92px, .48fr) minmax(118px, .58fr) minmax(132px, .58fr) minmax(148px, .68fr) 54px
+}
+
+.ft-inquiry-prototype .task-status-select,
+.ft-inquiry-prototype .list-status-select {
+    width: 100%;
+    height: 31px;
+    padding: 0 26px 0 8px;
+    border: 1px solid #d3dce8;
+    border-radius: 8px;
+    background: #fff;
+    color: #334158;
+    font-size: .4875rem;
+    font-weight: 760;
+    outline: 0
+}
+
+.ft-inquiry-prototype .task-status-select:focus,
+.ft-inquiry-prototype .list-status-select:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 9%, transparent)
+}
+
+.ft-inquiry-prototype .task-status-select:disabled,
+.ft-inquiry-prototype .list-status-select:disabled {
+    cursor: default;
+    border-color: transparent;
+    background: transparent;
+    padding-left: 0;
+    color: #637187;
+    opacity: 1
+}
+
+.ft-inquiry-prototype .inline-file-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .inline-file-actions .small-primary {
+    min-height: 29px;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .inline-file-summary {
+    min-width: 0;
+    color: #738197;
+    font-size: .45625rem;
+    line-height: 1.25
+}
+
+.ft-inquiry-prototype .inline-file-summary b {
+    display: block;
+    color: #425269;
+    font-size: .475rem
+}
+
+.ft-inquiry-prototype .quick-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px
+}
+
+.ft-inquiry-prototype .activity-composer {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 9px;
+    padding: 13px 14px;
+    border-bottom: 1px solid #e5eaf1;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .activity-composer .avatar {
+    width: 30px;
+    height: 30px;
+    background: var(--ft-theme-primary-soft);
+    color: #335b91
+}
+
+.ft-inquiry-prototype .activity-compose-body textarea {
+    width: 100%;
+    min-height: 72px;
+    padding: 9px 10px;
+    border: 1px solid #cfd9e7;
+    border-radius: 9px;
+    background: #fff;
+    resize: vertical;
+    font-size: .53125rem;
+    outline: 0
+}
+
+.ft-inquiry-prototype .activity-compose-body textarea:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-inquiry-prototype .activity-compose-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 7px
+}
+
+.ft-inquiry-prototype .activity-compose-actions span {
+    color: #78869a;
+    font-size: .4625rem
+}
+
+.ft-inquiry-prototype .activity-item.comment-entry {
+    margin: 7px 0;
+    padding: 10px;
+    border: 1px solid #dce5f0;
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .activity-item.comment-entry p {
+    font-size: .50625rem
+}
+
+.ft-inquiry-prototype .activity-item.comment-entry .activity-dot {
+    background: var(--blue-soft);
+    color: var(--blue)
+}
+
+@media (max-width:1150px) {
+    .ft-inquiry-prototype .task {
+        grid-template-columns: 30px minmax(0, 1.2fr) minmax(90px, .5fr) minmax(110px, .55fr) minmax(120px, .6fr) 54px
+    }
+
+    .ft-inquiry-prototype .task-file-cell {
+        grid-column: 2/6;
+        padding-left: 0
+    }
+
+    .ft-inquiry-prototype .inline-file-actions {
+        justify-content: flex-start
+    }
+}
+
+
+.ft-inquiry-prototype [wire\:loading] {
+    pointer-events: none
+}
+
+.ft-inquiry-prototype .wire-loading {
+    opacity: .62
+}
+
+.ft-inquiry-prototype .file-label {
+    position: relative;
+    display: inline-flex
+}
+
+.ft-inquiry-prototype .file-label input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none
+}
+
+.ft-inquiry-prototype .field-error {
+    color: var(--red);
+    font-size: .475rem
+}
+
+.ft-inquiry-prototype .openbtn-link {
+    text-decoration: none
+}
+
+.ft-inquiry-prototype .manager-card {
+    max-height: calc(100vh - 32px)
+}
+
+.ft-inquiry-prototype .task-modal-card {
+    max-height: calc(100vh - 32px)
+}
+
+.ft-inquiry-prototype .activity-pagination,
+.ft-inquiry-prototype .document-pagination {
+    display: flex;
+    justify-content: flex-end;
+    gap: 7px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .activity-pagination button,
+.ft-inquiry-prototype .document-pagination button {
+    min-height: 28px;
+    padding: 0 9px;
+    border: 1px solid #d4deec;
+    border-radius: 7px;
+    background: #fff;
+    color: #31557e;
+    font-size: .4875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .activity-pagination button:disabled,
+.ft-inquiry-prototype .document-pagination button:disabled {
+    opacity: .45;
+    cursor: default
+}
+
+.ft-inquiry-prototype .flash-inline {
+    margin-bottom: 11px;
+    padding: 9px 11px;
+    border: 1px solid #bfe2d4;
+    border-radius: 9px;
+    background: #fbfffd;
+    color: var(--green);
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .error-inline {
+    margin-bottom: 11px;
+    padding: 9px 11px;
+    border: 1px solid #efcaca;
+    border-radius: 9px;
+    background: #fffafa;
+    color: var(--red);
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .task-file-cell .small-primary:disabled {
+    opacity: .42;
+    cursor: default
+}
+
+.ft-inquiry-prototype .status-select:disabled {
+    opacity: .72;
+    cursor: default
+}
+
+.ft-inquiry-prototype .modal.show {
+    display: flex
+}
+
+.ft-inquiry-prototype .successbox.show,
+.ft-inquiry-prototype .deadbox.show {
+    display: block
+}
+
+.ft-inquiry-prototype .deadreason.show {
+    display: grid
+}
+
+.ft-inquiry-prototype .task.wait .small-primary {
+    opacity: .45
+}
+
+.ft-inquiry-prototype .primary:disabled,
+.ft-inquiry-prototype .danger:disabled {
+    opacity: .45;
+    cursor: default
+}
+
+.ft-inquiry-prototype .row .avatar img,
+.ft-inquiry-prototype .taskmodal-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit
+}
+
+.ft-inquiry-prototype .manager-template-blank {
+    font-size: .53125rem;
+    color: #6f7e93
+}
+
+.ft-inquiry-prototype .row .list-status-select {
+    min-width: 0
+}
+
+.ft-inquiry-prototype .status-static {
+    min-height: 31px;
+    display: flex;
+    align-items: center
+}
+
+.ft-inquiry-prototype .content-loading {
+    padding: 24px;
+    text-align: center;
+    color: #718097;
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto
+}
+
+/* Create Inquiry: single-column form fields with searchable data selectors. */
+.ft-inquiry-prototype .inquiry-create-stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px
+}
+
+.ft-inquiry-prototype .inquiry-create-stack .field {
+    width: 100%
+}
+
+.ft-inquiry-prototype .inquiry-create-remote,
+.ft-inquiry-prototype .inquiry-row-remote {
+    width: 100%;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .inquiry-create-remote .ft-remote-filter-button,
+.ft-inquiry-prototype .inquiry-row-remote .ft-remote-filter-button {
+    height: 40px;
+    min-height: 40px;
+    border: 1px solid #cfd9e7;
+    border-radius: 9px;
+    padding: 0 10px;
+    font-size: .625rem;
+    background: #fff;
+    color: var(--text)
+}
+
+.ft-inquiry-prototype .productrow .inquiry-row-remote>label {
+    font-size: .5rem;
+    color: var(--text);
+    font-weight: 700
+}
+
+.ft-inquiry-prototype .workflow-edit-row .inquiry-workflow-assignee {
+    display: block;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .workflow-edit-row .inquiry-workflow-assignee>label {
+    display: none
+}
+
+.ft-inquiry-prototype .workflow-edit-row .inquiry-workflow-assignee .ft-remote-filter-button {
+    width: 100%;
+    height: 34px;
+    min-height: 34px;
+    padding: 0 8px;
+    border: 1px solid #d0dae8;
+    border-radius: 8px;
+    background: #fff;
+    font-size: .5125rem
+}
+
+/* Add Inquiry refinement: drag/drop attachments and clearer workflow typography. */
+.ft-inquiry-prototype .inquiry-dropzone {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 126px;
+    padding: 20px;
+    border: 2px dashed #b7c9e4;
+    border-radius: 14px;
+    background: var(--ft-theme-surface-subtle);
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    cursor: pointer;
+    outline: 0
+}
+
+.ft-inquiry-prototype .inquiry-dropzone:hover,
+.ft-inquiry-prototype .inquiry-dropzone:focus-visible,
+.ft-inquiry-prototype .inquiry-dropzone.is-dragging {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-surface-subtle);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-inquiry-prototype .inquiry-dropzone-icon {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: 1.375rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .inquiry-dropzone-copy {
+    min-width: 0;
+    flex: 1
+}
+
+.ft-inquiry-prototype .inquiry-dropzone-copy strong {
+    display: block;
+    color: #1d2a40;
+    font-size: .84375rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .inquiry-dropzone-copy span {
+    display: block;
+    margin-top: 5px;
+    color: #6f7f95;
+    font-size: .71875rem;
+    line-height: 1.5
+}
+
+.ft-inquiry-prototype .inquiry-dropzone-button {
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding: 0 16px;
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .inquiry-upload-state {
+    margin-top: 9px;
+    color: #526983;
+    font-size: .65625rem;
+    font-weight: 700
+}
+
+.ft-inquiry-prototype .inquiry-selected-files {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border: 1px solid #e0e7f0;
+    border-radius: 10px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .inquiry-selected-files-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #344158;
+    font-size: .6875rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .inquiry-selected-files-title span {
+    display: inline-grid;
+    min-width: 20px;
+    height: 20px;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .inquiry-selected-files .attach-chip {
+    padding: 6px 9px;
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .inquiry-workflow-create-section .workflow-builder-head {
+    margin-bottom: 12px
+}
+
+.ft-inquiry-prototype .inquiry-workflow-create-section .workflow-builder-head>div>strong {
+    font-size: .8125rem !important;
+    font-weight: 800;
+    color: #1d2a40
+}
+
+.ft-inquiry-prototype .inquiry-workflow-create-section .workflow-builder-head p {
+    margin-top: 4px;
+    font-size: .71875rem;
+    line-height: 1.5
+}
+
+.ft-inquiry-prototype .inquiry-workflow-create-section .workflow-colheads {
+    font-size: .625rem;
+    letter-spacing: .035em
+}
+
+.ft-inquiry-prototype .inquiry-workflow-create-section .workflow-edit-row {
+    padding: 11px 10px;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .inquiry-workflow-create-section .workflow-edit-row input,
+.ft-inquiry-prototype .inquiry-workflow-create-section .workflow-edit-row select,
+.ft-inquiry-prototype .inquiry-workflow-create-section .workflow-edit-row .inquiry-workflow-assignee .ft-remote-filter-button {
+    height: 40px;
+    min-height: 40px;
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .inquiry-workflow-create-section .workflow-edit-row .desc-input {
+    font-size: .71875rem
+}
+
+.ft-inquiry-prototype .inquiry-workflow-create-section .workflow-edit-row .num {
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .inquiry-workflow-create-section .iconbtn {
+    width: 32px;
+    height: 32px;
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .workflow-add-task-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 12px
+}
+
+.ft-inquiry-prototype .workflow-add-task-button {
+    min-height: 40px;
+    padding: 0 15px;
+    border-style: dashed;
+    font-size: .75rem;
+    font-weight: 800
+}
+
+@media (max-width:760px) {
+    .ft-inquiry-prototype .inquiry-dropzone {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-inquiry-prototype .inquiry-dropzone-button {
+        width: 100%
+    }
+}
+
+/* Create Inquiry date fields: clicking anywhere opens the native picker. */
+.ft-inquiry-prototype .inquiry-date-picker {
+    cursor: pointer
+}
+
+/* Inquiry detail usability: inline workflow management without a task modal. */
+.ft-inquiry-prototype .detailhead {
+    padding: 4px 0 2px
+}
+
+.ft-inquiry-prototype .detailhead h1 {
+    font-size: 1.5625rem
+}
+
+.ft-inquiry-prototype .detailmeta {
+    gap: 9px;
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .tabs {
+    margin-top: 18px;
+    gap: 26px
+}
+
+.ft-inquiry-prototype .tab {
+    font-size: .65625rem;
+    min-height: 40px
+}
+
+.ft-inquiry-prototype .summary {
+    gap: 12px;
+    margin-top: 14px
+}
+
+.ft-inquiry-prototype .summarycard {
+    padding: 15px 16px;
+    border-radius: 12px
+}
+
+.ft-inquiry-prototype .summarycard small {
+    font-size: .59375rem;
+    font-weight: 700
+}
+
+.ft-inquiry-prototype .summarycard strong {
+    margin-top: 5px;
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .panel {
+    margin-top: 14px;
+    border-radius: 13px
+}
+
+.ft-inquiry-prototype .panelhead {
+    padding: 16px 17px
+}
+
+.ft-inquiry-prototype .panelhead h2 {
+    font-size: .875rem
+}
+
+.ft-inquiry-prototype .panelhead p {
+    margin-top: 4px;
+    font-size: .59375rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .task-count-pill,
+.ft-inquiry-prototype .manage-badge {
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-grid-head,
+.ft-inquiry-prototype .ft-inquiry-task-row {
+    display: grid;
+    grid-template-columns: 42px minmax(250px, 1.45fr) minmax(190px, .82fr) minmax(132px, .58fr) minmax(155px, .7fr) minmax(115px, .5fr) minmax(110px, .48fr);
+    gap: 12px;
+    align-items: center
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-grid-head {
+    min-height: 38px;
+    padding: 0 16px;
+    border-bottom: 1px solid #e5eaf1;
+    background: #f8fafc;
+    color: #748298;
+    font-size: .53125rem;
+    font-weight: 800;
+    letter-spacing: .045em;
+    text-transform: uppercase
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-list {
+    display: grid
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-row {
+    position: relative;
+    min-height: 86px;
+    padding: 13px 16px;
+    border-bottom: 1px solid #e6ebf1;
+    background: #fff;
+    transition: background .15s ease, box-shadow .15s ease
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-row:last-child {
+    border-bottom: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-row.active {
+    background: var(--ft-theme-surface-subtle);
+    box-shadow: inset 3px 0 0 var(--ft-theme-primary)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-row.done {
+    background: #fcfefd
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-row.wait {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-row.is-highlighted {
+    box-shadow: inset 3px 0 0 var(--ft-theme-primary), 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-step span {
+    display: grid;
+    width: 29px;
+    height: 29px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-weight: 850
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-row.done .ft-inquiry-task-step span {
+    background: #edf9f4;
+    color: #147e5b
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-row.wait .ft-inquiry-task-step span {
+    background: #eef2f7;
+    color: #738197
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-copy {
+    min-width: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-copy strong {
+    display: block;
+    color: #1c2a40;
+    font-size: .71875rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-copy p {
+    margin: 4px 0 0;
+    color: #718097;
+    font-size: .5625rem;
+    line-height: 1.4;
+    white-space: normal
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-copy .reqfile {
+    margin-top: 7px;
+    font-size: .5rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-assignee-inline {
+    position: relative;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .ft-inquiry-assignee-display {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .ft-inquiry-assignee-display .ft-inline-avatar-slot,
+.ft-inquiry-prototype .ft-inquiry-assignee-display .ft-inline-generated-avatar {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-assignee-name {
+    min-width: 0;
+    overflow: hidden;
+    color: #24324a;
+    font-size: .625rem;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-inquiry-prototype .ft-inquiry-assignee-display .ft-inline-edit-button {
+    flex: 0 0 auto
+}
+
+.ft-inquiry-prototype .ft-inquiry-assignee-picker {
+    position: relative;
+    min-width: 180px
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-date .due-edit {
+    width: 100%;
+    height: 36px;
+    padding: 0 9px;
+    border: 1px solid #d3dce8;
+    border-radius: 8px;
+    background: #fff;
+    font-size: .59375rem;
+    cursor: pointer
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-date .due-edit:disabled {
+    cursor: default;
+    border-color: transparent;
+    background: transparent;
+    color: #637187;
+    opacity: 1
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-row .task-status-select {
+    height: 36px;
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-status-pill {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    padding: 0 9px;
+    border-radius: 8px;
+    font-size: .5625rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-status-pill.done {
+    background: #edf9f4;
+    color: #147e5b
+}
+
+.ft-inquiry-prototype .ft-inquiry-status-pill.waiting {
+    background: #eef2f7;
+    color: #6f7e93
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-files {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    color: #728097;
+    font-size: .53125rem
+}
+
+.ft-inquiry-prototype .ft-inquiry-task-files b {
+    color: #334158
+}
+
+.ft-inquiry-prototype .ft-inquiry-attach-button {
+    display: inline-flex;
+    min-height: 31px;
+    align-items: center;
+    padding: 0 9px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 8px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .53125rem;
+    font-weight: 800;
+    cursor: pointer
+}
+
+.ft-inquiry-prototype .ft-inquiry-action-button {
+    width: 100%;
+    min-height: 34px;
+    padding: 0 10px;
+    border: 1px solid #d5deea;
+    border-radius: 8px;
+    background: #fff;
+    color: #6b7a8e;
+    font-size: .55rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-action-button.primary-action {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+.ft-inquiry-prototype .ft-inquiry-action-button:disabled {
+    cursor: default;
+    opacity: .48
+}
+
+.ft-inquiry-prototype .ft-inquiry-complete-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #147e5b;
+    font-size: .55rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .ft-inquiry-empty-workflow {
+    padding: 34px;
+    text-align: center;
+    color: #6d7b90;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .decision {
+    padding: 17px;
+    border-radius: 13px
+}
+
+.ft-inquiry-prototype .decision h3 {
+    font-size: .8125rem
+}
+
+.ft-inquiry-prototype .decision p {
+    font-size: .59375rem
+}
+
+@media(max-width:1250px) {
+
+    .ft-inquiry-prototype .ft-inquiry-task-grid-head,
+    .ft-inquiry-prototype .ft-inquiry-task-row {
+        grid-template-columns: 38px minmax(220px, 1.3fr) minmax(175px, .8fr) minmax(120px, .55fr) minmax(145px, .68fr) minmax(100px, .48fr)
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-grid-head>span:nth-child(7),
+    .ft-inquiry-prototype .ft-inquiry-task-action {
+        grid-column: 6
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-files {
+        grid-column: 2/6
+    }
+}
+
+@media(max-width:900px) {
+    .ft-inquiry-prototype .summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-grid-head {
+        display: none
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-row {
+        grid-template-columns: 34px minmax(0, 1fr);
+        gap: 9px;
+        align-items: start
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-step {
+        grid-row: 1/7
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-copy,
+    .ft-inquiry-prototype .ft-inquiry-assignee-inline,
+    .ft-inquiry-prototype .ft-inquiry-task-date,
+    .ft-inquiry-prototype .task-status-cell,
+    .ft-inquiry-prototype .ft-inquiry-task-files,
+    .ft-inquiry-prototype .ft-inquiry-task-action {
+        grid-column: 2
+    }
+
+    .ft-inquiry-prototype .ft-inquiry-task-action {
+        width: min(180px, 100%)
+    }
+}
+
+/* Inquiry detail readability + calmer inline editing.
+   Keep values readable by default and reveal controls only when the edit pencil is used. */
+.ft-inquiry-prototype .inquiry-detail-view .crumb .secondary {
+    min-height: 34px !important;
+    padding: 0 11px;
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .detailhead {
+    padding: 7px 0 4px;
+    gap: 18px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .detailhead h1 {
+    font-size: 1.75rem;
+    line-height: 1.18
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .detailmeta {
+    margin-top: 9px;
+    gap: 10px;
+    font-size: .71875rem;
+    line-height: 1.4
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .detailmeta .pill {
+    font-size: .65625rem;
+    padding: 4px 8px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .detailactions {
+    gap: 8px;
+    align-items: flex-end
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .status-control {
+    gap: 6px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .status-help {
+    font-size: .65625rem;
+    font-weight: 700
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .status-select {
+    height: 40px;
+    min-width: 170px;
+    font-size: .71875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .detailactions .secondary {
+    min-height: 40px;
+    padding: 0 13px;
+    font-size: .71875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .tabs {
+    margin-top: 20px;
+    gap: 30px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .tab {
+    min-height: 42px;
+    font-size: .75rem;
+    font-weight: 800
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .tab .pill {
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .summary {
+    gap: 13px;
+    margin-top: 15px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .summarycard {
+    padding: 16px 17px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .summarycard small {
+    font-size: .65625rem;
+    font-weight: 700
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .summarycard strong {
+    margin-top: 5px;
+    font-size: .84375rem;
+    line-height: 1.35
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .overview-grid {
+    gap: 13px;
+    margin-top: 14px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .info-head {
+    padding: 15px 16px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .info-head h3 {
+    font-size: .875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .info-head p {
+    margin-top: 4px;
+    font-size: .65625rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .info-body {
+    padding: 15px 16px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .kv {
+    gap: 14px 18px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .kv small,
+.ft-inquiry-prototype .inquiry-detail-view .mini-card small {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .kv strong,
+.ft-inquiry-prototype .inquiry-detail-view .mini-card strong {
+    margin-top: 4px;
+    font-size: .75rem;
+    line-height: 1.4
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .request-note {
+    margin-top: 14px;
+    padding: 12px;
+    font-size: .6875rem;
+    line-height: 1.55
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .mini-card {
+    padding: 12px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .panel {
+    margin-top: 15px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .panelhead {
+    padding: 16px 17px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .panelhead h2 {
+    font-size: .9375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .panelhead p {
+    margin-top: 4px;
+    font-size: .65625rem;
+    line-height: 1.5
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .task-count-pill,
+.ft-inquiry-prototype .inquiry-detail-view .manage-badge {
+    font-size: .59375rem;
+    padding: 5px 8px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .panelhead .primary {
+    min-height: 36px;
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-task-grid-head {
+    min-height: 41px;
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-task-row {
+    min-height: 90px;
+    padding-top: 15px;
+    padding-bottom: 15px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-task-step span {
+    width: 31px;
+    height: 31px;
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-task-copy strong {
+    font-size: .78125rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-task-copy p {
+    margin-top: 5px;
+    font-size: .65625rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-task-copy .reqfile {
+    font-size: .59375rem;
+    padding: 3px 7px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-inline-display-row {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-assignee-display {
+    flex: 1 1 auto;
+    gap: 8px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-assignee-name {
+    font-size: .71875rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-assignee-picker {
+    width: 190px;
+    max-width: 100%;
+    position: relative;
+    z-index: 1240
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-assignee-picker .ft-inline-remote-user {
+    max-width: 190px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-assignee-picker .ft-task-inline-input {
+    height: 36px;
+    min-height: 36px;
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inline-remote-user-compact .ft-remote-filter-search,
+.ft-inquiry-prototype .inquiry-detail-view .ft-inline-remote-user-compact .ft-remote-filter-option,
+.ft-inquiry-prototype .inquiry-detail-view .ft-inline-remote-user-compact .ft-remote-filter-message {
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-inline-value {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    color: #2b3950;
+    font-size: .71875rem;
+    font-weight: 700
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-inline-input {
+    width: 100%;
+    height: 36px;
+    min-height: 36px;
+    padding: 0 9px;
+    border: 1px solid var(--ft-theme-primary-300);
+    border-radius: 8px;
+    background: #fff;
+    color: #26364d;
+    font-size: .6875rem;
+    outline: 0;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 5%, transparent)
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-inline-input:focus {
+    border-color: var(--ft-theme-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent)
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-inline-status {
+    font-size: .625rem;
+    padding: 5px 9px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inline-edit-button {
+    width: 27px;
+    height: 27px;
+    flex: 0 0 27px;
+    font-size: .6875rem;
+    border-radius: 7px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-status-pill {
+    min-height: 32px;
+    font-size: .65625rem;
+    padding: 0 10px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-task-files {
+    gap: 7px;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-attach-button {
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-action-button {
+    min-height: 36px;
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-complete-state {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .decision {
+    padding: 19px 18px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .decision h3 {
+    font-size: .9375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .decision p {
+    margin-top: 5px;
+    font-size: .65625rem;
+    line-height: 1.5
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .decision .pill {
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .decisionactions {
+    margin-top: 14px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .decisionactions .primary,
+.ft-inquiry-prototype .inquiry-detail-view .decisionactions .danger {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: .71875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .deadreason select,
+.ft-inquiry-prototype .inquiry-detail-view .deadreason input {
+    height: 40px;
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .successbox strong,
+.ft-inquiry-prototype .inquiry-detail-view .deadbox strong {
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .successbox span,
+.ft-inquiry-prototype .inquiry-detail-view .deadbox span {
+    font-size: .65625rem;
+    line-height: 1.5
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .doc-row {
+    padding: 13px 15px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .doc-icon strong {
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .doc-icon small,
+.ft-inquiry-prototype .inquiry-detail-view .doc-meta small {
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .doc-meta b {
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .openbtn {
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-composer {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+    padding: 15px 16px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-composer .avatar {
+    width: 34px;
+    height: 34px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-compose-body textarea {
+    min-height: 82px;
+    font-size: .6875rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-compose-actions span {
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-compose-actions .primary {
+    min-height: 36px;
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-list {
+    padding: 4px 16px 16px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-item {
+    grid-template-columns: 31px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 13px 0
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-dot {
+    width: 29px;
+    height: 29px;
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-item strong {
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-item p,
+.ft-inquiry-prototype .inquiry-detail-view .activity-item.comment-entry p {
+    margin-top: 4px;
+    font-size: .625rem;
+    line-height: 1.5
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-item time {
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .activity-pagination button,
+.ft-inquiry-prototype .inquiry-detail-view .document-pagination button {
+    min-height: 32px;
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .content-loading,
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-empty-workflow {
+    font-size: .6875rem
+}
+
+@media(max-width:900px) {
+    .ft-inquiry-prototype .inquiry-detail-view .detailhead {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view .detailactions {
+        width: 100%;
+        flex-wrap: wrap
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view .status-control {
+        align-items: flex-start
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-inline-display-row {
+        justify-content: flex-start
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-assignee-picker {
+        width: min(260px, 100%)
+    }
+}
+
+/* Admin-only inline task append form */
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task {
+    margin: 14px 16px 16px;
+    padding: 15px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 12px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 13px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-head strong {
+    display: block;
+    color: #1f2c43;
+    font-size: .8125rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-head span {
+    display: block;
+    margin-top: 3px;
+    color: #68778d;
+    font-size: .65625rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-close {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    place-items: center;
+    border: 1px solid #d4deec;
+    border-radius: 8px;
+    background: #fff;
+    color: #53647a;
+    font-size: 1rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(180px, .65fr) minmax(170px, .55fr);
+    gap: 11px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field {
+    display: grid;
+    gap: 6px;
+    min-width: 0
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field-wide {
+    grid-column: span 1
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field>span {
+    color: #44536a;
+    font-size: .625rem;
+    font-weight: 750
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field>input,
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field>select,
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field>textarea {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #cfd9e7;
+    border-radius: 9px;
+    background: #fff;
+    color: #172033;
+    font-size: .6875rem;
+    outline: 0
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field>input,
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field>select {
+    height: 39px;
+    padding: 0 10px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field>textarea {
+    min-height: 72px;
+    padding: 9px 10px;
+    resize: vertical;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field>input:focus,
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field>select:focus,
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field>textarea:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 13px
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-actions .secondary,
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-actions .primary {
+    min-height: 36px;
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-error {
+    margin-top: 8px;
+    color: #c43f3f;
+    font-size: .625rem
+}
+
+@media(max-width:900px) {
+    .ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-inquiry-prototype .inquiry-detail-view .ft-inquiry-add-task-field-wide {
+        grid-column: auto
+    }
+}
+
+/* 2026-08-08: Inquiry typography aligned with Dashboard and My Task. */
+.ft-inquiry-prototype .pagehead h1 {
+    font-size: 1.5625rem
+}
+
+.ft-inquiry-prototype .pagehead p {
+    font-size: .75rem;
+    line-height: 1.45
+}
+
+.ft-inquiry-prototype .primary,
+.ft-inquiry-prototype .secondary,
+.ft-inquiry-prototype .danger {
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .metric small {
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .metric strong {
+    font-size: 1.1875rem
+}
+
+.ft-inquiry-prototype .search input {
+    font-size: .75rem
+}
+
+.ft-inquiry-prototype .chip {
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .listhead {
+    font-size: .5625rem
+}
+
+.ft-inquiry-prototype .row {
+    min-height: 84px
+}
+
+.ft-inquiry-prototype .id {
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .title {
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .sub {
+    font-size: .59375rem;
+    line-height: 1.35
+}
+
+.ft-inquiry-prototype .pill {
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .progress b {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .ownerline .avatar {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .list-status-select {
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .openbtn {
+    font-size: .59375rem
+}
+
+.ft-inquiry-prototype .footer {
+    font-size: .625rem
+}
+
+.ft-inquiry-prototype .flash-inline,
+.ft-inquiry-prototype .error-inline {
+    font-size: .65625rem
+}
+
+.ft-inquiry-prototype .content-loading {
+    font-size: .6875rem
+}
+
+/* Inquiry detail: one readable scale across Overview, Workflow, Documents and Activity. */
+.ft-inquiry-prototype .inquiry-detail-view .detailmeta {
+    font-size: .78125rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .detailmeta .pill {
+    font-size: .6875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .tab {
+    font-size: .78125rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .summarycard small {
+    font-size: .71875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .summarycard strong {
+    font-size: .9375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .info-head h3 {
+    font-size: .9375rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .info-head p {
+    font-size: .71875rem
+}
+
+.ft-inquiry-prototype .inquiry-detail-view .kv small,
+.ft-inquiry-prototype .inquiry-detail-view .mini-card small {
+    font-size: .6875rem
+}

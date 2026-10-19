@@ -1,0 +1,3341 @@
+/** Application CSS segment 03: orders-list-detail. Source-preserving split of the former monolith. */
+/* Exact-style list and detail redesign for Jobs, Job Details, Task Details */
+.ft-list-head,
+.ft-detail-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 18px
+}
+
+.ft-list-head h1,
+.ft-detail-toolbar h1 {
+    margin: 0;
+    color: #061731;
+    font-size: 1.5625rem;
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -.03em
+}
+
+.ft-list-head p,
+.ft-job-detail-subtitle {
+    margin: 6px 0 0;
+    color: #596b84
+}
+
+.ft-list-actions,
+.ft-detail-actions,
+.ft-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap
+}
+
+.ft-outline-btn,
+.ft-new-job-btn,
+.ft-disabled-btn {
+    height: 40px;
+    border-radius: 9px;
+    border: 1px solid #d7e1ee;
+    background: #fff;
+    color: #071831;
+    font-weight: 750;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    text-decoration: none
+}
+
+.ft-new-job-btn {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff;
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--ft-theme-primary) 18%, transparent)
+}
+
+.ft-disabled-btn {
+    background: #d2d5da;
+    color: #fff;
+    border-color: #d2d5da
+}
+
+.ft-list-view-tabs {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px
+}
+
+.ft-list-view-chip {
+    height: 36px;
+    border: 1px solid #dce5f0;
+    background: #fff;
+    border-radius: 8px;
+    color: #162844;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 750
+}
+
+.ft-list-view-chip.active {
+    border-color: var(--ft-theme-primary);
+    color: var(--ft-theme-primary);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ft-theme-primary) 6%, transparent)
+}
+
+.ft-list-view-chip.red {
+    color: #bd1d18
+}
+
+.ft-list-view-chip.amber {
+    color: #a16000
+}
+
+.ft-list-view-chip b {
+    font-size: .75rem;
+    background: #eef3f8;
+    color: inherit;
+    border-radius: 10px;
+    padding: 1px 7px
+}
+
+.ft-job-table-card {
+    background: #fff;
+    border: 1px solid #dce5ef;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(20, 42, 75, .04);
+    overflow: hidden
+}
+
+.ft-job-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(300px, 1.8fr) repeat(5, minmax(130px, 1fr)) auto auto;
+    gap: 10px;
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0
+}
+
+.ft-job-filter-grid select,
+.ft-job-filter-grid input,
+.ft-doc-toolbar input,
+.ft-doc-toolbar select,
+.ft-row-actions input {
+    height: 40px;
+    border: 1px solid #d8e2ee;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0 12px;
+    color: #162844;
+    font-weight: 600
+}
+
+.ft-filter-search {
+    position: relative;
+    display: flex;
+    align-items: center
+}
+
+.ft-filter-search svg {
+    position: absolute;
+    left: 12px;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: #70839d;
+    stroke-width: 1.8
+}
+
+.ft-filter-search input {
+    width: 100%;
+    padding-left: 38px
+}
+
+.filter-more svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8
+}
+
+.ft-clear-link {
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    font-weight: 750;
+    white-space: nowrap
+}
+
+.ft-active-filter-row {
+    padding: 0 12px 12px
+}
+
+.ft-active-filter-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 7px 10px;
+    color: #31445f
+}
+
+.ft-active-filter-row button {
+    border: 0;
+    background: transparent
+}
+
+.ft-job-table-wrap {
+    overflow: auto
+}
+
+.ft-job-table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 1280px
+}
+
+.ft-job-table th {
+    font-size: .625rem;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: #526780;
+    background: #f8fafc;
+    border-top: 1px solid #e1e8f0;
+    border-bottom: 1px solid #e1e8f0;
+    padding: 12px;
+    text-align: left
+}
+
+.ft-job-table td {
+    border-bottom: 1px solid #e1e8f0;
+    padding: 11px 12px;
+    font-size: .75rem;
+    vertical-align: middle
+}
+
+.ft-job-table tr:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-table-job-link {
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    font-weight: 800;
+    padding: 0
+}
+
+.ft-table-sub {
+    color: #596f8b;
+    margin-top: 4px;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.ft-table-due {
+    margin-top: 4px;
+    color: #d6291e;
+    font-weight: 800
+}
+
+.ft-table-progress {
+    height: 6px;
+    width: 92px;
+    background: #e8edf4;
+    border-radius: 8px;
+    overflow: hidden;
+    display: inline-block;
+    margin-right: 8px
+}
+
+.ft-table-progress span {
+    display: block;
+    height: 100%;
+    background: var(--ft-theme-primary);
+    border-radius: 8px
+}
+
+.ft-owner-chip {
+    height: 42px;
+    min-width: 178px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px
+}
+
+.ft-owner-chip:hover,
+.ft-owner-chip:focus-within {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-owner-chip button,
+.ft-pencil,
+.ft-card-edit {
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    margin-left: auto
+}
+
+.ft-date-chip {
+    height: 36px;
+    background: var(--ft-theme-surface-subtle);
+    border-radius: 7px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px
+}
+
+.ft-date-chip.overdue {
+    background: #fff5f3;
+    color: #d6291e
+}
+
+.ft-table-kebab {
+    border: 0;
+    background: transparent;
+    font-weight: 900
+}
+
+.ft-list-pagination {
+    margin-top: 14px;
+    background: #fff;
+    border: 1px solid #dfe7f1;
+    border-radius: 12px;
+    padding: 11px 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: #1f304a
+}
+
+.ft-list-pagination select {
+    height: 34px;
+    border: 1px solid #d7e0eb;
+    border-radius: 7px;
+    padding: 0 10px
+}
+
+.ft-page-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px
+}
+
+.ft-page-actions button {
+    height: 34px;
+    border: 1px solid #d8e2ee;
+    background: #fff;
+    border-radius: 7px;
+    padding: 0 14px;
+    font-weight: 700
+}
+
+.ft-soft-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 8px;
+    padding: 5px 9px;
+    font-size: .6875rem;
+    font-weight: 800;
+    white-space: nowrap
+}
+
+.ft-soft-pill.blue {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-soft-pill.green,
+.ft-soft-pill.done {
+    background: #eaf8ef;
+    color: #087c34
+}
+
+.ft-soft-pill.red,
+.ft-soft-pill.blocked {
+    background: #fff0ef;
+    color: #c2413a
+}
+
+.ft-soft-pill.amber,
+.ft-soft-pill.waiting {
+    background: #fff4df;
+    color: #a96000
+}
+
+.ft-soft-pill.purple {
+    background: #f2ecff;
+    color: #7730cb
+}
+
+.ft-soft-pill.gray,
+.ft-soft-pill.ready {
+    background: #eef2f6;
+    color: #5a6b82
+}
+
+.ft-soft-pill.progress {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-job-detail-page,
+.ft-task-detail-page {
+    color: #071831
+}
+
+.ft-detail-toolbar {
+    align-items: center
+}
+
+.ft-detail-breadcrumb {
+    font-size: .75rem;
+    color: #5d6f88;
+    margin-bottom: 8px
+}
+
+.ft-detail-breadcrumb a {
+    color: var(--ft-theme-primary);
+    text-decoration: none
+}
+
+.ft-detail-number {
+    color: #435a76;
+    margin-bottom: 7px
+}
+
+.ft-detail-badges {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-top: 12px;
+    font-size: .8125rem
+}
+
+.ft-team-stack {
+    display: flex;
+    align-items: center
+}
+
+.ft-team-stack .avatar,
+.ft-avatar-more {
+    margin-left: -5px;
+    border: 2px solid #fff
+}
+
+.ft-close-page {
+    height: 38px;
+    width: 38px;
+    border: 0;
+    background: transparent;
+    color: #0b1d36;
+    font-size: 1.5625rem
+}
+
+.ft-detail-tabs {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    border-bottom: 1px solid #dce5f0;
+    margin-bottom: 14px
+}
+
+.ft-detail-tabs button {
+    border: 0;
+    background: transparent;
+    padding: 12px 0;
+    color: #0b1d36;
+    font-weight: 800;
+    position: relative
+}
+
+.ft-detail-tabs button.active {
+    color: var(--ft-theme-primary)
+}
+
+.ft-detail-tabs button.active:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 3px;
+    background: var(--ft-theme-primary)
+}
+
+.ft-detail-tabs span {
+    margin-left: 5px;
+    background: #edf2f7;
+    border-radius: 10px;
+    padding: 1px 7px;
+    color: #536780
+}
+
+.ft-overview-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 14px
+}
+
+.ft-overview-metric {
+    display: flex;
+    gap: 14px;
+    background: #fff;
+    border: 1px solid #dce5f0;
+    border-radius: 12px;
+    padding: 16px;
+    min-height: 86px
+}
+
+.ft-overview-metric small {
+    color: #5d6f88
+}
+
+.ft-overview-metric b {
+    display: block;
+    margin-top: 5px;
+    font-size: .9375rem
+}
+
+.ft-overview-metric p {
+    margin: 4px 0 0;
+    color: #5d6f88;
+    font-size: .75rem;
+    display: flex;
+    align-items: center;
+    gap: 5px
+}
+
+.ft-metric-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 900
+}
+
+.ft-metric-icon.purple {
+    background: #f1eaff;
+    color: #6d28d9
+}
+
+.ft-metric-icon.blue {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-metric-icon.red {
+    background: #fff0ef;
+    color: #d22e24
+}
+
+.ft-line-progress,
+.ft-small-progress {
+    height: 8px;
+    background: #e6ebf2;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 8px
+}
+
+.ft-line-progress span,
+.ft-small-progress span {
+    display: block;
+    height: 100%;
+    background: var(--ft-theme-primary);
+    border-radius: 8px
+}
+
+.ft-detail-two-col,
+.ft-detail-doc-layout,
+.ft-task-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 16px
+}
+
+.ft-detail-card {
+    background: #fff;
+    border: 1px solid #dce5f0;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 18px rgba(20, 42, 75, .025)
+}
+
+.ft-detail-card h2,
+.ft-detail-card h3 {
+    margin: 0 0 8px
+}
+
+.ft-editable-copy {
+    border: 1px solid #dce5f0;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 9px 0 12px
+}
+
+.ft-card-section-head,
+.ft-card-row-head,
+.ft-section-title-row,
+.ft-activity-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px
+}
+
+.ft-card-section-head span,
+.ft-card-row-head p,
+.ft-section-title-row p {
+    color: #5d6f88;
+    margin: 2px 0 0
+}
+
+.ft-mini-grid-table,
+.ft-history-table,
+.ft-doc-table {
+    width: 100%;
+    border-collapse: collapse
+}
+
+.ft-mini-grid-table th,
+.ft-mini-grid-table td,
+.ft-history-table th,
+.ft-history-table td,
+.ft-doc-table th,
+.ft-doc-table td {
+    border-bottom: 1px solid #dde5ef;
+    padding: 8px;
+    text-align: left;
+    font-size: .75rem
+}
+
+.ft-mini-grid-table th,
+.ft-history-table th,
+.ft-doc-table th {
+    text-transform: uppercase;
+    font-size: .625rem;
+    color: #536781;
+    background: #f8fafc
+}
+
+.ft-link-blue {
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    font-weight: 800;
+    text-decoration: none
+}
+
+.ft-workflow-mini-line {
+    background: #fff;
+    border: 1px solid #dce5f0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    display: flex;
+    overflow: auto;
+    gap: 20px
+}
+
+.ft-workflow-mini-line button {
+    border: 0;
+    background: transparent;
+    min-width: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: #5b6d85
+}
+
+.ft-workflow-mini-line span {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #eef3f8;
+    display: grid;
+    place-items: center;
+    font-weight: 800
+}
+
+.ft-workflow-mini-line .done span {
+    background: #15803d;
+    color: #fff
+}
+
+.ft-workflow-mini-line .current span {
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+.ft-phase-task-table {
+    border: 1px solid #dce5f0;
+    border-radius: 9px;
+    overflow: hidden
+}
+
+.ft-phase-group-head {
+    height: 35px;
+    background: var(--ft-master-bg, var(--ft-theme-surface-subtle));
+    border-bottom: 1px solid var(--ft-master-border, #dce5f0);
+    display: grid;
+    grid-template-columns: 24px 24px minmax(180px, 1fr) auto 110px 30px;
+    gap: 8px;
+    align-items: center;
+    padding: 0 10px
+}
+
+.ft-phase-group-head b {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--ft-master-color, #64748b);
+    color: #fff;
+    display: grid;
+    place-items: center
+}
+
+.ft-phase-group-head small {
+    color: #5c718c
+}
+
+.ft-phase-group-head em {
+    height: 6px;
+    background: #dfe5ed;
+    border-radius: 8px;
+    position: relative
+}
+
+.ft-phase-group-head em:before {
+    content: "";
+    display: block;
+    height: 100%;
+    width: 100%;
+    max-width: 100%;
+    background: var(--ft-master-color, #64748b);
+    border-radius: 8px
+}
+
+.ft-phase-group-head button {
+    height: 24px;
+    border: 1px solid var(--ft-theme-primary-300);
+    background: #fff;
+    color: var(--ft-theme-primary);
+    border-radius: 5px
+}
+
+.ft-phase-task-line {
+    width: 100%;
+    border: 0;
+    background: #fff;
+    border-bottom: 1px solid #e4ebf3;
+    display: grid;
+    grid-template-columns: 45px minmax(220px, 1fr) 210px 140px 140px 40px;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 12px;
+    text-align: left
+}
+
+.ft-phase-task-line:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-phase-task-line span {
+    display: flex;
+    align-items: center;
+    gap: 6px
+}
+
+.ft-phase-empty-row,
+.ft-doc-empty-row {
+    padding: 10px 12px;
+    color: #75879f;
+    text-align: center
+}
+
+.ft-side-panel .ft-side-row {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: center;
+    border-bottom: 1px solid #e1e8f0;
+    padding: 9px 0
+}
+
+.ft-side-panel .ft-side-row span {
+    color: #5d6f88
+}
+
+.ft-side-panel .ft-side-row b {
+    display: flex;
+    align-items: center;
+    gap: 6px
+}
+
+.ft-side-panel button {
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary-800)
+}
+
+.danger,
+.danger-text {
+    color: #d9271d !important
+}
+
+.green-text,
+.ok-text {
+    color: #0b7c36 !important
+}
+
+.blue-text {
+    color: var(--ft-theme-primary) !important
+}
+
+.warn-text {
+    color: #b66f00 !important
+}
+
+.ft-warning-banner,
+.ft-success-banner {
+    border: 1px solid #f2c980;
+    background: #fff6df;
+    border-radius: 9px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.ft-warning-banner b {
+    color: #c46b00
+}
+
+.ft-warning-banner p,
+.ft-success-banner p {
+    margin: 2px 0 0
+}
+
+.ft-warning-banner button {
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    font-weight: 800
+}
+
+.ft-warning-banner.slim {
+    margin-top: 10px
+}
+
+.ft-success-banner {
+    background: #ecfdf3;
+    border-color: #bce4c7;
+    color: #087c34
+}
+
+.ft-workflow-stepper-card {
+    background: #fff;
+    border: 1px solid #dce5f0;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px
+}
+
+.ft-workflow-stepper {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px
+}
+
+.ft-workflow-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    color: #536985
+}
+
+.ft-workflow-step:before {
+    content: "";
+    position: absolute;
+    left: -50%;
+    right: 50%;
+    height: 2px;
+    background: #d8e0ea;
+    top: 14px
+}
+
+.ft-workflow-step:first-child:before {
+    display: none
+}
+
+.ft-workflow-step span {
+    width: 28px;
+    height: 28px;
+    margin: auto;
+    border: 1px solid #d7e0ea;
+    border-radius: 50%;
+    background: #eef2f6;
+    color: #64748b;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    position: relative;
+    z-index: 1
+}
+
+.ft-workflow-step.done span {
+    background: var(--ft-master-color, #64748b);
+    border-color: var(--ft-master-color, #64748b);
+    color: #fff
+}
+
+.ft-workflow-step.done:before {
+    background: var(--ft-master-color, #64748b)
+}
+
+.ft-workflow-step small {
+    display: block;
+    margin-top: 7px;
+    font-size: .6875rem;
+    color: #64748b
+}
+
+.ft-workflow-step em {
+    display: block;
+    color: #7b8798;
+    font-style: normal;
+    font-weight: 800;
+    font-size: .625rem
+}
+
+.ft-workflow-step.done small,
+.ft-workflow-step.done em {
+    color: var(--ft-master-text, #536985)
+}
+
+.ft-current-phase-card h3 {
+    margin-top: 14px
+}
+
+.ft-phase-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.ft-phase-progress-row .ft-line-progress {
+    flex: 1
+}
+
+.ft-phase-owner-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #dfe7f1;
+    padding: 10px 0;
+    color: #566b85;
+    font-size: .75rem
+}
+
+.ft-phase-owner-row a {
+    margin-left: auto;
+    color: var(--ft-theme-primary);
+    font-weight: 800
+}
+
+.ft-readiness-table {
+    border: 1px solid #dce5f0;
+    border-radius: 8px;
+    overflow: hidden
+}
+
+.ft-readiness-table>div {
+    display: grid;
+    grid-template-columns: 28px 34px minmax(160px, 1fr) 1.2fr 110px 110px;
+    gap: 8px;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 10px
+}
+
+.ft-readiness-table button {
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    font-weight: 800
+}
+
+.ft-readiness-table .ok {
+    color: #0b8739
+}
+
+.ft-readiness-table .warn {
+    color: #f59e0b
+}
+
+.ft-readiness-table em {
+    font-style: normal;
+    border-radius: 8px;
+    padding: 4px 8px;
+    text-align: center;
+    font-weight: 800
+}
+
+.ft-readiness-table em.complete {
+    background: #dbf4df;
+    color: #087c34
+}
+
+.ft-readiness-table em.remain {
+    background: #fff2d9;
+    color: #a15e00
+}
+
+.ft-readiness-table em.blocked {
+    background: #ffe4e2;
+    color: #bd1d18
+}
+
+.ft-nested-readiness {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-next-phase-box {
+    margin-top: 10px;
+    border: 1px solid #dce5f0;
+    background: var(--ft-theme-surface-subtle);
+    border-radius: 8px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 35px 1fr auto auto auto;
+    gap: 10px;
+    align-items: center
+}
+
+.ft-next-phase-box p {
+    margin: 2px 0 0
+}
+
+.ft-doc-filter-chips {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px
+}
+
+.ft-doc-filter-chips button {
+    border: 1px solid #d9e3ef;
+    background: #fff;
+    border-radius: 16px;
+    padding: 5px 12px;
+    font-weight: 800;
+    color: #526780
+}
+
+.ft-doc-filter-chips .active {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-doc-filter-chips .amber {
+    background: #fff4df;
+    color: #a96000
+}
+
+.ft-doc-filter-chips .green {
+    background: #ecf8f0;
+    color: #087c34
+}
+
+.ft-upload-panel label {
+    display: block;
+    margin-top: 10px;
+    font-weight: 800
+}
+
+.ft-upload-panel select {
+    height: 38px;
+    border: 1px solid #d7e1ed;
+    border-radius: 7px;
+    width: 50%;
+    padding: 0 10px
+}
+
+.ft-upload-zone {
+    border: 1px dashed #8fa4bf;
+    background: var(--ft-theme-surface-subtle);
+    border-radius: 8px;
+    min-height: 50px;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 14px;
+    margin-top: 9px
+}
+
+.ft-upload-zone a {
+    color: var(--ft-theme-primary);
+    font-weight: 800
+}
+
+.ft-upload-zone small {
+    display: block;
+    color: #5d6f88;
+    margin-top: 2px
+}
+
+.ft-upload-zone.compact {
+    margin: 8px 0 0
+}
+
+.ft-doc-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 10px 0
+}
+
+.ft-doc-toolbar input {
+    width: 310px
+}
+
+.ft-doc-toolbar button {
+    height: 34px;
+    border: 1px solid #d8e2ee;
+    border-radius: 7px;
+    background: #fff;
+    padding: 0 11px
+}
+
+.ft-doc-toolbar button.active {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-doc-groupby {
+    font-size: .75rem;
+    color: #526780;
+    margin: 7px 0
+}
+
+.ft-doc-groupby button {
+    border: 1px solid #d8e2ee;
+    background: #fff;
+    border-radius: 6px
+}
+
+.ft-doc-phase-row td {
+    background: var(--ft-theme-surface-subtle);
+    font-weight: 800
+}
+
+.ft-doc-phase-row b {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--ft-theme-primary);
+    color: #fff;
+    margin: 0 5px
+}
+
+.ft-doc-phase-row small {
+    color: #5d6f88;
+    margin-left: 12px
+}
+
+.ft-doc-phase-row em {
+    float: right;
+    background: #eef3f8;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-style: normal
+}
+
+.ft-file-icon.pdf {
+    color: #e11d48
+}
+
+.ft-file-icon.sheet {
+    color: #16a34a
+}
+
+.ft-required-docs-card .ft-doc-progress {
+    height: 7px;
+    background: #e6ebf2;
+    border-radius: 8px;
+    overflow: hidden
+}
+
+.ft-required-docs-card .ft-doc-progress span {
+    display: block;
+    height: 100%;
+    background: #20b35e
+}
+
+.ft-percent {
+    float: right;
+    margin-top: -20px
+}
+
+.ft-required-doc-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 15px 0
+}
+
+.ft-required-doc-row .ok {
+    color: #16a34a
+}
+
+.ft-required-doc-row .warn {
+    color: #f59e0b
+}
+
+.ft-required-doc-row p {
+    margin: 3px 0;
+    color: #596b84
+}
+
+.ft-doc-health-card div {
+    display: flex;
+    justify-content: space-between;
+    margin: 13px 0
+}
+
+.ft-task-detail-layout {
+    align-items: start
+}
+
+.task-toolbar {
+    margin-bottom: 22px
+}
+
+.ft-task-property-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    border: 1px solid #dce5f0;
+    border-radius: 10px;
+    background: #fff;
+    overflow: visible;
+    margin-bottom: 14px
+}
+
+.ft-task-property {
+    min-height: 75px;
+    border-right: 1px solid #dce5f0;
+    padding: 14px;
+    position: relative
+}
+
+.ft-task-property:last-child {
+    border-right: 0
+}
+
+.ft-task-property.active {
+    box-shadow: 0 0 0 1px var(--ft-theme-primary-500) inset;
+    border-radius: 9px
+}
+
+.ft-task-property small {
+    display: block;
+    color: #5d6f88;
+    margin-bottom: 9px
+}
+
+.ft-task-property>div {
+    display: flex;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-task-property select {
+    border: 0;
+    background: transparent;
+    font-weight: 800;
+    outline: 0
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block
+}
+
+.status-dot.blue {
+    background: var(--ft-theme-primary)
+}
+
+.status-dot.amber {
+    background: #f5a400
+}
+
+.ft-description-card {
+    position: relative
+}
+
+.ft-card-edit {
+    position: absolute;
+    right: 14px;
+    top: 14px
+}
+
+.ft-checklist-card .ft-card-row-head>div:last-child {
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.ft-small-progress {
+    width: 80px;
+    margin: 0
+}
+
+.ft-checklist-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 28px;
+    align-items: center;
+    border-top: 1px solid #e3eaf2;
+    padding: 12px 0
+}
+
+.ft-checklist-row input {
+    width: 18px;
+    height: 18px
+}
+
+.ft-attachment-card h2 span {
+    background: #edf2f7;
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: .75rem;
+    color: #60728a
+}
+
+.ft-attachment-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid #e3eaf2;
+    padding: 9px 0
+}
+
+.ft-task-activity-card .ft-activity-head div button,
+.ft-activity-head div button {
+    border: 0;
+    background: transparent;
+    padding: 0 14px 8px 0;
+    color: #47617e
+}
+
+.ft-task-activity-card .ft-activity-head .active,
+.ft-activity-head .active {
+    color: var(--ft-theme-primary);
+    border-bottom: 2px solid var(--ft-theme-primary)
+}
+
+.ft-comment-composer {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    border-top: 1px solid #e3eaf2;
+    padding-top: 10px
+}
+
+.ft-comment-composer input {
+    height: 38px;
+    border: 1px solid #d8e2ee;
+    border-radius: 7px;
+    padding: 0 12px
+}
+
+.ft-activity-line {
+    display: grid;
+    grid-template-columns: 30px 130px 1fr auto 30px;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-top: 1px solid #e3eaf2;
+    font-size: .75rem
+}
+
+.ft-activity-line button {
+    border: 0;
+    background: transparent
+}
+
+.ft-management-card .ft-attention-row {
+    display: grid;
+    grid-template-columns: 135px 1fr auto;
+    gap: 8px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e3eaf2
+}
+
+.ft-attention-row span {
+    color: #526780
+}
+
+.ft-management-card textarea {
+    width: 100%;
+    min-height: 70px;
+    border: 1px solid #d8e2ee;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 8px
+}
+
+.ft-attention-toggle {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px
+}
+
+.ft-job-context-card>b {
+    display: block;
+    margin: 8px 0 14px
+}
+
+.ft-job-context-card div {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px;
+    margin: 12px 0
+}
+
+.ft-dependency-card p {
+    font-size: .8125rem
+}
+
+.ft-task-meta-card {
+    color: #536985
+}
+
+.ft-section-title-row {
+    margin-bottom: 10px
+}
+
+@media(max-width:1300px) {
+    .ft-job-filter-grid {
+        grid-template-columns: minmax(280px, 1fr) repeat(3, minmax(130px, 1fr));
+        overflow: auto
+    }
+
+    .ft-overview-metrics {
+        grid-template-columns: repeat(2, 1fr)
+    }
+
+    .ft-detail-two-col,
+    .ft-detail-doc-layout,
+    .ft-task-detail-layout {
+        grid-template-columns: 1fr
+    }
+
+    .ft-task-property-grid {
+        grid-template-columns: repeat(3, 1fr)
+    }
+
+    .ft-task-property:nth-child(3n) {
+        border-right: 0
+    }
+
+    .ft-workflow-stepper {
+        overflow: auto
+    }
+
+    .ft-workflow-step {
+        min-width: 90px
+    }
+
+    .ft-list-pagination {
+        flex-wrap: wrap
+    }
+}
+
+@media(max-width:800px) {
+
+    .ft-list-head,
+    .ft-detail-toolbar {
+        flex-direction: column
+    }
+
+    .ft-detail-actions {
+        width: 100%;
+        justify-content: flex-start
+    }
+
+    .ft-detail-tabs {
+        gap: 16px;
+        overflow: auto
+    }
+
+    .ft-overview-metrics {
+        grid-template-columns: 1fr
+    }
+
+    .ft-phase-task-line {
+        grid-template-columns: 35px minmax(180px, 1fr);
+        gap: 6px
+    }
+
+    .ft-phase-task-line span:nth-of-type(n+2),
+    .ft-phase-task-line .ft-soft-pill {
+        font-size: .6875rem
+    }
+
+    .ft-task-property-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-task-property {
+        border-right: 0;
+        border-bottom: 1px solid #dce5f0
+    }
+
+    .ft-job-table-card {
+        margin-left: -10px;
+        margin-right: -10px;
+        border-radius: 10px
+    }
+
+    .ft-list-view-tabs {
+        overflow: auto;
+        flex-wrap: nowrap
+    }
+
+    .ft-workflow-stepper-card,
+    .ft-detail-card {
+        padding: 12px
+    }
+
+    .ft-next-phase-box {
+        grid-template-columns: 32px 1fr
+    }
+
+    .ft-next-phase-box button {
+        width: 100%
+    }
+
+    .ft-readiness-table>div {
+        grid-template-columns: 24px 26px 1fr
+    }
+
+    .ft-readiness-table strong,
+    .ft-readiness-table em,
+    .ft-readiness-table button {
+        grid-column: 3
+    }
+
+    .ft-upload-panel select {
+        width: 100%
+    }
+
+    .ft-upload-zone {
+        grid-template-columns: 30px 1fr
+    }
+
+    .ft-upload-zone button {
+        grid-column: 1/-1
+    }
+
+    .ft-activity-line {
+        grid-template-columns: 28px 1fr
+    }
+
+    .ft-activity-line small,
+    .ft-activity-line button {
+        grid-column: 2
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Screenshot-locked redesign: Jobs list, Job detail, Task detail
+   Reference screens supplied 2026-08-04. These rules intentionally only
+   override the page-specific FlowTrack classes so the rest of the app keeps
+   its existing structure and behaviour.
+   -------------------------------------------------------------------------- */
+.ft-exact-job-detail,
+.ft-exact-task-detail,
+.ft-exact-jobs-list {
+    color: #071a34
+}
+
+.ft-exact-job-header {
+    margin-bottom: 10px;
+    align-items: flex-start
+}
+
+.ft-exact-job-header .ft-detail-breadcrumb,
+.ft-exact-task-header .ft-detail-breadcrumb {
+    font-size: .6875rem;
+    color: #5d728e;
+    margin-bottom: 8px
+}
+
+.ft-exact-task-header .ft-detail-breadcrumb {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    color: var(--ft-theme-primary-800)
+}
+
+.ft-exact-job-header h1,
+.ft-exact-task-header h1 {
+    font-size: 1.375rem;
+    letter-spacing: -.035em;
+    font-weight: 800
+}
+
+.ft-exact-job-header .ft-pencil,
+.ft-description-card .ft-card-edit,
+.ft-inline-pencil {
+    border: 0;
+    background: transparent;
+    color: #4a6688;
+    font-size: .6875rem;
+    padding: 0 4px
+}
+
+.ft-exact-job-meta {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 9px;
+    font-size: .6875rem;
+    flex-wrap: wrap
+}
+
+.ft-job-number-inline {
+    font-weight: 700;
+    color: #5a6f8a;
+    display: inline-flex;
+    gap: 4px;
+    align-items: center
+}
+
+.ft-exact-job-team {
+    margin-left: auto;
+    padding-top: 9px
+}
+
+.ft-exact-tabs {
+    margin-bottom: 10px;
+    gap: 28px
+}
+
+.ft-exact-tabs button {
+    font-size: .75rem;
+    padding: 11px 0
+}
+
+.ft-exact-tabs button.active:after {
+    height: 2px
+}
+
+.ft-overview-metrics {
+    gap: 10px;
+    margin-bottom: 10px
+}
+
+.ft-overview-metric {
+    min-height: 72px;
+    border-radius: 9px;
+    padding: 12px;
+    gap: 10px;
+    box-shadow: none
+}
+
+.ft-overview-metric .ft-metric-icon {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: .8125rem
+}
+
+.ft-overview-metric small {
+    font-size: .625rem
+}
+
+.ft-overview-metric b {
+    font-size: .75rem;
+    margin-top: 2px;
+    line-height: 1.25
+}
+
+.ft-overview-metric p {
+    font-size: .625rem;
+    margin-top: 3px
+}
+
+.ft-overview-metric .ft-line-progress {
+    margin-top: 5px;
+    height: 5px
+}
+
+.ft-overview-top-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 310px;
+    gap: 10px;
+    margin-bottom: 10px
+}
+
+.ft-overview-card,
+.ft-planning-panel {
+    margin-bottom: 0;
+    min-height: 208px
+}
+
+.ft-overview-card h2,
+.ft-planning-panel h2 {
+    font-size: .8125rem
+}
+
+.ft-editable-copy {
+    border: 1px solid #dce5f0;
+    border-radius: 7px;
+    padding: 10px;
+    margin: 10px 0 8px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    color: #31455f;
+    font-size: .6875rem
+}
+
+.ft-card-section-head {
+    font-size: .625rem;
+    padding: 0 0 5px
+}
+
+.ft-card-section-head span {
+    color: #60738c
+}
+
+.ft-mini-grid-table th {
+    padding: 6px 8px;
+    font-size: .5625rem
+}
+
+.ft-mini-grid-table td {
+    padding: 8px;
+    font-size: .625rem;
+    border-bottom: 0
+}
+
+.ft-add-product {
+    display: inline-block;
+    margin-top: 9px;
+    font-size: .6875rem
+}
+
+.ft-planning-panel .ft-side-row {
+    grid-template-columns: 95px minmax(0, 1fr) 20px;
+    padding: 9px 0;
+    font-size: .625rem;
+    min-height: 30px
+}
+
+.ft-planning-panel .ft-side-row:last-child {
+    border-bottom: 0
+}
+
+.ft-planning-panel .ft-side-row button {
+    font-size: .625rem
+}
+
+.ft-overview-workflow-line {
+    margin-bottom: 10px;
+    padding: 12px 11px;
+    gap: 0;
+    justify-content: space-between;
+    overflow: visible
+}
+
+.ft-overview-workflow-line button {
+    position: relative;
+    flex: 1;
+    min-width: 64px;
+    gap: 3px;
+    font-size: .5625rem;
+    overflow: visible
+}
+
+.ft-overview-workflow-line button:before {
+    content: "";
+    position: absolute;
+    left: -50%;
+    right: 50%;
+    height: 2px;
+    background: #dce5ed;
+    top: 12px;
+    z-index: 0
+}
+
+.ft-overview-workflow-line button:first-child:before {
+    display: none
+}
+
+.ft-overview-workflow-line button.done:before {
+    background: var(--ft-master-color, #64748b)
+}
+
+.ft-overview-workflow-line span {
+    width: 24px;
+    height: 24px;
+    position: relative;
+    z-index: 1;
+    font-size: .5625rem;
+    background: #eef2f6;
+    color: #64748b;
+    border: 1px solid #d7e0ea
+}
+
+.ft-overview-workflow-line .done span {
+    background: var(--ft-master-color, #64748b);
+    border-color: var(--ft-master-color, #64748b);
+    color: #fff
+}
+
+.ft-overview-workflow-line small {
+    font-size: .5625rem;
+    font-weight: 700;
+    color: #64748b;
+    white-space: nowrap
+}
+
+.ft-overview-workflow-line .done small {
+    color: var(--ft-master-text, #536985)
+}
+
+.ft-overview-task-card {
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 10px
+}
+
+.ft-task-card-heading {
+    padding: 12px 12px 8px
+}
+
+.ft-task-card-heading h2 {
+    font-size: .875rem;
+    margin-bottom: 3px
+}
+
+.ft-task-card-heading p {
+    font-size: .625rem;
+    margin: 0;
+    color: #667991
+}
+
+.ft-row-actions .ft-inline-search {
+    height: 32px;
+    border: 1px solid #d9e3ef;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 5px;
+    background: #fff
+}
+
+.ft-row-actions .ft-inline-search input {
+    border: 0 !important;
+    height: 28px !important;
+    width: 145px;
+    padding: 0 !important;
+    outline: 0;
+    font-size: .625rem
+}
+
+.ft-row-actions .ft-inline-search span {
+    color: #6f8198
+}
+
+.ft-task-card-heading .ft-outline-btn,
+.ft-task-card-heading .ft-new-job-btn {
+    height: 32px;
+    padding: 0 10px;
+    font-size: .625rem;
+    border-radius: 6px
+}
+
+.ft-phase-load-note {
+    display: flex;
+    gap: 18px;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e5ebf2;
+    padding: 6px 12px;
+    color: #71839a;
+    font-size: .5625rem
+}
+
+.ft-overview-task-card .ft-phase-task-table {
+    border: 0;
+    border-radius: 0
+}
+
+.ft-overview-task-card .ft-phase-group-head {
+    height: 34px;
+    background: var(--ft-master-bg, #fff);
+    grid-template-columns: 18px 20px minmax(220px, 1fr) auto 80px 28px;
+    padding: 0 10px
+}
+
+.ft-overview-task-card .ft-phase-group-head b {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    background: var(--ft-master-bg, #e8eef5);
+    border: 1px solid var(--ft-master-border, #dce5ed);
+    color: var(--ft-master-text, #536984);
+    font-size: .5625rem
+}
+
+.ft-overview-task-card .ft-phase-group-head b.current-number {
+    background: var(--ft-master-color, #64748b);
+    border-color: var(--ft-master-color, #64748b);
+    color: #fff
+}
+
+.ft-overview-task-card .ft-phase-group-head strong {
+    font-size: .625rem
+}
+
+.ft-overview-task-card .ft-phase-group-head small {
+    font-size: .5625rem;
+    text-align: right
+}
+
+.ft-overview-task-card .ft-phase-group-head em {
+    width: 80px !important;
+    background: #e8edf3
+}
+
+.ft-overview-task-card .ft-phase-group-head em:before {
+    width: var(--phase-progress, 0%);
+    background: var(--ft-master-color, #64748b)
+}
+
+.ft-phase-task-columns {
+    display: grid;
+    grid-template-columns: minmax(245px, 1fr) 190px 135px 190px 55px;
+    gap: 10px;
+    padding: 7px 12px 6px 53px;
+    border-bottom: 1px solid #e6ecf3;
+    color: #657890;
+    text-transform: uppercase;
+    font-size: .5rem;
+    font-weight: 700
+}
+
+.ft-overview-task-card .ft-phase-task-line {
+    grid-template-columns: 42px minmax(200px, 1fr) 190px 135px 190px 55px;
+    padding: 8px 12px;
+    font-size: .625rem;
+    min-height: 42px
+}
+
+.ft-overview-task-card .ft-phase-task-line b {
+    font-size: .625rem;
+    font-weight: 600
+}
+
+.ft-overview-task-card .ft-phase-task-line i {
+    font-style: normal;
+    color: #58708e;
+    font-size: .5625rem
+}
+
+.ft-task-select-look {
+    border: 1px solid #d7e1ec;
+    border-radius: 7px;
+    padding: 8px 10px;
+    display: flex !important;
+    justify-content: space-between;
+    background: #fff
+}
+
+.ft-job-overview-attachments {
+    padding: 11px;
+    margin-bottom: 10px
+}
+
+.ft-job-overview-attachments h2 {
+    font-size: .8125rem
+}
+
+.ft-job-file-row {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: center;
+    border-top: 1px solid #e2e9f1;
+    padding: 9px 6px;
+    font-size: .625rem
+}
+
+.ft-job-file-row div small {
+    display: block;
+    color: #667991;
+    font-size: .5rem;
+    margin-top: 2px
+}
+
+.ft-job-file-row a {
+    color: var(--ft-theme-primary);
+    font-weight: 700
+}
+
+.ft-job-file-row button {
+    border: 1px solid #f1b5b0;
+    color: #d6281e;
+    background: #fff;
+    border-radius: 6px;
+    padding: 4px 7px;
+    font-size: .5625rem
+}
+
+.ft-file-type {
+    width: 27px;
+    height: 27px;
+    border-radius: 5px;
+    background: #ef3340;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: .4375rem;
+    font-weight: 800
+}
+
+.ft-activity-card.compact {
+    padding: 0;
+    overflow: hidden
+}
+
+.ft-activity-card.compact .ft-activity-head {
+    padding: 10px 12px 0
+}
+
+.ft-activity-card.compact .ft-activity-head h2 {
+    font-size: .8125rem
+}
+
+.ft-activity-card.compact .ft-comment-composer {
+    margin: 0 12px;
+    padding: 8px 0 0
+}
+
+.ft-activity-card.compact .ft-activity-line {
+    padding: 8px 12px
+}
+
+/* Workflow detail reference */
+.ft-workflow-detail-section .ft-section-title-row {
+    align-items: flex-start;
+    margin-bottom: 10px
+}
+
+.ft-workflow-detail-section .ft-section-title-row h2 {
+    font-size: 1.25rem;
+    margin: 0 0 2px
+}
+
+.ft-workflow-detail-section .ft-section-title-row p {
+    margin: 0;
+    color: #556a85;
+    font-size: .75rem
+}
+
+.ft-warning-banner,
+.ft-success-banner {
+    border-radius: 8px;
+    min-height: 48px;
+    padding: 9px 12px
+}
+
+.ft-warning-banner>span,
+.ft-success-banner>span {
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    background: #f2a000;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    flex: 0 0 24px
+}
+
+.ft-warning-banner b {
+    font-size: .75rem
+}
+
+.ft-warning-banner p {
+    font-size: .625rem
+}
+
+.ft-warning-banner button {
+    font-size: .625rem
+}
+
+.ft-workflow-stepper-card {
+    padding: 12px 10px;
+    border-radius: 9px;
+    margin-bottom: 10px
+}
+
+.ft-workflow-step {
+    min-width: 58px
+}
+
+.ft-workflow-step span {
+    width: 24px;
+    height: 24px;
+    font-size: .5625rem
+}
+
+.ft-workflow-step:before {
+    top: 12px
+}
+
+.ft-workflow-step small {
+    font-size: .5625rem;
+    font-weight: 700;
+    white-space: nowrap
+}
+
+.ft-workflow-step em {
+    font-size: .5rem
+}
+
+.workflow-layout-exact {
+    grid-template-columns: minmax(0, 1fr) 325px;
+    gap: 10px
+}
+
+.ft-current-phase-card {
+    padding: 12px
+}
+
+.ft-current-phase-card h2 {
+    font-size: 1rem
+}
+
+.ft-current-phase-card .ft-card-row-head p {
+    margin: 3px 0;
+    color: #5d718a;
+    font-size: .625rem
+}
+
+.ft-phase-progress-row {
+    max-width: 410px;
+    font-size: .625rem
+}
+
+.ft-phase-owner-row {
+    font-size: .625rem;
+    padding: 9px 0
+}
+
+.ft-current-phase-card>h3 {
+    display: none
+}
+
+.ft-readiness-table {
+    border: 0;
+    border-radius: 0;
+    margin-top: 8px
+}
+
+.ft-readiness-table>div {
+    grid-template-columns: 22px 22px minmax(130px, 1fr) 1.1fr 80px 92px;
+    padding: 9px 2px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: .625rem
+}
+
+.ft-readiness-table em {
+    font-size: .5625rem;
+    padding: 4px 7px
+}
+
+.ft-readiness-table button {
+    font-size: .5625rem;
+    text-align: right
+}
+
+.ft-next-phase-box {
+    border-radius: 7px;
+    padding: 9px;
+    grid-template-columns: 28px 1fr auto auto auto;
+    font-size: .625rem
+}
+
+.ft-next-phase-box>span {
+    width: 25px;
+    height: 25px;
+    background: #314258;
+    color: #fff;
+    border-radius: 5px;
+    display: grid;
+    place-items: center;
+    font-size: .625rem
+}
+
+.ft-next-phase-box p {
+    font-size: .5625rem;
+    color: #657991
+}
+
+.ft-next-phase-box button {
+    height: 30px;
+    font-size: .5625rem;
+    padding: 0 10px
+}
+
+.ft-history-card h2 {
+    font-size: .9375rem
+}
+
+.ft-history-card>p {
+    font-size: .625rem;
+    color: #657991;
+    margin: 0 0 8px
+}
+
+.ft-history-table th,
+.ft-history-table td {
+    padding: 7px 6px;
+    font-size: .5625rem
+}
+
+.ft-history-table th {
+    font-size: .5rem
+}
+
+.workflow-layout-exact .ft-side-panel {
+    padding: 12px
+}
+
+.workflow-layout-exact .ft-side-panel h2 {
+    font-size: .9375rem
+}
+
+.workflow-layout-exact .ft-side-panel .ft-side-row {
+    grid-template-columns: 100px minmax(0, 1fr) 18px;
+    padding: 9px 0;
+    font-size: .625rem
+}
+
+.workflow-layout-exact .ft-side-panel h3 {
+    font-size: .625rem;
+    margin-top: 10px
+}
+
+.workflow-layout-exact .ft-side-panel p,
+.workflow-layout-exact .ft-side-panel a {
+    font-size: .5625rem
+}
+
+/* Documents reference */
+.ft-exact-documents .ft-detail-doc-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 10px
+}
+
+.ft-doc-title-row {
+    align-items: flex-start;
+    margin-bottom: 7px
+}
+
+.ft-doc-title-row>div:last-child {
+    display: flex;
+    gap: 7px
+}
+
+.ft-doc-title-row h2 {
+    font-size: 1.25rem;
+    margin: 0
+}
+
+.ft-doc-title-row p {
+    font-size: .625rem;
+    margin: 3px 0 0;
+    color: #637790
+}
+
+.ft-request-doc,
+.ft-square-action {
+    height: 34px;
+    font-size: .625rem
+}
+
+.ft-square-action {
+    min-width: 36px;
+    padding: 0 8px
+}
+
+.ft-doc-filter-chips {
+    gap: 7px;
+    margin-bottom: 7px;
+    flex-wrap: wrap
+}
+
+.ft-doc-filter-chips button {
+    font-size: .5625rem;
+    padding: 4px 10px
+}
+
+.ft-upload-panel {
+    padding: 10px;
+    margin-bottom: 8px
+}
+
+.ft-upload-panel>b {
+    font-size: .6875rem
+}
+
+.ft-upload-panel>p {
+    margin: 2px 0 0;
+    color: #667a93;
+    font-size: .5625rem
+}
+
+.ft-upload-zone {
+    min-height: 45px;
+    padding: 8px 12px;
+    margin-top: 7px;
+    border-color: #9ab2ce
+}
+
+.ft-paperclip {
+    font-size: 1.125rem;
+    color: #25496f;
+    transform: rotate(-40deg);
+    display: inline-block
+}
+
+.ft-upload-zone div {
+    font-size: .625rem
+}
+
+.ft-upload-zone small {
+    font-size: .5rem
+}
+
+.ft-upload-zone .ft-outline-btn {
+    height: 30px;
+    font-size: .5625rem
+}
+
+.ft-upload-panel label {
+    font-size: .5625rem;
+    margin-top: 8px
+}
+
+.ft-upload-panel select {
+    width: 47%;
+    height: 34px;
+    font-size: .5625rem;
+    float: right;
+    margin-top: 6px
+}
+
+.ft-upload-panel>small:last-child {
+    display: block;
+    font-size: .5rem;
+    color: #667a93;
+    clear: both
+}
+
+.ft-job-documents-table {
+    padding: 10px
+}
+
+.ft-job-documents-table h3 {
+    font-size: .75rem
+}
+
+.ft-job-documents-table>p {
+    font-size: .5625rem;
+    margin: 0;
+    color: #667a93
+}
+
+.ft-doc-toolbar {
+    gap: 6px;
+    margin: 8px 0 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto
+}
+
+.ft-doc-search {
+    display: flex;
+    align-items: center;
+    border: 1px solid #d8e2ee;
+    border-radius: 6px;
+    padding-left: 7px;
+    height: 32px;
+    min-width: 180px
+}
+
+.ft-doc-search input {
+    border: 0 !important;
+    height: 30px !important;
+    width: 155px !important;
+    padding: 0 5px !important;
+    outline: 0;
+    font-size: .5625rem
+}
+
+.ft-doc-toolbar select,
+.ft-doc-toolbar button {
+    height: 32px !important;
+    font-size: .5rem;
+    min-width: 65px;
+    padding: 0 7px !important
+}
+
+.ft-doc-groupby {
+    font-size: .5rem;
+    margin: 5px 0
+}
+
+.ft-doc-table th {
+    font-size: .5rem;
+    padding: 6px
+}
+
+.ft-doc-table td {
+    font-size: .5625rem;
+    padding: 7px 6px
+}
+
+.ft-doc-phase-row td {
+    padding: 6px;
+    background: #fff;
+    font-size: .5625rem
+}
+
+.ft-doc-phase-row b {
+    width: 18px;
+    height: 18px;
+    font-size: .5rem;
+    margin: 0 4px
+}
+
+.ft-doc-phase-row small {
+    font-size: .5rem
+}
+
+.ft-doc-phase-row em {
+    font-size: .5rem
+}
+
+.ft-required-inline-row td {
+    padding: 0 6px 7px !important;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-required-inline-row td>div:first-child {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 8px;
+    background: var(--ft-theme-primary-soft);
+    font-size: .5rem
+}
+
+.ft-inline-requirement {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr) auto auto;
+    gap: 7px;
+    align-items: center;
+    background: #fff8e9;
+    border: 1px solid #f3dfb8;
+    padding: 7px 8px
+}
+
+.ft-inline-requirement>.warn,
+.ft-required-doc-row>.warn {
+    width: 16px;
+    height: 16px;
+    background: #f2a000;
+    color: #fff;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: .5rem;
+    font-weight: 800
+}
+
+.ft-inline-requirement>.ok,
+.ft-required-doc-row>.ok {
+    width: 16px;
+    height: 16px;
+    background: #1d9a4c;
+    color: #fff;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: .5rem;
+    font-weight: 800
+}
+
+.ft-inline-requirement small {
+    display: block;
+    color: #9b6a27;
+    font-size: .4375rem;
+    margin-top: 2px
+}
+
+.ft-inline-requirement .ft-outline-btn {
+    height: 26px;
+    font-size: .5rem
+}
+
+.ft-required-docs-card,
+.ft-doc-health-card {
+    padding: 10px
+}
+
+.ft-required-docs-card .ft-card-row-head h3,
+.ft-doc-health-card h3 {
+    font-size: .6875rem
+}
+
+.ft-required-docs-card .ft-card-row-head span {
+    font-size: .5rem
+}
+
+.ft-required-docs-card .ft-doc-progress {
+    height: 4px;
+    margin-top: 6px
+}
+
+.ft-percent {
+    font-size: .5rem;
+    margin-top: -15px
+}
+
+.ft-required-doc-row {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    gap: 6px;
+    margin: 12px 0;
+    align-items: start
+}
+
+.ft-required-doc-row b {
+    font-size: .5625rem
+}
+
+.ft-required-doc-row p {
+    font-size: .4375rem;
+    line-height: 1.35;
+    margin: 2px 0;
+    color: #a06824
+}
+
+.ft-required-doc-row small {
+    font-size: .4375rem;
+    color: #8b7d6d
+}
+
+.ft-doc-upload-btn {
+    height: 26px;
+    padding: 0 7px;
+    font-size: .5rem
+}
+
+.ft-doc-health-card div {
+    font-size: .5rem;
+    margin: 9px 0
+}
+
+.ft-doc-health-card a,
+.ft-required-docs-card a {
+    font-size: .5rem
+}
+
+/* Task detail reference */
+.ft-exact-task-header {
+    align-items: center;
+    margin-bottom: 15px
+}
+
+.ft-exact-task-header .ft-detail-number {
+    font-size: .6875rem;
+    color: var(--ft-theme-primary-800);
+    margin-bottom: 4px
+}
+
+.ft-exact-task-header h1 {
+    font-size: 1.5rem
+}
+
+.ft-exact-task-header .ft-detail-actions {
+    align-self: center
+}
+
+.ft-mark-complete {
+    height: 38px;
+    padding: 0 18px
+}
+
+.ft-exact-task-detail .ft-task-detail-layout {
+    grid-template-columns: minmax(0, 1fr) 365px;
+    gap: 16px
+}
+
+.ft-exact-task-detail .ft-task-property-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    border-radius: 9px;
+    margin-bottom: 12px
+}
+
+.ft-exact-task-detail .ft-task-property {
+    min-height: 70px;
+    padding: 12px 14px;
+    overflow: hidden
+}
+
+.ft-exact-task-detail .ft-task-property small {
+    font-size: .625rem;
+    margin-bottom: 8px
+}
+
+.ft-exact-task-detail .ft-task-property>div {
+    min-width: 0;
+    gap: 7px
+}
+
+.ft-exact-task-detail .ft-task-property button {
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary-800);
+    margin-left: auto;
+    padding: 0;
+    font-size: .625rem
+}
+
+.ft-property-value {
+    font-size: .6875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.ft-calendar-glyph {
+    font-size: .6875rem;
+    color: #3e5f84
+}
+
+.ft-exact-task-detail .ft-detail-card {
+    border-radius: 9px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: none
+}
+
+.ft-exact-task-detail .ft-detail-card h2 {
+    font-size: .875rem;
+    margin: 0 0 10px
+}
+
+.ft-description-card {
+    min-height: 80px
+}
+
+.ft-description-card p {
+    font-size: .6875rem;
+    margin: 0;
+    color: #263a57
+}
+
+.ft-checklist-card {
+    padding: 0 !important;
+    overflow: hidden
+}
+
+.ft-checklist-card .ft-card-row-head {
+    padding: 12px 14px 8px;
+    align-items: center
+}
+
+.ft-check-title {
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.ft-check-title h2 {
+    margin: 0 !important
+}
+
+.ft-check-title>span {
+    font-size: .625rem;
+    color: #536b88
+}
+
+.ft-small-progress {
+    width: 84px;
+    height: 4px;
+    background: #e7ecf2;
+    border-radius: 5px;
+    overflow: hidden
+}
+
+.ft-small-progress span {
+    display: block;
+    height: 100%;
+    background: var(--ft-theme-primary);
+    border-radius: 5px
+}
+
+.ft-checklist-card .ft-card-row-head>button {
+    font-size: .6875rem
+}
+
+.ft-checklist-row {
+    padding: 10px 14px;
+    font-size: .6875rem
+}
+
+.ft-checklist-row button {
+    border: 0;
+    background: transparent;
+    color: #355d8e
+}
+
+.ft-attachment-card .ft-upload-zone {
+    margin-bottom: 7px
+}
+
+.ft-upload-note {
+    font-size: .5rem !important;
+    color: #687c94 !important;
+    margin: 6px 0 0 !important
+}
+
+.ft-task-activity-card {
+    padding: 0 !important;
+    overflow: hidden
+}
+
+.ft-task-activity-card .ft-activity-head {
+    padding: 12px 14px 0;
+    align-items: center
+}
+
+.ft-task-activity-card .ft-activity-head h2 {
+    font-size: .875rem
+}
+
+.ft-task-activity-card .ft-activity-head div {
+    display: flex;
+    gap: 20px
+}
+
+.ft-task-activity-card .ft-activity-head div button {
+    padding: 0 0 10px;
+    font-size: .5625rem
+}
+
+.ft-task-activity-card .ft-comment-composer {
+    margin: 0;
+    padding: 9px 14px;
+    border-top: 1px solid #e3eaf2
+}
+
+.ft-task-activity-card .ft-comment-composer input {
+    height: 32px;
+    font-size: .5625rem
+}
+
+.ft-task-activity-card .ft-comment-composer button {
+    height: 32px;
+    padding: 0 9px;
+    font-size: .5625rem
+}
+
+.ft-task-timeline {
+    padding: 0 14px 8px
+}
+
+.ft-timeline-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: start;
+    padding: 8px 0;
+    font-size: .5625rem
+}
+
+.ft-timeline-item:before {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 35px;
+    bottom: -8px;
+    width: 1px;
+    background: #dfe7f0
+}
+
+.ft-timeline-item:last-child:before {
+    display: none
+}
+
+.ft-timeline-item p {
+    margin: 2px 0;
+    color: #49607d;
+    font-size: .5rem
+}
+
+.ft-timeline-item small {
+    font-size: .5rem;
+    color: #60748f
+}
+
+.ft-exact-task-detail aside .ft-detail-card {
+    padding: 16px
+}
+
+.ft-exact-task-detail aside .ft-detail-card h2 {
+    font-size: .875rem
+}
+
+.ft-management-card .ft-attention-row {
+    grid-template-columns: 125px minmax(0, 1fr) auto;
+    padding: 13px 0;
+    font-size: .625rem
+}
+
+.ft-management-card .ft-attention-row:first-of-type {
+    border-top: 0
+}
+
+.ft-management-card .ft-attention-row button {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-size: .5625rem
+}
+
+.ft-red-doc-icon,
+.ft-red-flag {
+    color: #ef3340;
+    margin-right: 7px
+}
+
+.ft-red-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef3340;
+    display: inline-block;
+    margin-right: 6px
+}
+
+.ft-job-context-link {
+    font-size: .8125rem;
+    margin-bottom: 7px
+}
+
+.ft-job-context-card>b {
+    font-size: .6875rem;
+    margin: 8px 0 12px
+}
+
+.ft-job-context-card div {
+    grid-template-columns: 120px minmax(0, 1fr);
+    margin: 9px 0;
+    font-size: .625rem
+}
+
+.ft-job-context-card div span {
+    color: #58708d
+}
+
+.ft-context-progress {
+    grid-template-columns: 120px auto !important
+}
+
+.ft-context-progress .ft-line-progress {
+    grid-column: 2;
+    width: 100%;
+    height: 5px;
+    margin-top: -2px;
+    background: #e9edf3
+}
+
+.ft-context-progress .ft-line-progress span {
+    background: linear-gradient(90deg, var(--ft-theme-primary), #cc12e4)
+}
+
+.ft-open-job {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    font-size: .6875rem
+}
+
+.ft-dependency-card p {
+    font-size: .625rem;
+    margin: 9px 0
+}
+
+.ft-dependency-card p span {
+    color: #687b94
+}
+
+.ft-check-circle {
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #1aa057;
+    color: #fff;
+    display: inline-grid;
+    place-items: center;
+    font-size: .5625rem;
+    margin-right: 6px
+}
+
+.ft-task-meta-card {
+    font-size: .5625rem;
+    padding: 12px 16px !important
+}
+
+.ft-task-meta-card span {
+    padding: 0 7px;
+    color: #98a5b5
+}
+
+/* Jobs list reference */
+.ft-exact-jobs-list .ft-list-head {
+    margin-bottom: 16px
+}
+
+.ft-exact-jobs-list .ft-list-head h1 {
+    font-size: 1.5625rem
+}
+
+.ft-exact-jobs-list .ft-list-head p {
+    font-size: .8125rem;
+    margin-top: 4px
+}
+
+.ft-exact-jobs-list .ft-list-actions .ft-outline-btn,
+.ft-exact-jobs-list .ft-list-actions .ft-new-job-btn {
+    height: 40px;
+    padding: 0 16px;
+    font-size: .75rem
+}
+
+.ft-exact-jobs-list .ft-list-view-tabs {
+    gap: 12px;
+    margin-bottom: 14px
+}
+
+.ft-exact-jobs-list .ft-list-view-chip {
+    height: 34px;
+    padding: 0 13px;
+    font-size: .6875rem;
+    border-radius: 7px
+}
+
+.ft-exact-jobs-list .ft-job-table-card {
+    border-radius: 12px
+}
+
+.ft-exact-jobs-list .ft-job-filter-grid {
+    grid-template-columns: minmax(360px, 2.1fr) repeat(6, minmax(118px, 1fr)) auto auto;
+    padding: 10px;
+    gap: 9px
+}
+
+.ft-exact-jobs-list .ft-job-filter-grid select,
+.ft-exact-jobs-list .ft-job-filter-grid input {
+    height: 38px;
+    font-size: .6875rem
+}
+
+.ft-exact-jobs-list .filter-more {
+    height: 38px;
+    white-space: nowrap;
+    font-size: .625rem
+}
+
+.ft-exact-jobs-list .ft-clear-link {
+    white-space: nowrap;
+    font-size: .625rem
+}
+
+.ft-exact-jobs-list .ft-active-filter-row {
+    padding: 0 10px 10px;
+    border-bottom: 0
+}
+
+.ft-exact-jobs-list .ft-active-filter-row>span {
+    font-size: .625rem
+}
+
+.ft-exact-jobs-list .ft-job-table {
+    min-width: 1460px
+}
+
+.ft-exact-jobs-list .ft-job-table th {
+    padding: 10px 11px;
+    font-size: .5625rem
+}
+
+.ft-exact-jobs-list .ft-job-table td {
+    padding: 10px 11px;
+    font-size: .625rem;
+    line-height: 1.25
+}
+
+.ft-exact-jobs-list .ft-job-table td>b {
+    font-size: .6875rem
+}
+
+.ft-exact-jobs-list .ft-table-job-link {
+    font-size: .6875rem
+}
+
+.ft-exact-jobs-list .ft-table-sub {
+    font-size: .5625rem;
+    margin-top: 3px
+}
+
+.ft-exact-jobs-list .ft-table-due {
+    font-size: .5625rem;
+    margin-top: 3px
+}
+
+.ft-exact-jobs-list .ft-soft-pill {
+    font-size: .5625rem;
+    padding: 4px 7px
+}
+
+.ft-exact-jobs-list .ft-owner-chip {
+    min-width: 135px
+}
+
+.ft-exact-jobs-list .ft-owner-chip span {
+    font-size: .625rem
+}
+
+.ft-exact-jobs-list .ft-table-progress {
+    width: 55px;
+    height: 5px
+}
+
+.ft-exact-jobs-list .ft-job-table td:nth-child(10) {
+    white-space: nowrap
+}
+
+.ft-exact-jobs-list .ft-job-table td:nth-child(10) small {
+    font-size: .5625rem;
+    margin-left: 5px
+}
+
+.ft-exact-jobs-list .ft-list-pagination {
+    margin-top: 12px;
+    border-radius: 9px;
+    font-size: .625rem;
+    padding: 10px 12px
+}
+
+.ft-exact-jobs-list .ft-list-pagination>div {
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.ft-exact-jobs-list .ft-page-actions button {
+    height: 32px;
+    font-size: .625rem
+}
+
+@media(max-width:1300px) {
+    .ft-overview-top-grid {
+        grid-template-columns: minmax(0, 1fr) 285px
+    }
+
+    .workflow-layout-exact {
+        grid-template-columns: minmax(0, 1fr) 300px
+    }
+
+    .ft-exact-documents .ft-detail-doc-layout {
+        grid-template-columns: minmax(0, 1fr) 280px
+    }
+
+    .ft-exact-task-detail .ft-task-detail-layout {
+        grid-template-columns: minmax(0, 1fr) 330px
+    }
+
+    .ft-exact-task-detail .ft-task-property-grid {
+        grid-template-columns: repeat(3, 1fr)
+    }
+
+    .ft-exact-task-detail .ft-task-property:nth-child(3n) {
+        border-right: 0
+    }
+
+    .ft-exact-jobs-list .ft-job-filter-grid {
+        grid-template-columns: minmax(310px, 1.5fr) repeat(3, minmax(120px, 1fr));
+        overflow: auto
+    }
+}
+
+@media(max-width:980px) {
+
+    .ft-overview-top-grid,
+    .workflow-layout-exact,
+    .ft-exact-documents .ft-detail-doc-layout,
+    .ft-exact-task-detail .ft-task-detail-layout {
+        grid-template-columns: 1fr
+    }
+
+    .ft-exact-job-team {
+        display: none
+    }
+
+    .ft-overview-workflow-line {
+        overflow-x: auto;
+        justify-content: flex-start
+    }
+
+    .ft-overview-workflow-line button {
+        min-width: 78px
+    }
+
+    .ft-phase-task-columns {
+        display: none
+    }
+
+    .ft-overview-task-card .ft-phase-task-line {
+        grid-template-columns: 38px minmax(180px, 1fr)
+    }
+
+    .ft-overview-task-card .ft-phase-task-line>span:nth-child(n+3) {
+        grid-column: 2
+    }
+}
+
+@media(max-width:700px) {
+    .ft-exact-task-detail .ft-task-property-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-exact-task-detail .ft-task-property {
+        border-right: 0;
+        border-bottom: 1px solid #dce5f0
+    }
+
+    .ft-exact-task-header .ft-detail-actions {
+        width: auto
+    }
+
+    .ft-exact-task-header {
+        flex-direction: row;
+        align-items: flex-start
+    }
+
+    .ft-exact-task-header h1 {
+        font-size: 1.25rem
+    }
+
+    .ft-overview-metrics {
+        grid-template-columns: 1fr
+    }
+
+    .ft-doc-title-row {
+        flex-direction: column
+    }
+
+    .ft-upload-panel select {
+        width: 100%;
+        float: none
+    }
+
+    .ft-doc-filter-chips {
+        overflow: auto;
+        flex-wrap: nowrap
+    }
+}
+
+.ft-phase-progress-copy {
+    display: grid;
+    grid-template-columns: auto 250px 35px;
+    align-items: center;
+    gap: 10px;
+    font-size: .625rem;
+    color: #5e718b;
+    margin-top: 6px
+}
+
+.ft-phase-progress-copy .ft-line-progress {
+    height: 5px
+}
+
+.ft-phase-progress-copy b {
+    color: #435874
+}
+
+.ft-phase-count-pill {
+    border: 1px solid #d8e2ee;
+    border-radius: 7px;
+    padding: 7px 10px;
+    font-size: .5625rem;
+    color: #354d6b;
+    white-space: nowrap
+}
+
+.ft-exact-workflow .ft-readiness-table>div>span:first-child {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: .5rem;
+    font-weight: 800
+}
+
+.ft-exact-workflow .ft-readiness-table>div>span.ok:first-child {
+    background: #19994b
+}
+
+.ft-exact-workflow .ft-readiness-table>div>span.warn:first-child {
+    background: #f0a000
+}
+
+.ft-exact-workflow .ft-history-table td:first-child b {
+    display: inline-block;
+    min-width: 10px
+}
+
+
+/* 2026-08-27: shared SVG icon language for Inquiry and Task detail inline properties. */
+.ft-detail-svg-icon {
+    display: inline-grid;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+    place-items: center;
+    color: #71839c;
+    line-height: 1;
+}
+
+.ft-detail-svg-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ft-calendar-glyph.ft-detail-svg-icon {
+    width: 15px;
+    height: 15px;
+    flex-basis: 15px;
+    color: #617b9a;
+}
+
+.ft-friendly-task-properties .ft-property-edit-button,
+.ft-friendly-task-properties .ft-task-property-display > .ft-property-edit-button {
+    display: inline-grid;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    flex: 0 0 26px;
+    place-items: center;
+    margin-left: auto;
+    padding: 5px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #5e7898;
+    cursor: pointer;
+    transition: color .15s ease, background .15s ease, opacity .15s ease;
+}
+
+.ft-friendly-task-properties .ft-property-edit-button .ft-detail-svg-icon {
+    width: 14px;
+    height: 14px;
+    color: currentColor;
+}
+
+.ft-friendly-task-properties .ft-property-edit-button:hover:not(:disabled),
+.ft-friendly-task-properties .ft-property-edit-button:focus-visible {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    outline: none;
+}
+
+.ft-friendly-task-properties .ft-property-edit-button:disabled {
+    cursor: wait;
+    opacity: .45;
+}
+
+.ft-detail-edit-button .ft-detail-svg-icon,
+.ft-copy-id-btn .ft-detail-svg-icon {
+    color: currentColor;
+}
+
+.ft-editable-task-title .ft-detail-edit-button,
+.ft-inquiry-description-head .ft-detail-edit-button,
+.ft-description-card .ft-detail-edit-button {
+    display: inline-grid;
+    place-items: center;
+}
+
+.ft-editable-task-title .ft-detail-edit-button .ft-detail-svg-icon {
+    width: 15px;
+    height: 15px;
+}
+
+.ft-copy-id-btn .ft-detail-svg-icon {
+    width: 15px;
+    height: 15px;
+}

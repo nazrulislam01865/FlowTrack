@@ -1,0 +1,146 @@
+/** System shell overrides driven only by settings.css variables. */
+html {
+    font-size: var(--ft-theme-root-font-size);
+}
+
+html,
+body {
+    font-family: var(--ft-theme-font-family);
+}
+
+body {
+    background: var(--ft-theme-page-bg);
+    color: var(--ft-theme-text-primary);
+    font-size: var(--ft-theme-font-size-base);
+    line-height: var(--ft-theme-line-height-normal);
+}
+
+/*
+ * Typography enforcement boundary. Page/module CSS may choose size/weight,
+ * but it may not establish another application font family. Form controls do
+ * not consistently inherit typography across browsers, so enforce it here.
+ */
+button,
+input,
+select,
+textarea,
+optgroup {
+    font-family: var(--ft-theme-font-family) !important;
+}
+
+/* Technical/code content is the only approved alternate family. */
+code,
+pre,
+kbd,
+samp,
+.ft-task-color-hex,
+.ft-master-color-code {
+    font-family: var(--ft-theme-font-family-mono) !important;
+}
+
+.topbar {
+    height: var(--ft-theme-topbar-height);
+    background: var(--ft-theme-surface);
+    border-bottom-color: var(--ft-theme-border);
+}
+
+.content {
+    max-width: var(--ft-theme-content-max-width);
+    padding: var(--ft-theme-content-padding);
+}
+
+.page-head h1,
+.ft-type-page-title {
+    color: var(--ft-theme-text-primary);
+    font-family: var(--ft-theme-font-family);
+}
+
+.page-head p,
+.ft-type-helper,
+.ft-type-caption {
+    color: var(--ft-theme-text-secondary);
+}
+
+.card,
+.ft-card {
+    background: var(--ft-theme-surface);
+    border-color: var(--ft-theme-border);
+}
+
+.search input,
+.icon-btn,
+.lang-btn,
+.field input,
+.field select,
+.field textarea {
+    border-color: var(--ft-theme-border);
+    background: var(--ft-theme-surface);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.search input:focus {
+    border-color: var(--ft-theme-focus);
+    box-shadow: 0 0 0 3px var(--ft-theme-focus-ring);
+}
+
+.primary {
+    background: var(--ft-theme-primary);
+    color: var(--ft-theme-text-inverse);
+}
+
+.primary:hover {
+    background: var(--ft-theme-primary-hover);
+}
+
+.secondary {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+}
+
+/* All authenticated page canvases use the one centralized plain-white background. */
+.ft-management-dashboard-page,
+.ft-management-dashboard-page .ft-dashboard-content-shell {
+    background: var(--ft-theme-dashboard-page-bg);
+}
+
+.ft-management-dashboard-page .topbar.ft-dashboard-topbar {
+    border-bottom-color: var(--ft-theme-border);
+    background: var(--ft-theme-surface);
+}
+
+.ft-management-dashboard-page .ft-dashboard-welcome,
+.ft-management-dashboard-page .ft-dashboard-welcome strong {
+    color: var(--ft-theme-text-primary);
+}
+
+.ft-management-dashboard-page .ft-dashboard-welcome span {
+    color: var(--ft-theme-text-secondary);
+}
+
+/* Route canvases delegate to screen aliases, which all resolve to the global white canvas. */
+body:has(#ft-orders-page),
+body:has(.ft-order-list-v5) {
+    background: var(--ft-theme-orders-list-page-bg);
+}
+
+body:has(#ft-bulk-import-page) {
+    background: var(--ft-theme-bulk-order-page-bg);
+}
+
+body:has(#my-work-app) {
+    background: var(--ft-theme-task-bg);
+}
+
+body:has(.ft-inquiry-prototype) {
+    background: var(--ft-theme-inquiries-page-bg);
+}
+
+body:has(.ft-order-prototype-detail) {
+    background: var(--ft-theme-order-detail-page-bg);
+}
+
+body:has(#inquiry-intelligence-app) {
+    background: var(--ft-theme-inquiry-intelligence-page-bg);
+}

@@ -1,0 +1,903 @@
+/* FlowTrack shared list/search/filter experience.
+   UI follows the supplied job-list prototype: compact filter toolbar,
+   compact searchable popovers for large datasets, consistent menu styling,
+   active-filter chips, and retained results while Livewire refreshes. */
+
+.ft-list-filter-shell {
+  background: var(--bg, #f6f8fb);
+  border: 1px solid var(--line, #dbe3eb);
+  border-radius: 14px;
+  padding: 14px 16px 10px;
+  margin-bottom: 14px;
+}
+
+/* Equal-width controls. A partially filled row keeps the same track size. */
+.ft-list-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 9px;
+  align-items: end;
+}
+
+.ft-jl-control {
+  position: relative;
+  min-width: 0;
+}
+
+/* Board/My Work put their lane header at z-index:19. The older board header
+   used z-index:10 and created a stacking context that trapped dropdowns under
+   the sticky lane row. Remove that stacking context; the menu's own z-index
+   can then correctly sit above the lane header. */
+.ft-board-page .ft-board-sticky-header {
+  z-index: auto !important;
+}
+
+.ft-jl-control > label {
+  display: block;
+  color: var(--muted, #627286);
+  font-size: .75rem;
+  font-weight: 600;
+  margin: 0 0 5px 2px;
+}
+
+.ft-jl-search-wrap {
+  position: relative;
+}
+
+.ft-jl-search,
+.ft-jl-select,
+.ft-remote-filter-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  color: var(--text, #172231);
+  background: var(--card, #fff);
+  border: 1px solid var(--line, #dbe3eb);
+  border-radius: 9px;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.ft-jl-search {
+  padding-left: 34px;
+  padding-right: 34px;
+}
+
+/* Keep only FlowTrack's clear button, not the browser-native search X. */
+.ft-jl-search::-webkit-search-cancel-button,
+.ft-remote-filter-search::-webkit-search-cancel-button {
+  display: none;
+  -webkit-appearance: none;
+}
+
+.ft-jl-search::-ms-clear,
+.ft-remote-filter-search::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.ft-jl-search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted, #627286);
+  pointer-events: none;
+}
+
+.ft-jl-clear-search {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: var(--muted, #627286);
+  background: transparent;
+  cursor: pointer;
+}
+
+.ft-jl-clear-search:hover {
+  background: var(--blue2, var(--ft-theme-primary-soft));
+}
+
+.ft-remote-filter-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ft-remote-filter-button > span:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ft-filter-chevron {
+  flex: 0 0 auto;
+  color: var(--muted, #627286);
+  font-size: .75rem;
+}
+
+.ft-remote-filter.is-disabled .ft-remote-filter-button {
+  background: #f3f6f9;
+  color: #9aa6b5;
+  cursor: not-allowed;
+}
+
+/* Shared dropdown panel.
+   It follows the supplied prototype: absolutely anchored to the filter
+   control, compact width aligned with the assignee picker, and removed from normal document flow. */
+.ft-remote-filter-menu {
+  --ft-remote-dropdown-max-height: 280px;
+  position: absolute;
+  z-index: 1200;
+  box-sizing: border-box;
+  width: min(320px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: min(var(--ft-remote-dropdown-max-height), calc(100dvh - 24px));
+  padding: 8px;
+  color: var(--text, #172231);
+  background: var(--card, #fff);
+  border: 1px solid var(--line, #dbe3eb);
+  border-radius: 10px;
+  box-shadow: 0 14px 34px rgba(28, 45, 66, .16);
+  overflow: hidden;
+}
+
+.ft-remote-filter-search {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  box-sizing: border-box;
+  color: var(--text, #172231);
+  background: var(--card, #fff);
+  border: 1px solid var(--line, #dbe3eb);
+  border-radius: 8px;
+  padding: 9px 10px;
+  margin: 0 0 7px;
+  font: inherit;
+}
+
+.ft-remote-filter-list {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.ft-remote-filter-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 7px;
+  text-align: left;
+  color: var(--text, #172231);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  overflow: hidden;
+}
+
+.ft-remote-filter-option:hover,
+.ft-remote-filter-option:focus,
+.ft-local-filter .ft-remote-filter-option[aria-selected="true"] {
+  background: var(--blue2, var(--ft-theme-primary-soft));
+  outline: none;
+}
+
+.ft-remote-filter-option[aria-selected="true"] {
+  color: var(--blue, var(--ft-theme-primary));
+}
+
+.ft-remote-filter-option > span:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ft-remote-filter-option > small {
+  flex: 0 1 42%;
+  min-width: 0;
+  max-width: 42%;
+  color: var(--muted, #627286);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ft-local-filter .ft-remote-filter-option small:empty {
+  display: none;
+}
+
+.ft-remote-filter-message {
+  padding: 9px 10px 4px;
+  color: var(--muted, #627286);
+  font-size: .75rem;
+  overflow-wrap: anywhere;
+}
+
+.ft-filter-skeleton {
+  height: 35px;
+  margin: 4px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #f6f8fb, var(--blue2, var(--ft-theme-primary-soft)), #f6f8fb);
+  background-size: 200% 100%;
+  animation: ft-filter-shimmer 1.2s linear infinite;
+}
+
+@keyframes ft-filter-shimmer {
+  to { background-position: -200% 0; }
+}
+
+.ft-list-active-row {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 9px;
+}
+
+.ft-list-filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: var(--muted, #627286);
+  font-size: .75rem;
+}
+
+.ft-list-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text, #172231);
+  background: var(--blue2, var(--ft-theme-primary-soft));
+  border: 1px solid var(--line, #dbe3eb);
+  border-radius: 999px;
+  padding: 5px 8px;
+}
+
+.ft-list-filter-chip button {
+  width: 19px;
+  height: 19px;
+  padding: 0;
+  border: 0;
+  color: var(--muted, #627286);
+  background: transparent;
+  border-radius: 50%;
+}
+
+.ft-list-clear-all {
+  border: 0;
+  background: transparent;
+  color: var(--blue, var(--ft-theme-primary));
+  padding: 5px 2px;
+  font-weight: 600;
+}
+
+.ft-list-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.ft-list-filter-actions .ft-board-group-controls {
+  margin-left: 0;
+}
+
+.ft-list-results-head {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 2px;
+}
+
+.ft-list-results-count {
+  font-weight: 700;
+}
+
+.ft-list-request-state {
+  color: var(--muted, #627286);
+  font-size: .75rem;
+  margin-left: 5px;
+}
+
+.ft-list-request-state.is-loading {
+  color: #97610c;
+}
+
+.ft-results-refreshable {
+  transition: opacity .14s ease;
+}
+
+.ft-results-refreshable.is-refreshing {
+  opacity: .56;
+  pointer-events: none;
+}
+
+.ft-list-sort {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted, #627286);
+  font-size: .75rem;
+}
+
+.ft-job-table-card.ft-prototype-list-card {
+  border: 1px solid var(--line, #dbe3eb);
+  border-radius: 14px;
+  overflow: visible;
+  background: var(--card, #fff);
+}
+
+.ft-job-table-card.ft-prototype-list-card > .ft-list-filter-shell {
+  border: 0;
+  border-bottom: 1px solid var(--line, #dbe3eb);
+  border-radius: 14px 14px 0 0;
+  margin: 0;
+}
+
+.ft-job-table-card.ft-prototype-list-card > .ft-list-results-head {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line, #dbe3eb);
+}
+
+.ft-job-table-card.ft-prototype-list-card .ft-job-table th {
+  background: var(--bg, #f6f8fb);
+}
+
+/* Create Job uses the same searchable dropdown mechanism; only the trigger
+   adopts the form's normal field height/typography. */
+.ft-create-remote-select {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ft-create-remote-select > label {
+  margin: 0;
+  color: #1a2d48;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.ft-create-remote-select .ft-remote-filter-button {
+  min-height: 44px;
+  border-radius: 8px;
+  font-size: .8125rem;
+  padding: 0 12px;
+  background: #fff;
+}
+
+.ft-product-row .ft-create-remote-select,
+.ft-product-row .ft-create-remote-select .ft-remote-filter-button {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .ft-list-filter-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+
+  .ft-list-results-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .ft-list-filter-shell {
+    padding: 12px;
+  }
+
+  .ft-list-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ft-filter-skeleton { animation: none; }
+  .ft-results-refreshable { transition: none; }
+}
+
+
+/* 2026-08-07 selected-value + board control placement fix.
+   Older board CSS absolutely positioned every .ft-filter-collapse button,
+   which pulled the group controls out of the filter action row and on top of
+   the Jobs/New Job action. Keep these controls in normal flow here. */
+.ft-list-active-row .ft-list-filter-actions {
+  position: static !important;
+}
+
+.ft-list-active-row .ft-list-filter-actions .ft-board-group-controls {
+  position: static !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  width: auto !important;
+  margin: 0 !important;
+  grid-column: auto !important;
+  flex: 0 0 auto !important;
+}
+
+.ft-list-active-row .ft-list-filter-actions .ft-board-group-controls .ft-filter-collapse {
+  position: static !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+@media (max-width: 720px) {
+  .ft-list-active-row .ft-list-filter-actions {
+    width: auto !important;
+    margin-left: auto !important;
+  }
+
+  .ft-list-active-row .ft-list-filter-actions .ft-board-group-controls {
+    grid-column: auto !important;
+  }
+}
+
+/* 2026-08-08: list filters use the same light, searchable dropdown language as
+   the Job Details phase-task assignee control. Keep page typography simple and
+   avoid heavy selected/option text. */
+.ft-list-filter-shell .ft-jl-control > label {
+  margin-bottom: 6px;
+  font-size: .8125rem;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.ft-list-filter-shell .ft-remote-filter-button {
+  min-height: 42px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: .875rem;
+  line-height: 1.35;
+  font-weight: 400;
+}
+.ft-list-filter-shell .ft-filter-chevron {
+  font-size: .8125rem;
+  font-weight: 400;
+}
+.ft-list-filter-shell .ft-remote-filter-menu {
+  width: min(320px, calc(100vw - 24px)) !important;
+  min-width: min(260px, calc(100vw - 24px)) !important;
+  max-width: calc(100vw - 24px) !important;
+  padding: 8px !important;
+  border-radius: 12px;
+  box-shadow: 0 14px 32px rgba(28, 45, 66, .14);
+}
+.ft-list-filter-shell .ft-remote-filter-search {
+  min-height: 42px;
+  margin: 0 0 8px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: .875rem;
+  line-height: 1.35;
+  font-weight: 400;
+}
+.ft-list-filter-shell .ft-remote-filter-list {
+  gap: 2px;
+  max-height: 245px;
+}
+.ft-list-filter-shell .ft-remote-filter-option {
+  min-height: 40px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  font-size: .875rem;
+  line-height: 1.35;
+  font-weight: 400;
+}
+.ft-list-filter-shell .ft-remote-filter-option[aria-selected="true"] {
+  font-weight: 400;
+}
+.ft-list-filter-shell .ft-remote-filter-option > small {
+  font-size: .75rem;
+  line-height: 1.3;
+  font-weight: 400;
+  text-align: right;
+}
+.ft-list-filter-shell .ft-remote-filter-message {
+  padding: 8px 10px 4px;
+  font-size: .75rem;
+  line-height: 1.4;
+  font-weight: 400;
+}
+@media (max-width: 520px) {
+  .ft-list-filter-shell .ft-remote-filter-menu {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* 2026-08-08 compact dynamic filter pass.
+   List filters intentionally mirror the lightweight Job Details assignee picker:
+   shorter controls, smaller regular-weight type, compact searchable menus. */
+.ft-list-filter-shell .ft-list-filter-grid{
+  grid-template-columns:repeat(auto-fill,minmax(155px,1fr));
+  gap:8px;
+}
+.ft-list-filter-shell .ft-jl-control>label{
+  margin:0 0 4px 2px;
+  font-size:.75rem;
+  line-height:1.25;
+  font-weight:500;
+}
+.ft-list-filter-shell .ft-jl-search,
+.ft-list-filter-shell .ft-remote-filter-button{
+  min-height:36px;
+  height:36px;
+  padding:6px 10px;
+  border-radius:9px;
+  font-size:.8125rem;
+  line-height:1.25;
+  font-weight:400;
+}
+.ft-list-filter-shell .ft-jl-search{
+  padding-left:32px;
+  padding-right:32px;
+}
+.ft-list-filter-shell .ft-jl-search-icon{left:10px}
+.ft-list-filter-shell .ft-jl-clear-search{right:5px;width:25px;height:25px}
+.ft-list-filter-shell .ft-filter-chevron{
+  font-size:.6875rem;
+  font-weight:400;
+}
+.ft-list-filter-shell .ft-remote-filter-menu{
+  min-width:min(230px,calc(100vw - 24px))!important;
+  padding:7px!important;
+  border-radius:11px;
+  box-shadow:0 12px 28px rgba(28,45,66,.13);
+}
+.ft-list-filter-shell .ft-remote-filter-search{
+  min-height:36px;
+  height:36px;
+  margin:0 0 6px;
+  padding:7px 10px;
+  border-radius:9px;
+  font-size:.8125rem;
+  line-height:1.25;
+  font-weight:400;
+}
+.ft-list-filter-shell .ft-remote-filter-list{
+  gap:1px;
+  max-height:210px;
+}
+.ft-list-filter-shell .ft-remote-filter-option{
+  min-height:34px;
+  padding:6px 9px;
+  border-radius:8px;
+  font-size:.8125rem;
+  line-height:1.25;
+  font-weight:400;
+}
+.ft-list-filter-shell .ft-remote-filter-option[aria-selected="true"]{font-weight:400}
+.ft-list-filter-shell .ft-remote-filter-option>small{
+  font-size:.6875rem;
+  line-height:1.2;
+  font-weight:400;
+  max-width:44%;
+}
+.ft-list-filter-shell .ft-remote-filter-message{
+  padding:7px 9px 3px;
+  font-size:.6875rem;
+  line-height:1.35;
+  font-weight:400;
+}
+.ft-list-filter-shell .ft-filter-skeleton{
+  height:30px;
+  margin:3px;
+}
+
+/* 2026-08-08 Clients top-section compact alignment.
+   Scoped to Clients so shared list filters on Orders, Board, Documents, etc. stay unchanged. */
+.ft-clients-reference .ft-client-list-modes{
+  margin-bottom:12px;
+}
+.ft-clients-reference .ft-clients-metrics{
+  gap:10px;
+  margin-bottom:10px;
+}
+.ft-clients-reference .ft-client-metric{
+  min-height:68px;
+  padding:9px 12px;
+  gap:10px;
+  border-radius:10px;
+}
+.ft-clients-reference .ft-client-metric-icon{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  font-size:1.125rem;
+}
+.ft-clients-reference .ft-client-metric small{
+  margin-bottom:1px;
+  font-size:.59375rem;
+  line-height:1.2;
+}
+.ft-clients-reference .ft-client-metric b{
+  font-size:1.25rem;
+  line-height:1;
+}
+.ft-clients-reference .ft-list-filter-shell{
+  margin-bottom:10px;
+  padding:10px 12px 7px;
+  border-radius:12px;
+}
+.ft-clients-reference .ft-list-filter-grid{
+  gap:8px;
+}
+.ft-clients-reference .ft-list-filter-shell .ft-jl-control>label{
+  margin:0 0 4px 2px;
+  font-size:.6875rem;
+  line-height:1.2;
+}
+.ft-clients-reference .ft-list-filter-shell .ft-jl-search,
+.ft-clients-reference .ft-list-filter-shell .ft-remote-filter-button{
+  min-height:35px;
+  height:35px;
+  padding-top:6px;
+  padding-bottom:6px;
+  font-size:.78125rem;
+}
+.ft-clients-reference .ft-list-active-row{
+  min-height:28px;
+  padding-top:6px;
+}
+.ft-clients-reference .ft-list-filter-chips{
+  font-size:.6875rem;
+}
+.ft-clients-reference .ft-client-quick-row{
+  gap:7px;
+  margin-bottom:10px;
+}
+.ft-clients-reference .ft-client-quick-row button{
+  height:32px;
+  padding:0 11px;
+  font-size:.625rem;
+}
+/* Client page filter layout after removing the duplicate quick-filter strip. */
+.ft-clients-reference .ft-client-filter-grid{
+  grid-template-columns:minmax(280px,1.7fr) repeat(4,minmax(150px,1fr));
+  align-items:end;
+}
+.ft-clients-reference .ft-list-filter-shell.is-archived .ft-client-filter-grid{
+  grid-template-columns:minmax(280px,1.8fr) repeat(3,minmax(160px,1fr));
+}
+.ft-clients-reference .ft-list-active-row{justify-content:flex-end}
+.ft-clients-reference .ft-list-filter-chips:empty{display:none}
+@media(max-width:1180px){
+  .ft-clients-reference .ft-client-filter-grid,
+  .ft-clients-reference .ft-list-filter-shell.is-archived .ft-client-filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .ft-clients-reference .ft-client-filter-grid>.ft-jl-control-search{grid-column:span 2!important}
+}
+@media(max-width:760px){
+  .ft-clients-reference .ft-client-filter-grid,
+  .ft-clients-reference .ft-list-filter-shell.is-archived .ft-client-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ft-clients-reference .ft-client-filter-grid>.ft-jl-control-search{grid-column:1/-1!important}
+}
+@media(max-width:520px){
+  .ft-clients-reference .ft-client-filter-grid,
+  .ft-clients-reference .ft-list-filter-shell.is-archived .ft-client-filter-grid{grid-template-columns:1fr}
+  .ft-clients-reference .ft-client-filter-grid>.ft-jl-control-search{grid-column:auto!important}
+}
+
+@media(max-width:700px){
+  .ft-clients-reference .ft-client-metric{
+    min-height:62px;
+    padding:8px 9px;
+  }
+  .ft-clients-reference .ft-client-metric-icon{
+    width:33px;
+    height:33px;
+    font-size:1rem;
+  }
+  .ft-clients-reference .ft-client-metric b{
+    font-size:1.125rem;
+  }
+  .ft-clients-reference .ft-list-filter-shell{
+    padding:9px 10px 6px;
+  }
+}
+
+/* Task Pack Setup uses the same searchable remote assignee control as the
+   Inquiry/Job pickers, while matching the compact admin form field sizing. */
+.ft-taskpack-form-page .ft-taskpack-assignee-filter > label {
+  margin: 0 0 6px;
+  color: #20334f;
+  font-size: .65625rem;
+  font-weight: 700;
+}
+
+.ft-taskpack-form-page .ft-taskpack-assignee-filter .ft-remote-filter-button {
+  min-height: 38px;
+  height: 38px;
+  border-color: #d7e1ed;
+  border-radius: 8px;
+  padding: 0 11px;
+  color: #1d304b;
+  background: #fff;
+  font-size: .6875rem;
+}
+
+.ft-taskpack-form-page .ft-taskpack-assignee-filter .ft-remote-filter-button:hover,
+.ft-taskpack-form-page .ft-taskpack-assignee-filter .ft-remote-filter-button[aria-expanded="true"] {
+  border-color: var(--ft-theme-primary-300);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 7%, transparent);
+}
+
+/* 2026-08-15 Clients: single-select filter/card behavior + explicit clear action. */
+.ft-clients-reference .ft-client-filter-grid{
+  grid-template-columns:minmax(280px,1.7fr) repeat(5,minmax(135px,1fr));
+}
+.ft-clients-reference .ft-list-filter-shell.is-archived .ft-client-filter-grid{
+  grid-template-columns:minmax(280px,1.8fr) repeat(3,minmax(150px,1fr));
+}
+.ft-clients-reference .ft-client-clear-filter{
+  align-self:end;
+  min-width:0;
+  height:35px;
+  padding:0 12px;
+  border:1px solid #d6e0ec;
+  border-radius:8px;
+  background:#fff;
+  color:var(--ft-theme-primary);
+  font-size:.6875rem;
+  font-weight:650;
+  line-height:1;
+  white-space:nowrap;
+  transition:border-color .15s ease,background .15s ease,color .15s ease;
+}
+.ft-clients-reference .ft-client-clear-filter:hover:not(:disabled){
+  border-color:var(--ft-theme-primary-100);
+  background:var(--ft-theme-surface-subtle);
+}
+.ft-clients-reference .ft-client-clear-filter:focus-visible{
+  outline:2px solid color-mix(in srgb, var(--ft-theme-primary) 18%, transparent);
+  outline-offset:2px;
+}
+.ft-clients-reference .ft-client-clear-filter:disabled{
+  cursor:default;
+  border-color:#e3e9f1;
+  background:var(--ft-theme-surface-subtle);
+  color:#a8b3c2;
+  opacity:.72;
+}
+@media(max-width:1180px){
+  .ft-clients-reference .ft-client-clear-filter{width:100%}
+}
+@media(max-width:520px){
+  .ft-clients-reference .ft-client-clear-filter{height:34px}
+}
+
+/* 2026-08-18: Task Pack task prototype remote-select sizing. */
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-taskpack-assignee-filter > label{
+  margin:0 0 6px;
+  color:#182a43;
+  font-size:.65625rem;
+  font-weight:750;
+  line-height:1.25;
+}
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-taskpack-assignee-filter .ft-remote-filter-button{
+  min-height:42px;
+  height:42px;
+  border:1px solid #d5deea;
+  border-radius:8px;
+  padding:0 12px;
+  color:#1d304b;
+  background:#fff;
+  font-size:.71875rem;
+  box-shadow:none;
+}
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-taskpack-assignee-filter .ft-remote-filter-button:hover,
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-taskpack-assignee-filter .ft-remote-filter-button[aria-expanded="true"]{
+  border-color:var(--ft-theme-primary-300);
+  background:#fff;
+  box-shadow:0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 7%, transparent);
+}
+
+/* CHANGE 2026-08-29: teleported people-picker row stability.
+   Fixed search-select menus are teleported to <body>, so page-scoped Order-list
+   selectors no longer wrap the menu. Keep avatar/user rows self-contained and
+   tall enough for both the name and metadata line without overlaps. */
+.ft-search-select__menu--people .ft-search-select__option {
+  height: auto !important;
+  min-height: 48px !important;
+  padding: 6px 9px !important;
+  align-items: center !important;
+  line-height: 1.2 !important;
+  overflow: hidden;
+}
+
+.ft-search-select__menu--people .ft-search-select__user-option {
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: normal !important;
+}
+
+.ft-search-select__menu--people .ft-search-select__avatar {
+  width: 30px !important;
+  height: 30px !important;
+  flex: 0 0 30px !important;
+}
+
+.ft-search-select__menu--people .ft-search-select__user-copy {
+  display: flex !important;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px !important;
+  overflow: hidden;
+  line-height: 1.2 !important;
+}
+
+.ft-search-select__menu--people .ft-search-select__user-copy strong,
+.ft-search-select__menu--people .ft-search-select__user-copy small {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.2 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ft-search-select__menu--people .ft-search-select__user-copy strong {
+  font-size: .75rem;
+  font-weight: 780;
+}
+
+.ft-search-select__menu--people .ft-search-select__user-copy small {
+  font-size: .625rem;
+  font-weight: 620;
+}
+
+.ft-search-select__menu--people .ft-search-select__selected-mark {
+  flex: 0 0 auto;
+  max-width: 72px;
+  font-size: .59375rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+

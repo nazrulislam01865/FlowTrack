@@ -1,0 +1,2119 @@
+/** Application CSS segment 09: progressive-shared-ui. Source-preserving split of the former monolith. */
+/* 2026-08-05: Jobs ID + Users & Assignments controls */
+.ft-exact-jobs-list .ft-table-job-link {
+    display: inline-block !important;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
+}
+
+.ft-exact-jobs-list .ft-job-table th:nth-child(2),
+.ft-exact-jobs-list .ft-job-table td:nth-child(2) {
+    min-width: 150px !important;
+    width: 150px;
+}
+
+/* CHANGE 2026-08-24: Users & Assignments search toolbar. */
+.ft-user-assignment-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 12px;
+}
+
+.ft-user-assignment-search {
+    width: min(520px, 100%);
+    height: 42px;
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    padding: 0 11px;
+    border: 1px solid #ced9e7;
+    border-radius: 9px;
+    background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.ft-user-assignment-search:focus-within {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 9%, transparent);
+}
+
+.ft-user-assignment-search svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: #75849a;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ft-user-assignment-search input {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #172235;
+    font: inherit;
+    font-size: .75rem;
+}
+
+.ft-user-assignment-search input::placeholder {
+    color: #8a96a7;
+}
+
+.ft-user-assignment-search>button {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 7px;
+    background: #f3f6fa;
+    color: #5d6c81;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.ft-user-assignment-search-result {
+    flex: 0 0 auto;
+    color: #748298;
+    font-size: .6875rem;
+    white-space: nowrap;
+}
+
+.ft-user-assignment-empty {
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 24px;
+    text-align: center;
+}
+
+.ft-user-assignment-empty b {
+    color: #1d2a3f;
+    font-size: .8125rem;
+}
+
+.ft-user-assignment-empty span {
+    color: #7a889c;
+    font-size: .6875rem;
+}
+
+.ft-user-assignment-empty .ghost {
+    margin-top: 6px;
+}
+
+@media (max-width:700px) {
+    .ft-user-assignment-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ft-user-assignment-search {
+        width: 100%;
+    }
+
+    .ft-user-assignment-search-result {
+        white-space: normal;
+    }
+}
+
+.ft-user-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap
+}
+
+.ft-user-row-actions .ghost,
+.ft-user-delete-btn {
+    height: 32px;
+    border-radius: 7px;
+    padding: 0 10px;
+    font-size: .6875rem;
+    font-weight: 750;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center
+}
+
+.ft-user-delete-btn {
+    border: 1px solid #fecaca;
+    background: #fff5f5;
+    color: #c62828;
+    cursor: pointer
+}
+
+.ft-user-delete-btn:hover {
+    background: #feecec;
+    border-color: #fca5a5
+}
+
+.ft-user-delete-btn:disabled {
+    cursor: not-allowed;
+    opacity: .45
+}
+
+.ft-user-modal .ft-access-info {
+    margin-bottom: 0
+}
+
+@media (max-width:700px) {
+    .ft-user-access-table {
+        min-width: 820px !important
+    }
+
+    .ft-user-row-actions {
+        white-space: normal
+    }
+}
+
+/* 2026-08-05: remove accidental mobile header whitespace on My Work / Board / Jobs.
+   The tablet rule uses a 260px flex-basis for the title block while the header is
+   horizontal. Once the header becomes a column that basis turns into vertical
+   height, creating the large empty area seen on phones. */
+@media (max-width: 760px) {
+
+    .ft-board-page .ft-board-page-head,
+    .ft-jobs-list-page .ft-list-head,
+    .ft-exact-jobs-list .ft-list-head {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .ft-board-page .ft-board-page-head>div:first-child,
+    .ft-jobs-list-page .ft-list-head>div:first-child,
+    .ft-exact-jobs-list .ft-list-head>div:first-child {
+        flex: 0 0 auto !important;
+        flex-basis: auto !important;
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .ft-board-page .ft-board-head-actions,
+    .ft-jobs-list-page .ft-list-actions,
+    .ft-exact-jobs-list .ft-list-actions {
+        flex: 0 0 auto !important;
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .ft-board-page .ft-board-page-head {
+        margin-bottom: 10px !important
+    }
+
+    .ft-jobs-list-page .ft-list-head,
+    .ft-exact-jobs-list .ft-list-head {
+        margin-bottom: 10px !important
+    }
+}
+
+@media (max-width: 480px) {
+
+    .ft-board-page .ft-board-page-head,
+    .ft-jobs-list-page .ft-list-head,
+    .ft-exact-jobs-list .ft-list-head {
+        gap: 8px !important
+    }
+}
+
+/* 2026-08-05: full-width client list with click-to-open summary modal. */
+.ft-clients-layout.ft-clients-layout-full {
+    display: block;
+}
+
+.ft-clients-layout-full .ft-clients-main {
+    width: 100%;
+    max-width: none;
+}
+
+.ft-client-preview-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    background: rgba(13, 28, 52, .48);
+    backdrop-filter: blur(3px);
+}
+
+.ft-client-preview-modal {
+    position: relative !important;
+    top: auto !important;
+    width: min(860px, calc(100vw - 48px)) !important;
+    min-width: 0 !important;
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+    border-radius: 16px;
+    box-shadow: 0 24px 70px rgba(13, 28, 52, .28);
+    outline: none;
+}
+
+.ft-client-preview-modal .ft-client-detail-head {
+    position: relative;
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+    padding: 22px 64px 18px 24px;
+}
+
+.ft-client-preview-modal .ft-client-detail-contact {
+    padding: 12px 24px 18px;
+}
+
+.ft-client-preview-modal .ft-client-detail-stats {
+    margin: 0 24px;
+}
+
+.ft-client-preview-modal .ft-client-detail-section {
+    padding: 22px 24px 0;
+    overflow-x: auto;
+}
+
+.ft-client-preview-modal .ft-client-detail-section-head h3 {
+    font-size: 1rem;
+}
+
+.ft-client-preview-modal .ft-client-detail-section-head a,
+.ft-client-preview-modal .ft-view-client-work {
+    font-size: .75rem;
+}
+
+.ft-client-preview-modal .ft-client-mini-table th {
+    font-size: .625rem;
+    padding: 10px 8px;
+}
+
+.ft-client-preview-modal .ft-client-mini-table td {
+    font-size: .65625rem;
+    padding: 13px 8px;
+}
+
+.ft-client-preview-modal .ft-view-client-work {
+    padding: 24px;
+}
+
+.ft-client-preview-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #d6e1ec;
+    border-radius: 50%;
+    background: #fff;
+    color: #526783;
+    font-size: 1.5625rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(13, 28, 52, .08);
+}
+
+.ft-client-preview-close:hover,
+.ft-client-preview-close:focus-visible {
+    border-color: var(--ft-theme-primary-300);
+    color: var(--ft-theme-primary);
+    outline: 3px solid color-mix(in srgb, var(--ft-theme-primary) 12%, transparent);
+}
+
+@media(max-width:760px) {
+    .ft-client-preview-backdrop {
+        place-items: end center;
+        padding: 12px;
+    }
+
+    .ft-client-preview-modal {
+        position: relative !important;
+        width: 100% !important;
+        max-height: calc(100vh - 24px);
+        border-radius: 15px;
+    }
+
+    .ft-client-preview-modal .ft-client-detail-head {
+        grid-template-columns: 46px minmax(0, 1fr) !important;
+        padding: 18px 52px 14px 16px;
+    }
+
+    .ft-client-preview-modal .ft-open-client {
+        grid-column: 1/-1 !important;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .ft-client-preview-modal .ft-client-detail-contact,
+    .ft-client-preview-modal .ft-client-detail-stats {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+
+    .ft-client-preview-modal .ft-client-detail-contact {
+        padding: 8px 0 14px;
+    }
+
+    .ft-client-preview-modal .ft-client-detail-section {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
+
+.ft-clients-layout-full .ft-client-table tbody tr {
+    cursor: pointer;
+}
+
+.ft-client-list-modes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px
+}
+
+.ft-client-list-modes button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #d8e2ed;
+    border-radius: 9px;
+    background: #fff;
+    color: #526783;
+    padding: 9px 13px;
+    font: inherit;
+    font-size: .75rem;
+    font-weight: 700;
+    cursor: pointer
+}
+
+.ft-client-list-modes button span {
+    display: inline-flex;
+    min-width: 22px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: #edf2f7;
+    color: #526783;
+    font-size: .625rem
+}
+
+.ft-client-list-modes button.active {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-client-list-modes button.active span {
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+@media(max-width:620px) {
+    .ft-client-list-modes {
+        display: grid;
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-client-list-modes button {
+        justify-content: center
+    }
+}
+
+.ft-client-filter-card.is-archived {
+    grid-template-columns: minmax(280px, 1.8fr) repeat(3, minmax(150px, .7fr)) auto
+}
+
+.ft-archived-client-table {
+    min-width: 900px
+}
+
+.ft-archived-client-table tbody tr {
+    cursor: default
+}
+
+.ft-archived-client-table tbody tr:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-client-logo.is-archived {
+    background: #edf1f5;
+    color: #62748b
+}
+
+.ft-archived-status {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #d6dee8;
+    border-radius: 999px;
+    background: #f2f5f8;
+    color: #5d6f85;
+    padding: 4px 8px;
+    font-size: .5625rem;
+    font-weight: 750
+}
+
+.ft-archived-client-table td>small {
+    color: #77889d
+}
+
+.ft-archived-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    white-space: nowrap
+}
+
+.ft-archived-actions button {
+    height: 32px;
+    border-radius: 7px;
+    padding: 0 11px;
+    font: inherit;
+    font-size: .625rem;
+    font-weight: 750;
+    cursor: pointer
+}
+
+.ft-archive-view {
+    border: 1px solid #d7e1ec;
+    background: #fff;
+    color: #536781
+}
+
+.ft-archive-restore {
+    border: 1px solid var(--ft-theme-primary-300);
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-archive-view:hover {
+    background: #f5f8fb
+}
+
+.ft-archive-restore:hover {
+    background: var(--ft-theme-primary-soft)
+}
+
+@media(max-width:1080px) {
+    .ft-client-filter-card.is-archived {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .ft-client-filter-card.is-archived .ft-client-filter-search {
+        grid-column: 1/-1
+    }
+}
+
+@media(max-width:700px) {
+    .ft-archived-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap
+    }
+}
+
+.ft-clients-layout-full .ft-client-table tbody tr:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--ft-theme-primary) 16%, transparent);
+    outline-offset: -3px;
+    background: var(--ft-theme-primary-soft);
+}
+
+html:has(.ft-client-preview-backdrop),
+body:has(.ft-client-preview-backdrop) {
+    overflow: hidden;
+}
+
+.ft-client-preview-backdrop {
+    animation: ft-client-preview-fade .16s ease-out;
+}
+
+.ft-client-preview-modal {
+    animation: ft-client-preview-rise .2s ease-out;
+}
+
+@keyframes ft-client-preview-fade {
+    from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
+}
+
+@keyframes ft-client-preview-rise {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(.985)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+    .ft-client-preview-backdrop,
+    .ft-client-preview-modal {
+        animation: none
+    }
+}
+
+/* Dynamic dashboard/report metric layouts and sidebar session action. */
+.metrics.ft-auto-metrics {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr))
+}
+
+.ft-report-performance {
+    grid-column: 1/-1
+}
+
+.ft-report-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+}
+
+.sidebar-footer {
+    display: grid;
+    gap: 12px
+}
+
+.ft-sidebar-logout-form {
+    margin: 0
+}
+
+.ft-sidebar-logout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: 1px solid #29425f;
+    border-radius: 9px;
+    background: #13253b;
+    color: var(--ft-theme-primary-100);
+    padding: 9px 12px;
+    font: inherit;
+    font-size: .6875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .18s
+}
+
+.ft-sidebar-logout:hover,
+.ft-sidebar-logout:focus-visible {
+    background: #1b3554;
+    border-color: #3b5d83;
+    color: #fff;
+    outline: none
+}
+
+.ft-sidebar-logout svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+@media(max-width:900px) {
+    .ft-report-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+}
+
+@media(max-width:620px) {
+    .metrics.ft-auto-metrics {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-report-kpis {
+        grid-template-columns: 1fr 1fr
+    }
+}
+
+/* Progressive Livewire island layout. */
+.ft-island-shell {
+    min-width: 0;
+    height: 100%
+}
+
+.ft-island-shell>div {
+    height: 100%
+}
+
+.ft-island-shell .section-card {
+    height: 100%
+}
+
+/* Dashboard staged rendering: reserve final card space while one grouped
+   secondary Livewire request loads the below-the-fold datasets. */
+.ft-dashboard-skeleton {
+    min-height: 220px;
+    overflow: hidden
+}
+
+.ft-dashboard-skeleton-label {
+    color: var(--muted);
+    font-size: .6875rem
+}
+
+.ft-dashboard-skeleton-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 2px
+}
+
+.ft-dashboard-skeleton-lines span {
+    display: block;
+    width: var(--ft-skeleton-width, 100%);
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #edf2f7 20%, #f8fafc 50%, #edf2f7 80%);
+    background-size: 220% 100%;
+    animation: ft-dashboard-skeleton-pulse 1.4s ease-in-out infinite
+}
+
+@keyframes ft-dashboard-skeleton-pulse {
+    0% {
+        background-position: 100% 0
+    }
+
+    100% {
+        background-position: -100% 0
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .ft-dashboard-skeleton-lines span {
+        animation: none
+    }
+}
+
+/* Task Pack and Master Data staged rendering. */
+.ft-progressive-table-placeholder {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-height: 330px;
+    background: #e6edf5
+}
+
+.ft-progressive-table-placeholder>div {
+    display: grid;
+    grid-template-columns: repeat(var(--ft-placeholder-columns, 5), minmax(70px, 1fr));
+    gap: 18px;
+    align-items: center;
+    min-height: 52px;
+    padding: 10px 14px;
+    background: #fff
+}
+
+.ft-progressive-table-placeholder span,
+.ft-progressive-card-list span,
+.ft-taskpack-options-placeholder span {
+    display: block;
+    height: 13px;
+    border-radius: 5px;
+    background: linear-gradient(90deg, #edf2f7 20%, #f8fafc 50%, #edf2f7 80%);
+    background-size: 220% 100%;
+    animation: ft-dashboard-skeleton-pulse 1.4s ease-in-out infinite
+}
+
+.ft-progressive-table-placeholder span:nth-child(2n) {
+    width: 72%
+}
+
+.ft-progressive-card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    min-height: 300px
+}
+
+.ft-progressive-card-list>section {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    min-height: 145px;
+    padding: 18px;
+    border: 1px solid #e3eaf2;
+    border-radius: 12px;
+    background: #fff
+}
+
+.ft-progressive-card-list span:nth-child(2) {
+    width: 82%
+}
+
+.ft-progressive-card-list span:nth-child(3) {
+    width: 58%
+}
+
+.ft-taskpack-options-placeholder {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    grid-column: 1/-1
+}
+
+.ft-taskpack-options-placeholder>div {
+    display: flex;
+    flex-direction: column;
+    gap: 9px
+}
+
+.ft-taskpack-options-placeholder span:first-child {
+    width: 42%;
+    height: 11px
+}
+
+.ft-taskpack-options-placeholder span:last-child {
+    height: 42px
+}
+
+@media(max-width:700px) {
+    .ft-progressive-table-placeholder {
+        overflow: hidden
+    }
+
+    .ft-progressive-table-placeholder>div {
+        grid-template-columns: repeat(3, minmax(90px, 1fr));
+        min-width: 460px
+    }
+
+    .ft-taskpack-options-placeholder {
+        grid-template-columns: 1fr
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+    .ft-progressive-table-placeholder span,
+    .ft-progressive-card-list span,
+    .ft-taskpack-options-placeholder span {
+        animation: none
+    }
+}
+
+/* Progressive form and board rendering. Heavy option/card datasets are loaded
+   only when their section is needed while these blocks preserve final space. */
+.ft-progressive-section-placeholder {
+    min-height: 190px
+}
+
+.ft-progressive-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 12px 0
+}
+
+.ft-progressive-skeleton span {
+    display: block;
+    width: var(--ft-skeleton-width, 100%);
+    height: 42px;
+    border-radius: 9px;
+    background: linear-gradient(90deg, #edf2f7 20%, #f8fafc 50%, #edf2f7 80%);
+    background-size: 220% 100%;
+    animation: ft-dashboard-skeleton-pulse 1.4s ease-in-out infinite
+}
+
+.ft-create-actions button:disabled {
+    cursor: not-allowed;
+    opacity: .55
+}
+
+.ft-progressive-board-placeholder {
+    display: grid;
+    grid-template-columns: repeat(var(--ft-placeholder-columns, 3), minmax(190px, 1fr));
+    gap: 12px;
+    min-height: 430px;
+    overflow: hidden;
+    padding: 4px
+}
+
+.ft-progressive-board-placeholder>section {
+    min-width: 0;
+    border: 1px solid #e3eaf2;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 12px
+}
+
+.ft-progressive-placeholder-title {
+    width: 62%;
+    height: 18px;
+    border-radius: 6px;
+    background: #e6edf5;
+    margin-bottom: 14px
+}
+
+.ft-progressive-placeholder-card {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-height: 104px;
+    margin-bottom: 10px;
+    padding: 13px;
+    border: 1px solid #e3eaf2;
+    border-radius: 10px;
+    background: #fff
+}
+
+.ft-progressive-placeholder-card span {
+    display: block;
+    height: 13px;
+    border-radius: 5px;
+    background: linear-gradient(90deg, #edf2f7 20%, #f8fafc 50%, #edf2f7 80%);
+    background-size: 220% 100%;
+    animation: ft-dashboard-skeleton-pulse 1.4s ease-in-out infinite
+}
+
+.ft-progressive-placeholder-card span:nth-child(2) {
+    width: 78%
+}
+
+.ft-progressive-placeholder-card span:nth-child(3) {
+    width: 55%
+}
+
+@media(max-width:1000px) {
+    .ft-progressive-board-placeholder {
+        grid-template-columns: repeat(3, minmax(180px, 1fr))
+    }
+}
+
+@media(max-width:700px) {
+    .ft-progressive-board-placeholder {
+        grid-template-columns: 1fr;
+        min-height: 320px
+    }
+
+    .ft-progressive-board-placeholder>section:nth-child(n+3) {
+        display: none
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+    .ft-progressive-skeleton span,
+    .ft-progressive-placeholder-card span {
+        animation: none
+    }
+}
+
+/* User mentions */
+.ft-mention-host {
+    position: relative
+}
+
+.ft-mention-menu {
+    position: fixed;
+    z-index: 1000;
+    max-height: 280px;
+    overflow: auto;
+    border: 1px solid #d8e2ee;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 18px 44px rgba(15, 35, 65, .18);
+    padding: 6px
+}
+
+.ft-mention-menu[hidden] {
+    display: none
+}
+
+.ft-mention-option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    padding: 8px 10px;
+    text-align: left;
+    cursor: pointer
+}
+
+.ft-mention-option:hover,
+.ft-mention-option.active {
+    background: var(--ft-theme-primary-soft)
+}
+
+.ft-mention-avatar {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .6875rem;
+    font-weight: 850
+}
+
+.ft-mention-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column
+}
+
+.ft-mention-copy strong {
+    overflow: hidden;
+    color: #10233f;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-mention-copy small {
+    overflow: hidden;
+    color: #61738b;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-user-mention {
+    display: inline;
+    border-radius: 5px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-weight: 750;
+    padding: 1px 4px
+}
+
+.ft-mention-input {
+    width: 100%
+}
+
+/* Local file drag-and-drop for every FlowTrack document and attachment upload. */
+[data-file-dropzone] {
+    position: relative;
+    transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease
+}
+
+[data-file-dropzone].is-dragging {
+    border-color: var(--ft-theme-primary) !important;
+    background: var(--ft-theme-primary-soft) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 12%, transparent)
+}
+
+[data-file-dropzone].is-uploading {
+    border-color: #6b8fc8 !important;
+    background: var(--ft-theme-surface-subtle) !important
+}
+
+[data-file-dropzone].has-upload-error {
+    border-color: #dc2626 !important;
+    background: #fff7f7 !important
+}
+
+.ft-file-upload-progress {
+    margin-top: 7px;
+    font-size: .625rem;
+    color: #536985
+}
+
+.ft-upload-ready-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px
+}
+
+.ft-upload-ready-list span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border: 1px solid #dce6f2;
+    border-radius: 6px;
+    background: var(--ft-theme-surface-subtle);
+    padding: 5px 8px;
+    font-size: .625rem;
+    color: #334b68
+}
+
+.avatar {
+    overflow: hidden
+}
+
+.avatar>img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    border-radius: inherit
+}
+
+.ft-profile-identity {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 22px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line)
+}
+
+.ft-profile-avatar-wrap {
+    flex: 0 0 auto
+}
+
+.ft-profile-avatar-preview {
+    display: block
+}
+
+.ft-profile-identity-copy {
+    min-width: 0
+}
+
+.ft-profile-identity-copy h3 {
+    margin: 0 0 4px
+}
+
+.ft-profile-photo-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px
+}
+
+.ft-profile-upload-button {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer
+}
+
+.ft-profile-upload-button input {
+    display: none
+}
+
+.ft-profile-photo-help {
+    font-size: .6875rem;
+    color: var(--muted);
+    margin-top: 7px
+}
+
+@media(max-width:620px) {
+    .ft-profile-identity {
+        align-items: flex-start
+    }
+
+    .ft-profile-photo-actions {
+        align-items: stretch
+    }
+
+    .ft-profile-photo-actions .primary,
+    .ft-profile-photo-actions .secondary,
+    .ft-profile-photo-actions .ghost {
+        flex: 1;
+        text-align: center
+    }
+}
+
+/* --------------------------------------------------------------------------
+   User profile
+   -------------------------------------------------------------------------- */
+.ft-profile-page {
+    width: 100%;
+    max-width: 1420px;
+    margin: 0 auto;
+    padding-bottom: 18px
+}
+
+.ft-profile-flash {
+    margin-bottom: 16px
+}
+
+.ft-profile-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.38fr) minmax(340px, .62fr);
+    gap: 18px;
+    align-items: start
+}
+
+.ft-profile-main-card {
+    overflow: hidden;
+    padding: 0
+}
+
+.ft-profile-hero {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 28px;
+    background: linear-gradient(135deg, var(--ft-theme-surface-subtle) 0%, #fff 58%, var(--ft-theme-surface-subtle) 100%);
+    border-bottom: 1px solid var(--line)
+}
+
+.ft-profile-avatar-wrap {
+    flex: 0 0 auto
+}
+
+.ft-profile-avatar {
+    width: 96px !important;
+    height: 96px !important;
+    box-shadow: 0 0 0 5px #fff, 0 8px 24px color-mix(in srgb, var(--ft-theme-primary) 13%, transparent)
+}
+
+.ft-profile-avatar-preview {
+    display: block
+}
+
+.ft-profile-identity-copy {
+    min-width: 0;
+    flex: 1
+}
+
+.ft-profile-eyebrow {
+    margin-bottom: 4px;
+    color: #718096;
+    font-size: .6875rem;
+    font-weight: 750;
+    letter-spacing: .07em;
+    text-transform: uppercase
+}
+
+.ft-profile-identity-copy h2 {
+    margin: 0;
+    color: #12213a;
+    font-size: 1.375rem;
+    line-height: 1.25
+}
+
+.ft-profile-meta-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: .75rem
+}
+
+.ft-profile-meta-line span {
+    display: inline-flex;
+    align-items: center
+}
+
+.ft-profile-meta-line span+span:before {
+    content: "";
+    width: 3px;
+    height: 3px;
+    margin: 0 8px;
+    border-radius: 50%;
+    background: #a4b0c1
+}
+
+.ft-profile-photo-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 15px
+}
+
+.ft-profile-upload-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 36px;
+    border: 1px solid #cbd8eb;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    padding: 8px 11px;
+    font-size: .75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .15s
+}
+
+.ft-profile-upload-button:hover {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary-800)
+}
+
+.ft-profile-upload-button input {
+    display: none !important
+}
+
+.ft-profile-upload-button svg,
+.ft-profile-save-button svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.9
+}
+
+.ft-profile-photo-save {
+    min-height: 36px;
+    padding: 8px 12px;
+    font-size: .75rem
+}
+
+.ft-profile-photo-remove {
+    min-height: 36px;
+    border: 0;
+    background: transparent;
+    color: #78879b;
+    padding: 7px 8px;
+    font-size: .75rem;
+    font-weight: 650
+}
+
+.ft-profile-photo-remove:hover {
+    color: var(--red);
+    text-decoration: underline;
+    text-underline-offset: 3px
+}
+
+.ft-profile-photo-help {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: .6875rem
+}
+
+.ft-profile-inline-error {
+    margin-top: 7px
+}
+
+.ft-profile-section {
+    padding: 25px 28px;
+    border-bottom: 1px solid var(--line)
+}
+
+.ft-profile-section-heading,
+.ft-profile-side-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin-bottom: 20px
+}
+
+.ft-profile-section-icon {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: var(--blue2);
+    color: var(--blue)
+}
+
+.ft-profile-section-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8
+}
+
+.ft-profile-section-heading h3,
+.ft-profile-side-heading h3 {
+    margin: 0 0 3px;
+    color: #15233a;
+    font-size: .9375rem
+}
+
+.ft-profile-section-heading p,
+.ft-profile-side-heading p {
+    margin: 0;
+    color: var(--muted);
+    font-size: .6875rem;
+    line-height: 1.45
+}
+
+.ft-profile-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 14px
+}
+
+.ft-profile-form-grid .field {
+    margin-bottom: 16px
+}
+
+.ft-profile-form-grid .field label,
+.ft-profile-side-card .field label {
+    color: #33435a;
+    font-size: .75rem
+}
+
+.ft-profile-form-grid .field input,
+.ft-profile-form-grid .field select,
+.ft-profile-side-card .field input {
+    min-height: 43px;
+    border-color: #d9e2ed;
+    background: #fff
+}
+
+.ft-profile-language-field {
+    max-width: 340px
+}
+
+.ft-profile-company-section {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-profile-company-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px
+}
+
+.ft-profile-company-item {
+    min-width: 0;
+    padding: 13px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff
+}
+
+.ft-profile-company-item span,
+.ft-profile-company-item strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-profile-company-item span {
+    margin-bottom: 4px;
+    color: #7a889b;
+    font-size: .625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .045em
+}
+
+.ft-profile-company-item strong {
+    color: #243650;
+    font-size: .75rem;
+    font-weight: 700
+}
+
+.ft-profile-main-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 28px 20px;
+    background: #fff
+}
+
+.ft-profile-save-note {
+    color: #7a899c;
+    font-size: .6875rem;
+    line-height: 1.4
+}
+
+.ft-profile-save-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-width: 132px;
+    min-height: 39px;
+    box-shadow: 0 5px 12px color-mix(in srgb, var(--ft-theme-primary) 16%, transparent)
+}
+
+.ft-profile-side-column {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 14px
+}
+
+.ft-profile-side-card {
+    padding: 20px
+}
+
+.ft-profile-side-card .field {
+    margin-bottom: 14px
+}
+
+.ft-profile-side-heading {
+    margin-bottom: 18px
+}
+
+.ft-profile-password-button {
+    min-height: 38px;
+    padding: 9px 13px
+}
+
+.ft-profile-notifications-card {
+    padding-bottom: 8px
+}
+
+.ft-profile-notification-list {
+    margin: 0 -4px
+}
+
+.ft-profile-notification-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    padding: 11px 5px;
+    border-top: 1px solid #e7ecf2;
+    cursor: pointer
+}
+
+.ft-profile-notification-row:first-child {
+    border-top: 0
+}
+
+.ft-profile-notification-row input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none
+}
+
+.ft-profile-notification-check {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid #bdc9d8;
+    border-radius: 5px;
+    background: #fff;
+    transition: .15s
+}
+
+.ft-profile-notification-row input:checked+.ft-profile-notification-check {
+    border-color: var(--blue);
+    background: var(--blue)
+}
+
+.ft-profile-notification-row input:checked+.ft-profile-notification-check:after {
+    content: "";
+    width: 8px;
+    height: 4px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: translateY(-1px) rotate(-45deg)
+}
+
+.ft-profile-notification-row:focus-within .ft-profile-notification-check {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 12%, transparent)
+}
+
+.ft-profile-notification-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px
+}
+
+.ft-profile-notification-copy strong {
+    color: #263750;
+    font-size: .75rem;
+    font-weight: 650
+}
+
+.ft-profile-notification-copy small {
+    color: #7a899c;
+    font-size: .625rem;
+    line-height: 1.35
+}
+
+.ft-profile-signout-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 18px;
+    background: #fff
+}
+
+.ft-profile-signout-card>div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px
+}
+
+.ft-profile-signout-card strong {
+    color: #27384f;
+    font-size: .75rem
+}
+
+.ft-profile-signout-card span {
+    color: #7a899c;
+    font-size: .625rem
+}
+
+.ft-profile-signout-card form {
+    margin: 0;
+    flex: 0 0 auto
+}
+
+.ft-profile-signout-button {
+    white-space: nowrap;
+    padding: 8px 11px;
+    font-size: .6875rem
+}
+
+.ft-profile-main-card button:disabled,
+.ft-profile-side-card button:disabled {
+    cursor: not-allowed;
+    opacity: .65
+}
+
+@media(max-width:1180px) {
+    .ft-profile-layout {
+        grid-template-columns: minmax(0, 1fr) 350px
+    }
+
+    .ft-profile-company-grid {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-profile-company-item:last-child {
+        grid-column: 1/-1
+    }
+}
+
+@media(max-width:980px) {
+    .ft-profile-layout {
+        grid-template-columns: 1fr
+    }
+
+    .ft-profile-side-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: start
+    }
+
+    .ft-profile-signout-card {
+        grid-column: 1/-1
+    }
+}
+
+@media(max-width:700px) {
+    .ft-profile-hero {
+        align-items: flex-start;
+        padding: 22px
+    }
+
+    .ft-profile-avatar {
+        width: 78px !important;
+        height: 78px !important
+    }
+
+    .ft-profile-section {
+        padding: 22px
+    }
+
+    .ft-profile-main-footer {
+        padding: 17px 22px
+    }
+
+    .ft-profile-form-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-profile-language-field {
+        max-width: none
+    }
+
+    .ft-profile-company-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-profile-company-item:last-child {
+        grid-column: auto
+    }
+
+    .ft-profile-side-column {
+        display: flex
+    }
+}
+
+@media(max-width:520px) {
+    .ft-profile-hero {
+        flex-direction: column;
+        gap: 17px
+    }
+
+    .ft-profile-avatar {
+        width: 82px !important;
+        height: 82px !important
+    }
+
+    .ft-profile-photo-actions {
+        align-items: stretch
+    }
+
+    .ft-profile-upload-button,
+    .ft-profile-photo-save {
+        flex: 1
+    }
+
+    .ft-profile-photo-remove {
+        flex: 0 0 100%;
+        text-align: left;
+        padding-left: 0
+    }
+
+    .ft-profile-section,
+    .ft-profile-side-card {
+        padding: 18px
+    }
+
+    .ft-profile-section-heading,
+    .ft-profile-side-heading {
+        margin-bottom: 17px
+    }
+
+    .ft-profile-main-footer {
+        align-items: stretch;
+        flex-direction: column;
+        padding: 16px 18px 18px
+    }
+
+    .ft-profile-save-button {
+        width: 100%
+    }
+
+    .ft-profile-signout-card {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-profile-signout-button {
+        width: 100%
+    }
+
+    .ft-profile-signout-card form {
+        width: 100%
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Workspace branding + profile editing usability
+   -------------------------------------------------------------------------- */
+.ft-system-brand {
+    text-decoration: none;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    overflow: hidden
+}
+
+.ft-system-brand:hover {
+    color: #fff
+}
+
+.ft-system-logo {
+    display: block;
+    max-width: 168px;
+    max-height: 38px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: left center
+}
+
+.ft-branding-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start
+}
+
+.ft-branding-card {
+    padding: 22px;
+    min-width: 0
+}
+
+.ft-branding-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px
+}
+
+.ft-branding-card-head h3 {
+    margin: 3px 0 5px;
+    font-size: 1.125rem;
+    color: #17243a
+}
+
+.ft-branding-card-head p {
+    margin: 0;
+    color: #687a91;
+    font-size: .6875rem;
+    line-height: 1.55;
+    max-width: 520px
+}
+
+.ft-branding-kicker {
+    display: block;
+    color: #6b7e96;
+    font-size: .5625rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .09em
+}
+
+.ft-branding-access-badge {
+    flex: 0 0 auto;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 999px;
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary);
+    padding: 5px 8px;
+    font-size: .5625rem;
+    font-weight: 750
+}
+
+.ft-branding-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    margin-bottom: 16px;
+    border: 1px dashed #cbd8e8;
+    border-radius: 12px;
+    background: linear-gradient(145deg, var(--ft-theme-surface-subtle), var(--ft-theme-primary-soft));
+    overflow: hidden
+}
+
+.ft-branding-logo-preview img {
+    display: block;
+    max-width: 78%;
+    max-height: 88px;
+    width: auto;
+    height: auto;
+    object-fit: contain
+}
+
+.ft-branding-fallback {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #18283f;
+    font-size: 1.125rem
+}
+
+.ft-branding-fallback span {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    display: grid;
+    place-items: center;
+    font-weight: 850;
+    box-shadow: 0 4px 14px rgba(31, 59, 95, .08)
+}
+
+.ft-branding-favicon-preview {
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 20px 24px
+}
+
+.ft-branding-favicon-preview img,
+.ft-branding-favicon-fallback {
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    border-radius: 12px;
+    object-fit: contain;
+    background: #fff;
+    border: 1px solid #dce5f0;
+    padding: 7px
+}
+
+.ft-branding-favicon-fallback {
+    display: grid;
+    place-items: center;
+    color: var(--ft-theme-primary);
+    font-weight: 850;
+    font-size: 1.0625rem
+}
+
+.ft-branding-favicon-preview>div:not(.ft-branding-favicon-fallback) {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0
+}
+
+.ft-branding-favicon-preview b {
+    font-size: .75rem;
+    color: #263750
+}
+
+.ft-branding-favicon-preview span {
+    font-size: .625rem;
+    color: #73849a
+}
+
+.ft-branding-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap
+}
+
+.ft-branding-file-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 9px 13px;
+    border: 1px solid #cbd8eb;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .6875rem;
+    font-weight: 750;
+    cursor: pointer
+}
+
+.ft-branding-file-button:hover {
+    background: var(--ft-theme-surface-subtle);
+    border-color: var(--ft-theme-primary-300)
+}
+
+.ft-branding-file-button input {
+    display: none !important
+}
+
+.ft-branding-upload-row .primary,
+.ft-branding-upload-row .danger-btn {
+    min-height: 38px;
+    padding: 9px 13px;
+    font-size: .6875rem
+}
+
+.ft-branding-help {
+    margin-top: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f7f9fc;
+    color: #6b7d93;
+    font-size: .625rem;
+    line-height: 1.5
+}
+
+.ft-branding-note {
+    margin-top: 14px
+}
+
+.ft-branding-note code {
+    font-size: .625rem
+}
+
+.ft-profile-main-column {
+    min-width: 0
+}
+
+.ft-profile-edit-layout {
+    align-items: start
+}
+
+.ft-profile-edit-hero {
+    min-height: 188px
+}
+
+.ft-profile-edit-section {
+    border-bottom: 0
+}
+
+.ft-profile-field-help {
+    display: block;
+    margin-top: -2px;
+    color: #7b899b;
+    font-size: .625rem;
+    line-height: 1.4
+}
+
+.ft-profile-save-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px
+}
+
+.ft-profile-save-copy strong {
+    color: #2a3b52;
+    font-size: .6875rem
+}
+
+.ft-profile-save-copy span {
+    color: #7a899c;
+    font-size: .625rem;
+    line-height: 1.4
+}
+
+.ft-profile-company-card {
+    padding-bottom: 16px
+}
+
+.ft-profile-company-heading {
+    margin-bottom: 14px
+}
+
+.ft-profile-company-grid-side {
+    grid-template-columns: 1fr;
+    gap: 8px
+}
+
+.ft-profile-company-grid-side .ft-profile-company-item {
+    padding: 11px 12px
+}
+
+.ft-profile-admin-link,
+.ft-profile-notification-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 13px;
+    padding-top: 12px;
+    border-top: 1px solid #e5ebf2;
+    color: var(--ft-theme-primary);
+    text-decoration: none;
+    font-size: .65625rem;
+    font-weight: 750
+}
+
+.ft-profile-admin-link:hover,
+.ft-profile-notification-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px
+}
+
+.ft-profile-notification-summary .ft-profile-notification-row {
+    cursor: default
+}
+
+.ft-profile-notification-row.is-summary {
+    grid-template-columns: 20px minmax(0, 1fr)
+}
+
+.ft-profile-notification-check.is-on {
+    border-color: var(--blue);
+    background: var(--blue)
+}
+
+.ft-profile-notification-check.is-on:after {
+    content: "";
+    width: 8px;
+    height: 4px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: translateY(-1px) rotate(-45deg)
+}
+
+@media(max-width:1100px) {
+    .ft-branding-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-system-logo {
+        max-width: 154px
+    }
+}
+
+@media(max-width:700px) {
+    .ft-branding-card {
+        padding: 17px
+    }
+
+    .ft-branding-card-head {
+        flex-direction: column;
+        gap: 9px
+    }
+
+    .ft-branding-preview {
+        min-height: 125px
+    }
+
+    .ft-branding-upload-row {
+        align-items: stretch;
+        flex-direction: column
+    }
+
+    .ft-branding-file-button,
+    .ft-branding-upload-row .primary,
+    .ft-branding-upload-row .danger-btn {
+        width: 100%
+    }
+
+    .ft-profile-save-copy {
+        display: none
+    }
+}
+
+/* Job overview description inline editor: use the full available card width. */
+.ft-overview-card .ft-editable-description {
+    display: block;
+    width: 100%;
+    min-width: 0
+}
+
+.ft-overview-card .ft-editable-description .ft-inline-description-editor {
+    width: 100%;
+    max-width: none;
+    min-width: 0
+}
+
+.ft-overview-card .ft-editable-description .ft-inline-description-editor textarea {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-height: 110px;
+    box-sizing: border-box
+}
+
+
+
+/* Supplier sign-in footer editor uses the central admin branding card styles. */
+.ft-supplier-footer-card { margin-top: 16px; }
+.ft-supplier-footer-fields { display: grid; gap: 12px; }
+.ft-supplier-footer-label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 650; }
+.ft-supplier-footer-fields input[type="text"], .ft-supplier-footer-fields input[type="url"] {
+    display: block; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
+    border: 1px solid var(--border-color, #cbd5e1); border-radius: 8px;
+    padding: 10px 12px; background: var(--surface, #fff); color: inherit;
+}
+.ft-system-footer-editor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ft-supplier-footer-links { display: grid; gap: 12px; }
+.ft-supplier-footer-link-row { display: grid; grid-template-columns: minmax(120px, .65fr) minmax(140px, 1fr) minmax(220px, 2fr); align-items: center; gap: 12px; }
+.ft-supplier-footer-check { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+@media (max-width: 780px) { .ft-supplier-footer-link-row, .ft-system-footer-editor-grid { grid-template-columns: minmax(0, 1fr); align-items: stretch; } }

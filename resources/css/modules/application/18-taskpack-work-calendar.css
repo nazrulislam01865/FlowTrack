@@ -1,0 +1,674 @@
+/** Application CSS segment 18: taskpack-work-calendar. Source-preserving split of the former monolith. */
+/* 2026-08-18: Task Pack task editor locked to the approved task prototype. */
+.ft-taskpack-form-page .ft-task-editor-list {
+    gap: 14px
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype {
+    display: grid;
+    gap: 12px;
+    padding: 16px 18px 17px;
+    border: 1px solid #d6e0eb;
+    border-radius: 11px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(23, 43, 69, .018)
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-task-editor-head {
+    margin: 0;
+    align-items: flex-start
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-task-editor-head h3 {
+    margin: 0 0 2px;
+    color: #12233d;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -.015em
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-task-editor-head p {
+    margin: 0;
+    color: #66778f;
+    font-size: .625rem;
+    line-height: 1.3
+}
+
+.ft-taskpack-form-page .ft-task-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-taskpack-form-page .ft-task-editor-actions button {
+    height: 34px;
+    border: 1px solid #d4deea;
+    border-radius: 8px;
+    background: #fff;
+    color: #1d2f49;
+    font-size: .65625rem;
+    font-weight: 600;
+    box-shadow: none
+}
+
+.ft-taskpack-form-page .ft-task-editor-actions .ft-task-move-button {
+    width: 34px;
+    min-width: 34px;
+    padding: 0;
+    font-size: .9375rem;
+    font-weight: 500
+}
+
+.ft-taskpack-form-page .ft-task-editor-actions .ft-task-remove-button {
+    min-width: 62px;
+    padding: 0 11px
+}
+
+.ft-taskpack-form-page .ft-task-editor-actions button:hover {
+    background: #fff;
+    border-color: #c7d3e1
+}
+
+.ft-taskpack-form-page .ft-task-editor-actions button:disabled {
+    opacity: .38;
+    background: #f8fafc
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field {
+    gap: 6px
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field>label,
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-taskpack-assignee-filter>label {
+    margin: 0;
+    color: #182a43;
+    font-size: .65625rem;
+    font-weight: 750;
+    line-height: 1.25
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field input,
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field select,
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field textarea {
+    min-height: 42px;
+    border: 1px solid #d5deea;
+    border-radius: 8px;
+    background: #fff;
+    color: #1d304b;
+    font-size: .71875rem;
+    line-height: 1.35;
+    box-shadow: none
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field input,
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field select {
+    padding: 0 12px
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field textarea {
+    min-height: 64px;
+    padding: 10px 12px;
+    resize: vertical
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field input::placeholder,
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field textarea::placeholder {
+    color: #738299;
+    opacity: 1
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field input:focus,
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field select:focus,
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field textarea:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 7%, transparent)
+}
+
+.ft-taskpack-form-page .ft-task-editor-prototype .ft-admin-field small {
+    margin-top: -1px;
+    color: #6b7b91;
+    font-size: .5625rem;
+    line-height: 1.35
+}
+
+.ft-taskpack-form-page .ft-task-prototype-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 26px;
+    row-gap: 11px;
+    align-items: start
+}
+
+.ft-taskpack-form-page .ft-task-prototype-grid>.ft-admin-field {
+    min-width: 0
+}
+
+.ft-taskpack-form-page .ft-required-task-prototype {
+    min-height: 28px;
+    width: max-content;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+    gap: 9px;
+    color: #23344d;
+    font-size: .6875rem;
+    font-weight: 500
+}
+
+.ft-taskpack-form-page .ft-required-task-prototype input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--ft-theme-primary)
+}
+
+.ft-taskpack-form-page .ft-efficiency-standard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    margin-top: 1px;
+    padding: 14px 14px 13px;
+    border: 1px solid #d8e1eb;
+    border-radius: 10px;
+    background: #fff
+}
+
+.ft-taskpack-form-page .ft-efficiency-config {
+    min-width: 0
+}
+
+.ft-taskpack-form-page .ft-efficiency-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px
+}
+
+.ft-taskpack-form-page .ft-efficiency-clock {
+    display: grid;
+    place-items: center;
+    flex: 0 0 27px;
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    color: #10263f
+}
+
+.ft-taskpack-form-page .ft-efficiency-clock svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-taskpack-form-page .ft-efficiency-head h4 {
+    margin: 1px 0 2px;
+    color: #15263f;
+    font-size: .75rem;
+    font-weight: 800;
+    line-height: 1.25
+}
+
+.ft-taskpack-form-page .ft-efficiency-head p {
+    margin: 0;
+    color: #65768d;
+    font-size: .59375rem;
+    line-height: 1.35
+}
+
+.ft-taskpack-form-page .ft-efficiency-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+    row-gap: 10px
+}
+
+.ft-taskpack-form-page .ft-duration-control {
+    display: grid;
+    grid-template-columns: minmax(90px, .9fr) minmax(120px, .85fr);
+    gap: 7px
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-field {
+    margin-top: 10px
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-picker {
+    position: relative;
+    min-width: 0
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-picker>summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 42px;
+    padding: 5px 9px;
+    border: 1px solid #d5deea;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    list-style: none;
+    color: #1d304b
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-picker>summary::-webkit-details-marker {
+    display: none
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-picker[open]>summary {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 7%, transparent)
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-chips>span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 180px;
+    min-height: 25px;
+    padding: 3px 7px;
+    border: 1px solid #cfdee2;
+    border-radius: 6px;
+    background: #eef7f6;
+    color: #253c52;
+    font-size: .59375rem;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-chips>span i {
+    font-style: normal;
+    color: #63758a;
+    font-size: .75rem
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-chips>b {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    min-width: 26px;
+    height: 25px;
+    padding: 0 6px;
+    border: 1px solid #d4dfe7;
+    border-radius: 6px;
+    background: #eef3f5;
+    color: #354a60;
+    font-size: .59375rem
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-chips>em {
+    color: #77869a;
+    font-size: .65625rem;
+    font-style: normal
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    color: #75859a
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-tools i {
+    font-style: normal;
+    font-size: .8125rem
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-tools svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: #5b6f87;
+    stroke-width: 1.7;
+    stroke-linecap: round
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-menu {
+    position: absolute;
+    z-index: 45;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    display: grid;
+    gap: 2px;
+    max-height: 220px;
+    overflow: auto;
+    padding: 7px;
+    border: 1px solid #d7e1eb;
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: 0 14px 30px rgba(24, 43, 68, .14)
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-menu label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 6px 8px;
+    border-radius: 7px;
+    color: #20344f;
+    font-size: .65625rem;
+    cursor: pointer
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-menu label:hover {
+    background: #f4f7fa
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-menu input {
+    width: 15px !important;
+    height: 15px !important;
+    min-height: 0 !important;
+    margin: 0;
+    accent-color: var(--ft-theme-primary)
+}
+
+.ft-taskpack-form-page .ft-efficiency-pause-menu p {
+    margin: 5px 6px;
+    color: #6c7d92;
+    font-size: .625rem
+}
+
+.ft-taskpack-form-page .ft-efficiency-checks {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px
+}
+
+.ft-taskpack-form-page .ft-efficiency-checks>label {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: #20324b;
+    cursor: pointer
+}
+
+.ft-taskpack-form-page .ft-efficiency-checks input {
+    flex: 0 0 auto;
+    width: 16px !important;
+    height: 16px !important;
+    min-height: 0 !important;
+    margin: 1px 0 0;
+    accent-color: var(--ft-theme-primary)
+}
+
+.ft-taskpack-form-page .ft-efficiency-checks span {
+    display: grid;
+    gap: 1px
+}
+
+.ft-taskpack-form-page .ft-efficiency-checks b {
+    font-size: .65625rem;
+    font-weight: 600;
+    line-height: 1.3
+}
+
+.ft-taskpack-form-page .ft-efficiency-checks small {
+    color: #6b7b91;
+    font-size: .5625rem;
+    line-height: 1.35
+}
+
+.ft-taskpack-form-page .ft-taskpack-form-footer {
+    align-items: center;
+    gap: 9px;
+    padding: 12px 17px
+}
+
+.ft-taskpack-form-page .ft-taskpack-form-footer>p {
+    margin: 0 auto 0 0;
+    color: #61728a;
+    font-size: .59375rem;
+    line-height: 1.35
+}
+
+.ft-taskpack-form-page .ft-taskpack-form-footer .ft-admin-cancel,
+.ft-taskpack-form-page .ft-taskpack-form-footer .ft-admin-primary {
+    height: 40px;
+    min-width: 104px;
+    border-radius: 8px;
+    font-size: .65625rem
+}
+
+.ft-taskpack-form-page .ft-taskpack-form-footer .ft-admin-primary {
+    background: var(--ft-theme-primary);
+    border-color: var(--ft-theme-primary);
+    box-shadow: none
+}
+
+.ft-taskpack-form-page .ft-taskpack-form-footer .ft-admin-primary:hover {
+    background: var(--ft-theme-primary);
+    border-color: var(--ft-theme-primary)
+}
+
+@media(max-width:1050px) {
+    .ft-taskpack-form-page .ft-efficiency-standard {
+        grid-template-columns: 1fr;
+        gap: 0
+    }
+
+}
+
+@media(max-width:760px) {
+
+    .ft-taskpack-form-page .ft-task-prototype-grid,
+    .ft-taskpack-form-page .ft-efficiency-fields {
+        grid-template-columns: 1fr;
+        gap: 10px
+    }
+
+    .ft-taskpack-form-page .ft-efficiency-standard {
+        padding: 12px
+    }
+
+    .ft-taskpack-form-page .ft-task-editor-prototype {
+        padding: 13px
+    }
+
+    .ft-taskpack-form-page .ft-task-editor-head {
+        flex-direction: column
+    }
+
+    .ft-taskpack-form-page .ft-task-editor-actions {
+        align-self: flex-end
+    }
+
+    .ft-taskpack-form-page .ft-taskpack-form-footer {
+        flex-wrap: wrap
+    }
+
+    .ft-taskpack-form-page .ft-taskpack-form-footer>p {
+        flex: 1 0 100%;
+        margin-bottom: 2px
+    }
+}
+
+@media(max-width:460px) {
+    .ft-taskpack-form-page .ft-duration-control {
+        grid-template-columns: 1fr
+    }
+
+    .ft-taskpack-form-page .ft-efficiency-pause-chips>span:nth-of-type(n+2) {
+        display: none
+    }
+
+    .ft-taskpack-form-page .ft-taskpack-form-footer .ft-admin-cancel,
+    .ft-taskpack-form-page .ft-taskpack-form-footer .ft-admin-primary {
+        flex: 1;
+        min-width: 0
+    }
+}
+
+.ft-efficiency-prototype-options label {
+    pointer-events: none;
+    cursor: default
+}
+
+.ft-efficiency-prototype-options input {
+    pointer-events: none
+}
+
+
+/* 2026-08-18: structured Task Pack Master Data work-calendar editor. */
+.ft-work-calendar-editor {
+    box-sizing: border-box;
+    margin: 2px 0 4px;
+    padding: 15px;
+    border: 1px solid #d8e2ec;
+    border-radius: 11px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-work-calendar-editor-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px
+}
+
+.ft-work-calendar-editor-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--ft-theme-primary-200);
+    border-radius: 9px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-work-calendar-editor-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-work-calendar-editor-head strong {
+    display: block;
+    color: #20334f;
+    font-size: .75rem;
+    font-weight: 800
+}
+
+.ft-work-calendar-editor-head small {
+    display: block;
+    margin-top: 3px;
+    color: #6d7d93;
+    font-size: .59375rem;
+    line-height: 1.4
+}
+
+.ft-work-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 14px
+}
+
+.ft-work-calendar-field {
+    min-width: 0
+}
+
+.ft-work-calendar-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: #293d58;
+    font-size: .65625rem;
+    font-weight: 750
+}
+
+.ft-work-calendar-field select,
+.ft-work-calendar-field input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 40px;
+    border: 1px solid #cfd9e5;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0 11px;
+    color: #1e344f;
+    font: inherit;
+    font-size: .6875rem;
+    outline: none
+}
+
+.ft-work-calendar-field select:focus,
+.ft-work-calendar-field input:focus {
+    border-color: #6aaea5;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-work-calendar-preview {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border: 1px solid #dce7e5;
+    border-radius: 8px;
+    background: #f4fbfa;
+    color: #536980;
+    font-size: .625rem
+}
+
+.ft-work-calendar-preview>span {
+    color: var(--ft-theme-primary);
+    font-weight: 800
+}
+
+.ft-work-calendar-preview>strong {
+    color: #20334f;
+    font-size: .65625rem
+}
+
+.ft-work-calendar-preview>i {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #94aaa6
+}
+
+.ft-work-calendar-table-value {
+    color: #263d58;
+    font-size: .65625rem;
+    font-weight: 750;
+    white-space: nowrap
+}
+
+@media(max-width:620px) {
+    .ft-work-calendar-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-work-calendar-preview {
+        align-items: flex-start;
+        flex-wrap: wrap
+    }
+
+    .ft-work-calendar-preview>i {
+        margin-top: 5px
+    }
+}

@@ -1,0 +1,424 @@
+/**
+ * FlowTrack Theme Settings — Dashboard Theme
+ * --------------------------------------------------------------------------
+ * THIS IS THE SINGLE EDITABLE THEME CONTROL FILE.
+ * Change static system colors, typography, sizing, radii, elevation and the
+ * sidebar here. Other theme-package files consume these variables only.
+ *
+ * Runtime Master Data colors (status/phase/priority/department) intentionally
+ * remain data-driven and are not overridden by this file.
+ */
+:root {
+    /* Brand / primary interaction — current Dashboard management theme */
+    --ft-theme-primary-50: #effaf8;
+    --ft-theme-primary-100: #dff5f1;
+    --ft-theme-primary-200: #bceae2;
+    --ft-theme-primary-300: #8ad8cc;
+    --ft-theme-primary-400: #4fc0b2;
+    --ft-theme-primary-500: #1aa394;
+    --ft-theme-primary-600: #007d70;
+    --ft-theme-primary-700: #006d62;
+    --ft-theme-primary-800: #07584f;
+    --ft-theme-primary-900: #0a4942;
+    --ft-theme-primary-950: #052e2a;
+    --ft-theme-primary: var(--ft-theme-primary-600);
+    --ft-theme-primary-hover: var(--ft-theme-primary-700);
+    --ft-theme-primary-soft: #e7f7f4;
+    --ft-theme-primary-soft-hover: #def3ef;
+    --ft-theme-primary-shadow: rgb(0 125 112 / 0.17);
+
+    /* Supporting semantic colors */
+    --ft-theme-info: var(--ft-theme-primary);
+    --ft-theme-info-soft: var(--ft-theme-primary-soft);
+    --ft-theme-success: #11805d;
+    --ft-theme-success-soft: #e8f7ef;
+    --ft-theme-warning: #b86a00;
+    --ft-theme-warning-soft: #fff5df;
+    --ft-theme-danger: #d93b3b;
+    --ft-theme-danger-soft: #fff0ef;
+    --ft-theme-purple: #6d46c7;
+    --ft-theme-purple-soft: #f1ebff;
+
+    /* Global application canvas — plain white by design. Accent colors do not tint page backgrounds. */
+    --ft-theme-page-bg: #ffffff;
+    --ft-theme-surface: #ffffff;
+    --ft-theme-surface-subtle: #f8fafc;
+    --ft-theme-surface-hover: #fbfcff;
+    --ft-theme-surface-muted: #eef2f6;
+
+    /* Every screen-level page background delegates to the one global white canvas token. */
+    --ft-theme-dashboard-page-bg: var(--ft-theme-page-bg);
+    --ft-theme-orders-list-page-bg: var(--ft-theme-page-bg);
+    --ft-theme-inquiries-page-bg: var(--ft-theme-page-bg);
+    --ft-theme-order-detail-page-bg: var(--ft-theme-page-bg);
+    --ft-theme-inquiry-intelligence-page-bg: var(--ft-theme-page-bg);
+    --ft-theme-bulk-order-page-bg: var(--ft-theme-page-bg);
+    --ft-theme-task-bg: var(--ft-theme-page-bg);
+
+    /* Component soft surfaces remain separate from the page canvas and are used only for local UI states. */
+    --ft-theme-o-soft: #edf3ff;
+    --ft-theme-o-import: #f3f7ff;
+    --ft-theme-o-import-hover: #f8fbff;
+    --ft-theme-o-view-hover: #eaf1ff;
+    --ft-theme-o-nep: #eef6ff;
+    --ft-theme-o-nep-hover: #e4f0ff;
+    --ft-theme-o-v5-active: #edf5ff;
+    --ft-theme-o-v5-import-line: #d8e8fa;
+    --ft-theme-o-v5-import: #f4f9ff;
+    --ft-theme-o-v5-hover: #f7fbff;
+    --ft-theme-o-v5-action-line: #c8d8ec;
+    --ft-theme-o-v5-action: #f7fbff;
+    --ft-theme-o-v5-normal: #eef4fb;
+    --ft-theme-b-soft: #eef4ff;
+    --ft-theme-b-soft-2: #e9f2ff;
+    --ft-theme-b-step: #f7faff;
+    --ft-theme-b-drop: #f8fbff;
+    --ft-theme-b-drop-hover: #f0f6ff;
+    --ft-theme-b-upload-line: #dbe6f6;
+    --ft-theme-b-note-line: #d9e7fb;
+    --ft-theme-b-note: #f6f9ff;
+    --ft-theme-b-row-hover: #fbfcfe;
+
+    --ft-theme-text-primary: #152238;
+    --ft-theme-text-secondary: #61738d;
+    --ft-theme-text-muted: #718097;
+    --ft-theme-text-inverse: #ffffff;
+    --ft-theme-border: #d9e2ec;
+    --ft-theme-border-subtle: #e7edf2;
+    --ft-theme-border-soft: #edf1f5;
+    --ft-theme-border-strong: #aebdcb;
+    --ft-theme-focus: #76aaa2;
+    --ft-theme-focus-ring: rgb(0 125 112 / 0.10);
+    --ft-theme-overlay: rgb(15 23 42 / 0.48);
+
+    /* Public Order Tracking — exact prototype palette, centralized for theme ownership. */
+    --ft-theme-tracking-hex-069d8d: #069d8d;
+    --ft-theme-tracking-hex-078676: #078676;
+    --ft-theme-tracking-hex-078776: #078776;
+    --ft-theme-tracking-hex-078f82: #078f82;
+    --ft-theme-tracking-hex-0a8b79: #0a8b79;
+    --ft-theme-tracking-hex-0d1d3f: #0d1d3f;
+    --ft-theme-tracking-hex-0f2444: #0f2444;
+    --ft-theme-tracking-hex-102042: #102042;
+    --ft-theme-tracking-hex-10213f: #10213f;
+    --ft-theme-tracking-hex-126fe3: #126fe3;
+    --ft-theme-tracking-hex-132344: #132344;
+    --ft-theme-tracking-hex-138d7a: #138d7a;
+    --ft-theme-tracking-hex-183052: #183052;
+    --ft-theme-tracking-hex-1870d8: #1870d8;
+    --ft-theme-tracking-hex-1873a8: #1873a8;
+    --ft-theme-tracking-hex-203b66: #203b66;
+    --ft-theme-tracking-hex-27855a: #27855a;
+    --ft-theme-tracking-hex-2d72d9: #2d72d9;
+    --ft-theme-tracking-hex-425b85: #425b85;
+    --ft-theme-tracking-hex-4f6790: #4f6790;
+    --ft-theme-tracking-hex-526a94: #526a94;
+    --ft-theme-tracking-hex-526d98: #526d98;
+    --ft-theme-tracking-hex-536c96: #536c96;
+    --ft-theme-tracking-hex-536d98: #536d98;
+    --ft-theme-tracking-hex-54698a: #54698a;
+    --ft-theme-tracking-hex-566d93: #566d93;
+    --ft-theme-tracking-hex-56709b: #56709b;
+    --ft-theme-tracking-hex-57709a: #57709a;
+    --ft-theme-tracking-hex-6a3fe0: #6a3fe0;
+    --ft-theme-tracking-hex-6d7f9e: #6d7f9e;
+    --ft-theme-tracking-hex-6d82a4: #6d82a4;
+    --ft-theme-tracking-hex-708bb4: #708bb4;
+    --ft-theme-tracking-hex-7890ad: #7890ad;
+    --ft-theme-tracking-hex-7b61c9: #7b61c9;
+    --ft-theme-tracking-hex-7ecfbe: #7ecfbe;
+    --ft-theme-tracking-hex-b93832: #b93832;
+    --ft-theme-tracking-hex-b9d0e6: #b9d0e6;
+    --ft-theme-tracking-hex-b9e4dc: #b9e4dc;
+    --ft-theme-tracking-hex-bfd5e7: #bfd5e7;
+    --ft-theme-tracking-hex-c6efe7: #c6efe7;
+    --ft-theme-tracking-hex-c8d8e7: #c8d8e7;
+    --ft-theme-tracking-hex-c8f3e7: #c8f3e7;
+    --ft-theme-tracking-hex-c9d9e8: #c9d9e8;
+    --ft-theme-tracking-hex-c9dfee: #c9dfee;
+    --ft-theme-tracking-hex-cee5e6: #cee5e6;
+    --ft-theme-tracking-hex-d17b1f: #d17b1f;
+    --ft-theme-tracking-hex-d52c79: #d52c79;
+    --ft-theme-tracking-hex-d6f6ee: #d6f6ee;
+    --ft-theme-tracking-hex-d7e1eb: #d7e1eb;
+    --ft-theme-tracking-hex-d7e3ed: #d7e3ed;
+    --ft-theme-tracking-hex-d7e9ee: #d7e9ee;
+    --ft-theme-tracking-hex-d7ece8: #d7ece8;
+    --ft-theme-tracking-hex-d7eceb: #d7eceb;
+    --ft-theme-tracking-hex-d8f4ee: #d8f4ee;
+    --ft-theme-tracking-hex-dc2771: #dc2771;
+    --ft-theme-tracking-hex-df2674: #df2674;
+    --ft-theme-tracking-hex-e2e9f0: #e2e9f0;
+    --ft-theme-tracking-hex-e52a79: #e52a79;
+    --ft-theme-tracking-hex-e9f3ff: #e9f3ff;
+    --ft-theme-tracking-hex-eaf0f5: #eaf0f5;
+    --ft-theme-tracking-hex-ebfaf6: #ebfaf6;
+    --ft-theme-tracking-hex-edfafa: #edfafa;
+    --ft-theme-tracking-hex-efc5c2: #efc5c2;
+    --ft-theme-tracking-hex-effbf8: #effbf8;
+    --ft-theme-tracking-hex-f2d5e4: #f2d5e4;
+    --ft-theme-tracking-hex-f3b8d4: #f3b8d4;
+    --ft-theme-tracking-hex-f3f7fb: #f3f7fb;
+    --ft-theme-tracking-hex-f3fbf9: #f3fbf9;
+    --ft-theme-tracking-hex-f7fcfc: #f7fcfc;
+    --ft-theme-tracking-hex-f9fffe: #f9fffe;
+    --ft-theme-tracking-hex-ffe0ef: #ffe0ef;
+    --ft-theme-tracking-hex-fff6f5: #fff6f5;
+    --ft-theme-tracking-hex-fff7fb: #fff7fb;
+    /* Public Order Tracking stage-screen prototype tokens. */
+    --ft-theme-tracking-brand-navy: #0d1f50;
+    --ft-theme-tracking-brand-blue: #62a9f7;
+    --ft-theme-tracking-prototype-border: #b9d8f7;
+    --ft-theme-tracking-prototype-copy: #47679d;
+    --ft-theme-tracking-stage-blue: #1685f8;
+    --ft-theme-tracking-stage-purple: #9d3cf2;
+    --ft-theme-tracking-stage-orange: #f58a0a;
+    --ft-theme-tracking-stage-teal: #11a38d;
+    --ft-theme-tracking-stage-sky: #1685f8;
+    --ft-theme-tracking-stage-pink: #ee2b88;
+    --ft-theme-tracking-stage-green: #45b96d;
+    --ft-theme-tracking-warning: #f58a0a;
+    --ft-theme-tracking-warning-border: #efb24c;
+    --ft-theme-tracking-warning-soft: #fffaf2;
+    --ft-theme-tracking-purple-soft: #f8f0ff;
+    --ft-theme-tracking-purple-border: #d9b9fb;
+    --ft-theme-tracking-blue-soft: #f3f8ff;
+    --ft-theme-tracking-pink-soft: #fff3f9;
+    --ft-theme-tracking-green-soft: #effcf8;
+    --ft-theme-tracking-progress-rail: #d9e4f0;
+    --ft-theme-tracking-timeline-line: #cbd9ea;
+    --ft-theme-login-tracking-copy: #425678;
+    --ft-theme-login-tracking-muted: #60718f;
+
+    /* Typography — single source of truth for the complete application. */
+    --ft-theme-root-font-size: 16px;
+    --ft-theme-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --ft-theme-font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --ft-theme-font-size-xs: 0.75rem;
+    --ft-theme-font-size-sm: 0.8125rem;
+    --ft-theme-font-size-base: 0.875rem;
+    --ft-theme-font-size-lg: 1rem;
+    --ft-theme-font-size-xl: 1.125rem;
+    --ft-theme-font-size-2xl: 1.25rem;
+    --ft-theme-font-size-3xl: 1.5625rem;
+    --ft-theme-font-size-4xl: 1.875rem;
+    --ft-theme-font-weight-regular: 400;
+    --ft-theme-font-weight-medium: 500;
+    --ft-theme-font-weight-semibold: 600;
+    --ft-theme-font-weight-strong: 650;
+    --ft-theme-font-weight-bold: 700;
+    --ft-theme-font-weight-extrabold: 750;
+    --ft-theme-line-height-tight: 1.2;
+    --ft-theme-line-height-snug: 1.35;
+    --ft-theme-line-height-normal: 1.5;
+    --ft-theme-line-height-relaxed: 1.7;
+
+    /* Standard create-form typography and controls.
+     * Create Order is the reference. Create Inquiry and Create Client consume
+     * these same values through the modular forms/ theme adapters. */
+    --ft-theme-form-page-title-size: 1.625rem;
+    --ft-theme-form-page-title-weight: var(--ft-theme-font-weight-bold);
+    --ft-theme-form-page-title-color: #071831;
+    --ft-theme-form-page-copy-size: 0.8125rem;
+    --ft-theme-form-page-copy-weight: var(--ft-theme-font-weight-regular);
+    --ft-theme-form-page-copy-color: #536985;
+    --ft-theme-form-breadcrumb-size: 0.75rem;
+    --ft-theme-form-breadcrumb-weight: var(--ft-theme-font-weight-medium);
+    --ft-theme-form-breadcrumb-color: #5e718c;
+    --ft-theme-form-section-title-size: 1.0625rem;
+    --ft-theme-form-section-title-weight: var(--ft-theme-font-weight-bold);
+    --ft-theme-form-section-title-color: #172235;
+    --ft-theme-form-label-size: 0.75rem;
+    --ft-theme-form-label-weight: var(--ft-theme-font-weight-bold);
+    --ft-theme-form-label-color: #1a2d48;
+    --ft-theme-form-control-size: 0.8125rem;
+    --ft-theme-form-control-weight: var(--ft-theme-font-weight-regular);
+    --ft-theme-form-control-color: #172235;
+    --ft-theme-form-placeholder-color: #8996a8;
+    --ft-theme-form-helper-size: 0.625rem;
+    --ft-theme-form-helper-weight: var(--ft-theme-font-weight-regular);
+    --ft-theme-form-helper-color: #6c7e94;
+    --ft-theme-form-button-size: 0.71875rem;
+    --ft-theme-form-button-weight: var(--ft-theme-font-weight-bold);
+    --ft-theme-form-control-height: 44px;
+    --ft-theme-form-control-radius: 8px;
+    --ft-theme-form-control-border: #d8e2ed;
+    --ft-theme-form-section-border: #d9e3ef;
+    --ft-theme-form-step-size: 26px;
+
+
+    /* Central async feedback (main content only; sidebar intentionally excluded). */
+    --ft-theme-feedback-font-size: 0.625rem;
+    --ft-theme-feedback-font-size-compact: 0.5625rem;
+    --ft-theme-feedback-font-weight: var(--ft-theme-font-weight-bold);
+    --ft-theme-feedback-height: 22px;
+    --ft-theme-feedback-height-compact: 20px;
+    --ft-theme-feedback-radius: 6px;
+    --ft-theme-feedback-shadow: 0 1px 3px rgb(15 35 65 / 0.05);
+    --ft-theme-feedback-hud-shadow: 0 8px 24px rgb(15 35 65 / 0.12);
+    --ft-theme-feedback-neutral-text: #60718a;
+    --ft-theme-feedback-neutral-bg: #ffffff;
+    --ft-theme-feedback-loading-text: #176f68;
+    --ft-theme-feedback-loading-bg: #eef9f7;
+    --ft-theme-feedback-loading-border: #c8e9e3;
+    --ft-theme-feedback-saving-text: #9a5d00;
+    --ft-theme-feedback-saving-bg: #fff7e6;
+    --ft-theme-feedback-saving-border: #efd08a;
+    --ft-theme-feedback-saved-text: #167451;
+    --ft-theme-feedback-saved-bg: #e8f7ef;
+    --ft-theme-feedback-saved-border: #bfe2d1;
+    --ft-theme-feedback-error-text: #b8322d;
+    --ft-theme-feedback-error-bg: #fff0ef;
+    --ft-theme-feedback-error-border: #f2c8c5;
+
+    /* Spacing / geometry */
+    --ft-theme-radius-xs: 4px;
+    --ft-theme-radius-sm: 6px;
+    --ft-theme-radius-md: 8px;
+    --ft-theme-radius-lg: 9px;
+    --ft-theme-radius-xl: 12px;
+    --ft-theme-radius-2xl: 14px;
+    --ft-theme-radius-pill: 999px;
+    --ft-theme-shadow-xs: 0 1px 2px rgb(15 35 65 / 0.04);
+    --ft-theme-shadow-sm: 0 2px 8px rgb(20 40 60 / 0.09);
+    --ft-theme-shadow-md: 0 8px 28px rgb(10 33 57 / 0.08);
+    --ft-theme-shadow-lg: 0 12px 32px rgb(15 35 65 / 0.12);
+    --ft-theme-transition-fast: 120ms ease;
+    --ft-theme-transition-normal: 180ms ease;
+
+    /* Application shell */
+    --ft-theme-topbar-height: 68px;
+    --ft-theme-content-max-width: 1650px;
+    --ft-theme-content-padding: 24px;
+
+    /* Sidebar — same dark shell, Dashboard teal interaction color */
+    --ft-theme-sidebar-width: 270px;
+    --ft-theme-sidebar-bg: #07192b;
+    --ft-theme-sidebar-bg-bottom: #0a2036;
+    --ft-theme-sidebar-text: #d7e2ef;
+    --ft-theme-sidebar-text-strong: #ffffff;
+    --ft-theme-sidebar-muted: #8da0b7;
+    --ft-theme-sidebar-section: #8094ad;
+    --ft-theme-sidebar-line: #27415c;
+    --ft-theme-sidebar-line-soft: #28415c;
+    --ft-theme-sidebar-hover: rgb(37 76 113 / 0.42);
+    --ft-theme-sidebar-group-hover: rgb(17 49 78 / 0.54);
+    --ft-theme-sidebar-active: var(--ft-theme-primary);
+    --ft-theme-sidebar-active-hover: var(--ft-theme-primary-hover);
+    --ft-theme-sidebar-active-shadow: rgb(0 125 112 / 0.28);
+    --ft-theme-sidebar-child-active: rgb(0 125 112 / 0.24);
+    --ft-theme-sidebar-badge-bg: #294d70;
+    --ft-theme-sidebar-footer-bg: #0a2036;
+    --ft-theme-sidebar-logout-bg: #102b45;
+    --ft-theme-sidebar-logout-hover: #173956;
+    --ft-theme-sidebar-scrollbar: #31506f;
+    --ft-theme-sidebar-item-height: 38px;
+    --ft-theme-sidebar-child-height: 31px;
+    --ft-theme-sidebar-item-radius: 7px;
+    --ft-theme-sidebar-item-font-size: .8125rem;
+    --ft-theme-sidebar-child-font-size: .78125rem;
+    --ft-theme-sidebar-section-font-size: .59375rem;
+
+    /* Advanced component compatibility palette.
+     * These values keep every static color in this one settings file while
+     * migrated Dashboard/sidebar components consume named variables only. */
+    --ft-theme-compat-hex-aebdcb: #aebdcb;
+    --ft-theme-compat-hex-76aaa2: #76aaa2;
+    --ft-theme-compat-hex-20b985: #20b985;
+    --ft-theme-compat-hex-e5f8f1: #e5f8f1;
+    --ft-theme-compat-hex-0f8f8a: #0f8f8a;
+    --ft-theme-compat-hex-edf9f8: #edf9f8;
+    --ft-theme-compat-hex-dbe3ed: #dbe3ed;
+    --ft-theme-compat-hex-172033: #172033;
+    --ft-theme-compat-hex-cad6e5: #cad6e5;
+    --ft-theme-compat-hex-526174: #526174;
+    --ft-theme-compat-hex-f2f4f7: #f2f4f7;
+    --ft-theme-compat-hex-147d88: #147d88;
+    --ft-theme-compat-hex-edf9fa: #edf9fa;
+    --ft-theme-compat-hex-c47a00: #c47a00;
+    --ft-theme-compat-hex-fff7e8: #fff7e8;
+    --ft-theme-compat-hex-21823b: #21823b;
+    --ft-theme-compat-hex-eef9f0: #eef9f0;
+    --ft-theme-compat-hex-c82424: #c82424;
+    --ft-theme-compat-hex-fff0f0: #fff0f0;
+    --ft-theme-compat-hex-7253c9: #7253c9;
+    --ft-theme-compat-hex-f4f0ff: #f4f0ff;
+    --ft-theme-compat-hex-344155: #344155;
+    --ft-theme-compat-hex-e5e7eb: #e5e7eb;
+    --ft-theme-compat-hex-6b788c: #6b788c;
+    --ft-theme-compat-hex-edf2f5: #edf2f5;
+    --ft-theme-compat-hex-3f7cf7: #3f7cf7;
+    --ft-theme-compat-hex-e8a526: #e8a526;
+    --ft-theme-compat-hex-e8edf2: #e8edf2;
+    --ft-theme-compat-hex-fbfcfd: #fbfcfd;
+    --ft-theme-compat-hex-215fbd: #215fbd;
+    --ft-theme-compat-hex-eaf2ff: #eaf2ff;
+    --ft-theme-compat-hex-59697b: #59697b;
+    --ft-theme-compat-hex-eef2f5: #eef2f5;
+    --ft-theme-compat-hex-f7fafc: #f7fafc;
+    --ft-theme-compat-hex-e8edf3: #e8edf3;
+    --ft-theme-compat-hex-edf1f4: #edf1f4;
+    --ft-theme-compat-hex-fafbfd: #fafbfd;
+    --ft-theme-compat-hex-125cba: #125cba;
+    --ft-theme-compat-hex-f3fbfa: #f3fbfa;
+    --ft-theme-compat-hex-9aa8b8: #9aa8b8;
+    --ft-theme-compat-hex-f7f9fb: #f7f9fb;
+    --ft-theme-compat-hex-d8e1ec: #d8e1ec;
+    --ft-theme-compat-hex-52627a: #52627a;
+    --ft-theme-compat-hex-bfd0f5: #bfd0f5;
+    --ft-theme-compat-hex-eef4ff: #eef4ff;
+    --ft-theme-compat-hex-155ce9: #155ce9;
+    --ft-theme-compat-hex-fafcfd: #fafcfd;
+    --ft-theme-compat-hex-9eb9dc: #9eb9dc;
+    --ft-theme-compat-hex-dbe3eb: #dbe3eb;
+    --ft-theme-compat-hex-dce4eb: #dce4eb;
+    --ft-theme-compat-hex-f0d7a8: #f0d7a8;
+    --ft-theme-compat-hex-f2c8c5: #f2c8c5;
+    --ft-theme-compat-hex-bfe2d1: #bfe2d1;
+    --ft-theme-compat-hex-e8f7f4: #e8f7f4;
+    --ft-theme-compat-hex-128775: #128775;
+    --ft-theme-compat-hex-315f9f: #315f9f;
+    --ft-theme-compat-hex-e9eef3: #e9eef3;
+    --ft-theme-compat-hex-94a3b8: #94a3b8;
+    --ft-theme-compat-hex-d8e0e8: #d8e0e8;
+    --ft-theme-compat-hex-e7ebef: #e7ebef;
+    --ft-theme-compat-hex-14243a: #14243a;
+    --ft-theme-compat-hex-64748b: #64748b;
+    --ft-theme-compat-hex-efd08a: #efd08a;
+    --ft-theme-compat-hex-a76a00: #a76a00;
+    --ft-theme-compat-hex-60718a: #60718a;
+    --ft-theme-compat-hex-465d7b: #465d7b;
+    --ft-theme-compat-hex-07977e: #07977e;
+    --ft-theme-compat-hex-e9edf2: #e9edf2;
+    --ft-theme-compat-hex-f5a000: #f5a000;
+    --ft-theme-compat-hex-ef3f46: #ef3f46;
+    --ft-theme-compat-hex-2f80ed: #2f80ed;
+    --ft-theme-compat-hex-66768e: #66768e;
+    --ft-theme-compat-hex-f0ad2b: #f0ad2b;
+    --ft-theme-compat-hex-7568a8: #7568a8;
+    --ft-theme-compat-hex-7e779d: #7e779d;
+    --ft-theme-compat-hex-fff7e6: #fff7e6;
+    --ft-theme-compat-hex-d69712: #d69712;
+    --ft-theme-compat-hex-e5f6f2: #e5f6f2;
+    --ft-theme-compat-hex-fff3dc: #fff3dc;
+    --ft-theme-compat-hex-d18b00: #d18b00;
+    --ft-theme-compat-hex-eef6f5: #eef6f5;
+    --ft-theme-compat-hex-e5f5f1: #e5f5f1;
+    --ft-theme-compat-hex-e5ebf1: #e5ebf1;
+    --ft-theme-compat-hex-586b86: #586b86;
+    --ft-theme-compat-hex-fbfdfd: #fbfdfd;
+    --ft-theme-compat-hex-23b8b0: #23b8b0;
+    --ft-theme-compat-hex-3c4d66: #3c4d66;
+    --ft-theme-compat-hex-60738e: #60738e;
+    --ft-theme-compat-hex-edf9f7: #edf9f7;
+    --ft-theme-compat-hex-cfdcf0: #cfdcf0;
+    --ft-theme-compat-hex-9cb9ec: #9cb9ec;
+    --ft-theme-compat-hex-f7faff: #f7faff;
+    --ft-theme-compat-rgb-a-20-40-60-09: rgba(20, 40, 60, .09);
+    --ft-theme-compat-rgb-a-63-124-247-08: rgba(63, 124, 247, .08);
+    --ft-theme-compat-rgb-a-247-191-66-08: rgba(247, 191, 66, .08);
+    --ft-theme-compat-rgb-a-19-35-55-025: rgba(19, 35, 55, .025);
+    --ft-theme-compat-rgb-a-0-125-112-38: rgba(0, 125, 112, .38);
+    --ft-theme-compat-rgb-a-0-128-116-55: rgba(0, 128, 116, .55);
+    --ft-theme-compat-rgb-7-25-43-18: rgb(7 25 43 / .18);
+}

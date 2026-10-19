@@ -1,0 +1,170 @@
+{
+    "schema": 1,
+    "source": "approved Phase 0 snapshot before Phase 1 token extraction",
+    "policy": "non_increasing_debt",
+    "note": "Existing legacy CSS may shrink. Bytes, !important and hard-coded color counts must not exceed these ceilings. New public/css stylesheets are prohibited.",
+    "files": {
+        "resources/css/flowtrack.css": {
+            "bytes": 598980,
+            "important": 1236,
+            "hex_colors": 2887,
+            "sha256": "8d22ca401adb227a444234814cf5c74c7264c52e1ca181271ea3da18c31988bd"
+        },
+        "resources/css/login.css": {
+            "bytes": 5767,
+            "important": 0,
+            "hex_colors": 27,
+            "sha256": "72494ceeab96e2f93511d7032ecfca017dd528b1136626c03a04b7b9e2c9a27d"
+        },
+        "resources/css/components/management-theme.css": {
+            "bytes": 68767,
+            "important": 29,
+            "hex_colors": 185,
+            "sha256": "b1b4c8605926d8dffe5ecad5f98e77ff236e53c3940f899045a18d00353312d6"
+        },
+        "public/css/flowtrack-attachment-auto-upload.css": {
+            "bytes": 1410,
+            "important": 7,
+            "hex_colors": 10,
+            "sha256": "43262f249a3f33acf4d6d9996a0e4494edc62d50d90533e2b99a4f71ac606d3b"
+        },
+        "public/css/flowtrack-bulk-order-import.css": {
+            "bytes": 20156,
+            "important": 6,
+            "hex_colors": 84,
+            "sha256": "46dcdb77a88a20d66e3a465ef745adc246d7650d317e293c290e578b18471d33"
+        },
+        "public/css/flowtrack-client-logo.css": {
+            "bytes": 3789,
+            "important": 4,
+            "hex_colors": 21,
+            "sha256": "f1a8347c115e95969fa91ea667be335d5f37abd6bbe4efa5e07fbb80862be776"
+        },
+        "public/css/flowtrack-client-validation-focus.css": {
+            "bytes": 2308,
+            "important": 4,
+            "hex_colors": 5,
+            "sha256": "b70111ba7e26876342a5a5bf5a4b0653fe2a3c26384bb1fb79627fa9c7e307cd"
+        },
+        "public/css/flowtrack-create-order.css": {
+            "bytes": 10839,
+            "important": 58,
+            "hex_colors": 58,
+            "sha256": "5f4a993a2e8888bf7d59453f48909b17d7409e0133b6dfdc067a5b1921987d5c"
+        },
+        "public/css/flowtrack-dashboard-prototype.css": {
+            "bytes": 27198,
+            "important": 7,
+            "hex_colors": 84,
+            "sha256": "2e6ebeaaa3659bbae00e1147b17cb02ea5041e1eb98f1750ac2f0155bb3af053"
+        },
+        "public/css/flowtrack-documents-archive.css": {
+            "bytes": 19115,
+            "important": 17,
+            "hex_colors": 122,
+            "sha256": "45e1538889bd39656cce370df4374c1f11f9c9669ec5dfef5f6737321d207143"
+        },
+        "public/css/flowtrack-inline-editing.css": {
+            "bytes": 15665,
+            "important": 14,
+            "hex_colors": 58,
+            "sha256": "792cfe468d7e50e32d5c0b0e8f60dbe2b17a3e7c1b0364117cccfe27a3af0926"
+        },
+        "public/css/flowtrack-inquiries.css": {
+            "bytes": 321441,
+            "important": 588,
+            "hex_colors": 875,
+            "sha256": "8c8690ec47f7db0dff3e76fd66a2fa5ff9626d0fc1fddef51d803f62c7970d79"
+        },
+        "public/css/flowtrack-inquiry-intelligence.css": {
+            "bytes": 21265,
+            "important": 11,
+            "hex_colors": 93,
+            "sha256": "ae3c642f54dab81c6dc566c17e16f657612b0d664aa7de72a3b29cc7c61cf944"
+        },
+        "public/css/flowtrack-list-filters.css": {
+            "bytes": 20319,
+            "important": 33,
+            "hex_colors": 61,
+            "sha256": "5501fabadc2c11012b8a803b9e4745c8b9fa408c5585347ff6a717a30a69e071"
+        },
+        "public/css/flowtrack-management-theme.css": {
+            "bytes": 54014,
+            "important": 29,
+            "hex_colors": 185,
+            "sha256": "af663ed264190b44ca7f48123eca880c6e236cb90eee2154082c0d33e37aa4b1"
+        },
+        "public/css/flowtrack-master-colors.css": {
+            "bytes": 6953,
+            "important": 55,
+            "hex_colors": 50,
+            "sha256": "106c7b13f8590975fc9b55b8e8269fb2c232cc862ddf433f6ae22508fbda5dd5"
+        },
+        "public/css/flowtrack-master-data.css": {
+            "bytes": 129057,
+            "important": 166,
+            "hex_colors": 644,
+            "sha256": "23af6cd36ffee621b98436dd67ea79dc14169c746918202d178700649810a95b"
+        },
+        "public/css/flowtrack-my-work.css": {
+            "bytes": 51412,
+            "important": 6,
+            "hex_colors": 181,
+            "sha256": "7d2b7a921d29a9a424b1c2c7696c33cd7cab97ed5995fbc1300987dad2f4a1e2"
+        },
+        "public/css/flowtrack-order-create-products.css": {
+            "bytes": 33585,
+            "important": 7,
+            "hex_colors": 132,
+            "sha256": "7a84c82991256f4c1449d8afe808dd708f8a02aa677fb225975315b24ebc8511"
+        },
+        "public/css/flowtrack-order-detail-header.css": {
+            "bytes": 14974,
+            "important": 8,
+            "hex_colors": 53,
+            "sha256": "c960bb4001c635a19fbfe3cd459473a15706eabf6fb5de4af3df0684b4ee4559"
+        },
+        "public/css/flowtrack-order-document-upload.css": {
+            "bytes": 13620,
+            "important": 11,
+            "hex_colors": 72,
+            "sha256": "0699684a8fdf39e6143d83a318411097e3f8a2d24378fdbceeecfb7c1815ba40"
+        },
+        "public/css/flowtrack-order-finance.css": {
+            "bytes": 29617,
+            "important": 21,
+            "hex_colors": 203,
+            "sha256": "7080fc624448c6b669e0bd453df912d8f4cbd715c39140c73f033a2ccb31f61a"
+        },
+        "public/css/flowtrack-order-products-detail.css": {
+            "bytes": 18287,
+            "important": 8,
+            "hex_colors": 73,
+            "sha256": "a781e94df591f2d15d6353ec4a827d41db9db8f8e248d09bbf0bbdf0c54dd662"
+        },
+        "public/css/flowtrack-product-categories.css": {
+            "bytes": 20146,
+            "important": 43,
+            "hex_colors": 152,
+            "sha256": "a0e83eeddd050755256e36a56880ca1813b434d1b5cf189e77ed7694d7ec2f4e"
+        },
+        "public/css/flowtrack-sidebar-template.css": {
+            "bytes": 6065,
+            "important": 2,
+            "hex_colors": 36,
+            "sha256": "4572daf8876f36d43580111e49ba1bd7e3f67138dee797b5ebde1327fb11699f"
+        },
+        "public/css/flowtrack-task-detail-attachments.css": {
+            "bytes": 2415,
+            "important": 0,
+            "hex_colors": 11,
+            "sha256": "ce8dc069b771c312a67ee26bd0ea06873f475c14f5c982e268830c4c760a2d18"
+        },
+        "public/css/flowtrack-user-editor.css": {
+            "bytes": 13503,
+            "important": 37,
+            "hex_colors": 104,
+            "sha256": "188c5189005911de8c4679c652d33f77113f7a2013a1614534b35111fa33b148"
+        }
+    }
+}

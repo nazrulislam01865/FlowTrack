@@ -1,0 +1,618 @@
+/* Add / edit / details modal */
+.ft-order-prototype-detail .ft-ms-modal-backdrop {
+    position: fixed;
+    z-index: 1200;
+    inset: 0;
+    background: rgba(20, 30, 43, .48);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.ft-order-prototype-detail .ft-ms-modal {
+    width: min(720px, calc(100vw - 48px));
+    max-height: calc(100vh - 48px);
+    overflow: visible;
+    border: 1px solid #d9e1ea;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 22px 65px rgba(20, 32, 49, .24);
+    color: var(--ms-text);
+}
+
+.ft-order-prototype-detail .ft-ms-modal--details {
+    width: min(620px, calc(100vw - 48px));
+}
+
+.ft-order-prototype-detail .ft-ms-modal__head {
+    padding: 17px 22px 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.ft-order-prototype-detail .ft-ms-modal__head h2 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.15;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-ms-modal__head p {
+    margin: 4px 0 0;
+    color: #667892;
+    font-size: 11px;
+}
+
+.ft-order-prototype-detail .ft-ms-modal__close {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    background: transparent;
+    color: #41536e;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-modal__modes {
+    margin: 0 22px;
+    padding: 0 11px;
+    min-height: 43px;
+    border: 1px solid #dce5ef;
+    border-radius: 7px;
+    gap: 40px;
+}
+
+.ft-order-prototype-detail .ft-ms-modal__body {
+    padding: 16px 22px 18px;
+    max-height: calc(100vh - 230px);
+    overflow-y: auto;
+    overflow-x: visible;
+}
+
+.ft-order-prototype-detail .ft-ms-same-address {
+    min-height: 72px;
+    margin-bottom: 18px;
+    border: 1px solid #d4ebe6;
+    border-radius: 6px;
+    background: #f0faf7;
+    padding: 11px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+}
+
+.ft-order-prototype-detail .ft-ms-same-address > svg {
+    width: 18px;
+    height: 18px;
+    color: var(--ms-green);
+    flex: 0 0 18px;
+    margin-top: 2px;
+}
+
+.ft-order-prototype-detail .ft-ms-same-address strong {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-ms-same-address p,
+.ft-order-prototype-detail .ft-ms-same-address small {
+    margin: 3px 0 0;
+    font-size: 10px;
+    color: #42536c;
+}
+
+.ft-order-prototype-detail .ft-ms-same-address p span {
+    padding: 0 5px;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid {
+    display: grid;
+    gap: 14px;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid--two {
+    grid-template-columns: 1fr 1fr;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid--address {
+    grid-template-columns: .9fr 1fr .9fr 1fr;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid--shipping {
+    grid-template-columns: .62fr .72fr 1fr 1.22fr;
+    align-items: start;
+    margin-top: 16px;
+}
+
+.ft-order-prototype-detail .ft-ms-field {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 12px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid .ft-ms-field {
+    margin-bottom: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-field > span {
+    color: #5c6d86;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .04em;
+}
+
+.ft-order-prototype-detail .ft-ms-field > span .ft-ms-required {
+    color: #dc2626;
+    font-weight: 900;
+}
+
+.ft-order-prototype-detail .ft-ms-field input,
+.ft-order-prototype-detail .ft-ms-field select {
+    width: 100%;
+    min-height: 37px;
+    border: 1px solid #cedae8;
+    border-radius: 6px;
+    background: #fff;
+    padding: 0 10px;
+    color: var(--ms-text);
+    font-size: 11px;
+    outline: none;
+}
+
+.ft-order-prototype-detail .ft-ms-field input:focus,
+.ft-order-prototype-detail .ft-ms-field select:focus {
+    border-color: var(--ms-green);
+    box-shadow: 0 0 0 2px rgba(0, 139, 122, .08);
+}
+
+.ft-order-prototype-detail .ft-ms-field input[readonly] {
+    background: #fbfcfe;
+}
+
+.ft-order-prototype-detail .ft-ms-add-address {
+    border: 0;
+    background: transparent;
+    color: var(--ms-green);
+    padding: 8px 0 0;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-modal__footer {
+    padding: 14px 22px 18px;
+    border-top: 1px solid #e3e9f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.ft-order-prototype-detail .ft-ms-modal__footer .ft-ms-outline-btn,
+.ft-order-prototype-detail .ft-ms-modal__footer .ft-ms-primary-btn {
+    min-height: 38px;
+    min-width: 102px;
+}
+
+.ft-order-prototype-detail .ft-ms-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-details-grid > div {
+    border: 1px solid #e1e8f0;
+    border-radius: 7px;
+    padding: 10px 12px;
+}
+
+.ft-order-prototype-detail .ft-ms-details-grid > div.is-wide {
+    grid-column: 1 / -1;
+}
+
+.ft-order-prototype-detail .ft-ms-details-grid dt {
+    color: #65758c;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.ft-order-prototype-detail .ft-ms-details-grid dd {
+    margin: 4px 0 0;
+    color: var(--ms-text);
+    font-size: 11px;
+    font-weight: 650;
+}
+
+
+@media (max-width: 860px) {
+    .ft-order-prototype-detail .ft-ms-modal__modes {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .ft-order-prototype-detail .ft-ms-form-grid--address,
+    .ft-order-prototype-detail .ft-ms-form-grid--shipping { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 600px) {
+    .ft-order-prototype-detail .ft-ms-modal-backdrop {
+        padding: 10px;
+        align-items: flex-start;
+    }
+    .ft-order-prototype-detail .ft-ms-modal {
+        width: 100%;
+        max-height: calc(100vh - 20px);
+        margin-top: 0;
+    }
+    .ft-order-prototype-detail .ft-ms-form-grid--two,
+    .ft-order-prototype-detail .ft-ms-form-grid--address,
+    .ft-order-prototype-detail .ft-ms-form-grid--shipping,
+    .ft-order-prototype-detail .ft-ms-details-grid { grid-template-columns: 1fr; }
+    .ft-order-prototype-detail .ft-ms-details-grid > div.is-wide { grid-column: auto; }
+}
+
+/* Keep the shipment service row labels on one baseline so all controls align. */
+.ft-order-prototype-detail .ft-ms-form-grid--shipping .ft-ms-field > span {
+    white-space: nowrap;
+    font-size: 8.5px;
+    line-height: 1.2;
+}
+
+/* Keep shipment address validation feedback directly aligned under its field. */
+.ft-order-prototype-detail .ft-ms-form-grid--address .validation-error{
+    width:100%;
+    margin:0;
+    line-height:1.2;
+    text-align:left;
+    overflow-wrap:normal;
+    word-break:normal;
+}
+
+/* Keep validation feedback in a dedicated row so errors never move sibling
+   controls or make the next shipment row look misaligned. */
+.ft-order-prototype-detail .ft-ms-validation-slot {
+    display: block;
+    width: 100%;
+    min-height: 16px;
+    margin: 0;
+    color: #dc2626;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: left;
+    overflow-wrap: break-word;
+}
+
+.ft-order-prototype-detail .ft-ms-validation-slot:empty {
+    visibility: hidden;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid--two {
+    margin-bottom: 14px;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid--address,
+.ft-order-prototype-detail .ft-ms-form-grid--shipping {
+    align-items: start;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid--address .ft-ms-field,
+.ft-order-prototype-detail .ft-ms-form-grid--shipping .ft-ms-field {
+    grid-template-rows: auto minmax(37px, auto) 16px;
+    align-content: start;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid--address .ft-ms-field > .ft-ms-field-hint {
+    grid-row: 3;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid--address .ft-ms-field > .ft-ms-field-hint + .ft-ms-validation-slot {
+    grid-row: 4;
+}
+
+.ft-order-prototype-detail .ft-ms-form-grid--shipping {
+    margin-top: 14px;
+}
+
+@media (max-width: 600px) {
+    .ft-order-prototype-detail .ft-ms-validation-slot {
+        min-height: 15px;
+    }
+
+    .ft-order-prototype-detail .ft-ms-form-grid--two {
+        margin-bottom: 10px;
+    }
+}
+
+/* 2026-09-14 — Shipment-stage address fields use the centralized Create Order
+ * form contract without changing the existing Shipment modal shell, size,
+ * header, footer, scrolling, or positioning. */
+.ft-order-prototype-detail .ft-ms-shipment-address-form {
+    display: grid;
+    gap: 14px;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-primary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-block {
+    display: grid;
+    gap: 10px;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-field {
+    min-width: 0;
+    gap: 6px;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-field > b {
+    margin: 0;
+    color: var(--ft-form-label-color);
+    font-size: var(--ft-form-label-size);
+    font-weight: var(--ft-form-label-weight);
+    line-height: 1.2;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-form .ft-order-required-star {
+    color: #dc2626;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-field > input,
+.ft-order-prototype-detail .ft-ms-shipment-phone-number > input {
+    width: 100%;
+    min-height: var(--ft-form-control-height);
+    height: var(--ft-form-control-height);
+    padding: 0 12px;
+    border: 1px solid var(--ft-form-control-border);
+    border-radius: var(--ft-form-control-radius);
+    background: #fff;
+    color: var(--ft-form-control-color);
+    font-family: inherit;
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+    outline: 0;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-field > input:focus,
+.ft-order-prototype-detail .ft-ms-shipment-phone-number > input:focus {
+    border-color: var(--ft-focus-border, #58a99f);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-field > input::placeholder,
+.ft-order-prototype-detail .ft-ms-shipment-phone-number > input::placeholder {
+    color: var(--ft-form-placeholder-color);
+    opacity: 1;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-phone-row {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-phone-control {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-phone-code-select {
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-phone-code-select .ft-search-select__trigger {
+    width: 100%;
+    min-height: var(--ft-form-control-height);
+    height: var(--ft-form-control-height);
+    padding: 0 9px 0 10px;
+    border-color: var(--ft-form-control-border);
+    border-radius: var(--ft-form-control-radius);
+    background: #fff;
+    color: var(--ft-form-control-color);
+    font-family: inherit;
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-phone-code-select .ft-search-select__trigger:hover:not(:disabled),
+.ft-order-prototype-detail .ft-ms-shipment-phone-code-select .ft-search-select__trigger[aria-expanded="true"],
+.ft-order-prototype-detail .ft-ms-shipment-phone-code-select .ft-search-select__trigger:focus-visible {
+    border-color: var(--ft-focus-border, #58a99f);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+    outline: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-phone-code-select .ft-search-select__value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-input-field {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-input-field > b {
+    grid-column: 1;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-saved-address {
+    grid-column: 2;
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 11px;
+    border: 1px solid var(--ft-theme-primary);
+    border-radius: var(--ft-form-control-radius);
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-family: inherit;
+    font-size: var(--ft-form-button-size);
+    font-weight: var(--ft-form-button-weight);
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-saved-address:hover,
+.ft-order-prototype-detail .ft-ms-shipment-saved-address:focus-visible {
+    background: var(--ft-theme-primary-soft);
+    outline: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-saved-address svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-input,
+.ft-order-prototype-detail .ft-ms-shipment-address-error {
+    grid-column: 1 / -1;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-postal-field {
+    margin-top: 1px;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-address-form .validation-error {
+    display: block;
+    margin-top: 4px;
+    color: #dc2626;
+    font-size: var(--ft-form-helper-size);
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.ft-order-prototype-detail .ft-ms-same-address--compact {
+    margin: 0;
+    min-height: 72px;
+    align-items: center;
+}
+
+.ft-order-prototype-detail .ft-ms-same-address__copy {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.ft-order-prototype-detail .ft-ms-use-different-address {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0 11px;
+    border: 1px solid var(--ft-theme-primary);
+    border-radius: var(--ft-theme-form-control-radius);
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-family: var(--ft-theme-font-family);
+    font-size: var(--ft-theme-form-button-size);
+    font-weight: var(--ft-theme-form-button-weight);
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-use-different-address:hover,
+.ft-order-prototype-detail .ft-ms-use-different-address:focus-visible {
+    background: var(--ft-theme-primary-soft);
+    outline: 0;
+}
+
+
+/* Shipping method stays inside the existing Shipment modal and uses the same
+ * centralized field sizing/typography as the Create Order shipment fields. */
+.ft-order-prototype-detail .ft-ms-shipment-method-field {
+    margin-top: 14px;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-method-field .ft-ms-method__trigger {
+    min-height: var(--ft-form-control-height);
+    height: var(--ft-form-control-height);
+    padding: 0 12px;
+    border-color: var(--ft-form-control-border);
+    border-radius: var(--ft-form-control-radius);
+    background: #fff;
+    color: var(--ft-form-control-color);
+    font-family: inherit;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-method-field .ft-ms-method__trigger.is-open,
+.ft-order-prototype-detail .ft-ms-shipment-method-field .ft-ms-method__trigger:focus-visible {
+    border-color: var(--ft-focus-border, #58a99f);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-method-field .ft-ms-method__copy strong {
+    color: var(--ft-form-control-color);
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+    line-height: 1.2;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-method-field .ft-ms-method__icon {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-method-field .ft-ms-method__icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Saved-address picker stays above the Shipment modal. */
+.ft-order-prototype-detail .ft-ms-saved-address-overlay {
+    z-index: 1290 !important;
+}
+
+.ft-order-prototype-detail .ft-ms-saved-address-modal {
+    z-index: 1300 !important;
+    font-family: var(--ft-theme-font-family);
+}
+
+@media (max-width: 700px) {
+    .ft-order-prototype-detail .ft-ms-shipment-address-primary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-ms-shipment-phone-row {
+        grid-template-columns: 92px minmax(0, 1fr);
+    }
+
+    .ft-order-prototype-detail .ft-ms-shipment-address-input-field {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-ms-shipment-address-input-field > b,
+    .ft-order-prototype-detail .ft-ms-shipment-saved-address,
+    .ft-order-prototype-detail .ft-ms-shipment-address-input,
+    .ft-order-prototype-detail .ft-ms-shipment-address-error {
+        grid-column: 1;
+    }
+
+    .ft-order-prototype-detail .ft-ms-shipment-saved-address {
+        justify-self: start;
+    }
+
+    .ft-order-prototype-detail .ft-ms-same-address--compact {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .ft-order-prototype-detail .ft-ms-use-different-address {
+        width: 100%;
+    }
+}

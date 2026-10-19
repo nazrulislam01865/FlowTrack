@@ -1,0 +1,1005 @@
+/** Application CSS segment 17: shipping-addresses. Source-preserving split of the former monolith. */
+/* Shipping address prototype used by Client create/edit. */
+.ft-client-shipping-prototype {
+    background: #fff
+}
+
+.ft-shipping-prototype-list {
+    display: grid;
+    gap: 16px
+}
+
+.ft-shipping-prototype-address {
+    min-width: 0
+}
+
+.ft-shipping-prototype-address+.ft-shipping-prototype-address {
+    padding-top: 18px;
+    border-top: 1px solid var(--ft-form-border, #d2deeb)
+}
+
+.ft-shipping-prototype-address-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    color: var(--ft-form-text, #14233d);
+    font-size: .65625rem;
+    font-weight: 800
+}
+
+.ft-shipping-prototype-remove {
+    border: 0;
+    background: transparent;
+    color: var(--ft-form-danger, #d83d43);
+    padding: 3px 0;
+    font-size: .59375rem;
+    font-weight: 750;
+    cursor: pointer
+}
+
+.ft-shipping-prototype-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 15px 24px;
+}
+
+.ft-shipping-prototype-grid>.ft-theme-field:nth-child(1),
+.ft-shipping-prototype-grid>.ft-theme-field:nth-child(2) {
+    grid-column: span 3
+}
+
+.ft-shipping-prototype-grid>.ft-theme-field:nth-child(3),
+.ft-shipping-prototype-grid>.ft-theme-field:nth-child(4) {
+    grid-column: 1/-1
+}
+
+.ft-shipping-prototype-grid>.ft-theme-field:nth-child(5),
+.ft-shipping-prototype-grid>.ft-theme-field:nth-child(6),
+.ft-shipping-prototype-grid>.ft-theme-field:nth-child(7) {
+    grid-column: span 2
+}
+
+.ft-shipping-prototype-line2 {
+    margin-top: 13px
+}
+
+.ft-shipping-prototype-line2 button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: var(--ft-form-accent-strong, var(--ft-theme-primary));
+    font-size: .65625rem;
+    font-weight: 750;
+    cursor: pointer
+}
+
+.ft-shipping-prototype-line2 button>span {
+    font-size: 1.0625rem;
+    font-weight: 400;
+    line-height: 1
+}
+
+.ft-shipping-prototype-save-row {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--ft-form-border, #d2deeb)
+}
+
+.ft-shipping-prototype-save {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    width: max-content;
+    max-width: 100%
+}
+
+.ft-shipping-prototype-save>input {
+    width: 17px;
+    height: 17px;
+    margin: 1px 0 0;
+    accent-color: var(--ft-form-accent, var(--ft-theme-primary))
+}
+
+.ft-shipping-prototype-save>span {
+    display: grid;
+    gap: 2px
+}
+
+.ft-shipping-prototype-save b {
+    color: var(--ft-form-text, #14233d);
+    font-size: .65625rem;
+    font-weight: 750;
+    line-height: 1.25
+}
+
+.ft-shipping-prototype-save small {
+    color: var(--ft-form-muted, #61738d);
+    font-size: .59375rem;
+    line-height: 1.25
+}
+
+.ft-shipping-prototype-add {
+    margin-top: 16px;
+    border: 0;
+    background: transparent;
+    color: var(--ft-form-accent-strong, var(--ft-theme-primary));
+    padding: 0;
+    font-size: .65625rem;
+    font-weight: 750;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-shipping-prototype-add>span {
+    font-size: 1.0625rem;
+    font-weight: 400;
+    line-height: 1
+}
+
+@media(max-width:760px) {
+    .ft-form-section {
+        padding: 17px 14px 18px
+    }
+
+    .ft-form-section-header {
+        gap: 12px;
+        margin-bottom: 17px
+    }
+
+    .ft-form-step {
+        width: 31px;
+        height: 31px;
+        flex-basis: 31px;
+        font-size: .8125rem
+    }
+
+    .ft-form-section-title-row {
+        min-height: 31px;
+        flex-wrap: wrap;
+        gap: 7px
+    }
+
+    .ft-form-section-title-row h3 {
+        font-size: 1rem
+    }
+
+    .ft-form-section-copy>p {
+        font-size: .65625rem
+    }
+
+    .ft-form-outline-action {
+        min-height: 34px;
+        padding: 0 10px;
+        font-size: .59375rem
+    }
+
+    .ft-shipping-prototype-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas: none;
+        gap: 12px
+    }
+
+    .ft-shipping-prototype-grid>.ft-theme-field:nth-child(n) {
+        grid-column: 1;
+        grid-row: auto;
+        grid-area: auto
+    }
+}
+
+@media(max-width:520px) {
+    .ft-form-section-header {
+        flex-direction: column
+    }
+
+    .ft-form-section-action {
+        width: 100%
+    }
+
+    .ft-form-outline-action {
+        width: 100%
+    }
+
+    .ft-theme-field input,
+    .ft-theme-field select {
+        height: 42px
+    }
+}
+
+/* Client create/edit searchable selects reuse the shared assignee/filter popover.
+   Keep the closed controls aligned with the form prototype while the opened menu
+   uses the same search, option, selected and responsive behavior system-wide. */
+.ft-client-create-prototype .ft-form-search-select {
+    width: 100%;
+    min-width: 0;
+    font-size: .65625rem
+}
+
+.ft-client-create-prototype .ft-form-search-select .ft-remote-filter-button {
+    width: 100%;
+    height: 38px;
+    min-height: 38px;
+    border: 1px solid #cfdceb;
+    border-radius: 7px;
+    background: #fff;
+    color: #1f304a;
+    padding: 0 11px;
+    font: inherit;
+    font-weight: 550;
+    outline: 0;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .45);
+    transition: border-color .15s, box-shadow .15s, background .15s
+}
+
+.ft-client-create-prototype .ft-form-search-select .ft-remote-filter-button:hover:not(:disabled) {
+    border-color: #bfcfe0
+}
+
+.ft-client-create-prototype .ft-form-search-select .ft-remote-filter-button:focus-visible {
+    border-color: var(--ft-theme-primary-500);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-client-create-prototype .ft-form-search-select.is-disabled .ft-remote-filter-button {
+    background: #f5f7fa;
+    color: #8492a5;
+    cursor: not-allowed
+}
+
+.ft-client-create-prototype .ft-form-search-select .ft-filter-chevron {
+    font-size: .75rem;
+    color: #65768c
+}
+
+.ft-client-create-prototype .ft-form-search-select .ft-remote-filter-menu {
+    font-size: .6875rem
+}
+
+.ft-client-create-prototype .ft-form-search-select .ft-remote-filter-search {
+    min-height: 40px;
+    border-radius: 8px
+}
+
+.ft-client-create-prototype .ft-form-search-select .ft-remote-filter-option {
+    min-height: 38px
+}
+
+.ft-client-shipping-prototype .ft-theme-field .ft-form-search-select {
+    font-size: .71875rem
+}
+
+.ft-client-shipping-prototype .ft-theme-field .ft-form-search-select .ft-remote-filter-button {
+    height: 44px;
+    min-height: 44px;
+    border-color: var(--ft-form-border, #d2deeb);
+    border-radius: var(--ft-form-control-radius, 9px);
+    color: var(--ft-form-text, #14233d);
+    padding: 0 13px;
+    font-weight: 550
+}
+
+.ft-client-shipping-prototype .ft-theme-field .ft-form-search-select .ft-remote-filter-button:hover:not(:disabled) {
+    border-color: var(--ft-form-border-strong, #bfcfe0)
+}
+
+.ft-client-shipping-prototype .ft-theme-field .ft-form-search-select .ft-remote-filter-button:focus-visible {
+    border-color: var(--ft-form-accent, var(--ft-theme-primary));
+    box-shadow: var(--ft-form-focus)
+}
+
+@media(max-width:520px) {
+    .ft-client-shipping-prototype .ft-theme-field .ft-form-search-select .ft-remote-filter-button {
+        height: 42px;
+        min-height: 42px
+    }
+}
+
+/* Order detail shipping snapshot -------------------------------------------------
+   Full-width below Planning & ownership; optimistic inline editing follows the
+   same visual language as the existing Order overview controls. */
+.ft-exact-job-detail .ft-order-shipping-detail-card {
+    margin: 0 0 10px;
+    padding: 14px 16px;
+    border: 1px solid #dbe4ef;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(16, 40, 73, .025);
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 13px;
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-icon {
+    display: grid;
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary);
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-icon svg {
+    width: 17px;
+    height: 17px
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-heading h2 {
+    margin: 1px 0 2px;
+    color: #0b1d36;
+    font-size: .875rem;
+    line-height: 1.25
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-heading p {
+    margin: 0;
+    color: #6b7e97;
+    font-size: .625rem;
+    line-height: 1.45
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-hint {
+    flex: 0 0 auto;
+    padding: 4px 7px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 999px;
+    background: var(--ft-theme-surface-subtle);
+    color: #47627f;
+    font-size: .53125rem;
+    font-weight: 750;
+    letter-spacing: .01em;
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(260px, .75fr);
+    gap: 10px;
+    align-items: stretch;
+}
+
+.ft-exact-job-detail .ft-order-shipping-contact-stack {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-field {
+    position: relative;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid #e0e7f0;
+    border-radius: 10px;
+    background: var(--ft-theme-surface-subtle);
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-field:hover {
+    border-color: #cfdbeb;
+    background: #fff
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-field.is-inline-saving {
+    border-color: var(--ft-theme-primary-100);
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-field.is-inline-error {
+    border-color: #efb7b7;
+    background: #fffafa
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-label {
+    margin-bottom: 6px;
+    color: #6b7e97;
+    font-size: .53125rem;
+    font-weight: 800;
+    letter-spacing: .055em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-display {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 9px
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-display>span {
+    min-width: 0;
+    color: #18314f;
+    font-size: .6875rem;
+    font-weight: 700;
+    line-height: 1.45;
+    overflow-wrap: anywhere
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-display>span.is-empty {
+    color: #8a99ad;
+    font-weight: 600
+}
+
+.ft-exact-job-detail .ft-order-shipping-address-copy {
+    white-space: pre-line
+}
+
+.ft-exact-job-detail .ft-order-shipping-detail-display .ft-inline-edit-button {
+    flex: 0 0 auto;
+    margin-top: -2px
+}
+
+.ft-exact-job-detail .ft-order-shipping-inline-editor {
+    display: block;
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-order-shipping-inline-editor textarea,
+.ft-exact-job-detail .ft-order-shipping-inline-editor input,
+.ft-exact-job-detail .ft-order-shipping-inline-input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 1px solid #cdd9e8;
+    border-radius: 8px;
+    outline: 0;
+    background: #fff;
+    color: #102844;
+    font: inherit;
+    font-size: .65625rem;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.ft-exact-job-detail .ft-order-shipping-inline-editor textarea {
+    min-height: 92px;
+    padding: 9px 10px;
+    line-height: 1.5;
+    resize: vertical
+}
+
+.ft-exact-job-detail .ft-order-shipping-inline-editor input,
+.ft-exact-job-detail .ft-order-shipping-inline-input {
+    height: 34px;
+    padding: 0 10px
+}
+
+.ft-exact-job-detail .ft-order-shipping-inline-editor textarea:focus,
+.ft-exact-job-detail .ft-order-shipping-inline-editor input:focus,
+.ft-exact-job-detail .ft-order-shipping-inline-input:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-exact-job-detail .ft-order-shipping-inline-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 8px
+}
+
+.ft-exact-job-detail .ft-order-shipping-inline-actions button {
+    min-height: 28px;
+    padding: 0 9px;
+    border: 1px solid #cdd9e8;
+    border-radius: 7px;
+    background: #fff;
+    color: #425b78;
+    font-size: .5625rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.ft-exact-job-detail .ft-order-shipping-inline-actions .ft-order-shipping-inline-save {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+.ft-exact-job-detail .ft-order-shipping-inline-actions button:disabled {
+    cursor: default;
+    opacity: .55
+}
+
+.ft-exact-job-detail .ft-order-shipping-phone-editor-row {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 7px;
+    align-items: start;
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-order-shipping-phone-editor-row .ft-inline-remote-catalog {
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-order-shipping-phone-code-trigger {
+    display: flex;
+    width: 100%;
+    height: 34px;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 0 8px;
+    border: 1px solid #cdd9e8;
+    border-radius: 8px;
+    background: #fff;
+    color: #18314f;
+    font-size: .625rem;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.ft-exact-job-detail .ft-order-shipping-phone-code-trigger:hover,
+.ft-exact-job-detail .ft-order-shipping-phone-code-trigger[aria-expanded="true"] {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-exact-job-detail .ft-order-shipping-phone-code-trigger>span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+@media (max-width:900px) {
+    .ft-exact-job-detail .ft-order-shipping-detail-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-contact-stack {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto
+    }
+}
+
+@media (max-width:640px) {
+    .ft-exact-job-detail .ft-order-shipping-detail-card {
+        padding: 12px;
+        margin-bottom: 9px;
+        border-radius: 10px
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-detail-head {
+        gap: 9px;
+        margin-bottom: 10px
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-detail-icon {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-detail-heading h2 {
+        font-size: .8125rem
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-detail-hint {
+        display: none
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-contact-stack {
+        grid-template-columns: 1fr;
+        gap: 8px
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-detail-grid {
+        gap: 8px
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-detail-field {
+        padding: 10px
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-phone-editor-row {
+        grid-template-columns: minmax(92px, .36fr) minmax(0, 1fr)
+    }
+}
+
+@media (max-width:420px) {
+    .ft-exact-job-detail .ft-order-shipping-detail-heading p {
+        font-size: .5625rem
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-phone-editor-row {
+        grid-template-columns: 1fr
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-phone-code-trigger {
+        max-width: 150px
+    }
+}
+
+
+/* 2026-08-17 Order detail: shipping belongs directly under Planning & ownership.
+   Keep it as the same compact side-panel pattern instead of a full-width overview card. */
+.ft-exact-job-detail .ft-overview-side-stack {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+    flex-direction: column;
+    align-self: start;
+    gap: 10px;
+}
+
+.ft-exact-job-detail .ft-overview-side-stack>.ft-detail-card {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin-bottom: 0;
+    box-sizing: border-box;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel {
+    min-height: 0;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-side-row {
+    align-items: start;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-value {
+    width: 100%;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: flex-start !important;
+    text-align: left !important;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-copy {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.45;
+}
+
+.ft-exact-job-detail .ft-order-shipping-address-row .ft-order-shipping-side-copy {
+    white-space: pre-line !important;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-copy.is-empty {
+    color: #8a99ad;
+    font-weight: 650;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-inline-edit-button {
+    flex: 0 0 auto;
+    margin-top: -2px;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-inline-editor {
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-address-editor textarea {
+    min-height: 88px;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-editor-row {
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 6px;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-inline-actions {
+    margin-top: 6px;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-inline-actions button {
+    min-height: 26px;
+    padding: 0 8px;
+    font-size: .53125rem;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-inline-input {
+    width: 100%;
+}
+
+@media(max-width:980px) {
+    .ft-exact-job-detail .ft-overview-side-stack {
+        gap: 9px
+    }
+}
+
+@media(max-width:520px) {
+    .ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-editor-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-code-trigger {
+        max-width: 150px;
+    }
+}
+
+/* Order detail shipping phone editor: keep the label on the first line and
+   give the Master Data country-code picker + phone input the full second line. */
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing {
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 6px;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing>span:first-child,
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing>.ft-order-shipping-side-value {
+    grid-column: 1/-1;
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing>.ft-order-shipping-side-value {
+    display: block;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing .ft-order-shipping-phone-editor {
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing .ft-order-shipping-phone-editor-row {
+    grid-template-columns: minmax(96px, 118px) minmax(0, 1fr);
+    width: 100%;
+    gap: 7px;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing .ft-order-shipping-phone-code-trigger,
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing .ft-order-shipping-phone-editor-row input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing .ft-order-shipping-inline-actions {
+    justify-content: flex-end;
+}
+
+@media(max-width:420px) {
+    .ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing .ft-order-shipping-phone-editor-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-exact-job-detail .ft-order-shipping-side-panel .ft-order-shipping-phone-row.is-editing .ft-order-shipping-phone-code-trigger {
+        max-width: none;
+    }
+}
+
+/* Client shipping address alignment ------------------------------------------------
+   Keep the existing shipping fields/behavior, but use the same client-form
+   typography, control sizing and column rhythm as Office & billing address. */
+.ft-client-shipping-aligned-section .ft-client-section-title {
+    margin-bottom: 16px
+}
+
+.ft-client-shipping-saved-action {
+    height: 38px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid #cfdceb;
+    border-radius: 7px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, box-shadow .15s
+}
+
+.ft-client-shipping-saved-action svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px
+}
+
+.ft-client-shipping-saved-action:hover {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-client-shipping-saved-action:focus-visible {
+    outline: 0;
+    border-color: var(--ft-theme-primary-500);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-list {
+    gap: 14px
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-address+.ft-shipping-prototype-address {
+    padding-top: 16px;
+    border-top: 1px solid #dfe7f0
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-address-head {
+    margin-bottom: 12px;
+    color: #263955;
+    font-size: .625rem;
+    font-weight: 750
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-remove {
+    font-size: .59375rem;
+    font-weight: 700
+}
+
+.ft-shipping-aligned-grid {
+    grid-template-columns: 1.2fr 1.28fr 1fr
+}
+
+.ft-shipping-aligned-grid .ft-shipping-recipient-field {
+    grid-column: 1
+}
+
+.ft-shipping-aligned-grid .ft-shipping-country-field {
+    grid-column: 2 / span 2
+}
+
+.ft-shipping-aligned-grid .ft-shipping-address-line1-field {
+    grid-column: 1 / span 2
+}
+
+.ft-shipping-aligned-grid .ft-shipping-address-line2-field {
+    grid-column: 3
+}
+
+.ft-shipping-aligned-grid .ft-shipping-city-field {
+    grid-column: 1
+}
+
+.ft-shipping-aligned-grid .ft-shipping-state-field {
+    grid-column: 2
+}
+
+.ft-shipping-aligned-grid .ft-shipping-zip-field {
+    grid-column: 3
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-line2 {
+    margin-top: -3px
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-line2 button,
+.ft-client-shipping-aligned-section .ft-shipping-prototype-add {
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-weight: 650
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-line2 button>span,
+.ft-client-shipping-aligned-section .ft-shipping-prototype-add>span {
+    font-size: .9375rem
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-save-row {
+    margin-top: 13px;
+    padding-top: 13px;
+    border-top: 1px solid #dfe7f0
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-save {
+    gap: 8px
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-save>input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: var(--ft-theme-primary)
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-save>span {
+    gap: 1px
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-save b {
+    color: #263955;
+    font-size: .625rem;
+    font-weight: 600;
+    line-height: 1.25
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-save small {
+    color: #71829a;
+    font-size: .5625rem;
+    line-height: 1.25
+}
+
+.ft-client-shipping-aligned-section .ft-shipping-prototype-add {
+    margin-top: 14px
+}
+
+@media(max-width:1050px) {
+    .ft-shipping-aligned-grid {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-shipping-aligned-grid .ft-shipping-recipient-field {
+        grid-column: 1
+    }
+
+    .ft-shipping-aligned-grid .ft-shipping-country-field {
+        grid-column: 2
+    }
+
+    .ft-shipping-aligned-grid .ft-shipping-address-line1-field {
+        grid-column: 1
+    }
+
+    .ft-shipping-aligned-grid .ft-shipping-address-line2-field {
+        grid-column: 2
+    }
+
+    .ft-shipping-aligned-grid .ft-shipping-city-field {
+        grid-column: 1
+    }
+
+    .ft-shipping-aligned-grid .ft-shipping-state-field {
+        grid-column: 2
+    }
+
+    .ft-shipping-aligned-grid .ft-shipping-zip-field {
+        grid-column: 1
+    }
+}
+
+@media(max-width:760px) {
+    .ft-client-shipping-aligned-section .ft-client-section-title-spread {
+        gap: 10px
+    }
+
+    .ft-shipping-aligned-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-shipping-aligned-grid .ft-shipping-recipient-field,
+    .ft-shipping-aligned-grid .ft-shipping-country-field,
+    .ft-shipping-aligned-grid .ft-shipping-address-line1-field,
+    .ft-shipping-aligned-grid .ft-shipping-address-line2-field,
+    .ft-shipping-aligned-grid .ft-shipping-city-field,
+    .ft-shipping-aligned-grid .ft-shipping-state-field,
+    .ft-shipping-aligned-grid .ft-shipping-zip-field {
+        grid-column: 1
+    }
+}
+
+@media(max-width:520px) {
+    .ft-client-shipping-aligned-section .ft-client-section-title-spread {
+        flex-direction: column
+    }
+
+    .ft-client-shipping-saved-action {
+        width: 100%
+    }
+}
+

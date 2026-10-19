@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "policy": "one_time_theme_tokenization_non_increasing",
+  "reason": "Replacing legacy hard-coded blue/teal literals with centralized Dashboard theme variables increases source text length while reducing static color debt. Byte ceilings below are frozen at the tokenized result and are only valid while hard-coded hex counts remain at or below the recorded reduced ceilings.",
+  "files": {
+    "resources/css/flowtrack.css": {
+      "bytes": 613136,
+      "max_hex_colors": 2227,
+      "owner": "whole-system Dashboard theme migration"
+    },
+    "resources/css/login.css": {
+      "bytes": 5904,
+      "max_hex_colors": 22,
+      "owner": "whole-system Dashboard theme migration"
+    }
+  }
+}

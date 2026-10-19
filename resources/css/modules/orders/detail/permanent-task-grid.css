@@ -1,0 +1,948 @@
+/* ========================================================================== 
+   Order Details task-grid stability invariant - 2026-08-27
+
+   Earlier responsive layers mixed grid-area placement with later
+   grid-column:auto / grid-row:auto declarations. At specific workflow-card
+   widths those later declarations cancelled placement and allowed CSS Grid to
+   auto-place task cells. Keep this file as the final Order Details CSS import.
+   ========================================================================== */
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row {
+    display: grid !important;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: var(--ft-order-task-grid) !important;
+    grid-template-areas: none !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-icon {
+    grid-area: auto !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-copy {
+    grid-area: auto !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-assignee-inline {
+    grid-area: auto !important;
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-due {
+    grid-area: auto !important;
+    grid-column: 4 !important;
+    grid-row: 1 !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-state {
+    grid-area: auto !important;
+    grid-column: 5 !important;
+    grid-row: 1 !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-actions {
+    grid-area: auto !important;
+    grid-column: 6 !important;
+    grid-row: 1 !important;
+}
+
+/* Medium workflow-card width: deterministic three-track layout. */
+@container ft-order-workflow-detail (max-width: 1320px) {
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row {
+        grid-template-columns: 34px minmax(0, 1fr) minmax(190px, .62fr) !important;
+        grid-template-areas: none !important;
+        align-items: start !important;
+        gap: 12px 18px !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-icon {
+        grid-area: auto !important;
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        position: static !important;
+        place-self: start center !important;
+        margin-top: 2px !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-copy {
+        grid-area: auto !important;
+        grid-column: 2 / 4 !important;
+        grid-row: 1 !important;
+        width: 100%;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-assignee-inline {
+        grid-area: auto !important;
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-due {
+        grid-area: auto !important;
+        grid-column: 3 !important;
+        grid-row: 2 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-state {
+        grid-area: auto !important;
+        grid-column: 2 !important;
+        grid-row: 3 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-actions {
+        grid-area: auto !important;
+        grid-column: 3 !important;
+        grid-row: 3 !important;
+    }
+}
+
+/* Compact card: two balanced metadata columns, no auto-placement. */
+@container ft-order-workflow-detail (max-width: 960px) {
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row {
+        position: relative;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        grid-template-areas: none !important;
+        gap: 12px 16px !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-icon {
+        grid-area: auto !important;
+        grid-column: auto !important;
+        grid-row: auto !important;
+        position: absolute !important;
+        top: 15px !important;
+        right: 15px !important;
+        left: auto !important;
+        margin: 0 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-copy {
+        grid-area: auto !important;
+        grid-column: 1 / 3 !important;
+        grid-row: 1 !important;
+        width: 100% !important;
+        padding-right: 46px !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-assignee-inline {
+        grid-area: auto !important;
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-due {
+        grid-area: auto !important;
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-state {
+        grid-area: auto !important;
+        grid-column: 1 / 3 !important;
+        grid-row: 3 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-actions {
+        grid-area: auto !important;
+        grid-column: 1 / 3 !important;
+        grid-row: 4 !important;
+    }
+}
+
+/* Phone card: one deterministic column. */
+@container ft-order-workflow-detail (max-width: 560px) {
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-areas: none !important;
+        gap: 10px !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-copy {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-assignee-inline {
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-due {
+        grid-column: 1 !important;
+        grid-row: 3 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-state {
+        grid-column: 1 !important;
+        grid-row: 4 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-actions {
+        grid-column: 1 !important;
+        grid-row: 5 !important;
+    }
+}
+
+/* Fallback for browsers without container queries. */
+@supports not (container-type: inline-size) {
+    @media (max-width: 900px) {
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row {
+            position: relative;
+            grid-template-columns: minmax(0, 1fr) !important;
+            grid-template-areas: none !important;
+        }
+
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-icon {
+            grid-area: auto !important;
+            grid-column: auto !important;
+            grid-row: auto !important;
+            position: absolute !important;
+            top: 12px !important;
+            right: 12px !important;
+        }
+
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-copy,
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-assignee-inline,
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-due,
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-state,
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-actions {
+            grid-area: auto !important;
+            grid-column: 1 !important;
+            width: 100% !important;
+        }
+
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-copy {
+            grid-row: 1 !important;
+            padding-right: 42px !important;
+        }
+
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-assignee-inline {
+            grid-row: 2 !important;
+        }
+
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-due {
+            grid-row: 3 !important;
+        }
+
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-state {
+            grid-row: 4 !important;
+        }
+
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-order-task-actions {
+            grid-row: 5 !important;
+        }
+    }
+}
+
+
+/* ==========================================================================
+   Production monitoring task - exact inline prototype treatment
+   The task itself still uses the Task Pack for title, ownership, phase colour,
+   required/optional behavior, timing, and completion sequencing. This layer
+   only controls the active PROD_ISSUE presentation and its inline data form.
+   ========================================================================== */
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor {
+    align-items: center !important;
+    row-gap: 0 !important;
+    padding-bottom: 20px !important;
+    background: #f7fbff !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-production-monitor-inline {
+    grid-area: auto !important;
+    grid-column: 2 / 7 !important;
+    grid-row: 2 !important;
+    width: 100%;
+    min-width: 0;
+    margin-top: 16px;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-status-ring {
+    width: 34px !important;
+    height: 34px !important;
+    border: 3px solid #2f80ed !important;
+    border-radius: 999px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-task-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-task-code {
+    flex: 0 0 auto;
+    padding-top: 1px;
+    color: #233a59;
+    font-size: .89rem;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-task-line .task-title {
+    min-width: 0;
+    color: #16243a;
+    font-size: .94rem;
+    font-weight: 760;
+    line-height: 1.35;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-order-task-assignee-inline,
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-order-task-due,
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-order-task-state,
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-order-task-actions {
+    align-self: center !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-order-inline-trigger-icon {
+    color: #526d8c;
+    font-size: .86rem;
+    transform: translateY(-1px);
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-order-task-status.active {
+    border: 1px solid #bfd5ff;
+    background: #edf4ff;
+    color: #1f6bf2;
+    box-shadow: 0 0 0 2px rgba(47, 128, 237, .05);
+    padding: 7px 12px;
+    font-size: .86rem;
+    font-weight: 760;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-order-task-actions {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end !important;
+    gap: 9px;
+    flex-wrap: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-save,
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-cancel {
+    min-width: 110px;
+    height: 50px;
+    min-height: 50px;
+    padding: 0 18px;
+    border-radius: 8px;
+    font-size: .9rem;
+    font-weight: 760;
+    line-height: 1;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-save {
+    border-color: #07977f;
+    background: #07977f;
+    color: #fff;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-save:hover {
+    border-color: #078a75;
+    background: #078a75;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-cancel {
+    min-width: 120px;
+    border: 1px solid #d7e0e9;
+    background: #fff;
+    color: #18283f;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-inline {
+    padding: 20px 18px 18px;
+    border: 1px solid #edf3f8;
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(15, 35, 55, .025);
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-row,
+.ft-order-workflow-action-modal .ft-production-monitor-modal-date-row {
+    display: grid;
+    grid-template-columns: minmax(230px, .84fr) minmax(300px, .9fr) minmax(390px, 1.22fr);
+    align-items: center;
+    gap: 26px;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-field {
+    display: grid;
+    gap: 9px;
+    min-width: 0;
+    color: #20334e;
+    font-size: .91rem;
+    font-weight: 760;
+    line-height: 1.35;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-required,
+.ft-order-workflow-action-modal .ft-production-monitor-required {
+    color: #ef3340;
+    font-style: normal;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-label {
+    align-self: center;
+    color: #20334e;
+    font-size: .92rem;
+    font-weight: 780;
+    line-height: 1.35;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-control {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-input {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid #d5e0ea;
+    border-radius: 8px;
+    outline: 0;
+    background: #fff;
+    color: #2e425f;
+    font: inherit;
+    font-size: .9rem;
+    font-weight: 650;
+    transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-input:focus {
+    border-color: #78aef8;
+    box-shadow: 0 0 0 3px rgba(47, 128, 237, .12);
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-info,
+.ft-order-workflow-action-modal .ft-production-monitor-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 72px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    background: #eef8ff;
+    color: #2e5d96;
+    font-size: .86rem;
+    font-weight: 650;
+    line-height: 1.5;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-info-icon,
+.ft-order-workflow-action-modal .ft-production-monitor-info-icon {
+    display: inline-grid;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border-radius: 999px;
+    background: #2f80ed;
+    color: #fff;
+    font-family: Georgia, serif;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-note-field {
+    margin-top: 18px;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-note-field > span em,
+.ft-order-workflow-action-modal .ft-production-monitor-modal-note > span em {
+    color: #75869b;
+    font-style: normal;
+    font-weight: 650;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-note-field textarea {
+    width: 100%;
+    min-height: 108px;
+    resize: vertical;
+    padding: 14px 16px;
+    border: 1px solid #d5e0ea;
+    border-radius: 8px;
+    outline: 0;
+    background: #fff;
+    color: #2d425e;
+    font: inherit;
+    font-size: .9rem;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-note-field textarea::placeholder {
+    color: #9aacbe;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-note-field textarea:focus {
+    border-color: #78aef8;
+    box-shadow: 0 0 0 3px rgba(47, 128, 237, .12);
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-inline .validation-error {
+    margin: -2px 0 0;
+    color: #c63a45;
+    font-size: .76rem;
+    font-weight: 650;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-task-error {
+    margin-top: 10px;
+}
+
+.ft-order-workflow-action-modal .ft-production-monitor-modal-date-row {
+    grid-template-columns: minmax(280px, .9fr) minmax(340px, 1.1fr);
+    align-items: start;
+    margin-top: 2px;
+}
+
+.ft-order-workflow-action-modal .ft-production-monitor-modal-note {
+    margin-top: 18px;
+}
+
+@container ft-order-workflow-detail (max-width: 1320px) {
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-production-monitor-inline {
+        grid-column: 2 / 4 !important;
+        grid-row: 4 !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-order-task-assignee-inline,
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-order-task-due,
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-order-task-state {
+        padding-top: 12px !important;
+    }
+}
+
+@container ft-order-workflow-detail (max-width: 960px) {
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-production-monitor-inline {
+        grid-column: 1 / 3 !important;
+        grid-row: 5 !important;
+        margin-top: 2px;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-order-task-actions {
+        justify-content: flex-start !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-row {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-task-line {
+        padding-right: 38px;
+    }
+}
+
+@container ft-order-workflow-detail (max-width: 560px) {
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-production-monitor-inline {
+        grid-column: 1 !important;
+        grid-row: 6 !important;
+        padding: 16px 14px;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-task-line {
+        display: grid;
+        gap: 4px;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-save,
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-cancel {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+}
+
+@supports not (container-type: inline-size) {
+    @media (max-width: 900px) {
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-production-monitor-inline {
+            grid-column: 1 !important;
+            grid-row: 6 !important;
+            margin-top: 2px;
+        }
+
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-row {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+/* Runtime integrity marker. The Order Details JS can verify that the final
+   stability layer is actually present without depending on visual dimensions. */
+.ft-order-prototype-detail {
+    --ft-order-detail-style-contract: 20260827;
+}
+
+/* ========================================================================== 
+   Production monitor task header parity - 2026-09-09
+
+   Keep the inline PROD_ISSUE form from the approved prototype, while the task
+   header itself inherits the same Task Pack typography and control sizing as
+   every other production task row.
+   ========================================================================== */
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-order-inline-trigger-icon {
+    color: var(--teal) !important;
+    font-size: .5625rem !important;
+    transform: none !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-order-task-status.active {
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: #e3f3f1 !important;
+    color: var(--ft-theme-primary) !important;
+    box-shadow: none !important;
+    padding: 4px 8px !important;
+    font-size: .5625rem !important;
+    font-weight: 850 !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor > .ft-order-task-actions {
+    gap: 8px !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-save,
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-cancel {
+    min-width: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 6px 9px !important;
+    border-radius: 8px !important;
+    font-size: .6875rem !important;
+    font-weight: 750 !important;
+    line-height: normal !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-save {
+    border-color: var(--teal) !important;
+    background: var(--teal) !important;
+    color: #fff !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-save:hover {
+    border-color: var(--teal) !important;
+    background: var(--teal) !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row--production-monitor .ft-production-monitor-cancel {
+    border-color: var(--line) !important;
+    background: #fff !important;
+    color: var(--text) !important;
+}
+
+/* ========================================================================== 
+   Production monitor inline form typography parity - 2026-09-09
+
+   Keep the approved layout/fields intact, but scale the form typography and
+   controls to the same compact Order Details form tokens used elsewhere.
+   No workflow or Task Pack behavior is changed here.
+   ========================================================================== */
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-inline {
+    padding: 16px 18px 16px !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-row {
+    grid-template-columns: minmax(220px, 1fr) minmax(260px, 340px) !important;
+    align-items: center !important;
+    gap: 20px !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-control {
+    width: 100% !important;
+    max-width: 340px !important;
+    justify-self: end !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-field,
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-label {
+    color: var(--ft-theme-form-label-color, #1a2d48) !important;
+    font-size: var(--ft-theme-form-label-size, .75rem) !important;
+    font-weight: var(--ft-theme-form-label-weight, 700) !important;
+    line-height: var(--ft-theme-line-height-snug, 1.35) !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-input {
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 12px !important;
+    color: var(--ft-theme-form-control-color, #172235) !important;
+    font-size: var(--ft-theme-form-control-size, .8125rem) !important;
+    font-weight: var(--ft-theme-form-control-weight, 400) !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-info {
+    gap: 10px !important;
+    min-height: 58px !important;
+    padding: 10px 14px !important;
+    font-size: var(--ft-theme-form-label-size, .75rem) !important;
+    font-weight: var(--ft-theme-font-weight-medium, 500) !important;
+    line-height: var(--ft-theme-line-height-normal, 1.5) !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-info-icon {
+    flex-basis: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: .8125rem !important;
+    font-weight: var(--ft-theme-font-weight-bold, 700) !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-note-field {
+    margin-top: 14px !important;
+    gap: 7px !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-note-field > span em {
+    font-size: inherit !important;
+    font-weight: var(--ft-theme-font-weight-regular, 400) !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-note-field textarea {
+    min-height: 92px !important;
+    padding: 11px 12px !important;
+    color: var(--ft-theme-form-control-color, #172235) !important;
+    font-size: var(--ft-theme-form-control-size, .8125rem) !important;
+    font-weight: var(--ft-theme-form-control-weight, 400) !important;
+    line-height: var(--ft-theme-line-height-normal, 1.5) !important;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-note-field textarea::placeholder {
+    color: var(--ft-theme-form-placeholder-color, #8996a8) !important;
+    font-weight: var(--ft-theme-font-weight-regular, 400) !important;
+}
+
+@container ft-order-workflow-detail (max-width: 960px) {
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-inline {
+        padding: 14px !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-row {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-production-monitor-date-control {
+        width: 100% !important;
+        max-width: none !important;
+        justify-self: stretch !important;
+    }
+}
+
+/* ========================================================================== 
+   Production monitor saved details - 2026-09-09
+
+   Completed PROD_ISSUE tasks keep the captured supplier delivery date and
+   optional production note visible instead of collapsing to an empty row.
+   The summary uses the same compact Order Details typography tokens.
+   ========================================================================== */
+.ft-production-monitor-summary {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--line, #dbe4ec);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--text, #172235);
+}
+
+.ft-production-monitor-summary-date {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(140px, 240px);
+    align-items: center;
+    gap: 16px;
+}
+
+.ft-production-monitor-summary-label {
+    min-width: 0;
+    color: var(--ft-theme-form-label-color, #1a2d48);
+    font-size: var(--ft-theme-form-label-size, .75rem);
+    font-weight: var(--ft-theme-form-label-weight, 700);
+    line-height: var(--ft-theme-line-height-snug, 1.35);
+}
+
+.ft-production-monitor-summary-label em {
+    color: var(--muted, #75869b);
+    font-style: normal;
+    font-weight: var(--ft-theme-font-weight-regular, 400);
+}
+
+.ft-production-monitor-summary-value {
+    justify-self: end;
+    color: var(--ft-theme-form-control-color, #172235);
+    font-size: var(--ft-theme-form-control-size, .8125rem);
+    font-weight: var(--ft-theme-font-weight-medium, 500);
+    line-height: var(--ft-theme-line-height-normal, 1.5);
+}
+
+.ft-production-monitor-summary-note {
+    padding-top: 10px;
+    border-top: 1px solid var(--line, #e3e9ef);
+}
+
+.ft-production-monitor-summary-note-value {
+    margin-top: 6px;
+    color: var(--ft-theme-form-control-color, #172235);
+    font-size: var(--ft-theme-form-control-size, .8125rem);
+    font-weight: var(--ft-theme-font-weight-regular, 400);
+    line-height: var(--ft-theme-line-height-normal, 1.5);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-production-monitor-summary {
+    grid-area: auto !important;
+    grid-column: 2 / 7 !important;
+    grid-row: 2 !important;
+    margin-top: 10px;
+}
+
+.ft-task-detail-page .ft-production-monitor-summary {
+    margin-bottom: 14px;
+}
+
+@container ft-order-workflow-detail (max-width: 1320px) {
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-production-monitor-summary {
+        grid-column: 2 / 4 !important;
+        grid-row: 4 !important;
+    }
+}
+
+@container ft-order-workflow-detail (max-width: 960px) {
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-production-monitor-summary {
+        grid-column: 1 / 3 !important;
+        grid-row: 5 !important;
+        margin-top: 2px;
+    }
+}
+
+@container ft-order-workflow-detail (max-width: 560px) {
+    .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-production-monitor-summary {
+        grid-column: 1 !important;
+        grid-row: 6 !important;
+    }
+
+    .ft-production-monitor-summary-date {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .ft-production-monitor-summary-value {
+        justify-self: start;
+    }
+}
+
+@supports not (container-type: inline-size) {
+    @media (max-width: 900px) {
+        .ft-order-prototype-detail .ft-order-workflow-card .ft-order-task-row > .ft-production-monitor-summary {
+            grid-column: 1 !important;
+            grid-row: 6 !important;
+        }
+    }
+}
+
+/* Completed Production monitor inline editing — 2026-09-09 */
+.ft-production-monitor-summary-date-value {
+    justify-self: end;
+    width: min(240px, 100%);
+    min-width: 0;
+}
+
+.ft-production-monitor-summary-inline-display {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    min-height: 30px;
+}
+
+.ft-production-monitor-summary-edit {
+    color: var(--ft-theme-primary-700, #0f766e);
+}
+
+.ft-production-monitor-summary-date-input {
+    width: 100%;
+    height: 34px;
+    min-height: 34px;
+    box-sizing: border-box;
+    border: 1px solid var(--line, #dbe4ec);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--ft-theme-form-control-color, #172235);
+    padding: 5px 9px;
+    font-size: var(--ft-theme-form-control-size, .8125rem);
+    font-weight: var(--ft-theme-form-control-weight, 400);
+    line-height: 1.25;
+    cursor: pointer;
+    outline: none;
+}
+
+.ft-production-monitor-summary-date-input:focus {
+    border-color: var(--ft-theme-primary-400, #5fb5ad);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary, #0f8f83) 12%, transparent);
+}
+
+.ft-production-monitor-summary-note-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.ft-production-monitor-summary-note-editor {
+    display: grid;
+    gap: 8px;
+    margin-top: 7px;
+}
+
+.ft-production-monitor-summary-note-input {
+    width: 100%;
+    min-height: 76px;
+    max-height: 180px;
+    box-sizing: border-box;
+    resize: vertical;
+    border: 1px solid var(--line, #dbe4ec);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--ft-theme-form-control-color, #172235);
+    padding: 9px 10px;
+    font-size: var(--ft-theme-form-control-size, .8125rem);
+    font-weight: var(--ft-theme-form-control-weight, 400);
+    line-height: var(--ft-theme-line-height-normal, 1.5);
+    outline: none;
+}
+
+.ft-production-monitor-summary-note-input:focus {
+    border-color: var(--ft-theme-primary-400, #5fb5ad);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary, #0f8f83) 12%, transparent);
+}
+
+.ft-production-monitor-summary-note-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+}
+
+@container ft-order-workflow-detail (max-width: 560px) {
+    .ft-production-monitor-summary-date-value {
+        justify-self: stretch;
+        width: 100%;
+    }
+
+    .ft-production-monitor-summary-inline-display {
+        justify-content: flex-start;
+    }
+}

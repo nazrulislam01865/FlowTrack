@@ -1,0 +1,1607 @@
+/* Create Order single-select urgency controls.
+   Kept outside the Vite bundle so deployments with prebuilt assets receive the fix immediately. */
+.ft-create-job-page .ft-create-urgency-check input[type="radio"]{
+    width:17px!important;
+    height:17px!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    flex:0 0 17px;
+    accent-color:var(--ft-theme-primary);
+}
+
+/* Create Order shipping-address section.
+   Prototype-faithful layout using FlowTrack's existing blue/navy theme. */
+.ft-create-job-page .ft-order-shipping-section{
+    padding:18px 20px 20px;
+}
+.ft-create-job-page .ft-order-shipping-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:18px;
+}
+.ft-create-job-page .ft-order-shipping-heading{
+    min-width:0;
+}
+.ft-create-job-page .ft-order-shipping-title{
+    margin-bottom:4px;
+    flex-wrap:wrap;
+}
+.ft-create-job-page .ft-order-shipping-title h2{
+    color:#172235;
+}
+.ft-create-job-page .ft-order-shipping-heading>p{
+    margin:0 0 0 35px;
+    color:#66758b;
+    font-size:.75rem;
+    line-height:1.45;
+}
+.ft-create-job-page .ft-order-required-badge{
+    display:inline-flex;
+    align-items:center;
+    min-height:24px;
+    margin-left:2px;
+    padding:2px 9px;
+    border:1px solid #f1b8b5;
+    border-radius:6px;
+    background:#fff7f6;
+    color:#c2413a;
+    font-size:.65625rem;
+    font-style:normal;
+    font-weight:800;
+    line-height:1;
+}
+.ft-create-job-page .ft-order-optional-badge{
+    display:inline-flex;
+    align-items:center;
+    min-height:24px;
+    margin-left:2px;
+    padding:2px 9px;
+    border:1px solid var(--ft-theme-primary-100);
+    border-radius:6px;
+    background:var(--ft-theme-surface-subtle);
+    color:var(--ft-theme-primary);
+    font-size:.65625rem;
+    font-style:normal;
+    font-weight:800;
+    line-height:1;
+}
+.ft-create-job-page .ft-order-required-star{
+    color:#c2413a;
+    font-weight:800;
+}
+.ft-create-job-page .ft-order-saved-address-button{
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height:40px;
+    padding:0 14px;
+    border:1px solid var(--ft-theme-primary);
+    border-radius:8px;
+    background:#fff;
+    color:var(--ft-theme-primary);
+    font-size:.71875rem;
+    font-weight:800;
+    cursor:pointer;
+    transition:background .15s ease,border-color .15s ease,color .15s ease,box-shadow .15s ease;
+}
+.ft-create-job-page .ft-order-saved-address-button svg{
+    width:17px;
+    height:17px;
+    flex:0 0 17px;
+}
+.ft-create-job-page .ft-order-saved-address-button:hover:not(:disabled){
+    background:var(--ft-theme-primary-soft);
+    border-color:var(--ft-theme-primary);
+    color:var(--ft-theme-primary);
+    box-shadow:0 4px 12px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+.ft-create-job-page .ft-order-saved-address-button:disabled{
+    border-color:#d9e3ef;
+    background:#f8fafc;
+    color:#94a3b8;
+    cursor:not-allowed;
+    box-shadow:none;
+}
+.ft-create-job-page .ft-order-shipping-address-field{
+    display:block;
+    margin-bottom:14px;
+}
+.ft-create-job-page .ft-order-shipping-address-field>b,
+.ft-create-job-page .ft-order-shipping-contact-grid .ft-create-field>b{
+    display:block;
+    margin-bottom:7px;
+    color:#172235;
+    font-size:.75rem;
+}
+.ft-create-job-page .ft-order-shipping-address-field textarea{
+    width:100%;
+    min-height:132px;
+    resize:vertical;
+    padding:13px 14px;
+    border:1px solid #cfd9e6;
+    border-radius:8px;
+    background:#fff;
+    color:#172235;
+    font:inherit;
+    font-size:.8125rem;
+    line-height:1.55;
+    outline:none;
+    transition:border-color .15s ease,box-shadow .15s ease;
+}
+.ft-create-job-page .ft-order-shipping-address-field textarea:focus,
+.ft-create-job-page .ft-order-shipping-contact-grid input:focus,
+.ft-create-job-page .ft-order-phone-control:focus-within{
+    border-color:var(--ft-theme-primary);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+.ft-create-job-page .ft-order-shipping-contact-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);
+    gap:16px;
+    align-items:start;
+}
+.ft-create-job-page .ft-order-shipping-contact-grid .ft-create-field{
+    min-width:0;
+}
+.ft-create-job-page .ft-order-shipping-contact-grid input{
+    width:100%;
+    min-height:44px;
+    padding:0 13px;
+    border:1px solid #cfd9e6;
+    border-radius:8px;
+    background:#fff;
+    color:#172235;
+    font-size:.8125rem;
+    outline:none;
+    transition:border-color .15s ease,box-shadow .15s ease;
+}
+.ft-create-job-page .ft-order-phone-control{
+    display:grid;
+    grid-template-columns:92px minmax(0,1fr);
+    min-height:44px;
+    overflow:hidden;
+    border:1px solid #cfd9e6;
+    border-radius:8px;
+    background:#fff;
+    transition:border-color .15s ease,box-shadow .15s ease;
+}
+.ft-create-job-page .ft-order-phone-control input{
+    width:100%;
+    min-height:42px!important;
+    margin:0;
+    padding:0 13px;
+    border:0!important;
+    border-radius:0!important;
+    background:#fff;
+    color:#172235;
+    font-size:.8125rem;
+    outline:0;
+    box-shadow:none!important;
+}
+.ft-create-job-page .ft-order-phone-code-filter{
+    position:relative;
+    min-width:0;
+    border-right:1px solid #dbe3ed;
+}
+.ft-create-job-page .ft-order-phone-code-filter>label{
+    position:absolute!important;
+    width:1px!important;
+    height:1px!important;
+    padding:0!important;
+    margin:-1px!important;
+    overflow:hidden!important;
+    clip:rect(0,0,0,0)!important;
+    white-space:nowrap!important;
+    border:0!important;
+}
+.ft-create-job-page .ft-order-phone-code-filter .ft-remote-filter-button{
+    width:100%!important;
+    min-height:42px!important;
+    height:42px!important;
+    margin:0!important;
+    padding:0 25px 0 12px!important;
+    border:0!important;
+    border-radius:0!important;
+    background:#fff!important;
+    color:#172235!important;
+    font-size:.8125rem!important;
+    font-weight:600!important;
+    text-align:left!important;
+    box-shadow:none!important;
+}
+.ft-create-job-page .ft-order-phone-code-filter .ft-filter-chevron{
+    right:9px!important;
+}
+.ft-create-job-page .ft-order-phone-code-filter .ft-remote-filter-menu{
+    width:min(310px,calc(100vw - 24px))!important;
+    min-width:min(260px,calc(100vw - 24px))!important;
+    max-width:calc(100vw - 24px)!important;
+    padding:8px!important;
+    border-radius:10px!important;
+    box-shadow:0 14px 34px rgba(15,35,65,.16)!important;
+    z-index:1400!important;
+}
+.ft-create-job-page .ft-order-phone-code-filter .ft-remote-filter-search{
+    min-height:38px!important;
+    margin:0 0 7px!important;
+    padding:0 10px!important;
+    border:1px solid #cfd9e6!important;
+    border-radius:8px!important;
+    font-size:.75rem!important;
+}
+.ft-create-job-page .ft-order-phone-code-filter .ft-remote-filter-option{
+    min-height:36px!important;
+    padding:8px 9px!important;
+    border-radius:7px!important;
+    font-size:.75rem!important;
+}
+.ft-create-job-page .ft-order-phone-code-filter .ft-remote-filter-option>small{
+    font-size:.625rem!important;
+    text-align:right!important;
+}
+.ft-create-job-page .ft-order-shipping-section .validation-error{
+    display:block;
+    margin-top:5px;
+}
+
+.ft-order-saved-address-overlay{
+    z-index:1190!important;
+}
+.ft-order-saved-address-modal{
+    z-index:1200!important;
+    position:fixed!important;
+    top:50%!important;
+    left:50%!important;
+    width:min(650px,calc(100vw - 28px))!important;
+    max-height:min(720px,calc(100vh - 42px));
+    overflow:hidden;
+    transform:translate(-50%,-50%)!important;
+    border:1px solid #dbe3ed;
+    border-radius:13px;
+    background:#fff;
+    box-shadow:0 24px 70px rgba(15,35,65,.24);
+}
+.ft-order-saved-address-modal-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    padding:18px 20px 15px;
+    border-bottom:1px solid #e5ebf2;
+}
+.ft-order-saved-address-modal-head h3{
+    margin:0;
+    color:#172235;
+    font-size:1.0625rem;
+    letter-spacing:-.015em;
+}
+.ft-order-saved-address-modal-head p{
+    margin:5px 0 0;
+    color:#66758b;
+    font-size:.71875rem;
+}
+.ft-order-saved-address-modal-head>button{
+    display:grid;
+    place-items:center;
+    width:32px;
+    height:32px;
+    padding:0;
+    border:0;
+    border-radius:8px;
+    background:#f3f6fa;
+    color:#536985;
+    font-size:1.375rem;
+    line-height:1;
+    cursor:pointer;
+}
+.ft-order-saved-address-modal-head>button:hover{
+    background:var(--ft-theme-primary-soft);
+    color:var(--ft-theme-primary);
+}
+.ft-order-saved-address-list{
+    display:grid;
+    gap:10px;
+    max-height:560px;
+    overflow:auto;
+    padding:14px 16px 18px;
+}
+.ft-order-saved-address-card{
+    display:grid;
+    grid-template-columns:34px minmax(0,1fr) auto;
+    gap:12px;
+    align-items:start;
+    width:100%;
+    padding:13px 14px;
+    border:1px solid #dbe3ed;
+    border-radius:10px;
+    background:#fff;
+    color:#172235;
+    text-align:left;
+    cursor:pointer;
+    transition:border-color .15s ease,background .15s ease,box-shadow .15s ease;
+}
+.ft-order-saved-address-card:hover,
+.ft-order-saved-address-card.is-selected{
+    border-color:var(--ft-theme-primary);
+    background:var(--ft-theme-surface-subtle);
+    box-shadow:0 5px 16px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent);
+}
+.ft-order-saved-address-card-icon{
+    display:grid;
+    place-items:center;
+    width:32px;
+    height:32px;
+    border-radius:8px;
+    background:var(--ft-theme-primary-soft);
+    color:var(--ft-theme-primary);
+}
+.ft-order-saved-address-card-icon svg{
+    width:17px;
+    height:17px;
+}
+.ft-order-saved-address-copy{
+    display:flex;
+    min-width:0;
+    flex-direction:column;
+    gap:2px;
+    color:#52647b;
+    font-size:.71875rem;
+    line-height:1.4;
+}
+.ft-order-saved-address-label{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-bottom:2px;
+}
+.ft-order-saved-address-label strong{
+    color:#172235;
+    font-size:.78125rem;
+}
+.ft-order-saved-address-label em{
+    padding:2px 6px;
+    border-radius:999px;
+    background:var(--ft-theme-primary-soft);
+    color:var(--ft-theme-primary);
+    font-size:.5625rem;
+    font-style:normal;
+    font-weight:800;
+}
+.ft-order-saved-address-use{
+    align-self:center;
+    color:var(--ft-theme-primary);
+    font-size:.65625rem;
+    font-weight:800;
+    white-space:nowrap;
+}
+.ft-order-saved-address-empty{
+    padding:28px 18px;
+    border:1px dashed #cfd9e6;
+    border-radius:10px;
+    color:#66758b;
+    text-align:center;
+    font-size:.75rem;
+}
+
+@media (max-width:760px){
+    .ft-create-job-page .ft-order-shipping-section{padding:14px 12px 15px}
+    .ft-create-job-page .ft-order-shipping-head{align-items:stretch;flex-direction:column;gap:12px;margin-bottom:15px}
+    .ft-create-job-page .ft-order-shipping-heading>p{margin-left:35px}
+    .ft-create-job-page .ft-order-saved-address-button{align-self:flex-start;min-height:38px}
+    .ft-create-job-page .ft-order-shipping-contact-grid{grid-template-columns:1fr;gap:12px}
+    .ft-create-job-page .ft-order-phone-control{grid-template-columns:84px minmax(0,1fr)}
+    .ft-order-saved-address-card{grid-template-columns:32px minmax(0,1fr)}
+    .ft-order-saved-address-use{grid-column:2;justify-self:start;align-self:auto}
+}
+
+/* 2026-08-22 Create Order green theme parity with Order Details.
+   Presentation only: keeps Order creation/workflow logic unchanged while
+   matching the Order Details teal/green action language. */
+.ft-create-job-page{
+    --ft-order-create-accent:var(--ft-theme-primary);
+    --ft-order-create-accent-hover:var(--ft-theme-primary-hover);
+    --ft-order-create-accent-strong:#159a68;
+    --ft-order-create-accent-soft:var(--ft-theme-primary-soft);
+    --ft-order-create-accent-soft-hover:var(--ft-theme-primary-soft-hover);
+    --ft-order-create-accent-border:var(--ft-theme-primary-300);
+    --ft-color-brand-primary:var(--ft-theme-primary);
+    --ft-color-brand-primary-hover:var(--ft-theme-primary-hover);
+    --ft-color-brand-primary-soft:var(--ft-theme-primary-soft);
+    --ft-text-link:var(--ft-theme-primary);
+    --ft-text-link-hover:var(--ft-theme-primary-hover);
+    --ft-focus-border:#58a99f;
+    --ft-focus-ring:0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 12%, transparent);
+    --blue:var(--ft-theme-primary);
+    --blue2:var(--ft-theme-primary-soft);
+}
+
+/* Numbered section markers and primary page actions. */
+.ft-create-job-page .ft-create-section-title>span{
+    background:var(--ft-order-create-accent);
+    color:#fff;
+}
+.ft-create-job-page .ft-create-primary{
+    border-color:var(--ft-order-create-accent);
+    background:var(--ft-order-create-accent);
+    color:#fff;
+    transition:background .15s ease,border-color .15s ease,box-shadow .15s ease,transform .15s ease;
+}
+.ft-create-job-page .ft-create-primary:hover:not(:disabled),
+.ft-create-job-page .ft-create-primary:focus-visible:not(:disabled){
+    border-color:var(--ft-order-create-accent-hover);
+    background:var(--ft-order-create-accent-hover);
+    box-shadow:0 5px 14px color-mix(in srgb, var(--ft-theme-primary) 16%, transparent);
+}
+.ft-create-job-page .ft-create-primary:focus-visible{
+    outline:0;
+    box-shadow:var(--ft-focus-ring);
+}
+
+/* Native fields and the repeated/urgency controls. */
+.ft-create-job-page .ft-create-field input:focus,
+.ft-create-job-page .ft-create-field select:focus,
+.ft-create-job-page .ft-create-field textarea:focus,
+.ft-create-job-page .ft-product-row input:focus,
+.ft-create-job-page .ft-product-row select:focus,
+.ft-create-job-page .ft-create-urgency-control:focus-within{
+    border-color:var(--ft-focus-border);
+    box-shadow:0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+.ft-create-job-page .ft-repeat-order-check input[type="checkbox"],
+.ft-create-job-page .ft-create-urgency-check input[type="checkbox"],
+.ft-create-job-page .ft-create-urgency-check input[type="radio"]{
+    accent-color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-urgency-check:has(input:checked){
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-product-row-footer button{
+    border-color:var(--ft-order-create-accent-border);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-product-row-footer button:hover:not(:disabled){
+    border-color:var(--ft-order-create-accent);
+    background:var(--ft-order-create-accent-soft);
+}
+.ft-create-job-page .ft-create-upload label{
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-workflow-summary{
+    border-color:var(--ft-order-create-accent-border);
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-workflow-summary a{color:var(--ft-order-create-accent)}
+
+/* Shared searchable selectors inherit the green focus/selection theme only
+   inside Create Order; other pages remain untouched. */
+.ft-create-job-page .ft-search-select__trigger:hover:not(:disabled),
+.ft-create-job-page .ft-search-select__trigger[aria-expanded="true"],
+.ft-create-job-page .ft-search-select__trigger:focus-visible,
+.ft-create-job-page .ft-search-select__search:focus-visible{
+    border-color:var(--ft-focus-border);
+}
+.ft-create-job-page .ft-search-select__option[aria-selected="true"]{
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent-hover);
+}
+.ft-create-job-page .ft-search-select__load-more{
+    color:var(--ft-order-create-accent);
+}
+
+/* Shipping-address actions use the same Order Details primary teal. */
+.ft-create-job-page .ft-order-saved-address-button{
+    border-color:var(--ft-order-create-accent);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-order-saved-address-button:hover:not(:disabled){
+    border-color:var(--ft-order-create-accent-hover);
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent-hover);
+    box-shadow:0 4px 12px color-mix(in srgb, var(--ft-theme-primary) 12%, transparent);
+}
+.ft-create-job-page .ft-order-shipping-address-field textarea:focus,
+.ft-create-job-page .ft-order-shipping-contact-grid input:focus,
+.ft-create-job-page .ft-order-phone-control:focus-within{
+    border-color:var(--ft-focus-border);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+.ft-create-job-page .ft-order-phone-code-filter .ft-remote-filter-button:hover,
+.ft-create-job-page .ft-order-phone-code-filter .ft-remote-filter-button[aria-expanded="true"]{
+    color:var(--ft-order-create-accent)!important;
+}
+
+/* Saved-address picker is rendered under the Create Order tree, so scope its
+   interactive state through the page to avoid recolouring unrelated modals. */
+.ft-create-job-page .ft-order-saved-address-modal-head>button:hover{
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-order-saved-address-card:hover,
+.ft-create-job-page .ft-order-saved-address-card.is-selected{
+    border-color:var(--ft-order-create-accent);
+    background:#f5fbfa;
+    box-shadow:0 5px 16px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+.ft-create-job-page .ft-order-saved-address-card-icon,
+.ft-create-job-page .ft-order-saved-address-label em{
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-order-saved-address-use{
+    color:var(--ft-order-create-accent);
+}
+
+/* Products selector and Create Product modal previously declared their own
+   blue component token. Override it only for Create Order. */
+.ft-create-job-page .ft-order-products-prototype,
+.ft-create-job-page .ft-order-create-product-modal{
+    --blue:var(--ft-order-create-accent);
+    --blue2:var(--ft-order-create-accent-soft);
+}
+.ft-create-job-page .ft-order-product-result:hover,
+.ft-create-job-page .ft-order-product-result:focus-visible{
+    border-color:var(--ft-order-create-accent-border);
+    background:#f5fbfa;
+}
+.ft-create-job-page .ft-order-product-result.is-selected{
+    border-color:var(--ft-order-create-accent-border);
+    background:var(--ft-order-create-accent-soft);
+}
+.ft-create-job-page .ft-order-product-supplier-icon{
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-product-step-number{
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-order-create-product-modal .primary:not(:disabled),
+.ft-create-job-page .ft-product-create-actions .primary:not(:disabled){
+    border-color:var(--ft-order-create-accent);
+    background:var(--ft-order-create-accent);
+    color:#fff;
+}
+.ft-create-job-page .ft-order-create-product-modal .primary:not(:disabled):hover,
+.ft-create-job-page .ft-order-create-product-modal .primary:not(:disabled):focus-visible,
+.ft-create-job-page .ft-product-create-actions .primary:not(:disabled):hover,
+.ft-create-job-page .ft-product-create-actions .primary:not(:disabled):focus-visible{
+    border-color:var(--ft-order-create-accent-hover);
+    background:var(--ft-order-create-accent-hover);
+    color:#fff;
+}
+
+/* Order workflow picker is shared with Inquiry, therefore every selector is
+   intentionally scoped to .ft-create-job-page. */
+.ft-create-job-page .ft-create-workflow-heading>span,
+.ft-create-job-page .ft-create-workflow-heading em{
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-workflow-card{
+    border-color:var(--ft-order-create-accent-border);
+    background:#f7fbfa;
+    box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--ft-theme-primary) 2.5%, transparent);
+}
+.ft-create-job-page .ft-create-workflow-selected:hover,
+.ft-create-job-page .ft-create-workflow-option:hover,
+.ft-create-job-page .ft-create-workflow-option.is-selected{
+    background:#f2faf8;
+}
+.ft-create-job-page .ft-create-workflow-selected:focus-visible,
+.ft-create-job-page .ft-create-workflow-option:focus-visible{
+    outline-color:color-mix(in srgb, var(--ft-theme-primary) 30%, transparent);
+}
+.ft-create-job-page .ft-create-workflow-icon{
+    border-color:#75b9b0;
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-workflow-options{
+    border-top-color:#d7e9e6;
+}
+.ft-create-job-page .ft-create-workflow-option.is-selected .ft-create-workflow-radio{
+    border-color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-workflow-start-phase select:focus{
+    border-color:var(--ft-focus-border);
+    box-shadow:0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+
+/* Create Order workflow preview responsive polish. */
+.ft-create-job-page .ft-create-workflow-preview-toggle{
+    border-color:#c9e1dd;
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-workflow-preview-toggle:hover,
+.ft-create-job-page .ft-create-workflow-preview-toggle:focus-visible{
+    border-color:var(--ft-order-create-accent-border);
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-workflow-preview{
+    border-top-color:#d7e9e6;
+}
+
+/* Create Order attachment upload progress - 2026-08-28.
+   Keep Purchase Order and Other document feedback local to each dropzone. */
+.ft-create-job-page .ft-create-upload-wrap{
+    display:grid;
+    gap:8px;
+}
+.ft-create-job-page .ft-create-upload-progress{
+    width:100%;
+    padding:0 2px 2px;
+}
+.ft-create-job-page .ft-create-upload-progress-meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:5px;
+    color:#52677f;
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.3;
+}
+.ft-create-job-page .ft-create-upload-progress-meta b{
+    flex:0 0 auto;
+    color:var(--ft-order-create-accent);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-label-weight);
+}
+.ft-create-job-page .ft-create-upload-progress-track{
+    width:100%;
+    height:6px;
+    overflow:hidden;
+    border-radius:999px;
+    background:color-mix(in srgb, var(--ft-order-create-accent) 12%, #edf2f6);
+}
+.ft-create-job-page .ft-create-upload-progress-track>span{
+    display:block;
+    width:0;
+    height:100%;
+    border-radius:inherit;
+    background:var(--ft-order-create-accent);
+    transition:width .12s linear;
+}
+@media(max-width:700px){
+    .ft-create-job-page .ft-create-upload-progress-meta{
+        font-size:var(--ft-form-helper-size);
+    }
+}
+
+/* Create Order > Shipping address > delivery contact phone.
+   The visual structure follows the approved prototype while typography and
+   control sizing remain owned by the central FlowTrack form tokens. */
+.ft-form-standard--order .ft-order-delivery-contact{
+    margin-top:2px;
+    color:var(--ft-form-control-color);
+}
+.ft-form-standard--order .ft-order-delivery-contact-heading{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    margin-bottom:10px;
+}
+.ft-form-standard--order .ft-order-delivery-contact-heading>b{
+    color:var(--ft-form-label-color);
+    font-size:var(--ft-form-label-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.25;
+}
+.ft-form-standard--order .ft-order-delivery-contact-heading>small,
+.ft-form-standard--order .ft-order-contact-person-field>small{
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+    line-height:1.35;
+}
+.ft-form-standard--order .ft-order-contact-source-tabs{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    overflow:hidden;
+    border:1px solid var(--ft-form-control-border);
+    border-radius:var(--ft-form-control-radius);
+    background:#fff;
+}
+.ft-form-standard--order .ft-order-contact-source{
+    appearance:none;
+    min-width:0;
+    min-height:46px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:7px 12px;
+    border:0;
+    border-right:1px solid var(--ft-form-control-border);
+    background:#fff;
+    color:var(--ft-form-control-color);
+    cursor:pointer;
+    transition:background .15s ease,color .15s ease,box-shadow .15s ease;
+}
+.ft-form-standard--order .ft-order-contact-source:last-child{border-right:0}
+.ft-form-standard--order .ft-order-contact-source>svg{
+    width:16px;
+    height:16px;
+    flex:0 0 16px;
+}
+.ft-form-standard--order .ft-order-contact-source>span{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:1px;
+}
+.ft-form-standard--order .ft-order-contact-source strong{
+    color:inherit;
+    font-size:var(--ft-form-button-size);
+    font-weight:var(--ft-form-button-weight);
+    line-height:1.2;
+    white-space:nowrap;
+}
+.ft-form-standard--order .ft-order-contact-source small{
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    line-height:1.15;
+    white-space:nowrap;
+}
+.ft-form-standard--order .ft-order-contact-source small.is-warning{color:#c98618}
+.ft-form-standard--order .ft-order-contact-source.is-active{
+    background:var(--ft-theme-primary);
+    color:#fff;
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ft-theme-primary) 86%,#000);
+}
+.ft-form-standard--order .ft-order-contact-source.is-active small{color:rgba(255,255,255,.86)}
+.ft-form-standard--order .ft-order-contact-source:focus-visible{
+    position:relative;
+    z-index:1;
+    outline:3px solid color-mix(in srgb,var(--ft-theme-primary) 18%,transparent);
+    outline-offset:-3px;
+}
+.ft-form-standard--order .ft-order-contact-warning,
+.ft-form-standard--order .ft-order-contact-success{
+    min-height:34px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:10px;
+    padding:7px 11px;
+    border-radius:7px;
+}
+.ft-form-standard--order .ft-order-contact-warning{
+    border:1px solid #efc36c;
+    background:#fff8e9;
+    color:#8e6117;
+}
+.ft-form-standard--order .ft-order-contact-warning>span{
+    width:17px;
+    height:17px;
+    flex:0 0 17px;
+    display:grid;
+    place-items:center;
+    border:1px solid #d99a2f;
+    border-radius:50%;
+    color:#b77916;
+    font-size:10px;
+    font-weight:900;
+}
+.ft-form-standard--order .ft-order-contact-warning p,
+.ft-form-standard--order .ft-order-contact-success p{
+    margin:0;
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+    line-height:1.35;
+}
+.ft-form-standard--order .ft-order-delivery-contact-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1.12fr) minmax(150px,.55fr) minmax(0,1.45fr);
+    gap:12px;
+    align-items:start;
+    margin-top:10px;
+}
+.ft-form-standard--order .ft-order-delivery-contact-grid>.ft-create-field{
+    min-width:0;
+    margin:0;
+}
+.ft-form-standard--order .ft-order-country-code-field,
+.ft-form-standard--order .ft-order-delivery-phone-code-filter{
+    min-width:0;
+    width:100%;
+}
+.ft-form-standard--order .ft-order-delivery-contact-grid .ft-create-field>b,
+.ft-form-standard--order .ft-order-delivery-phone-code-filter>label{
+    display:block;
+    margin:0 0 6px;
+    color:var(--ft-form-label-color);
+    font-size:var(--ft-form-label-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.2;
+}
+.ft-form-standard--order .ft-order-delivery-contact-grid input,
+.ft-form-standard--order .ft-order-delivery-contact-grid select,
+.ft-form-standard--order .ft-order-delivery-phone-code-filter .ft-remote-filter-button{
+    width:100%;
+    min-height:var(--ft-form-control-height)!important;
+    height:var(--ft-form-control-height)!important;
+    border:1px solid var(--ft-form-control-border)!important;
+    border-radius:var(--ft-form-control-radius)!important;
+    background:#fff!important;
+    color:var(--ft-form-control-color)!important;
+    font-size:var(--ft-form-control-size)!important;
+    font-weight:var(--ft-form-control-weight)!important;
+    box-shadow:none!important;
+}
+.ft-form-standard--order .ft-order-delivery-contact-grid input,
+.ft-form-standard--order .ft-order-delivery-contact-grid select{
+    padding:0 11px;
+    outline:0;
+}
+.ft-form-standard--order .ft-order-contact-select-wrap{
+    position:relative;
+}
+.ft-form-standard--order .ft-order-contact-select-wrap select{
+    appearance:none;
+    padding-right:32px;
+}
+.ft-form-standard--order .ft-order-contact-select-wrap>svg{
+    position:absolute;
+    top:50%;
+    right:10px;
+    width:15px;
+    height:15px;
+    transform:translateY(-50%);
+    color:var(--ft-form-helper-color);
+    pointer-events:none;
+}
+.ft-form-standard--order .ft-order-contact-person-field>small{
+    display:block;
+    margin-top:4px;
+}
+.ft-form-standard--order .ft-order-delivery-phone-code-filter .ft-remote-filter-button{
+    padding:0 29px 0 11px!important;
+    text-align:left!important;
+}
+.ft-form-standard--order .ft-order-delivery-phone-code-filter .ft-filter-chevron{right:10px!important}
+.ft-form-standard--order .ft-order-delivery-phone-code-filter .ft-remote-filter-menu{
+    width:min(300px,calc(100vw - 24px))!important;
+    min-width:min(250px,calc(100vw - 24px))!important;
+    max-width:calc(100vw - 24px)!important;
+    z-index:1450!important;
+}
+.ft-form-standard--order .ft-order-delivery-contact-grid input:focus,
+.ft-form-standard--order .ft-order-delivery-contact-grid select:focus,
+.ft-form-standard--order .ft-order-delivery-phone-code-filter .ft-remote-filter-button:focus{
+    border-color:var(--ft-theme-primary)!important;
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--ft-theme-primary) 10%,transparent)!important;
+}
+.ft-form-standard--order .ft-order-contact-save-row{
+    min-height:28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    margin-top:4px;
+}
+.ft-form-standard--order .ft-order-contact-save-check{
+    min-width:0;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    color:var(--ft-form-control-color);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+    cursor:pointer;
+}
+.ft-form-standard--order .ft-order-contact-save-check input{
+    width:15px!important;
+    height:15px!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    flex:0 0 15px;
+    accent-color:var(--ft-theme-primary);
+}
+.ft-form-standard--order .ft-order-saved-contact-badge{
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    color:var(--ft-theme-primary);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-label-weight);
+    white-space:nowrap;
+}
+.ft-form-standard--order .ft-order-saved-contact-badge svg{
+    width:16px;
+    height:16px;
+    padding:2px;
+    border-radius:50%;
+    background:color-mix(in srgb,var(--ft-theme-primary) 12%,#fff);
+}
+.ft-form-standard--order .ft-order-contact-success{
+    border:1px solid color-mix(in srgb,var(--ft-theme-primary) 24%,#d5e7e4);
+    background:color-mix(in srgb,var(--ft-theme-primary) 6%,#fff);
+    color:var(--ft-theme-primary);
+}
+.ft-form-standard--order .ft-order-contact-success>span{
+    width:17px;
+    height:17px;
+    flex:0 0 17px;
+    display:grid;
+    place-items:center;
+    border:1px solid color-mix(in srgb,var(--ft-theme-primary) 35%,#fff);
+    border-radius:50%;
+}
+.ft-form-standard--order .ft-order-contact-success svg{width:12px;height:12px}
+.ft-form-standard--order .ft-order-contact-success strong{font-weight:var(--ft-form-label-weight)}
+.ft-form-standard--order .ft-order-postal-row{
+    display:block;
+    width:100%;
+    margin-top:12px;
+}
+.ft-form-standard--order .ft-order-postal-row>b{
+    display:block;
+    margin:0 0 6px;
+    color:var(--ft-form-label-color);
+    font-size:var(--ft-form-label-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.2;
+}
+.ft-form-standard--order .ft-order-postal-row>input{
+    width:100%;
+    min-width:0;
+    min-height:var(--ft-form-control-height);
+    padding:0 11px;
+    border:1px solid var(--ft-form-control-border);
+    border-radius:var(--ft-form-control-radius);
+    background:#fff;
+    color:var(--ft-form-control-color);
+    font-size:var(--ft-form-control-size);
+    font-weight:var(--ft-form-control-weight);
+    outline:0;
+}
+.ft-form-standard--order .ft-order-postal-row>input:focus{
+    border-color:var(--ft-theme-primary);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--ft-theme-primary) 10%,transparent);
+}
+.ft-form-standard--order .ft-order-postal-row>.validation-error{
+    display:block;
+    margin-top:4px;
+}
+@media (max-width:760px){
+    .ft-form-standard--order .ft-order-contact-source-tabs{grid-template-columns:1fr}
+    .ft-form-standard--order .ft-order-contact-source{justify-content:flex-start;border-right:0;border-bottom:1px solid var(--ft-form-control-border)}
+    .ft-form-standard--order .ft-order-contact-source:last-child{border-bottom:0}
+    .ft-form-standard--order .ft-order-delivery-contact-grid{grid-template-columns:1fr}
+    .ft-form-standard--order .ft-order-contact-save-row{align-items:flex-start;flex-direction:column;gap:6px;margin-top:7px}
+    .ft-form-standard--order .ft-order-postal-row>.validation-error{margin-top:4px}
+}
+
+
+/* Create Order delivery-contact searchable person selector. The field itself
+   is the search surface: focus/click shows all saved contacts for the active
+   source, while typing filters the same list and may create a new contact. */
+.ft-form-standard--order .ft-order-contact-combobox{
+    position:relative;
+    min-width:0;
+    width:100%;
+}
+.ft-form-standard--order .ft-order-contact-combobox__input-wrap{
+    position:relative;
+    min-width:0;
+}
+.ft-form-standard--order .ft-order-contact-combobox__input{
+    padding-right:36px!important;
+}
+.ft-form-standard--order .ft-order-contact-combobox__toggle{
+    position:absolute;
+    top:0;
+    right:0;
+    width:36px;
+    height:var(--ft-form-control-height);
+    display:grid;
+    place-items:center;
+    padding:0;
+    border:0;
+    background:transparent;
+    color:var(--ft-form-helper-color);
+    cursor:pointer;
+}
+.ft-form-standard--order .ft-order-contact-combobox__toggle>svg{
+    width:16px;
+    height:16px;
+}
+.ft-form-standard--order .ft-order-contact-combobox__menu{
+    position:absolute;
+    top:calc(100% + 5px);
+    left:0;
+    z-index:1450;
+    width:100%;
+    min-width:min(300px,calc(100vw - 24px));
+    max-width:min(520px,calc(100vw - 24px));
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+.ft-form-standard--order .ft-order-contact-combobox__list{
+    max-height:240px;
+}
+.ft-form-standard--order .ft-order-contact-combobox__option{
+    min-height:40px;
+    font-size:var(--ft-form-control-size);
+}
+.ft-form-standard--order .ft-order-contact-combobox__option>span{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.ft-form-standard--order .ft-order-contact-combobox__option>small{
+    max-width:45%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:var(--ft-form-helper-size);
+}
+.ft-form-standard--order .ft-order-contact-combobox__new{
+    border-top:1px solid var(--ft-form-control-border);
+    border-radius:0 0 var(--ft-form-control-radius) var(--ft-form-control-radius);
+    color:var(--ft-theme-primary);
+}
+.ft-form-standard--order .ft-order-contact-combobox__empty{
+    padding:10px 12px;
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    line-height:1.35;
+}
+@media(max-width:700px){
+    .ft-form-standard--order .ft-order-contact-combobox__menu{
+        width:min(100%,calc(100vw - 24px));
+        min-width:min(260px,calc(100vw - 24px));
+        max-width:calc(100vw - 24px);
+    }
+}
+
+
+/* 2026-09-03 Create Order optional Inquiry link.
+   Matches the supplied prototype and reuses the shared remote search-select.
+   Scope is deliberately limited to Create Order so no existing selector or
+   Order Details typography/layout is changed. */
+.ft-create-job-page .ft-create-inquiry-link{
+    position:relative;
+    gap:0;
+}
+.ft-create-job-page .ft-create-inquiry-link>b{
+    margin-bottom:5px;
+}
+.ft-create-job-page .ft-create-inquiry-help{
+    display:block;
+    margin:0 0 8px;
+    color:var(--ft-text-muted,#7586a1);
+    font-size:12px;
+    font-weight:400;
+    line-height:1.4;
+}
+.ft-create-job-page .ft-create-inquiry-picker{
+    position:relative;
+    min-width:0;
+}
+.ft-create-job-page .ft-create-inquiry-search-icon{
+    position:absolute;
+    z-index:2;
+    top:50%;
+    left:14px;
+    width:18px;
+    height:18px;
+    color:#8292aa;
+    pointer-events:none;
+    transform:translateY(-50%);
+}
+.ft-create-job-page .ft-create-inquiry-select{
+    min-width:0;
+}
+.ft-create-job-page .ft-create-inquiry-select .ft-search-select__trigger{
+    min-height:46px;
+    width:100%;
+    padding-left:43px;
+    border:1px solid #d5dee9;
+    border-radius:8px;
+    background:#fff;
+    color:#6f7f98;
+    font-size:13px;
+    font-weight:400;
+    box-shadow:none;
+}
+.ft-create-job-page .ft-create-inquiry-select .ft-search-select__trigger:hover:not(:disabled),
+.ft-create-job-page .ft-create-inquiry-select .ft-search-select__trigger[aria-expanded="true"],
+.ft-create-job-page .ft-create-inquiry-select .ft-search-select__trigger:focus-visible{
+    border-color:var(--ft-focus-border);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 9%, transparent);
+}
+.ft-create-job-page .ft-create-inquiry-select .ft-filter-chevron{
+    color:#72839d;
+}
+.ft-create-job-page .ft-create-inquiry-selected{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-height:66px;
+    padding:10px 14px 10px 12px;
+    border:1px solid #d5dee9;
+    border-radius:8px;
+    background:#fff;
+}
+.ft-create-job-page .ft-create-inquiry-link-icon{
+    display:inline-flex;
+    flex:0 0 40px;
+    width:40px;
+    height:40px;
+    align-items:center;
+    justify-content:center;
+    border-radius:8px;
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-inquiry-link-icon svg{
+    width:20px;
+    height:20px;
+}
+.ft-create-job-page .ft-create-inquiry-selected-copy{
+    display:flex;
+    flex:1 1 auto;
+    min-width:0;
+    flex-direction:column;
+    gap:4px;
+}
+.ft-create-job-page .ft-create-inquiry-selected-copy>strong{
+    overflow:hidden;
+    color:#14233f;
+    font-size:14px;
+    font-weight:700;
+    line-height:1.3;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.ft-create-job-page .ft-create-inquiry-selected-copy>small{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    color:#7788a1;
+    font-size:12px;
+    line-height:1.2;
+}
+.ft-create-job-page .ft-create-inquiry-selected-copy>small>i{
+    display:block;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-inquiry-change{
+    flex:0 0 auto;
+    padding:8px 9px;
+    border:0;
+    background:transparent;
+    color:var(--ft-order-create-accent);
+    font:inherit;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+}
+.ft-create-job-page .ft-create-inquiry-change:hover,
+.ft-create-job-page .ft-create-inquiry-change:focus-visible{
+    color:var(--ft-order-create-accent-hover);
+    text-decoration:underline;
+    text-underline-offset:3px;
+}
+.ft-create-job-page .ft-create-inquiry-change:focus-visible{
+    outline:2px solid color-mix(in srgb, var(--ft-theme-primary) 28%, transparent);
+    outline-offset:1px;
+    border-radius:5px;
+}
+.ft-create-job-page .ft-create-inquiry-link>.validation-error{
+    margin-top:6px;
+}
+@media (max-width:760px){
+    .ft-create-job-page .ft-create-inquiry-selected{
+        align-items:flex-start;
+    }
+    .ft-create-job-page .ft-create-inquiry-selected-copy>strong{
+        white-space:normal;
+    }
+    .ft-create-job-page .ft-create-inquiry-change{
+        align-self:center;
+    }
+}
+
+/* 2026-09-03 Create Order multiple Inquiry selection.
+   Reuses the shared remote search-select and keeps the prototype's typography,
+   spacing and linked-Inquiry card treatment while allowing many links. */
+.ft-create-job-page .ft-create-inquiry-selected-list{
+    display:grid;
+    gap:8px;
+    min-width:0;
+}
+.ft-create-job-page .ft-create-inquiry-selected-list .ft-create-inquiry-selected{
+    min-height:64px;
+}
+.ft-create-job-page .ft-create-inquiry-selected-copy>small{
+    min-width:0;
+    flex-wrap:wrap;
+}
+.ft-create-job-page .ft-create-inquiry-meta{
+    overflow:hidden;
+    max-width:100%;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.ft-create-job-page .ft-create-inquiry-remove{
+    flex:0 0 auto;
+    padding:7px 9px;
+    border:0;
+    border-radius:6px;
+    background:transparent;
+    color:#8b98aa;
+    font:inherit;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+}
+.ft-create-job-page .ft-create-inquiry-remove:hover,
+.ft-create-job-page .ft-create-inquiry-remove:focus-visible{
+    background:#fff2f2;
+    color:#c84444;
+}
+.ft-create-job-page .ft-create-inquiry-remove:focus-visible{
+    outline:2px solid color-mix(in srgb, #c84444 24%, transparent);
+    outline-offset:1px;
+}
+.ft-create-job-page .ft-create-inquiry-remove:disabled{
+    cursor:wait;
+    opacity:.55;
+}
+.ft-create-job-page .ft-create-inquiry-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-height:36px;
+    margin-top:8px;
+}
+.ft-create-job-page .ft-create-inquiry-actions .ft-create-inquiry-change{
+    padding-left:0;
+}
+.ft-create-job-page .ft-create-inquiry-add,
+.ft-create-job-page .ft-create-inquiry-cancel{
+    border:0;
+    background:transparent;
+    color:var(--ft-order-create-accent);
+    font:inherit;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+}
+.ft-create-job-page .ft-create-inquiry-add{
+    padding:8px 9px;
+    margin-left:auto;
+}
+.ft-create-job-page .ft-create-inquiry-add:hover,
+.ft-create-job-page .ft-create-inquiry-add:focus-visible,
+.ft-create-job-page .ft-create-inquiry-cancel:hover,
+.ft-create-job-page .ft-create-inquiry-cancel:focus-visible{
+    color:var(--ft-order-create-accent-hover);
+    text-decoration:underline;
+    text-underline-offset:3px;
+}
+.ft-create-job-page .ft-create-inquiry-count{
+    margin-left:0;
+    color:#8190a6;
+    font-size:11px;
+    font-weight:500;
+    white-space:nowrap;
+}
+.ft-create-job-page .ft-create-inquiry-picker-wrap{
+    margin-top:8px;
+}
+.ft-create-job-page .ft-create-inquiry-selected-list + .ft-create-inquiry-actions + .ft-create-inquiry-picker-wrap{
+    margin-top:2px;
+}
+.ft-create-job-page .ft-create-inquiry-picker-footer{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:7px 2px 0;
+}
+.ft-create-job-page .ft-create-inquiry-picker-footer>small{
+    color:#8291a6;
+    font-size:11px;
+    line-height:1.35;
+}
+.ft-create-job-page .ft-create-inquiry-cancel{
+    margin-left:auto;
+    padding:4px 2px;
+    color:#75849a;
+}
+@media (max-width:760px){
+    .ft-create-job-page .ft-create-inquiry-selected-list .ft-create-inquiry-selected{
+        align-items:center;
+    }
+    .ft-create-job-page .ft-create-inquiry-actions{
+        flex-wrap:wrap;
+    }
+    .ft-create-job-page .ft-create-inquiry-count{
+        width:100%;
+        margin-left:0;
+    }
+    .ft-create-job-page .ft-create-inquiry-add{
+        margin-left:auto;
+    }
+    .ft-create-job-page .ft-create-inquiry-picker-footer{
+        align-items:flex-start;
+    }
+}
+.ft-create-job-page .ft-create-inquiry-row-actions{
+    display:inline-flex;
+    flex:0 0 auto;
+    align-items:center;
+    gap:2px;
+}
+.ft-create-job-page .ft-create-inquiry-row-actions .ft-create-inquiry-change{
+    padding:8px 7px;
+}
+.ft-create-job-page .ft-create-inquiry-row-actions .ft-create-inquiry-remove{
+    display:inline-flex;
+    width:30px;
+    height:30px;
+    padding:0;
+    align-items:center;
+    justify-content:center;
+    border-radius:7px;
+    font-size:18px;
+    font-weight:500;
+    line-height:1;
+}
+.ft-create-job-page .ft-create-inquiry-change:disabled,
+.ft-create-job-page .ft-create-inquiry-add:disabled{
+    cursor:wait;
+    opacity:.55;
+}
+@media (max-width:760px){
+    .ft-create-job-page .ft-create-inquiry-row-actions{
+        align-self:center;
+    }
+}
+
+/* Create Order shipping-method picker — prototype parity 2026-09-04.
+   Domain-specific composition only; typography, color, spacing, borders and
+   elevation are sourced from the centralized FlowTrack token/theme contract. */
+.ft-create-job-page .ft-create-shipping-method-grid{
+    grid-column:1/-1;
+    min-width:0;
+}
+.ft-create-job-page .ft-create-shipping-method-field{
+    width:100%;
+    max-width:calc(var(--ft-space-16) * 11);
+}
+.ft-create-job-page .ft-create-shipping-method-field>b{
+    color:var(--ft-text-primary);
+    font-size:var(--ft-font-size-sm);
+    font-weight:var(--ft-font-weight-semibold);
+    line-height:var(--ft-line-height-snug);
+}
+.ft-create-job-page .ft-create-shipping-selected-list{
+    display:grid;
+    gap:var(--ft-space-2);
+}
+.ft-create-job-page .ft-create-shipping-selected-card,
+.ft-create-job-page .ft-create-shipping-trigger,
+.ft-create-job-page .ft-create-shipping-option{
+    width:100%;
+    font-family:var(--ft-font-family);
+}
+.ft-create-job-page .ft-create-shipping-selected-card{
+    min-height:calc(var(--ft-control-height-lg) + var(--ft-space-3));
+    padding:var(--ft-space-2) var(--ft-space-4);
+    border:var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-default);
+    border-radius:var(--ft-radius-xl);
+    background:var(--ft-bg-surface);
+    color:var(--ft-text-primary);
+    display:flex;
+    align-items:center;
+    gap:var(--ft-space-3);
+    text-align:left;
+    cursor:pointer;
+    transition:border-color var(--ft-transition-fast),box-shadow var(--ft-transition-fast),background var(--ft-transition-fast);
+}
+.ft-create-job-page .ft-create-shipping-selected-card:hover{
+    border-color:var(--ft-border-strong);
+    background:var(--ft-bg-surface-hover);
+}
+.ft-create-job-page .ft-create-shipping-selected-card:focus-visible,
+.ft-create-job-page .ft-create-shipping-selected-card.is-open{
+    outline:0;
+    border-color:var(--ft-focus-border);
+    box-shadow:var(--ft-focus-ring);
+}
+.ft-create-job-page .ft-create-shipping-selected-copy,
+.ft-create-job-page .ft-create-shipping-option-copy{
+    min-width:0;
+    display:grid;
+    gap:var(--ft-space-1);
+    flex:1 1 auto;
+}
+.ft-create-job-page .ft-create-shipping-selected-copy strong,
+.ft-create-job-page .ft-create-shipping-option-copy strong{
+    color:var(--ft-text-primary);
+    font-size:var(--ft-font-size-md);
+    font-weight:var(--ft-font-weight-semibold);
+    line-height:var(--ft-line-height-snug);
+}
+.ft-create-job-page .ft-create-shipping-selected-copy small,
+.ft-create-job-page .ft-create-shipping-option-copy small{
+    color:var(--ft-text-secondary);
+    font-size:var(--ft-font-size-sm);
+    font-weight:var(--ft-font-weight-regular);
+    line-height:var(--ft-line-height-snug);
+}
+.ft-create-job-page .ft-create-shipping-picker{
+    position:relative;
+    margin-top:var(--ft-space-2);
+}
+.ft-create-job-page .ft-create-shipping-trigger{
+    min-height:var(--ft-control-height-lg);
+    padding:0 var(--ft-space-4);
+    border:var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-default);
+    border-radius:var(--ft-radius-xl);
+    background:var(--ft-bg-surface);
+    color:var(--ft-text-secondary);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:var(--ft-space-3);
+    font-size:var(--ft-font-size-md);
+    font-weight:var(--ft-font-weight-regular);
+    text-align:left;
+    cursor:pointer;
+    transition:border-color var(--ft-transition-fast),box-shadow var(--ft-transition-fast);
+}
+.ft-create-job-page .ft-create-shipping-trigger:hover,
+.ft-create-job-page .ft-create-shipping-trigger.is-open,
+.ft-create-job-page .ft-create-shipping-trigger:focus-visible{
+    outline:0;
+    border-color:var(--ft-order-create-accent);
+    box-shadow:var(--ft-focus-ring);
+}
+.ft-create-job-page .ft-create-shipping-chevron{
+    width:var(--ft-space-5);
+    height:var(--ft-space-5);
+    flex:0 0 var(--ft-space-5);
+    color:var(--ft-text-secondary);
+    transition:transform var(--ft-transition-fast);
+}
+.ft-create-job-page .ft-create-shipping-chevron.is-open{
+    transform:rotate(180deg);
+}
+.ft-create-job-page .ft-create-shipping-menu{
+    position:absolute;
+    z-index:var(--ft-z-dropdown);
+    top:calc(100% + var(--ft-space-2));
+    left:0;
+    right:0;
+    overflow:hidden;
+    border:var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-default);
+    border-radius:var(--ft-radius-xl);
+    background:var(--ft-bg-surface);
+    box-shadow:var(--ft-shadow-lg);
+}
+.ft-create-job-page .ft-create-shipping-option{
+    min-height:calc(var(--ft-control-height-lg) + var(--ft-space-2));
+    padding:var(--ft-space-2) var(--ft-space-4);
+    border:0;
+    background:var(--ft-bg-surface);
+    color:var(--ft-text-primary);
+    display:flex;
+    align-items:center;
+    gap:var(--ft-space-4);
+    text-align:left;
+    cursor:pointer;
+    transition:background var(--ft-transition-fast);
+}
+.ft-create-job-page .ft-create-shipping-option:hover,
+.ft-create-job-page .ft-create-shipping-option:focus-visible{
+    outline:0;
+    background:var(--ft-bg-surface-hover);
+}
+.ft-create-job-page .ft-create-shipping-option-icon{
+    width:var(--ft-space-7);
+    height:var(--ft-space-7);
+    flex:0 0 var(--ft-space-7);
+    display:grid;
+    place-items:center;
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-shipping-option-icon svg{
+    width:100%;
+    height:100%;
+}
+.ft-create-job-page .ft-create-shipping-express-group{
+    margin-top:var(--ft-space-1);
+    padding-top:var(--ft-space-2);
+    padding-bottom:var(--ft-space-2);
+    border-top:var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-default);
+}
+.ft-create-job-page .ft-create-shipping-express-heading{
+    min-height:var(--ft-control-height-sm);
+    padding:var(--ft-space-2) var(--ft-space-4) var(--ft-space-1);
+    display:flex;
+    align-items:center;
+    gap:var(--ft-space-2);
+    color:var(--ft-text-secondary);
+    font-size:var(--ft-font-size-xs);
+    font-weight:var(--ft-font-weight-bold);
+    letter-spacing:var(--ft-letter-spacing-wide);
+}
+.ft-create-job-page .ft-create-shipping-info{
+    width:var(--ft-space-5);
+    height:var(--ft-space-5);
+    display:inline-grid;
+    place-items:center;
+    color:var(--ft-text-secondary);
+}
+.ft-create-job-page .ft-create-shipping-info svg{
+    width:100%;
+    height:100%;
+}
+.ft-create-job-page .ft-create-shipping-option--express{
+    min-height:var(--ft-control-height-lg);
+    padding-top:var(--ft-space-2);
+    padding-bottom:var(--ft-space-2);
+}
+.ft-create-job-page .ft-create-shipping-option--express .ft-create-shipping-option-icon{
+    width:var(--ft-space-6);
+    height:var(--ft-space-6);
+    flex-basis:var(--ft-space-6);
+    margin-left:var(--ft-space-2);
+}
+.ft-create-job-page .ft-create-shipping-option-copy--inline{
+    display:flex;
+    align-items:baseline;
+    flex-wrap:wrap;
+    column-gap:var(--ft-space-2);
+    row-gap:var(--ft-space-1);
+}
+.ft-create-job-page .ft-create-shipping-option-copy--inline small span{
+    color:var(--ft-text-secondary);
+}
+@media (max-width:700px){
+    .ft-create-job-page .ft-create-shipping-selected-card,
+    .ft-create-job-page .ft-create-shipping-option{
+        padding-left:var(--ft-space-3);
+        padding-right:var(--ft-space-3);
+    }
+    .ft-create-job-page .ft-create-shipping-option{
+        gap:var(--ft-space-3);
+    }
+    .ft-create-job-page .ft-create-shipping-selected-copy strong,
+    .ft-create-job-page .ft-create-shipping-option-copy strong{
+        font-size:var(--ft-font-size-sm);
+    }
+    .ft-create-job-page .ft-create-shipping-selected-copy small,
+    .ft-create-job-page .ft-create-shipping-option-copy small{
+        font-size:var(--ft-font-size-xs);
+    }
+    .ft-create-job-page .ft-create-shipping-express-heading{
+        padding-left:var(--ft-space-3);
+        padding-right:var(--ft-space-3);
+    }
+}

@@ -1,0 +1,34 @@
+/** Phase 4 shared filter adapters for the Client detail Orders tab. */
+.ft-client-order-filters .ft-client-order-search-shared,
+.ft-client-order-filters .ft-client-order-selector {
+    min-width: 0;
+}
+
+.ft-client-order-filters .ft-client-order-search-shared>.ft-search-input__control,
+.ft-client-order-filters .ft-client-order-search-shared .ft-search-input__input,
+.ft-client-order-filters .ft-client-order-selector .ft-search-select__trigger,
+.ft-client-order-filters .ft-client-order-range {
+    width: 100%;
+    height: 36px;
+    min-height: 36px;
+    border-radius: var(--ft-radius-md);
+}
+
+.ft-client-order-filters .ft-client-order-search-shared {
+    height: 36px;
+}
+
+.ft-client-order-filters .ft-client-order-search-shared .ft-search-input__input,
+.ft-client-order-filters .ft-client-order-selector .ft-search-select__trigger {
+    border-color: var(--ft-border-strong);
+    background: var(--ft-bg-surface);
+    color: var(--ft-text-primary);
+}
+
+.ft-client-order-filters .ft-filter-reset {
+    justify-self: start;
+    border: 0;
+    background: transparent;
+    color: var(--ft-text-link);
+    white-space: nowrap;
+}

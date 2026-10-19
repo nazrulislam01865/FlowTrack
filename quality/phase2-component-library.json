@@ -1,0 +1,58 @@
+{
+    "schema": 1,
+    "phase": 2,
+    "component_css": {
+        "partial_count": 14,
+        "partial_bytes": 22574,
+        "hardcoded_color_literals": 0,
+        "important_declarations": 0
+    },
+    "blade_components": {
+        "official_contract_count": 22,
+        "embedded_style_blocks": 0,
+        "embedded_hardcoded_colors": 0
+    },
+    "compatibility": {
+        "legacy_dashboard_ft_table_direct_occurrences": 4,
+        "component_marker_strategy": "data-ft-ui-component",
+        "generated_css_chunk_count": 4,
+        "generated_css_total_bytes": 634348
+    },
+    "architecture_budgets": {
+        "giant_files": {
+            "app/Livewire/Jobs/Index.php": 3981,
+            "app/Livewire/MasterData/Index.php": 3166,
+            "app/Livewire/Inquiries/Index.php": 3063,
+            "app/Services/InquiryService.php": 2630,
+            "app/Services/DashboardService.php": 2299,
+            "app/Services/JobService.php": 2012
+        },
+        "blade_php_blocks": 188,
+        "blade_app_calls": 78,
+        "blade_auth_calls": 91,
+        "blade_style_attributes": 157,
+        "blade_style_blocks": 6,
+        "blade_hardcoded_hex_colors": 576,
+        "css_important_all": 2501,
+        "css_important_canonical": 1265,
+        "css_hardcoded_hex_canonical": 3082,
+        "flowtrack_css_bytes": 598656,
+        "flowtrack_css_lines": 7354,
+        "flowtrack_css_important": 1236,
+        "flowtrack_css_hex_occurrences": 2870,
+        "flowtrack_css_unique_hex": 1201,
+        "models_guarded_empty": 40,
+        "app_get_calls": 279
+    },
+    "quality_commands": [
+        "npm run quality:architecture",
+        "npm run quality:css",
+        "npm run quality:components",
+        "npm run quality:phase2"
+    ],
+    "environment_gates_pending": [
+        "full PHPUnit with Composer vendor dependencies",
+        "production Vite build with installed npm dependencies",
+        "authenticated visual approval before Phase 3 page migration"
+    ]
+}

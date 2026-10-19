@@ -1,0 +1,273 @@
+/**
+ * List export period modal legacy-compatible component styling
+ * Migrated from Blade during Phase 3. Preserve selectors while pages transition.
+ */
+
+[x-cloak] {
+    display: none !important
+}
+
+.ft-export-period {
+    display: inline-flex
+}
+
+.ft-export-period-trigger {
+    cursor: pointer
+}
+
+.ft-export-period-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, .38);
+    backdrop-filter: blur(2px)
+}
+
+.ft-export-period-dialog {
+    width: min(560px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow: auto;
+    border: 1px solid #d7e1ee;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, .22)
+}
+
+.ft-export-period-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 20px 22px 15px;
+    border-bottom: 1px solid #e2e8f0
+}
+
+.ft-export-period-head h2 {
+    margin: 0;
+    color: #17243a;
+    font-size: 1.125rem;
+    font-weight: 800;
+    letter-spacing: -.02em
+}
+
+.ft-export-period-head p {
+    margin: 5px 0 0;
+    color: #66758d;
+    font-size: .6875rem;
+    line-height: 1.45
+}
+
+.ft-export-period-close {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d7e1ee;
+    border-radius: 9px;
+    background: #fff;
+    color: #5f6f86;
+    font-size: 1.125rem;
+    line-height: 1;
+    cursor: pointer
+}
+
+.ft-export-period-close:hover {
+    background: #f7f9fc;
+    color: #1f2c43
+}
+
+.ft-export-period-body {
+    padding: 17px 22px 20px
+}
+
+.ft-export-period-label {
+    display: block;
+    margin-bottom: 9px;
+    color: #34445d;
+    font-size: .625rem;
+    font-weight: 800;
+    letter-spacing: .035em;
+    text-transform: uppercase
+}
+
+.ft-export-period-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px
+}
+
+.ft-export-period-option {
+    position: relative;
+    display: flex;
+    min-height: 62px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid #d8e2ef;
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease
+}
+
+.ft-export-period-option:hover {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-export-period-option.is-active {
+    border-color: var(--ft-theme-primary-500);
+    background: var(--ft-theme-surface-subtle);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-export-period-option input {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+    margin: 0;
+    accent-color: var(--ft-theme-primary)
+}
+
+.ft-export-period-copy {
+    display: block;
+    min-width: 0
+}
+
+.ft-export-period-copy strong {
+    display: block;
+    color: #233047;
+    font-size: .71875rem;
+    font-weight: 800
+}
+
+.ft-export-period-copy small {
+    display: block;
+    margin-top: 2px;
+    color: #76869c;
+    font-size: .59375rem;
+    line-height: 1.25
+}
+
+.ft-export-period-month {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid #d8e2ef;
+    border-radius: 12px;
+    background: #f8fafc
+}
+
+.ft-export-period-month label {
+    display: block;
+    margin-bottom: 6px;
+    color: #34445d;
+    font-size: .625rem;
+    font-weight: 750
+}
+
+.ft-export-period-month-control {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #ccd8e8;
+    border-radius: 9px;
+    background: #fff;
+    padding: 8px 10px;
+    cursor: pointer
+}
+
+.ft-export-period-month input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: #26364d;
+    font: inherit;
+    font-size: .6875rem;
+    outline: none;
+    cursor: pointer
+}
+
+.ft-export-period-note {
+    margin: 12px 0 0;
+    color: #738198;
+    font-size: .59375rem;
+    line-height: 1.45
+}
+
+.ft-export-period-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 17px;
+    padding-top: 15px;
+    border-top: 1px solid #e5ebf3
+}
+
+.ft-export-period-cancel,
+.ft-export-period-submit {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 13px;
+    border-radius: 9px;
+    font-size: .625rem;
+    font-weight: 800;
+    cursor: pointer
+}
+
+.ft-export-period-cancel {
+    border: 1px solid #d4deec;
+    background: #fff;
+    color: #34445b
+}
+
+.ft-export-period-submit {
+    border: 1px solid var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff;
+    box-shadow: 0 5px 13px color-mix(in srgb, var(--ft-theme-primary) 16%, transparent)
+}
+
+.ft-export-period-submit:hover {
+    background: var(--ft-theme-primary)
+}
+
+@media(max-width:560px) {
+    .ft-export-period-layer {
+        align-items: flex-end;
+        padding: 12px
+    }
+
+    .ft-export-period-dialog {
+        max-height: calc(100vh - 24px);
+        border-radius: 15px
+    }
+
+    .ft-export-period-head {
+        padding: 17px 16px 13px
+    }
+
+    .ft-export-period-body {
+        padding: 14px 16px 17px
+    }
+
+    .ft-export-period-options {
+        grid-template-columns: 1fr
+    }
+
+    .ft-export-period-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr
+    }
+}

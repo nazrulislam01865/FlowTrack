@@ -1,0 +1,22 @@
+/**
+ * FlowTrack official component CSS composition.
+ * Add component contracts here; page/module layout does not belong here.
+ */
+@import './components/headers.css';
+@import './components/buttons.css';
+@import './components/badges.css';
+@import './components/forms.css';
+@import './components/filters.css';
+@import './components/search-select.css';
+@import './components/multi-select.css';
+@import './components/date-range.css';
+@import './components/dropdowns.css';
+@import './components/cards.css';
+@import './components/tables.css';
+@import './components/tabs.css';
+@import './components/modals.css';
+@import './components/tooltips.css';
+@import './components/pagination.css';
+@import './components/loading.css';
+@import './components/empty-state.css';
+@import './components/validation.css';

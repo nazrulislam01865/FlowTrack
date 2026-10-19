@@ -1,0 +1,141 @@
+/** Create Inquiry adapter: same typography and control language as Create Order. */
+.ft-form-standard--inquiry .ft-inquiry-create-shell {
+    max-width: 1180px;
+}
+
+.ft-form-standard--inquiry .crumb {
+    color: var(--ft-form-breadcrumb-color);
+    font-size: var(--ft-form-breadcrumb-size);
+    font-weight: var(--ft-form-breadcrumb-weight);
+}
+
+.ft-form-standard--inquiry .ft-inquiry-create-heading h1 {
+    color: var(--ft-form-page-title-color);
+    font-size: var(--ft-form-page-title-size);
+    font-weight: var(--ft-form-page-title-weight);
+    line-height: 1.15;
+}
+
+.ft-form-standard--inquiry .ft-inquiry-create-heading p {
+    color: var(--ft-form-page-copy-color);
+    font-size: var(--ft-form-page-copy-size);
+    font-weight: var(--ft-form-page-copy-weight);
+    line-height: 1.45;
+}
+
+.ft-form-standard--inquiry .ft-inquiry-create-card {
+    border-color: var(--ft-form-section-border);
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+.ft-form-standard--inquiry .ft-inquiry-step-title span {
+    width: var(--ft-form-step-size);
+    height: var(--ft-form-step-size);
+    border-radius: 50%;
+    background: var(--ft-theme-primary);
+    color: var(--ft-theme-text-inverse);
+    font-size: var(--ft-form-breadcrumb-size);
+    font-weight: var(--ft-form-label-weight);
+}
+
+.ft-form-standard--inquiry .ft-inquiry-step-title h2 {
+    color: var(--ft-form-section-title-color);
+    font-size: var(--ft-form-section-title-size);
+    font-weight: var(--ft-form-section-title-weight);
+}
+
+.ft-form-standard--inquiry .ft-inquiry-step-title-inline p,
+.ft-form-standard--inquiry .ft-inquiry-field-help,
+.ft-form-standard--inquiry .ft-inquiry-field-tip,
+.ft-form-standard--inquiry .ft-inquiry-workflow-footnote,
+.ft-form-standard--inquiry .ft-inquiry-create-actions > span {
+    color: var(--ft-form-helper-color);
+    font-size: var(--ft-form-helper-size);
+    font-weight: var(--ft-form-helper-weight);
+}
+
+.ft-form-standard--inquiry .ft-inquiry-create-field > label,
+.ft-form-standard--inquiry .ft-inquiry-create-field > span,
+.ft-form-standard--inquiry .ft-inquiry-products-create-section .ft-product-row label > b,
+.ft-form-standard--inquiry .ft-inquiry-products-create-section .ft-remote-filter > label {
+    color: var(--ft-form-label-color);
+    font-size: var(--ft-form-label-size);
+    font-weight: var(--ft-form-label-weight);
+    line-height: 1.2;
+}
+
+.ft-form-standard--inquiry .ft-inquiry-create-field input,
+.ft-form-standard--inquiry .ft-inquiry-create-field select,
+.ft-form-standard--inquiry .ft-inquiry-received-control,
+.ft-form-standard--inquiry .ft-inquiry-products-create-section .ft-product-row input {
+    height: var(--ft-form-control-height);
+    min-height: var(--ft-form-control-height);
+    border-color: var(--ft-form-control-border);
+    border-radius: var(--ft-form-control-radius);
+    color: var(--ft-form-control-color);
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+}
+
+.ft-form-standard--inquiry .ft-inquiry-received-control input[type="date"] {
+    height: 100%;
+    min-height: 100%;
+    color: var(--ft-form-control-color);
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+}
+
+.ft-form-standard--inquiry .ft-inquiry-client-selector .ft-remote-filter-button,
+.ft-form-standard--inquiry .ft-inquiry-owner-selector .ft-remote-filter-button,
+.ft-form-standard--inquiry .ft-inquiry-products-create-section .ft-remote-filter-button {
+    height: var(--ft-form-control-height) !important;
+    min-height: var(--ft-form-control-height) !important;
+    border-color: var(--ft-form-control-border) !important;
+    border-radius: var(--ft-form-control-radius) !important;
+    color: var(--ft-form-control-color) !important;
+    font-size: var(--ft-form-control-size) !important;
+    font-weight: var(--ft-form-control-weight) !important;
+}
+
+.ft-form-standard--inquiry .ft-inquiry-source-switch button,
+.ft-form-standard--inquiry .ft-inquiry-new-client-btn,
+.ft-form-standard--inquiry .ft-inquiry-new-contact-btn,
+.ft-form-standard--inquiry .ft-inquiry-prototype-dropzone .inquiry-dropzone-button,
+.ft-form-standard--inquiry .ft-inquiry-create-actions .secondary,
+.ft-form-standard--inquiry .ft-inquiry-create-actions .primary {
+    font-size: var(--ft-form-button-size);
+    font-weight: var(--ft-form-button-weight);
+}
+
+.ft-form-standard--inquiry .ft-inquiry-new-client-btn,
+.ft-form-standard--inquiry .ft-inquiry-new-contact-btn,
+.ft-form-standard--inquiry .ft-inquiry-create-actions .secondary,
+.ft-form-standard--inquiry .ft-inquiry-create-actions .primary {
+    min-height: 42px;
+    height: 42px;
+    border-radius: var(--ft-form-control-radius);
+}
+
+.ft-form-standard--inquiry .ft-inquiry-request-details .ft-rich-text-editor {
+    color: var(--ft-form-control-color);
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+    line-height: 1.5;
+}
+
+.ft-form-standard--inquiry .ft-inquiry-prototype-dropzone .inquiry-dropzone-copy strong,
+.ft-form-standard--inquiry .ft-inquiry-workflow-copy strong {
+    color: var(--ft-form-control-color);
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-label-weight);
+}
+
+.ft-form-standard--inquiry .ft-inquiry-prototype-dropzone .inquiry-dropzone-copy small,
+.ft-form-standard--inquiry .ft-inquiry-prototype-dropzone .ft-inquiry-drop-or,
+.ft-form-standard--inquiry .ft-inquiry-workflow-copy small,
+.ft-form-standard--inquiry .ft-inquiry-workflow-copy > span {
+    color: var(--ft-form-helper-color);
+    font-size: var(--ft-form-helper-size);
+    font-weight: var(--ft-form-helper-weight);
+}

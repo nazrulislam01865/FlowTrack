@@ -1,0 +1,978 @@
+{
+    "coordinator_max_lines": 300,
+    "required_public_methods": [
+        "addCreateProductRow",
+        "addInquiryComment",
+        "addInquiryItem",
+        "addInquiryProductRow",
+        "addInquiryTask",
+        "addManagerTask",
+        "addTaskComment",
+        "appendManagerTemplate",
+        "attachExistingInquiryDocument",
+        "beginCreateOrderProductCategory",
+        "beginInquiryProductEdit",
+        "cancelAddTask",
+        "cancelCreate",
+        "cancelCreateOrderProductCategory",
+        "cancelInquiryProductEdit",
+        "cancelTaskLinkForm",
+        "clearFilters",
+        "clearInquiryAttention",
+        "closeAddInquiryProductForm",
+        "closeCreateClientModal",
+        "closeCreateContactModal",
+        "closeCreateOrderProductModal",
+        "closeInquiry",
+        "closeInquiryAttentionReason",
+        "closeTask",
+        "closeTaskAttentionReason",
+        "closeTaskDocumentModal",
+        "closeWorkflowManager",
+        "completeTask",
+        "completeTaskInline",
+        "convertInquiryFromList",
+        "convertToOrder",
+        "createAndAddOrderProduct",
+        "createClientAndSelect",
+        "createCreateOrderProductCategory",
+        "createInquiry",
+        "decrementCreateProductQuantity",
+        "deleteInquiry",
+        "deleteInquiryDocument",
+        "deleteInquiryTaskActivity",
+        "deleteTaskDocument",
+        "deleteTaskLink",
+        "focusCreateProductSearch",
+        "incrementCreateProductQuantity",
+        "markDead",
+        "markInquiryDeadFromList",
+        "mount",
+        "moveManagerTask",
+        "openAddInquiryProductForm",
+        "openAddTaskForm",
+        "openCreate",
+        "openCreateClientModal",
+        "openCreateContactModal",
+        "openCreateOrderProductModal",
+        "openCreateOrderProductModalFromSearch",
+        "openInquiry",
+        "openInquiryAttentionReason",
+        "openTask",
+        "openTaskAttentionReason",
+        "openTaskDocumentModal",
+        "openTaskLinkForm",
+        "openWorkflowManager",
+        "refreshRealtime",
+        "removeCreateProductRow",
+        "removeInquiryItem",
+        "removeInquiryProductRow",
+        "removeManagerTask",
+        "render",
+        "requestTaskCompletionFile",
+        "saveCreateContact",
+        "saveDraft",
+        "saveInquiryAttentionReason",
+        "saveInquiryProduct",
+        "saveInquiryProducts",
+        "saveTask",
+        "saveTaskAttentionReason",
+        "saveTaskDocument",
+        "saveTaskLink",
+        "saveWorkflow",
+        "selectCreateOrderProductCategory",
+        "selectCreateProduct",
+        "selectDuplicateCreateOrderProduct",
+        "selectInquiryProduct",
+        "setCreateSelector",
+        "setDetailTab",
+        "setInquiryActivityTab",
+        "setInquiryListFilter",
+        "setInquiryProductSelector",
+        "setMetricFilter",
+        "setQuick",
+        "setTaskDocumentSource",
+        "showAllCreateProductResults",
+        "showAllInquiryProductResults",
+        "toggleInquiryDocumentPicker",
+        "updateInquiryField",
+        "updateInquiryItem",
+        "updateInquiryStartInline",
+        "updateInquiryStatus",
+        "updateListStatus",
+        "updateTaskAssigneeInline",
+        "updateTaskDueInline",
+        "updateTaskStatusInline",
+        "updatedClientId",
+        "updatedCreateProductCategoryFilter",
+        "updatedCreateProductSearch",
+        "updatedDateFrom",
+        "updatedDateTo",
+        "updatedHideCompleted",
+        "updatedInquiryUploads",
+        "updatedListClient",
+        "updatedListStatus",
+        "updatedNewProductCategorySearch",
+        "updatedNewProductCode",
+        "updatedNewProductImage",
+        "updatedSearch",
+        "updatedTaskQuickUploads",
+        "uploadInquiryFiles",
+        "uploadQuickTaskFile",
+        "uploadTaskFile",
+        "viewSimilarCreateProducts"
+    ],
+    "required_concerns": [
+        "BuildsInquiryPageData",
+        "ManagesInquiryActivity",
+        "ManagesInquiryCreateProducts",
+        "ManagesInquiryCreation",
+        "ManagesInquiryDetail",
+        "ManagesInquiryDocuments",
+        "ManagesInquiryFinalDecision",
+        "ManagesInquiryList",
+        "ManagesInquiryProducts",
+        "ManagesInquiryTasks",
+        "ManagesInquiryWorkflow"
+    ],
+    "required_actions": [
+        "AddInquiryComment",
+        "AddInquiryItem",
+        "AddInquiryTaskComment",
+        "AddInquiryTaskLink",
+        "AppendInquiryTask",
+        "ClearInquiryAttention",
+        "CompleteInquiryTask",
+        "ConvertInquiryToOrder",
+        "CreateInquiry",
+        "CreateInquiryCatalogProduct",
+        "CreateInquiryClient",
+        "CreateInquiryProductCategory",
+        "DeleteInquiry",
+        "LinkExistingInquiryDocument",
+        "LinkExistingInquiryTaskDocument",
+        "MarkInquiryDead",
+        "RemoveInquiryDocument",
+        "RemoveInquiryItem",
+        "RemoveInquiryTaskDocument",
+        "RemoveInquiryTaskLink",
+        "ReplaceInquiryItems",
+        "SaveInquiryWorkflow",
+        "SetInquiryAttention",
+        "SetInquiryTaskAttention",
+        "UpdateInquiryClientContact",
+        "UpdateInquiryDetailField",
+        "UpdateInquiryItem",
+        "UpdateInquiryStartedAt",
+        "UpdateInquiryStatus",
+        "UpdateInquiryTask",
+        "UpdateInquiryTaskAssignee",
+        "UpdateInquiryTaskDueDate",
+        "UpdateInquiryTaskStatus",
+        "UploadInquiryDocument"
+    ],
+    "required_queries": [
+        "InquiryDetailQuery",
+        "InquiryListQuery",
+        "InquiryWorkflowQuery"
+    ],
+    "protected_file_hashes": {
+        "app/Services/InquiryService.php": "c7c7dfd2c0bd5a26e738d5e3816fbb66df51bd151fafef6d484bd6d67d436e13",
+        "app/Services/AccessControlService.php": "3c93baadba6d44e194a4010b2592871c2753dc21a2d203f16c4f1d10c70920c7",
+        "routes/web.php": "b28eda429d6dccd79e50b154c0be25598ed6be46fa849e45677a4e71c51fb5e8",
+        "resources/views/pages/inquiries.blade.php": "4d2ae3f7e525f989ed3a731f419108e82e8b06ab07140dc7fb9500bd6e5d021c"
+    },
+    "migration_tree_hash": "5b5a99c6ba06753a575d8d6b33074da7de0cddd381c5f131b314a4d907dad16e",
+    "reconstructed_view_hash": "039e79c5a54c6f85ae0b92fa436a0b055cb4bafcf6b5cfc2bc5e51d93a6efd48",
+    "taskflow_view_hash": "61ff0e41e64f08d5dc0f820880e1b43ce61645070dcd93a6d357281e20168bad",
+    "attachments_view_hash": "2faff2097daa9c09fbecda4db5ed2a5b4cbcba2f4077b1d295d7691a1ec40e34",
+    "activity_view_hash": "9507b3963206fcf946c455ad69d8a1cefe4f7eade98460db781167288a8405e7",
+    "required_method_signatures": {
+        "mount": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedSearch": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedListClient": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedListStatus": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedDateFrom": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedDateTo": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "setInquiryListFilter": {
+            "visibility": "public",
+            "arguments": "string $property, mixed $value",
+            "return": "void"
+        },
+        "updatedHideCompleted": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "setQuick": {
+            "visibility": "public",
+            "arguments": "string $quick",
+            "return": "void"
+        },
+        "setMetricFilter": {
+            "visibility": "public",
+            "arguments": "string $metric",
+            "return": "void"
+        },
+        "clearFilters": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "clearMetricFilter": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "clearListFiltersExcept": {
+            "visibility": "private",
+            "arguments": "string $except",
+            "return": "void"
+        },
+        "clearToolbarFilters": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "normalizeDateFilter": {
+            "visibility": "private",
+            "arguments": "string $value",
+            "return": "string"
+        },
+        "normalizeDateRange": {
+            "visibility": "private",
+            "arguments": "string $changed",
+            "return": "void"
+        },
+        "deleteInquiry": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "openCreate": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "canUseCreateInquiryProducts": {
+            "visibility": "private",
+            "arguments": "User $user",
+            "return": "bool"
+        },
+        "authorizeCreateInquiryProducts": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "addCreateProductRow": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "removeCreateProductRow": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "updatedCreateProductSearch": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedCreateProductCategoryFilter": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "showAllCreateProductResults": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "focusCreateProductSearch": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "selectCreateProduct": {
+            "visibility": "public",
+            "arguments": "int $productId",
+            "return": "void"
+        },
+        "incrementCreateProductQuantity": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "decrementCreateProductQuantity": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "openCreateOrderProductModal": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "openCreateOrderProductModalFromSearch": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "closeCreateOrderProductModal": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "selectCreateOrderProductCategory": {
+            "visibility": "public",
+            "arguments": "int $categoryId",
+            "return": "void"
+        },
+        "beginCreateOrderProductCategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "cancelCreateOrderProductCategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "createCreateOrderProductCategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedNewProductCategorySearch": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedNewProductCode": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "newProductCodeReadyForCategory": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "bool"
+        },
+        "updatedNewProductImage": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "selectDuplicateCreateOrderProduct": {
+            "visibility": "public",
+            "arguments": "int $productId",
+            "return": "void"
+        },
+        "viewSimilarCreateProducts": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "createAndAddOrderProduct": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "resetCreateOrderProductModal": {
+            "visibility": "private",
+            "arguments": "bool $resetSearchErrors = true",
+            "return": "void"
+        },
+        "cancelCreate": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "openCreateClientModal": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "closeCreateClientModal": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "createClientAndSelect": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "openCreateContactModal": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "closeCreateContactModal": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "saveCreateContact": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "loadClientContactOptions": {
+            "visibility": "private",
+            "arguments": "?Client $client",
+            "return": "void"
+        },
+        "updatedClientId": {
+            "visibility": "public",
+            "arguments": "$value",
+            "return": "void"
+        },
+        "setCreateSelector": {
+            "visibility": "public",
+            "arguments": "string $property, mixed $value",
+            "return": "void"
+        },
+        "updateInquiryItem": {
+            "visibility": "public",
+            "arguments": "int $itemId, string $field, mixed $value",
+            "return": "array"
+        },
+        "openAddInquiryProductForm": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "closeAddInquiryProductForm": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "showAllInquiryProductResults": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "selectInquiryProduct": {
+            "visibility": "public",
+            "arguments": "int $productId",
+            "return": "void"
+        },
+        "saveInquiryProduct": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "addInquiryItem": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "removeInquiryItem": {
+            "visibility": "public",
+            "arguments": "int $itemId",
+            "return": "void"
+        },
+        "beginInquiryProductEdit": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "cancelInquiryProductEdit": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "addInquiryProductRow": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "removeInquiryProductRow": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "setInquiryProductSelector": {
+            "visibility": "public",
+            "arguments": "string $property, mixed $value",
+            "return": "void"
+        },
+        "saveInquiryProducts": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "saveDraft": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "createInquiry": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "openInquiry": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "closeInquiry": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "setDetailTab": {
+            "visibility": "public",
+            "arguments": "string $tab",
+            "return": "void"
+        },
+        "updateListStatus": {
+            "visibility": "public",
+            "arguments": "int $inquiryId, string $status",
+            "return": "array"
+        },
+        "convertInquiryFromList": {
+            "visibility": "public",
+            "arguments": "int $inquiryId",
+            "return": "void"
+        },
+        "markInquiryDeadFromList": {
+            "visibility": "public",
+            "arguments": "int $inquiryId, string $reason",
+            "return": "void"
+        },
+        "updateInquiryField": {
+            "visibility": "public",
+            "arguments": "string $field, mixed $value",
+            "return": "array"
+        },
+        "updateInquiryStartInline": {
+            "visibility": "public",
+            "arguments": "?string $value",
+            "return": "array"
+        },
+        "updateInquiryStatus": {
+            "visibility": "public",
+            "arguments": "string $status",
+            "return": "array"
+        },
+        "updateTaskStatusInline": {
+            "visibility": "public",
+            "arguments": "int $taskId, string $status",
+            "return": "array"
+        },
+        "openInquiryAttentionReason": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "closeInquiryAttentionReason": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "saveInquiryAttentionReason": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "clearInquiryAttention": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "openTaskAttentionReason": {
+            "visibility": "public",
+            "arguments": "int $taskId",
+            "return": "void"
+        },
+        "closeTaskAttentionReason": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "saveTaskAttentionReason": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updateTaskDueInline": {
+            "visibility": "public",
+            "arguments": "int $taskId, ?string $date",
+            "return": "array"
+        },
+        "updateTaskAssigneeInline": {
+            "visibility": "public",
+            "arguments": "int $taskId, mixed $assigneeId",
+            "return": "array"
+        },
+        "completeTaskInline": {
+            "visibility": "public",
+            "arguments": "int $taskId",
+            "return": "void"
+        },
+        "openTask": {
+            "visibility": "public",
+            "arguments": "int $taskId",
+            "return": "void"
+        },
+        "closeTask": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "saveTask": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "completeTask": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "openTaskDocumentModal": {
+            "visibility": "public",
+            "arguments": "int $taskId",
+            "return": "void"
+        },
+        "requestTaskCompletionFile": {
+            "visibility": "public",
+            "arguments": "int $taskId",
+            "return": "void"
+        },
+        "closeTaskDocumentModal": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "setTaskDocumentSource": {
+            "visibility": "public",
+            "arguments": "string $source",
+            "return": "void"
+        },
+        "saveTaskDocument": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "uploadTaskFile": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "uploadQuickTaskFile": {
+            "visibility": "public",
+            "arguments": "int $taskId",
+            "return": "void"
+        },
+        "updatedTaskQuickUploads": {
+            "visibility": "public",
+            "arguments": "$value, $key",
+            "return": "void"
+        },
+        "addTaskComment": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "deleteInquiryTaskActivity": {
+            "visibility": "public",
+            "arguments": "int $activityId",
+            "return": "void"
+        },
+        "setInquiryActivityTab": {
+            "visibility": "public",
+            "arguments": "string $tab",
+            "return": "void"
+        },
+        "updatedInquiryUploads": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "toggleInquiryDocumentPicker": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "attachExistingInquiryDocument": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "uploadInquiryFiles": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "array"
+        },
+        "deleteInquiryDocument": {
+            "visibility": "public",
+            "arguments": "int $documentId",
+            "return": "void"
+        },
+        "openTaskLinkForm": {
+            "visibility": "public",
+            "arguments": "int $taskId",
+            "return": "void"
+        },
+        "cancelTaskLinkForm": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "saveTaskLink": {
+            "visibility": "public",
+            "arguments": "int $taskId",
+            "return": "void"
+        },
+        "deleteTaskLink": {
+            "visibility": "public",
+            "arguments": "int $taskId, int $linkId",
+            "return": "void"
+        },
+        "deleteTaskDocument": {
+            "visibility": "public",
+            "arguments": "int $taskId, int $documentId",
+            "return": "void"
+        },
+        "addInquiryComment": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "openAddTaskForm": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "cancelAddTask": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "addInquiryTask": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "openWorkflowManager": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "closeWorkflowManager": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "addManagerTask": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "appendManagerTemplate": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "removeManagerTask": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "moveManagerTask": {
+            "visibility": "public",
+            "arguments": "int $index, int $direction",
+            "return": "void"
+        },
+        "saveWorkflow": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "convertToOrder": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "markDead": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "refreshRealtime": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "prepareForWorkspaceRefresh": {
+            "visibility": "protected",
+            "arguments": "",
+            "return": "void"
+        },
+        "render": {
+            "visibility": "public",
+            "arguments": "",
+            "return": ""
+        },
+        "listPageData": {
+            "visibility": "private",
+            "arguments": "User $user",
+            "return": "array"
+        },
+        "createPageData": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "array"
+        },
+        "detailPageData": {
+            "visibility": "private",
+            "arguments": "User $user",
+            "return": "array"
+        },
+        "persistInquiry": {
+            "visibility": "private",
+            "arguments": "bool $draft",
+            "return": "void"
+        },
+        "loadCreateOptions": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "refreshCreateWorkflowOptions": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "loadUserOptions": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "loadManagementOptions": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "resetTaskDocumentModal": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "selectedInquiry": {
+            "visibility": "private",
+            "arguments": "array $with = []",
+            "return": "Inquiry"
+        },
+        "hydrateTaskEditor": {
+            "visibility": "private",
+            "arguments": "InquiryTask $task",
+            "return": "void"
+        },
+        "blankWorkflowRow": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "array"
+        },
+        "resetCreateCollections": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "resetCreateForm": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "canEditClientRecord": {
+            "visibility": "private",
+            "arguments": "Client $client",
+            "return": "bool"
+        },
+        "resetCreateClientModal": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "nextClientCode": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "string"
+        },
+        "tone": {
+            "visibility": "private",
+            "arguments": "string $status",
+            "return": "string"
+        }
+    },
+    "inquiry_service_actions": [
+        "AddInquiryComment",
+        "AddInquiryItem",
+        "AddInquiryTaskComment",
+        "AddInquiryTaskLink",
+        "AppendInquiryTask",
+        "ClearInquiryAttention",
+        "CompleteInquiryTask",
+        "ConvertInquiryToOrder",
+        "CreateInquiry",
+        "DeleteInquiry",
+        "LinkExistingInquiryDocument",
+        "LinkExistingInquiryTaskDocument",
+        "MarkInquiryDead",
+        "RemoveInquiryDocument",
+        "RemoveInquiryItem",
+        "RemoveInquiryTaskDocument",
+        "RemoveInquiryTaskLink",
+        "ReplaceInquiryItems",
+        "SaveInquiryWorkflow",
+        "SetInquiryAttention",
+        "SetInquiryTaskAttention",
+        "UpdateInquiryDetailField",
+        "UpdateInquiryItem",
+        "UpdateInquiryStartedAt",
+        "UpdateInquiryStatus",
+        "UpdateInquiryTask",
+        "UpdateInquiryTaskAssignee",
+        "UpdateInquiryTaskDueDate",
+        "UpdateInquiryTaskStatus",
+        "UploadInquiryDocument"
+    ],
+    "auxiliary_actions": [
+        "CreateInquiryCatalogProduct",
+        "CreateInquiryClient",
+        "CreateInquiryProductCategory",
+        "UpdateInquiryClientContact"
+    ],
+    "approved_later_phase_updates": {
+        "2026-08-24-current-inquiry-component-architecture": "Reconciles the Phase 6 markup fingerprints with the current extracted Inquiry component structure already present before this issue-fix pass; Phase 6 action/query/service boundaries remain unchanged."
+    }
+}

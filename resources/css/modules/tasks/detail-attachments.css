@@ -1,0 +1,180 @@
+/* Task Details attachments: use the same compact document rows as Order Taskflow. */
+.ft-exact-task-detail .ft-attachment-card {
+    overflow: hidden
+}
+
+.ft-exact-task-detail .ft-task-attachment-list {
+    margin-top: 10px;
+    overflow: hidden;
+    border: 1px solid #e3e9f0;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.ft-exact-task-detail .ft-task-detail-document-row {
+    min-height: 42px;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 9px;
+    padding: 6px 8px;
+    border-top: 1px solid #e8edf3;
+    background: #fff;
+}
+
+.ft-exact-task-detail .ft-task-detail-document-row:first-child {
+    border-top: 0
+}
+
+.ft-exact-task-detail .ft-task-detail-document-row:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-exact-task-detail .ft-task-detail-document-row .ft-order-task-file-copy b {
+    color: #132640;
+    font-size: .59375rem;
+    font-weight: 750;
+}
+
+.ft-exact-task-detail .ft-task-detail-document-row .ft-order-task-file-copy small {
+    margin-top: 2px;
+    color: #718197;
+    font-size: .484375rem;
+    line-height: 1.35;
+}
+
+.ft-exact-task-detail .ft-task-detail-document-row .ft-order-task-file-actions {
+    gap: 12px
+}
+
+.ft-exact-task-detail .ft-task-detail-document-row .ft-order-task-file-actions a {
+    font-size: .53125rem;
+    font-weight: 750;
+}
+
+.ft-exact-task-detail .ft-task-detail-document-row .ft-order-task-file-actions button {
+    width: 25px;
+    height: 25px;
+    margin: 0;
+    border: 1px solid #f0b3b0;
+    border-radius: 6px;
+    background: #fff;
+    color: #d52f27;
+    font-size: .9375rem;
+    line-height: 1;
+}
+
+.ft-exact-task-detail .ft-upload-note {
+    margin: 9px 0 0;
+    color: #667a93;
+    font-size: .53125rem;
+    line-height: 1.45;
+}
+
+@media(max-width:700px) {
+    .ft-exact-task-detail .ft-task-detail-document-row {
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 7px 8px;
+        align-items: start;
+        padding: 8px;
+    }
+
+    .ft-exact-task-detail .ft-task-detail-document-row .ft-order-task-file-copy b,
+    .ft-exact-task-detail .ft-task-detail-document-row .ft-order-task-file-copy small,
+    .ft-exact-task-detail .ft-task-detail-document-row .ft-order-task-file-note {
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .ft-exact-task-detail .ft-task-detail-document-row .ft-order-task-file-actions {
+        grid-column: 2;
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 10px;
+        white-space: normal;
+    }
+}
+
+/* 2026-08-27: Task Details upload zone — keep the clean direct-upload design.
+   The document archive picker belongs to the Documents module, not this task card. */
+.ft-exact-task-detail .ft-task-upload-zone {
+    display: block;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.ft-exact-task-detail .ft-task-upload-drop {
+    width: 100%;
+    min-width: 0;
+    min-height: 76px;
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    border-radius: inherit;
+}
+
+.ft-exact-task-detail .ft-task-upload-copy {
+    min-width: 0;
+}
+
+.ft-exact-task-detail .ft-task-upload-title {
+    color: #132640;
+    font-size: .75rem;
+    line-height: 1.35;
+}
+
+.ft-exact-task-detail .ft-task-upload-title strong {
+    color: var(--ft-theme-primary);
+    font-weight: 800;
+}
+
+.ft-exact-task-detail .ft-task-upload-copy small {
+    display: block;
+    margin-top: 3px;
+    color: #667a93;
+    font-size: .59375rem;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.ft-exact-task-detail .ft-task-upload-copy .ft-task-upload-instruction {
+    margin-top: 5px;
+    color: #5d6f88;
+}
+
+@media(max-width:700px) {
+    .ft-exact-task-detail .ft-task-upload-drop {
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 10px;
+        padding: 12px 14px;
+    }
+}
+
+/* Artwork task parity with Order Details: only the current version is rendered. */
+.ft-exact-task-detail .ft-task-detail-document-row.is-latest-artwork {
+    background: #eefaf5;
+}
+
+.ft-exact-task-detail .ft-task-detail-document-row.is-latest-artwork:hover {
+    background: #e7f7f0;
+}
+
+.ft-exact-task-detail .ft-task-latest-artwork-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: #e3f6ee;
+    color: #087c64;
+    font-size: .46875rem;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 1;
+}

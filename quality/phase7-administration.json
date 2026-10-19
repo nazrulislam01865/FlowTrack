@@ -1,0 +1,1364 @@
+{
+    "master_data_coordinator_max_lines": 400,
+    "clients_coordinator_max_lines": 260,
+    "master_data_methods": {
+        "mount": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "selectGroup": {
+            "visibility": "public",
+            "arguments": "string $group",
+            "return": "void"
+        },
+        "open": {
+            "visibility": "public",
+            "arguments": "?int $id = null",
+            "return": "void"
+        },
+        "close": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "resetCategoryCreatorState": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedProductCategorySearch": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedProductFormMainCategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "setProductTaxonomySelection": {
+            "visibility": "public",
+            "arguments": "string $property, string $value",
+            "return": "void"
+        },
+        "updatedParentId": {
+            "visibility": "public",
+            "arguments": "$value",
+            "return": "void"
+        },
+        "updatedProductReferenceCode": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedProductClientAvailabilityMode": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "productCodeReadyForCategory": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "bool"
+        },
+        "selectProductCategory": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "openCategoryCreator": {
+            "visibility": "public",
+            "arguments": "string $level",
+            "return": "void"
+        },
+        "closeCategoryCreator": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "createMainCategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "createProductCategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "createProductSubcategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "assertCanCreateProductTaxonomy": {
+            "visibility": "private",
+            "arguments": "string $level",
+            "return": "void"
+        },
+        "createTaxonomyRecord": {
+            "visibility": "private",
+            "arguments": "string $type, string $prefix, string $name, ?string $description = null, ?int $parentId = null",
+            "return": "MasterRecord"
+        },
+        "updatedSearch": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedProductMainCategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedProductCategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedProductClientAvailability": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedProductStatus": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedProductPerPage": {
+            "visibility": "public",
+            "arguments": "$value",
+            "return": "void"
+        },
+        "clearProductFilters": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "loadMasterRecords": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedCategoryLevelFilter": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedCategoryParentFilter": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedCategoryStatusFilter": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedCategoryPerPage": {
+            "visibility": "public",
+            "arguments": "$value",
+            "return": "void"
+        },
+        "clearCategoryFilters": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "resetCategoryLazyLoading": {
+            "visibility": "private",
+            "arguments": "bool $collapse = true",
+            "return": "void"
+        },
+        "toggleCategoryExpansion": {
+            "visibility": "public",
+            "arguments": "string $level, int $id",
+            "return": "void"
+        },
+        "loadMoreCategoryProducts": {
+            "visibility": "public",
+            "arguments": "int $mainCategoryId",
+            "return": "void"
+        },
+        "loadMoreCategorySubcategories": {
+            "visibility": "public",
+            "arguments": "int $productCategoryId",
+            "return": "void"
+        },
+        "expandAllCategories": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "collapseAllCategories": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "categoryTypeForLevel": {
+            "visibility": "private",
+            "arguments": "string $level",
+            "return": "string"
+        },
+        "normalizeCategorySelectionKey": {
+            "visibility": "private",
+            "arguments": "string $key",
+            "return": "?array"
+        },
+        "toggleCategorySelection": {
+            "visibility": "public",
+            "arguments": "string $level, int $id",
+            "return": "void"
+        },
+        "toggleCategoryPageSelection": {
+            "visibility": "public",
+            "arguments": "array $keys, bool $checked",
+            "return": "void"
+        },
+        "clearCategorySelection": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "selectedCategoryRecords": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "\\Illuminate\\Support\\Collection"
+        },
+        "bulkSetCategoryStatus": {
+            "visibility": "public",
+            "arguments": "string $status",
+            "return": "void"
+        },
+        "exportSelectedCategories": {
+            "visibility": "public",
+            "arguments": "",
+            "return": ""
+        },
+        "openCategoryDeleteConfirmation": {
+            "visibility": "public",
+            "arguments": "?string $level = null, ?int $id = null",
+            "return": "void"
+        },
+        "closeCategoryDeleteConfirmation": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "bulkDeleteCategories": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "confirmCategoryHardDelete": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "openCategoryEditor": {
+            "visibility": "public",
+            "arguments": "string $level = 'main', ?int $id = null, ?int $parentId = null, bool $readOnly = false",
+            "return": "void"
+        },
+        "viewCategory": {
+            "visibility": "public",
+            "arguments": "string $level, int $id",
+            "return": "void"
+        },
+        "updatedCategoryEditorLevel": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "closeCategoryEditor": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "saveCategoryEditor": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "toggleCategoryStatus": {
+            "visibility": "public",
+            "arguments": "string $level, int $id",
+            "return": "void"
+        },
+        "deleteCategory": {
+            "visibility": "public",
+            "arguments": "string $level, int $id",
+            "return": "void"
+        },
+        "updatedProductImage": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "markProductImageForRemoval": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "restoreProductImage": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedProductCertificateUpload": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedProductTemplateUpload": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "clearProductCertificateUpload": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "clearProductTemplateUpload": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "removeProductCertificate": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "removeProductTemplate": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "addProductOption": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "removeProductOption": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "addProductShipmentUrgency": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "openProductShipmentUrgencyPicker": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "closeProductShipmentUrgencyPicker": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "toggleProductShipmentUrgencyPickerSelection": {
+            "visibility": "public",
+            "arguments": "int $urgencyId",
+            "return": "void"
+        },
+        "confirmProductShipmentUrgencies": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "removeProductShipmentUrgency": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "updatedProductPriceTable": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "saveProductDraft": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "save": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "productFilterValues": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "array"
+        },
+        "filteredProductsQuery": {
+            "visibility": "private",
+            "arguments": "",
+            "return": ""
+        },
+        "selectedProductsQuery": {
+            "visibility": "private",
+            "arguments": "",
+            "return": ""
+        },
+        "toggleProductSelection": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "toggleProductPageSelection": {
+            "visibility": "public",
+            "arguments": "array $ids, bool $checked",
+            "return": "void"
+        },
+        "selectAllFilteredProducts": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "clearProductSelection": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "resetBulkProductActionState": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "openProductBulkPanel": {
+            "visibility": "public",
+            "arguments": "string $panel",
+            "return": "void"
+        },
+        "closeProductBulkPanel": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedBulkProductMainCategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedBulkProductCategoryId": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "toggleBulkProductClient": {
+            "visibility": "public",
+            "arguments": "int $clientId",
+            "return": "void"
+        },
+        "bulkSetProductStatus": {
+            "visibility": "public",
+            "arguments": "string $status",
+            "return": "void"
+        },
+        "applyBulkProductClients": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "applyBulkProductCategory": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "exportSelectedProducts": {
+            "visibility": "public",
+            "arguments": "",
+            "return": ""
+        },
+        "bulkDeleteProducts": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "productSelectionCount": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "int"
+        },
+        "viewProduct": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "closeProductView": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "toggleProductStatus": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "editProduct": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "deleteProduct": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "updateColor": {
+            "visibility": "public",
+            "arguments": "int $id, string $color",
+            "return": "void"
+        },
+        "toggle": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "deleteRecord": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "authorizeGroupAction": {
+            "visibility": "private",
+            "arguments": "string $action, ?string $group = null",
+            "return": "void"
+        },
+        "currentGroupRecord": {
+            "visibility": "private",
+            "arguments": "int $id",
+            "return": "MasterRecord"
+        },
+        "render": {
+            "visibility": "public",
+            "arguments": "",
+            "return": ""
+        }
+    },
+    "client_methods": {
+        "mount": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedSearch": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedCountry": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedManager": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedJobHealth": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedOutstanding": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedArchivedDate": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedCreatedBy": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedPerPage": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedClientOrderSearch": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedClientOrderStatus": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedClientOrderOwner": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedClientOrderRange": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedClientOrderPerPage": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "setClientDetailTab": {
+            "visibility": "public",
+            "arguments": "string $tab",
+            "return": "void"
+        },
+        "clearClientOrderFilters": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedClientCountry": {
+            "visibility": "public",
+            "arguments": "string $country",
+            "return": "void"
+        },
+        "updatedBillingCountry": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedShippingAddresses": {
+            "visibility": "public",
+            "arguments": "mixed $value, string $key",
+            "return": "void"
+        },
+        "setQuick": {
+            "visibility": "public",
+            "arguments": "string $quick",
+            "return": "void"
+        },
+        "showActiveClients": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "showArchivedClients": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "clearFilters": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "activateSingleListFilter": {
+            "visibility": "private",
+            "arguments": "string $activeFilter",
+            "return": "void"
+        },
+        "clearClientListFilterValues": {
+            "visibility": "private",
+            "arguments": "?string $except = null",
+            "return": "void"
+        },
+        "clearFilter": {
+            "visibility": "public",
+            "arguments": "string $filter",
+            "return": "void"
+        },
+        "openCreate": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "closeCreate": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "createClient": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "saveClientDraft": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "clientProfileRules": {
+            "visibility": "private",
+            "arguments": "bool $draft, bool $requireShipping, bool $strictMasterData = true",
+            "return": "array"
+        },
+        "clientProfileValidationMessages": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "array"
+        },
+        "assertContactEmailsUnique": {
+            "visibility": "private",
+            "arguments": "array $contacts, ?int $ignoreClientId = null",
+            "return": "void"
+        },
+        "addContact": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "removeContact": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "blankContact": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "array"
+        },
+        "normalizedContacts": {
+            "visibility": "private",
+            "arguments": "array $contacts",
+            "return": "array"
+        },
+        "persistContacts": {
+            "visibility": "private",
+            "arguments": "Client $client, array $contacts",
+            "return": "void"
+        },
+        "persistNewClient": {
+            "visibility": "private",
+            "arguments": "bool $draft",
+            "return": "void"
+        },
+        "useSavedAddressForShipping": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "addShippingAddress": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "duplicateShippingAddress": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "removeShippingAddress": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "toggleShippingAddress": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "editShippingAddress": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "setDefaultShippingAddress": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "toggleSavedShippingAddress": {
+            "visibility": "public",
+            "arguments": "int $index",
+            "return": "void"
+        },
+        "showDifferentBillingAddress": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "blankShippingAddress": {
+            "visibility": "private",
+            "arguments": "bool $default = false",
+            "return": "array"
+        },
+        "resetCreateForm": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "void"
+        },
+        "defaultClientCountry": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "string"
+        },
+        "defaultClientCurrency": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "string"
+        },
+        "formatAddress": {
+            "visibility": "private",
+            "arguments": "string $line1, string $suite, string $city, string $state, string $zip, string $country",
+            "return": "string"
+        },
+        "openClient": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "closeClientPreview": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "toggleClientMenu": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "viewClient": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "backToClients": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "canEditClient": {
+            "visibility": "private",
+            "arguments": "Client $client",
+            "return": "bool"
+        },
+        "editClient": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "cancelEditClient": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "markClientLogoForRemoval": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "restoreClientLogo": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updatedClientLogoUpload": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "updateClient": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "deleteClient": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "restoreClient": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "openPermanentDeleteClient": {
+            "visibility": "public",
+            "arguments": "int $id",
+            "return": "void"
+        },
+        "closePermanentDeleteClient": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "permanentlyDeleteClient": {
+            "visibility": "public",
+            "arguments": "",
+            "return": "void"
+        },
+        "nextClientCode": {
+            "visibility": "private",
+            "arguments": "",
+            "return": "string"
+        },
+        "render": {
+            "visibility": "public",
+            "arguments": "",
+            "return": ""
+        },
+        "createPageData": {
+            "visibility": "private",
+            "arguments": "User $user",
+            "return": "array"
+        },
+        "detailPageData": {
+            "visibility": "private",
+            "arguments": "User $user",
+            "return": "array"
+        },
+        "clientsListData": {
+            "visibility": "private",
+            "arguments": "User $user",
+            "return": "array"
+        }
+    },
+    "setup_method_signatures": {
+        "app/Livewire/WorkflowSetup/Index.php": {
+            "mount": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "selectWorkflow": {
+                "visibility": "public",
+                "arguments": "int $id",
+                "return": "void"
+            },
+            "openWorkflow": {
+                "visibility": "public",
+                "arguments": "?int $id = null",
+                "return": "void"
+            },
+            "closeWorkflow": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "saveWorkflow": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "setDefault": {
+                "visibility": "public",
+                "arguments": "int $id",
+                "return": "void"
+            },
+            "toggleWorkflow": {
+                "visibility": "public",
+                "arguments": "int $id",
+                "return": "void"
+            },
+            "requestDeleteWorkflow": {
+                "visibility": "public",
+                "arguments": "int $id",
+                "return": "void"
+            },
+            "closeWorkflowDelete": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "confirmDeleteWorkflow": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "move": {
+                "visibility": "public",
+                "arguments": "int $id,int $direction",
+                "return": "void"
+            },
+            "openPhase": {
+                "visibility": "public",
+                "arguments": "?int $id=null",
+                "return": "void"
+            },
+            "closePhase": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "savePhase": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "deletePhase": {
+                "visibility": "public",
+                "arguments": "int $id",
+                "return": "void"
+            },
+            "render": {
+                "visibility": "public",
+                "arguments": "",
+                "return": ""
+            },
+            "workflowPageData": {
+                "visibility": "private",
+                "arguments": "",
+                "return": "array"
+            },
+            "emptyPageData": {
+                "visibility": "private",
+                "arguments": "",
+                "return": "array"
+            },
+            "selectedWorkflowIsOrder": {
+                "visibility": "private",
+                "arguments": "",
+                "return": "bool"
+            }
+        },
+        "app/Livewire/WorkflowSetup/Form.php": {
+            "mount": {
+                "visibility": "public",
+                "arguments": "?int $workflowId = null, ?int $sourceWorkflowId = null",
+                "return": "void"
+            },
+            "save": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "cancel": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "render": {
+                "visibility": "public",
+                "arguments": "",
+                "return": ""
+            }
+        },
+        "app/Livewire/TaskPackSetup/Index.php": {
+            "mount": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "loadTaskPacks": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "selectPack": {
+                "visibility": "public",
+                "arguments": "int $id",
+                "return": "void"
+            },
+            "openPack": {
+                "visibility": "public",
+                "arguments": "?int $id = null",
+                "return": "void"
+            },
+            "closePack": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "savePack": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "togglePack": {
+                "visibility": "public",
+                "arguments": "int $id",
+                "return": "void"
+            },
+            "requestDeletePack": {
+                "visibility": "public",
+                "arguments": "int $id",
+                "return": "void"
+            },
+            "closePackDelete": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "confirmDeletePack": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "openItem": {
+                "visibility": "public",
+                "arguments": "?int $id = null",
+                "return": "void"
+            },
+            "closeItem": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "saveItem": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "deleteItem": {
+                "visibility": "public",
+                "arguments": "int $id",
+                "return": "void"
+            },
+            "moveItem": {
+                "visibility": "public",
+                "arguments": "int $id, int $direction",
+                "return": "void"
+            },
+            "render": {
+                "visibility": "public",
+                "arguments": "",
+                "return": ""
+            },
+            "taskPackListData": {
+                "visibility": "private",
+                "arguments": "",
+                "return": "array"
+            },
+            "emptyPageData": {
+                "visibility": "private",
+                "arguments": "",
+                "return": "array"
+            }
+        },
+        "app/Livewire/TaskPackSetup/Form.php": {
+            "mount": {
+                "visibility": "public",
+                "arguments": "?int $taskPackId = null",
+                "return": "void"
+            },
+            "addTask": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "loadTaskPackOptions": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "setTaskPackAssignee": {
+                "visibility": "public",
+                "arguments": "string $property, mixed $value",
+                "return": "void"
+            },
+            "setTaskPackDepartment": {
+                "visibility": "public",
+                "arguments": "string $property, mixed $value",
+                "return": "void"
+            },
+            "setTaskPackDocumentCategory": {
+                "visibility": "public",
+                "arguments": "string $property, mixed $value",
+                "return": "void"
+            },
+            "removeTask": {
+                "visibility": "public",
+                "arguments": "int $index",
+                "return": "void"
+            },
+            "moveTask": {
+                "visibility": "public",
+                "arguments": "int $index, int $direction",
+                "return": "void"
+            },
+            "save": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "cancel": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "blankTask": {
+                "visibility": "private",
+                "arguments": "",
+                "return": "array"
+            },
+            "defaultTaskColor": {
+                "visibility": "private",
+                "arguments": "int $index",
+                "return": "string"
+            },
+            "render": {
+                "visibility": "public",
+                "arguments": "",
+                "return": ""
+            }
+        },
+        "app/Livewire/OrderWorkflowSetup/Index.php": {
+            "mount": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "openStageEditor": {
+                "visibility": "public",
+                "arguments": "int $index",
+                "return": "void"
+            },
+            "closeStageEditor": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "addTask": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "removeTask": {
+                "visibility": "public",
+                "arguments": "int $index",
+                "return": "void"
+            },
+            "moveTask": {
+                "visibility": "public",
+                "arguments": "int $index, int $direction",
+                "return": "void"
+            },
+            "updatedEditingTasks": {
+                "visibility": "public",
+                "arguments": "mixed $value, string $key",
+                "return": "void"
+            },
+            "saveStageEditor": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "resetWorkflow": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "saveWorkflow": {
+                "visibility": "public",
+                "arguments": "",
+                "return": "void"
+            },
+            "render": {
+                "visibility": "public",
+                "arguments": "",
+                "return": ""
+            },
+            "applyState": {
+                "visibility": "private",
+                "arguments": "array $state",
+                "return": "void"
+            },
+            "editorRules": {
+                "visibility": "private",
+                "arguments": "",
+                "return": "array"
+            },
+            "workflowRules": {
+                "visibility": "private",
+                "arguments": "",
+                "return": "array"
+            },
+            "validateDocumentRows": {
+                "visibility": "private",
+                "arguments": "array $rows, string $prefix",
+                "return": "void"
+            }
+        }
+    },
+    "required_master_concerns": [
+        "ManagesMasterNavigation",
+        "ManagesMasterEditor",
+        "ManagesProductCatalog",
+        "ManagesProductTaxonomy",
+        "BuildsMasterDataPageData",
+        "ManagesProductListFilters",
+        "ManagesProductAssetsAndOptions",
+        "ManagesProductBulkActions",
+        "ManagesProductRecords",
+        "ManagesProductTaxonomyCreation",
+        "ManagesProductCategoryList",
+        "ManagesProductCategorySelection",
+        "ManagesProductCategoryEditor"
+    ],
+    "required_client_concerns": [
+        "ManagesClientList",
+        "ManagesClientProfile",
+        "ManagesClientCreation",
+        "ManagesClientContacts",
+        "ManagesClientAddresses",
+        "ManagesClientDetail",
+        "ManagesClientEditing",
+        "ManagesClientLifecycle",
+        "BuildsClientPageData"
+    ],
+    "required_master_actions": [
+        "SaveMasterRecordAction",
+        "ToggleMasterRecordAction",
+        "UpdateMasterColorAction",
+        "DeleteMasterRecordAction",
+        "DeleteProductCategoriesAction"
+    ],
+    "required_client_actions": [
+        "SaveClientProfileAction",
+        "ReplaceClientContactsAction",
+        "ArchiveClientAction",
+        "RestoreClientAction",
+        "PermanentlyDeleteClientAction"
+    ],
+    "required_setup_actions": [
+        "SaveWorkflowAction",
+        "SetDefaultWorkflowAction",
+        "ToggleWorkflowAction",
+        "DeleteWorkflowAction",
+        "SaveWorkflowPhaseAction",
+        "SaveOrderWorkflowPhaseAction",
+        "DeleteWorkflowPhaseAction",
+        "MoveWorkflowPhaseAction",
+        "SaveTaskPackAction",
+        "SaveTaskPackWithItemsAction",
+        "ToggleTaskPackAction",
+        "DeleteTaskPackAction",
+        "SaveTaskPackItemAction",
+        "DeleteTaskPackItemAction",
+        "MoveTaskPackItemAction",
+        "SaveOrderWorkflowAction",
+        "SaveWorkflowDefinitionAction"
+    ],
+    "required_setup_components": [
+        "page-header.blade.php",
+        "list.blade.php",
+        "editor-panel.blade.php",
+        "editor-modal.blade.php",
+        "pagination.blade.php",
+        "safe-delete-modal.blade.php",
+        "color-picker.blade.php"
+    ],
+    "protected_file_hashes": {
+        "app/Services/MasterDataService.php": "1e70666c8fa0208f189c3f3e53abbe340950c7c92d54a37808136c8b5da29d0d",
+        "app/Services/ClientService.php": "f6f4f326f011f24ca08bbca4efc93cc2f853fcef239230fd1ee144fffdda3d40",
+        "app/Services/WorkflowService.php": "a6a20d324b7ca60cad2057badde02997e7aa8fbca5aab7e4955e85853a1f977b",
+        "app/Services/TaskPackService.php": "e596b658133371bdd57d53aa30457fdd6d08a4c5dfebb892dff0aed8c875f497",
+        "app/Services/OrderWorkflowSetupService.php": "b048894c977d5f3eaf1dcb20c35edb9e448c7ced07e8e5a6641e507795519091",
+        "app/Services/ProductCategoryDeletionService.php": "1820705f713b64dc5e85453376ac1436c59aa4325fc5eeea358485f80cdbc64d",
+        "app/Services/AccessControlService.php": "3c93baadba6d44e194a4010b2592871c2753dc21a2d203f16c4f1d10c70920c7",
+        "app/Support/MasterColor.php": "baf57abcb81396d764dbe3aa8cedb3ddfe18a4dde5dbb143756ea4b34665fc4c",
+        "routes/web.php": "b28eda429d6dccd79e50b154c0be25598ed6be46fa849e45677a4e71c51fb5e8"
+    },
+    "migration_tree_hash": "f24004dfe0ba7231715b51b4fb67a7479005c721a9284c51d88779ef65f66aea",
+    "css_tree_hash": "a06b5541fdd12c741d4733a0a9ba0c8bec1db41d2ce9d5cb1a4c7748e4e40a91",
+    "approved_later_phase_updates": {
+        "2026-08-24-current-setup-service-boundaries": "Reconciles WorkflowService and TaskPackService hashes to the later-phase source already present in the supplied archive, and accepts the OrderWorkflowSetupService runtime-mirror-before-phase-insert fix required by the non-null workflow_phases.workflow_id foreign key; Phase 7 action/component boundaries are unchanged."
+    }
+}

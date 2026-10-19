@@ -1,0 +1,32 @@
+@import './search.css';
+@import './stage-screen.css';
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-width: 100%;
+    min-height: 100%;
+}
+
+body.ft-tracking-page {
+    margin: 0;
+    background: var(--ft-theme-page-bg);
+    color: var(--ft-theme-tracking-brand-navy);
+    font-family: var(--ft-theme-font-family);
+    font-size: var(--ft-theme-font-size-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input {
+    color: inherit;
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}

@@ -1,0 +1,33 @@
+{
+  "phase": 4,
+  "reconciliation": "test-fix-3",
+  "source_archive": "Archive 6 (2026-08-20 12:21:07)",
+  "user_environment_before_fix": {
+    "phpunit_failed": 45,
+    "phpunit_passed": 229,
+    "assertions": 1976,
+    "vite_build": "pass",
+    "vite_modules_transformed": 20,
+    "vite_build_ms": 718
+  },
+  "application_regressions_fixed": [
+    "create-order client-specific Inquiry workflow was accidentally excluded by duplicate applies_to=orders constraints",
+    "shared product selector exposed Create Product outside the non-empty zero-match state",
+    "dashboard shipping aggregate now accepts current or source workflow phase identity"
+  ],
+  "test_reconciliation": [
+    "Board scalar cache tests use current WorkflowTemplate and v3 cache contracts",
+    "CSS/component tests follow extracted Phase 3/4 owners rather than inline legacy markup",
+    "client preview tests follow direct-detail behavior",
+    "inquiry/order product tests follow shared catalog components",
+    "inquiry and My Work source contracts follow current task/mention adapters",
+    "SQLite ownership tests now migrate and build their own fixtures",
+    "dashboard/document/sidebar source assertions follow current implementation"
+  ],
+  "post_fix_validation": {
+    "quality_phase4": "pass",
+    "php_lint": "pass_385_files",
+    "full_phpunit": "rerun_required_in_dependency_complete_environment",
+    "vite_build": "latest_user_environment_run_passed_before_fix3"
+  }
+}

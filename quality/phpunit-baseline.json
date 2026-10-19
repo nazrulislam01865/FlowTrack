@@ -1,0 +1,11 @@
+{
+    "schema": 1,
+    "generated_at": "2026-08-20T08:56:01Z",
+    "status": "blocked",
+    "exit_code": 2,
+    "test_files": 96,
+    "command": "php artisan test --colors=never",
+    "log_file": "quality/phpunit-baseline.log",
+    "reason": "vendor/autoload.php is absent; install locked Composer dependencies before executing the suite.",
+    "classification_rule": "Failures present before refactor are baseline failures; failures introduced after this approved snapshot are regressions."
+}

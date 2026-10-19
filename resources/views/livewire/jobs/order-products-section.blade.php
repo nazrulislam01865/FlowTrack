@@ -1,0 +1,68 @@
+<div wire:key="order-products-workspace-{{ $orderId }}">
+    @if(! $ready)
+        <x-ui.progressive-section-loader
+            section="products"
+            method="loadProductsSection"
+            key-prefix="order-products-isolated"
+            context-type="order"
+            :context-id="$orderId"
+            queue-group="order-detail-{{ $orderId }}"
+            :queue-priority="10"
+            :settle-delay="180"
+            :rows="4"
+            message="Loading order products when needed…"
+            root-margin="160px 0px"
+        />
+    @else
+        <x-jobs.order-detail.products
+            :job="$job"
+            :context="$context"
+            :show-add-job-product-form="$showAddJobProductForm"
+            :job-product-search="$jobProductSearch"
+            :job-product-search-results="$jobProductSearchResults"
+            :job-product-search-suppliers="$jobProductSearchSuppliers"
+            :job-product-result-total="$jobProductResultTotal"
+            :job-product-show-all-results="$jobProductShowAllResults"
+            :job-product-selected-product="$jobProductSelectedProduct"
+            :job-product-selected-supplier="$jobProductSelectedSupplier"
+            :job-product-category="$jobProductCategory"
+            :job-product-quantity="$jobProductQuantity"
+            :job-product-unit-price="$jobProductUnitPrice"
+            :job-product-supplier-id="$jobProductSupplierId"
+            :job-product-supplier-label="$jobProductSupplierLabel"
+            :job-product-supplier-skipped="$jobProductSupplierSkipped"
+            :job-product-supplier-locked="$jobProductSupplierLocked"
+            :show-edit-order-product-modal="$showEditOrderProductModal"
+            :edit-order-product-item-id="$editOrderProductItemId"
+            :edit-order-product-name="$editOrderProductName"
+            :edit-order-product-code="$editOrderProductCode"
+            :edit-order-product-category="$editOrderProductCategory"
+            :edit-order-product-search="$editOrderProductSearch"
+            :edit-order-product-search-results="$editOrderProductSearchResults"
+            :edit-order-product-search-suppliers="$editOrderProductSearchSuppliers"
+            :edit-order-product-result-total="$editOrderProductResultTotal"
+            :edit-order-product-selected-product="$editOrderProductSelectedProduct"
+            :edit-order-product-selected-supplier="$editOrderProductSelectedSupplier"
+            :edit-order-product-show-all-results="$editOrderProductShowAllResults"
+            :edit-order-product-supplier-id="$editOrderProductSupplierId"
+            :edit-order-product-supplier-label="$editOrderProductSupplierLabel"
+            :edit-order-product-quantity="$editOrderProductQuantity"
+            :edit-order-product-unit-price="$editOrderProductUnitPrice"
+            :edit-order-product-notes="$editOrderProductNotes"
+        />
+
+        <x-catalog.missing-product-supplier-modal
+            :show="$showMissingProductSupplierModal"
+            :product-name="$missingProductSupplierName"
+            :choice="$missingProductSupplierChoice"
+            :existing-supplier-id="$missingProductExistingSupplierId"
+            :existing-supplier-label="$missingProductExistingSupplierLabel"
+            :new-supplier-name="$missingProductNewSupplierName"
+            :new-supplier-email="$missingProductNewSupplierEmail"
+            :allow-skip="$missingProductSupplierAllowSkip"
+            :record-label="$missingProductSupplierRecordLabel"
+            :submit-mode="$missingProductSupplierSubmitMode"
+            :selector-context="$missingProductSupplierSelectorContext"
+        />
+    @endif
+</div>

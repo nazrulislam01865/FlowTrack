@@ -1,0 +1,39 @@
+@layer ft-components {
+    .ft-empty-state[data-ft-ui-component="empty-state"] {
+        display: grid;
+        place-items: center;
+        gap: var(--ft-space-2);
+        min-height: calc(var(--ft-space-16) * 2);
+        padding: var(--ft-space-8) var(--ft-space-4);
+        text-align: center;
+    }
+
+    .ft-empty-state__icon {
+        display: grid;
+        width: var(--ft-space-10);
+        height: var(--ft-space-10);
+        place-items: center;
+        border-radius: var(--ft-radius-pill);
+        background: var(--ft-bg-surface-subtle);
+        color: var(--ft-text-secondary);
+    }
+
+    .ft-empty-state__title {
+        margin: 0;
+        color: var(--ft-text-primary);
+        font-size: var(--ft-font-size-lg);
+        font-weight: var(--ft-font-weight-bold);
+    }
+
+    .ft-empty-state__description {
+        max-width: var(--ft-content-width-sm);
+        margin: 0;
+        color: var(--ft-text-secondary);
+        font-size: var(--ft-font-size-sm);
+        line-height: var(--ft-line-height-normal);
+    }
+
+    .ft-empty-state__action {
+        margin-block-start: var(--ft-space-2);
+    }
+}

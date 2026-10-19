@@ -1,0 +1,226 @@
+[data-file-dropzone][data-auto-upload-method] {
+    position: relative;
+    overflow: hidden
+}
+
+.ft-inline-upload-progress {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 10px;
+    padding-top: 4px;
+    pointer-events: none
+}
+
+.ft-inline-upload-progress[hidden] {
+    display: none !important
+}
+
+.ft-inline-upload-progress-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 5px;
+    color: #31527b;
+    font-size: .6875rem;
+    font-weight: 700
+}
+
+.ft-inline-upload-track {
+    height: 5px;
+    border-radius: 999px;
+    background: var(--ft-theme-primary-soft);
+    overflow: hidden
+}
+
+.ft-inline-upload-track>i {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: var(--ft-theme-primary);
+    transition: width .12s linear
+}
+
+[data-file-dropzone][data-auto-upload-method].is-saving .ft-inline-upload-track>i,
+[data-file-dropzone][data-auto-upload-method].is-upload-complete .ft-inline-upload-track>i {
+    width: 100% !important
+}
+
+[data-file-dropzone][data-auto-upload-method].is-upload-complete {
+    border-color: #70bf92 !important;
+    background: #f6fff9 !important
+}
+
+[data-file-dropzone][data-auto-upload-method].has-upload-error {
+    border-color: #df6b6b !important;
+    background: #fff8f8 !important
+}
+
+.ft-upload-client-error {
+    margin: 8px 0 0;
+    padding: 9px 11px;
+    border: 1px solid #f0b7b7;
+    border-radius: 8px;
+    background: #fff4f4;
+    color: #b3261e;
+    font-size: .75rem;
+    font-weight: 650;
+    line-height: 1.4
+}
+
+.ft-upload-client-error[hidden] {
+    display: none !important
+}
+
+@media(max-width:700px) {
+    .ft-inline-upload-progress {
+        left: 12px;
+        right: 12px;
+        bottom: 8px
+    }
+}
+
+/* Shared create-form attachment dropzone.
+   Used by Inquiry Create and Order Create so upload UX stays visually identical. */
+.ft-create-attachment-uploader {
+    display: grid;
+    width: 100%;
+    gap: 8px;
+}
+
+.ft-create-attachment-dropzone {
+    position: relative;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    align-items: center;
+    min-height: 94px;
+    padding: 12px 14px;
+    border: 1.5px dashed var(--ft-theme-primary-300, #79cfc4);
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle, #f7fbfa);
+    cursor: pointer;
+    transition: border-color .14s ease, background .14s ease, box-shadow .14s ease;
+}
+
+.ft-create-attachment-dropzone:hover,
+.ft-create-attachment-dropzone:focus-within,
+.ft-create-attachment-dropzone.is-dragging {
+    border-color: var(--ft-theme-primary, #00897b);
+    background: color-mix(in srgb, var(--ft-theme-primary, #00897b) 5%, #fff);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary, #00897b) 7%, transparent);
+}
+
+.ft-create-attachment-dropzone.is-uploading {
+    border-color: var(--ft-theme-primary, #00897b);
+}
+
+.ft-create-attachment-dropzone.has-upload-error {
+    border-color: #df6b6b;
+    background: #fff8f8;
+}
+
+.ft-create-attachment-dropzone-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ft-theme-primary-soft, #e5f7f4);
+    color: var(--ft-theme-primary, #00897b);
+    font-size: 1.125rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.ft-create-attachment-dropzone-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.ft-create-attachment-dropzone-copy strong {
+    color: #1d2b41;
+    font-size: .75rem;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.ft-create-attachment-drop-or {
+    margin-top: 1px;
+    color: #4f6078;
+    font-size: .65625rem;
+    line-height: 1.3;
+}
+
+.ft-create-attachment-drop-or b {
+    color: var(--ft-theme-primary, #00897b);
+    font-weight: 800;
+}
+
+.ft-create-attachment-dropzone-copy small {
+    display: block;
+    margin-top: 6px;
+    color: #7f8da0;
+    font-size: .5625rem;
+    line-height: 1.35;
+}
+
+.ft-create-attachment-progress {
+    width: 100%;
+    margin-top: 0;
+}
+
+.ft-create-attachment-progress-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 5px;
+    color: #71839a;
+    font-size: .5625rem;
+    line-height: 1.2;
+}
+
+.ft-create-attachment-progress-meta > b {
+    flex: 0 0 auto;
+    color: var(--ft-theme-primary, #00897b);
+    font-size: .5625rem;
+    font-weight: 850;
+    font-variant-numeric: tabular-nums;
+}
+
+.ft-create-attachment-progress-track {
+    width: 100%;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e6efed;
+}
+
+.ft-create-attachment-progress-track > span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--ft-theme-primary, #00897b);
+    transition: width .12s linear;
+}
+
+@media (max-width: 700px) {
+    .ft-create-attachment-dropzone {
+        grid-template-columns: 38px minmax(0, 1fr);
+        min-height: 88px;
+        padding: 11px 12px;
+    }
+
+    .ft-create-attachment-dropzone-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+}

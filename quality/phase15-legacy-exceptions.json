@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "phase": 15,
+  "policy": "frozen_minimal_compatibility_exception_set",
+  "reason": "Backend Legacy* service adapters remain shrinking-only. CSS legacy/compatibility sources were fully removed by the Phase 3 finalization pass and are now governed by quality/css-finalization-manifest.json.",
+  "legacy_services": {
+    "LegacyJobService": [
+      "app/Services/JobService.php",
+      "app/Services/Orders/OrderItemService.php",
+      "app/Services/Orders/OrderLifecycleService.php",
+      "app/Services/Orders/OrderReadService.php",
+      "app/Services/Orders/OrderWorkflowService.php"
+    ],
+    "LegacyInquiryService": [
+      "app/Services/Inquiries/InquiryActivityService.php",
+      "app/Services/Inquiries/InquiryDocumentService.php",
+      "app/Services/Inquiries/InquiryItemService.php",
+      "app/Services/Inquiries/InquiryLifecycleService.php",
+      "app/Services/Inquiries/InquiryReadService.php",
+      "app/Services/Inquiries/InquiryTaskService.php",
+      "app/Services/Inquiries/InquiryWorkflowService.php",
+      "app/Services/InquiryService.php"
+    ],
+    "LegacyDashboardService": [
+      "app/Services/Dashboard/DashboardAttentionService.php",
+      "app/Services/Dashboard/DashboardMentionService.php",
+      "app/Services/Dashboard/DashboardOverviewService.php",
+      "app/Services/Dashboard/DashboardReportingService.php",
+      "app/Services/DashboardService.php"
+    ]
+  },
+  "legacy_css": [],
+  "removed": [
+    "resources/views/welcome.blade.php",
+    "resources/css/components/management-theme.css",
+    "resources/js/compatibility/browser-bridge.js",
+    "scripts/split-flowtrack-css.mjs",
+    "resources/css/generated/flowtrack-01.css",
+    "resources/css/generated/flowtrack-02.css",
+    "resources/css/generated/flowtrack-03.css",
+    "resources/css/generated/flowtrack-04.css",
+    "resources/css/legacy/compatibility/flowtrack-management-theme.css",
+    "resources/css/legacy/compatibility/flowtrack-sidebar-template.css",
+    "resources/css/flowtrack.css",
+    "resources/css/legacy",
+    "resources/css/migration"
+  ]
+}

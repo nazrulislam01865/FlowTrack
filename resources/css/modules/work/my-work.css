@@ -1,0 +1,3318 @@
+/* FlowTrack My Work - cached page stylesheet. Scoped so it is safe to preload in the app shell. */
+/* FlowTrack My Work content follows the supplied prototype; the application shell/sidebar inherits the shared FlowTrack layout. */
+body:has(#my-work-app) {
+    background: var(--ft-theme-task-bg);
+    color: #172033
+}
+
+body:has(#my-work-app) .topbar {
+    height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    padding: 0 22px;
+    border-bottom: 1px solid #dbe3ed;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 20
+}
+
+body:has(#my-work-app) .top-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 7px
+}
+
+body:has(#my-work-app) .lang-btn {
+    height: 32px;
+    min-width: 32px;
+    padding: 0 10px;
+    border: 1px solid #dce4ef;
+    border-radius: 9px;
+    background: #fff;
+    color: #374257;
+    font-size: .6875rem;
+    display: grid;
+    place-items: center
+}
+
+body:has(#my-work-app) .icon-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    border: 1px solid #dce4ef;
+    border-radius: 9px;
+    background: #fff;
+    color: #374257
+}
+
+body:has(#my-work-app) .icon-btn svg {
+    width: 16px
+}
+
+body:has(#my-work-app) .content {
+    width: 100%;
+    max-width: 1680px;
+    margin: 0 auto;
+    padding: 21px clamp(12px, 2vw, 28px) 35px
+}
+
+#my-work-app .page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 0
+}
+
+#my-work-app .page-head h1 {
+    margin: 0;
+    font-size: 1.4375rem;
+    letter-spacing: -.025em
+}
+
+#my-work-app .page-head p {
+    margin: 4px 0 0;
+    color: #60708b;
+    font-size: .625rem
+}
+
+#my-work-app .page-tabs {
+    display: flex;
+    gap: 4px;
+    margin-top: 12px;
+    border-bottom: 1px solid #dbe3ed
+}
+
+#my-work-app .page-tab {
+    position: relative;
+    min-height: 36px;
+    padding: 0 11px;
+    border: 0;
+    background: transparent;
+    color: #69778e;
+    font-size: .5625rem;
+    font-weight: 750
+}
+
+#my-work-app .page-tab.active {
+    color: var(--ft-theme-primary)
+}
+
+#my-work-app .page-tab.active::after {
+    content: "";
+    position: absolute;
+    right: 9px;
+    bottom: -1px;
+    left: 9px;
+    height: 2px;
+    background: var(--ft-theme-primary)
+}
+
+#my-work-app .metrics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 12px;
+    margin-bottom: 0
+}
+
+#my-work-app .metric {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 66px;
+    padding: 10px 11px;
+    border: 1px solid #dbe3ed;
+    border-radius: 10px;
+    background: #fff;
+    text-align: left;
+    position: static;
+    overflow: visible;
+    transform: none;
+    box-shadow: none
+}
+
+#my-work-app .metric:hover,
+#my-work-app .metric.active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle);
+    transform: none;
+    box-shadow: none
+}
+
+#my-work-app .metric span {
+    min-width: 0
+}
+
+#my-work-app .metric small {
+    display: block;
+    overflow: hidden;
+    color: #718097;
+    font-size: .5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+#my-work-app .metric strong {
+    display: block;
+    margin-top: 3px;
+    font-size: 1.125rem;
+    line-height: 1
+}
+
+#my-work-app .metric i {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    flex: 0 0 27px;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-style: normal
+}
+
+#my-work-app .metric.red i {
+    background: #fff0f0;
+    color: #c43f3f
+}
+
+#my-work-app .metric.amber i {
+    background: #fff6e5;
+    color: #9a6208
+}
+
+#my-work-app .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    margin-bottom: 0;
+    padding: 10px;
+    border: 1px solid #dbe3ed;
+    border-radius: 11px;
+    background: #fff;
+    flex-wrap: nowrap
+}
+
+#my-work-app .search-wrap {
+    position: relative;
+    min-width: 240px;
+    flex: 1
+}
+
+#my-work-app .search-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    color: #718198;
+    transform: translateY(-50%)
+}
+
+#my-work-app .search {
+    position: static;
+    display: block;
+    max-width: none;
+    width: 100%;
+    height: 38px;
+    padding: 0 62px 0 34px;
+    border: 1px solid #ccd8e8;
+    border-radius: 9px;
+    background: #fff;
+    outline: 0;
+    font-size: .5625rem;
+    flex: none
+}
+
+#my-work-app .search:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+#my-work-app .clear {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    padding: 4px 6px;
+    border: 0;
+    background: transparent;
+    color: #65748a;
+    font-size: .46875rem;
+    transform: translateY(-50%)
+}
+
+#my-work-app .quick-filters {
+    display: flex;
+    gap: 5px
+}
+
+#my-work-app .chip {
+    min-height: 33px;
+    padding: 0 9px;
+    border: 1px solid #d2dce9;
+    border-radius: 8px;
+    background: #fff;
+    color: #526078;
+    font-size: .5rem;
+    font-weight: 720
+}
+
+#my-work-app .chip.active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+#my-work-app .completed-toggle {
+    display: inline-flex;
+    min-height: 35px;
+    align-items: center;
+    gap: 7px;
+    padding: 0 10px;
+    border: 1px solid #d2dce9;
+    border-radius: 8px;
+    background: #fff;
+    color: #526078;
+    font-size: .625rem;
+    font-weight: 720;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none
+}
+
+#my-work-app .completed-toggle:hover,
+#my-work-app .completed-toggle.active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary)
+}
+
+#my-work-app .completed-toggle input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none
+}
+
+#my-work-app .completed-check {
+    display: grid;
+    width: 16px;
+    height: 16px;
+    place-items: center;
+    border: 1px solid #b9c8dc;
+    border-radius: 4px;
+    background: #fff;
+    color: transparent;
+    font-size: .625rem;
+    line-height: 1
+}
+
+#my-work-app .completed-toggle.active .completed-check {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+#my-work-app .load-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto
+}
+
+#my-work-app .group-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px
+}
+
+#my-work-app .group-control {
+    display: grid;
+    width: 33px;
+    height: 33px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #cfdbea;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ft-theme-primary)
+}
+
+#my-work-app .group-control:hover {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-primary-soft)
+}
+
+#my-work-app .group-control svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+#my-work-app .sort {
+    height: 35px;
+    min-width: 150px;
+    padding: 0 28px 0 9px;
+    border: 1px solid #d2dce9;
+    border-radius: 8px;
+    background: #fff;
+    color: #37445a;
+    font-size: .5rem
+}
+
+#my-work-app .load-state {
+    display: flex;
+    min-height: 28px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 3px;
+    color: #758298;
+    font-size: .46875rem
+}
+
+#my-work-app .spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #dce5f2;
+    border-top-color: var(--ft-theme-primary);
+    border-radius: 50%;
+    animation: spin .6s linear infinite
+}
+
+#my-work-app .loading-copy {
+    display: flex;
+    align-items: center;
+    gap: 6px
+}
+
+#my-work-app .list-shell {
+    overflow: hidden;
+    border: 1px solid #d8e1ec;
+    border-radius: 11px;
+    background: #fff
+}
+
+#my-work-app .task-head,
+#my-work-app .task-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.6fr) minmax(100px, .65fr) minmax(130px, .82fr) 128px 118px minmax(88px, .58fr) minmax(84px, .55fr) 48px;
+    align-items: center;
+    gap: 8px
+}
+
+#my-work-app .task-head {
+    min-height: 32px;
+    padding: 0 11px;
+    border-bottom: 1px solid #dce3ec;
+    background: #f8fafc;
+    color: #69778e;
+    font-size: .4375rem;
+    font-weight: 780;
+    letter-spacing: .04em;
+    text-transform: uppercase
+}
+
+#my-work-app .order-group {
+    border-bottom: 1px solid #dce3ec;
+    content-visibility: auto;
+    contain: layout style;
+    contain-intrinsic-size: 205px
+}
+
+#my-work-app .order-group:last-child {
+    border-bottom: 0
+}
+
+#my-work-app .order-head {
+    display: grid;
+    grid-template-columns: 22px minmax(180px, 1.3fr) minmax(130px, .8fr) minmax(110px, .7fr) minmax(100px, .7fr) minmax(120px, .8fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 49px;
+    padding: 7px 11px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+#my-work-app .order-head:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+#my-work-app .collapse {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: #506078;
+    font-size: .6875rem;
+    padding: 0
+}
+
+#my-work-app .order-id {
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    font-weight: 800;
+    text-decoration: none
+}
+
+#my-work-app .order-title {
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    color: #253248;
+    font-size: .5625rem;
+    font-weight: 730;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+#my-work-app .order-client,
+#my-work-app .order-stage {
+    color: #64738a;
+    font-size: .5rem
+}
+
+#my-work-app .health,
+#my-work-app .flag {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    padding: 3px 6px;
+    border-radius: 8px;
+    font-size: .4375rem;
+    font-weight: 750;
+    white-space: nowrap
+}
+
+#my-work-app .health:before {
+    content: none
+}
+
+#my-work-app .health.green,
+#my-work-app .flag.green {
+    background: #edf9f4;
+    color: #147e5b
+}
+
+#my-work-app .health.amber,
+#my-work-app .flag.amber {
+    background: #fff6e5;
+    color: #9a6208
+}
+
+#my-work-app .health.red,
+#my-work-app .flag.red {
+    background: #fff0f0;
+    color: #c43f3f
+}
+
+#my-work-app .flag.blue {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+#my-work-app .order-progress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #67768c;
+    font-size: .46875rem
+}
+
+#my-work-app .progress-track {
+    width: 54px;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #e7ecf3
+}
+
+#my-work-app .progress-track i {
+    display: block;
+    height: 100%;
+    border-radius: 5px;
+    background: var(--ft-theme-primary)
+}
+
+#my-work-app .task-count {
+    color: #607087;
+    font-size: .46875rem;
+    text-align: right
+}
+
+#my-work-app .task-row {
+    position: relative;
+    min-height: 54px;
+    padding: 6px 11px;
+    border-top: 1px solid #e5eaf1;
+    background: #fff
+}
+
+#my-work-app .task-row:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+#my-work-app .task-row.saving {
+    opacity: .55
+}
+
+#my-work-app .task-row.saving::after {
+    content: "";
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid #dce5f2;
+    border-top-color: var(--ft-theme-primary);
+    border-radius: 50%;
+    animation: spin .6s linear infinite
+}
+
+#my-work-app .task-main {
+    min-width: 0
+}
+
+#my-work-app .task-link {
+    display: block;
+    overflow: hidden;
+    color: #263248;
+    font-size: .5625rem;
+    font-weight: 750;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+#my-work-app .task-link:hover {
+    color: var(--ft-theme-primary);
+    text-decoration: underline
+}
+
+#my-work-app .task-ref {
+    display: block;
+    margin-top: 3px;
+    color: #7c899c;
+    font-size: .4375rem
+}
+
+#my-work-app .phase {
+    overflow: hidden;
+    color: #5a687f;
+    font-size: .5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+#my-work-app .assignee {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    color: #4d5d74;
+    font-size: .5rem
+}
+
+#my-work-app .assignee .avatar {
+    flex: 0 0 auto
+}
+
+#my-work-app .assignee-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+#my-work-app .assignee-editor {
+    position: relative;
+    overflow: visible;
+    min-height: 30px
+}
+
+#my-work-app .assignee-display {
+    display: flex;
+    min-width: 0;
+    width: 100%;
+    align-items: center;
+    gap: 6px
+}
+
+#my-work-app .assignee-avatar {
+    display: inline-flex;
+    flex: 0 0 auto
+}
+
+#my-work-app .assignee-editor .assignee-name {
+    flex: 0 1 auto
+}
+
+#my-work-app .assignee-edit-button {
+    flex: 0 0 auto;
+    margin-left: 1px
+}
+
+#my-work-app .assignee-picker {
+    position: relative;
+    z-index: 1240;
+    width: 100%;
+    min-width: 0;
+    overflow: visible
+}
+
+#my-work-app .assignee-picker .ft-inline-remote-user {
+    width: 100%;
+    max-width: 155px;
+    overflow: visible
+}
+
+#my-work-app .assignee-picker-trigger {
+    width: 100%;
+    height: 30px;
+    padding: 0 7px;
+    border: 1px solid var(--ft-theme-primary-300);
+    border-radius: 7px;
+    background: #fff;
+    color: #344057;
+    font-size: .53125rem;
+    font-weight: 650;
+    outline: 0;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 6%, transparent)
+}
+
+#my-work-app .assignee-picker-trigger:focus {
+    border-color: var(--ft-theme-primary-500);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent)
+}
+
+#my-work-app .assignee-editor .ft-inline-remote-user-menu {
+    z-index: 1500 !important
+}
+
+#my-work-app .assignee-editor>.ft-inline-save-state {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 5;
+    margin: 1px 0 0;
+    padding: 1px 3px;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(28, 48, 77, .08)
+}
+
+#my-work-app .assignee-editor>.ft-inline-save-state:not(.is-saving):not(.is-saved):not(.is-error) {
+    display: none
+}
+
+#my-work-app .due-editor {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 3px;
+    position: relative
+}
+
+#my-work-app .due-editor .ft-task-inline-display {
+    min-width: 0;
+    overflow: hidden;
+    color: #4f5f76;
+    font-size: .5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+#my-work-app .due-editor.overdue .ft-task-inline-display {
+    color: #c43f3f;
+    font-weight: 750
+}
+
+#my-work-app .due-editor.today .ft-task-inline-display {
+    color: #9a6208;
+    font-weight: 750
+}
+
+#my-work-app .due-editor .ft-inline-edit-button {
+    width: 20px;
+    height: 20px;
+    font-size: .625rem
+}
+
+#my-work-app .due-editor .ft-task-inline-input {
+    width: 118px;
+    max-width: 100%;
+    height: 29px;
+    padding: 0 4px;
+    font-size: .53125rem
+}
+
+#my-work-app .due-editor .ft-inline-save-state {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 3;
+    margin: 1px 0 0;
+    padding: 1px 3px;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(28, 48, 77, .08)
+}
+
+#my-work-app .due-editor .ft-inline-save-state:not(.is-saving):not(.is-saved):not(.is-error) {
+    display: none
+}
+
+#my-work-app .status-select {
+    width: 100%;
+    height: 30px;
+    padding: 0 22px 0 7px;
+    border: 1px solid #cfdbea;
+    border-radius: 7px;
+    background: #fff;
+    color: #344057;
+    font-size: .46875rem
+}
+
+#my-work-app .updated {
+    color: #718097;
+    font-size: .46875rem
+}
+
+#my-work-app .row-action {
+    display: grid;
+    width: 42px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid #cbd8e8;
+    border-radius: 7px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .46875rem;
+    font-weight: 750;
+    text-decoration: none
+}
+
+#my-work-app .empty {
+    padding: 40px 15px;
+    color: #718097;
+    font-size: .5625rem;
+    text-align: center
+}
+
+#my-work-app .empty strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #2d3950;
+    font-size: .6875rem
+}
+
+#my-work-app .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 50px;
+    padding: 8px 11px;
+    border-top: 1px solid #dce3ec;
+    background: var(--ft-theme-surface-subtle);
+    color: #69778e;
+    font-size: .5rem
+}
+
+#my-work-app .pages {
+    display: flex;
+    gap: 5px
+}
+
+#my-work-app .page-button {
+    min-width: 31px;
+    height: 31px;
+    padding: 0 8px;
+    border: 1px solid #cfdbea;
+    border-radius: 7px;
+    background: #fff;
+    color: #40506a;
+    font-size: .5rem;
+    font-weight: 750
+}
+
+#my-work-app .page-button.active {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+#my-work-app .page-button:disabled {
+    opacity: .45;
+    cursor: default
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+@keyframes reveal {
+    from {
+        opacity: 0;
+        transform: translateY(5px)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0)
+    }
+}
+
+#my-work-app .metric,
+#my-work-app .list-shell {
+    animation: reveal .25s ease both
+}
+
+#my-work-app .metric:nth-child(2) {
+    animation-delay: .03s
+}
+
+#my-work-app .metric:nth-child(3) {
+    animation-delay: .06s
+}
+
+#my-work-app .metric:nth-child(4) {
+    animation-delay: .09s
+}
+
+#my-work-app .metric:nth-child(5) {
+    animation-delay: .12s
+}
+
+@media(max-width:1180px) {
+    #my-work-app .metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+    }
+
+    #my-work-app .task-head {
+        display: none
+    }
+
+    #my-work-app .task-row {
+        grid-template-columns: minmax(175px, 1.2fr) 88px minmax(112px, .82fr) 116px 108px 82px 78px 44px
+    }
+
+    #my-work-app .order-head {
+        grid-template-columns: 22px minmax(170px, 1fr) minmax(110px, .7fr) minmax(100px, .7fr) minmax(85px, .6fr) auto
+    }
+
+    #my-work-app .order-progress {
+        display: none
+    }
+}
+
+@media(max-width:820px) {
+    body:has(#my-work-app) .content {
+        padding-inline: 11px
+    }
+
+    #my-work-app .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    #my-work-app .toolbar {
+        align-items: stretch;
+        flex-wrap: wrap
+    }
+
+    #my-work-app .search-wrap {
+        width: 100%;
+        flex-basis: 100%
+    }
+
+    #my-work-app .sort {
+        flex: 1
+    }
+
+    #my-work-app .task-row {
+        grid-template-columns: minmax(0, 1.35fr) minmax(110px, .85fr) 100px 44px;
+        grid-template-areas: "task assignee due action" "phase status flag action" "updated updated flag action";
+        row-gap: 6px;
+        min-height: 94px
+    }
+
+    #my-work-app .task-main {
+        grid-area: task
+    }
+
+    #my-work-app .phase {
+        grid-area: phase
+    }
+
+    #my-work-app .assignee {
+        grid-area: assignee
+    }
+
+    #my-work-app .assignee-picker .ft-inline-remote-user {
+        max-width: 170px
+    }
+
+    #my-work-app .due-editor {
+        grid-area: due
+    }
+
+    #my-work-app .status-select {
+        grid-area: status
+    }
+
+    #my-work-app .updated {
+        grid-area: updated
+    }
+
+    #my-work-app .task-row>.flag {
+        grid-area: flag;
+        justify-self: start
+    }
+
+    #my-work-app .row-action {
+        grid-area: action
+    }
+
+    #my-work-app .order-head {
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        grid-template-areas: "toggle order count" "toggle client health";
+        row-gap: 4px
+    }
+
+    #my-work-app .collapse {
+        grid-area: toggle
+    }
+
+    #my-work-app .order-identity {
+        grid-area: order
+    }
+
+    #my-work-app .order-client {
+        grid-area: client
+    }
+
+    #my-work-app .order-stage {
+        display: none
+    }
+
+    #my-work-app .order-head>.health {
+        grid-area: health;
+        justify-self: end
+    }
+
+    #my-work-app .task-count {
+        grid-area: count
+    }
+}
+
+@media(max-width:520px) {
+    body:has(#my-work-app) .topbar {
+        padding-inline: 10px
+    }
+
+    body:has(#my-work-app) .content {
+        padding: 14px 8px 28px
+    }
+
+    #my-work-app .page-head p {
+        display: none
+    }
+
+    #my-work-app .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    #my-work-app .metric {
+        min-height: 59px;
+        padding: 8px
+    }
+
+    #my-work-app .metric:nth-child(5) {
+        grid-column: 1/-1
+    }
+
+    #my-work-app .toolbar {
+        padding: 8px
+    }
+
+    #my-work-app .quick-filters {
+        width: 100%;
+        overflow: auto
+    }
+
+    #my-work-app .chip {
+        flex: 0 0 auto
+    }
+
+    #my-work-app .task-row {
+        grid-template-columns: minmax(0, 1fr) 102px 42px;
+        grid-template-areas: "task status action" "assignee due action" "phase flag action" "updated updated action";
+        padding: 9px;
+        min-height: 126px
+    }
+
+    #my-work-app .footer {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    #my-work-app .pages {
+        width: 100%
+    }
+
+    #my-work-app .page-button {
+        flex: 1
+    }
+
+    #my-work-app .order-title {
+        white-space: normal
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+    #my-work-app *,
+    #my-work-app *::before,
+    #my-work-app *::after {
+        animation: none !important;
+        transition: none !important
+    }
+}
+
+/* 2026-08-08: Slightly larger My Work typography for readability without changing the layout. */
+body:has(#my-work-app) .lang-btn {
+    font-size: .8125rem
+}
+
+#my-work-app .page-head h1 {
+    font-size: 1.5625rem
+}
+
+#my-work-app .page-head p {
+    font-size: .75rem
+}
+
+#my-work-app .page-tab {
+    font-size: .6875rem
+}
+
+#my-work-app .metric small {
+    font-size: .625rem
+}
+
+#my-work-app .metric strong {
+    font-size: 1.25rem
+}
+
+#my-work-app .metric i {
+    font-size: .75rem
+}
+
+#my-work-app .search {
+    font-size: .6875rem
+}
+
+#my-work-app .clear {
+    font-size: .59375rem
+}
+
+#my-work-app .chip {
+    font-size: .625rem
+}
+
+#my-work-app .sort {
+    font-size: .625rem
+}
+
+#my-work-app .load-state {
+    font-size: .59375rem
+}
+
+#my-work-app .task-head {
+    font-size: .5625rem
+}
+
+#my-work-app .collapse {
+    font-size: .8125rem
+}
+
+#my-work-app .order-id,
+#my-work-app .order-title {
+    font-size: .6875rem
+}
+
+#my-work-app .order-client,
+#my-work-app .order-stage {
+    font-size: .625rem
+}
+
+#my-work-app .health,
+#my-work-app .flag {
+    font-size: .5625rem
+}
+
+#my-work-app .order-progress,
+#my-work-app .task-count {
+    font-size: .59375rem
+}
+
+#my-work-app .task-link {
+    font-size: .6875rem
+}
+
+#my-work-app .task-ref {
+    font-size: .5625rem
+}
+
+#my-work-app .phase,
+#my-work-app .assignee,
+#my-work-app .due-editor .ft-task-inline-display {
+    font-size: .625rem
+}
+
+#my-work-app .due-editor .ft-task-inline-input {
+    font-size: .59375rem
+}
+
+#my-work-app .status-select,
+#my-work-app .updated,
+#my-work-app .row-action {
+    font-size: .59375rem
+}
+
+#my-work-app .empty {
+    font-size: .6875rem
+}
+
+#my-work-app .empty strong {
+    font-size: .8125rem
+}
+
+#my-work-app .footer,
+#my-work-app .page-button {
+    font-size: .625rem
+}
+
+
+/* 2026-08-09: responsive My Work list for tablet, phone and narrow split-screen widths. */
+#my-work-app .status-wrap {
+    display: block;
+    min-width: 0
+}
+
+#my-work-app .status-wrap .status-select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0
+}
+
+@media(max-width:900px) {
+    #my-work-app {
+        min-width: 0;
+        max-width: 100%;
+        overflow-x: hidden
+    }
+
+    #my-work-app .page-head {
+        align-items: flex-start;
+        gap: 10px
+    }
+
+    #my-work-app .page-head>div {
+        min-width: 0
+    }
+
+    #my-work-app .page-head h1 {
+        font-size: 1.4375rem
+    }
+
+    #my-work-app .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px
+    }
+
+    #my-work-app .metric {
+        min-height: 62px;
+        padding: 9px 10px
+    }
+
+    #my-work-app .metric:nth-child(5) {
+        grid-column: 1/-1
+    }
+
+    #my-work-app .toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(150px, 190px);
+        gap: 8px;
+        align-items: stretch;
+        padding: 9px;
+    }
+
+    #my-work-app .search-wrap {
+        grid-column: 1/-1;
+        width: 100%;
+        min-width: 0;
+        flex-basis: auto
+    }
+
+    #my-work-app .search {
+        height: 40px;
+        font-size: .6875rem
+    }
+
+    #my-work-app .quick-filters {
+        display: flex;
+        min-width: 0;
+        gap: 6px;
+        overflow-x: auto;
+        scrollbar-width: none
+    }
+
+    #my-work-app .quick-filters::-webkit-scrollbar {
+        display: none
+    }
+
+    #my-work-app .chip {
+        flex: 0 0 auto;
+        min-height: 35px;
+        font-size: .625rem
+    }
+
+    #my-work-app .sort {
+        width: 100%;
+        min-width: 0;
+        height: 35px;
+        font-size: .625rem
+    }
+
+    #my-work-app .load-state {
+        min-height: 34px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        padding: 5px 3px;
+        line-height: 1.35;
+        font-size: .59375rem
+    }
+
+    #my-work-app .load-state>span {
+        min-width: 0;
+        overflow-wrap: anywhere
+    }
+
+    #my-work-app .task-head {
+        display: none
+    }
+
+    #my-work-app .order-head {
+        grid-template-columns: 24px minmax(0, 1fr) auto;
+        grid-template-areas: "toggle order count" "toggle client health";
+        gap: 4px 8px;
+        min-height: 62px;
+        padding: 9px 10px;
+    }
+
+    #my-work-app .collapse {
+        grid-area: toggle;
+        align-self: center
+    }
+
+    #my-work-app .order-identity {
+        grid-area: order;
+        min-width: 0
+    }
+
+    #my-work-app .order-client {
+        grid-area: client;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap
+    }
+
+    #my-work-app .order-stage,
+    #my-work-app .order-progress {
+        display: none
+    }
+
+    #my-work-app .order-head>.health {
+        grid-area: health;
+        justify-self: end
+    }
+
+    #my-work-app .task-count {
+        grid-area: count;
+        justify-self: end;
+        white-space: nowrap
+    }
+
+    #my-work-app .order-title {
+        max-width: 100%;
+        white-space: normal;
+        line-height: 1.3;
+        overflow-wrap: anywhere
+    }
+
+    #my-work-app .task-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(155px, .72fr) 64px;
+        grid-template-areas:
+            "task status action"
+            "assignee due action"
+            "phase flag action"
+            "updated updated action";
+        gap: 7px 10px;
+        min-height: 124px;
+        padding: 10px;
+        align-items: center;
+    }
+
+    #my-work-app .task-main {
+        grid-area: task;
+        min-width: 0
+    }
+
+    #my-work-app .task-link {
+        font-size: .71875rem;
+        white-space: normal;
+        line-height: 1.3;
+        overflow-wrap: anywhere
+    }
+
+    #my-work-app .phase {
+        grid-area: phase;
+        min-width: 0;
+        white-space: normal;
+        overflow-wrap: anywhere
+    }
+
+    #my-work-app .assignee {
+        grid-area: assignee;
+        min-width: 0
+    }
+
+    #my-work-app .due-editor {
+        grid-area: due;
+        min-width: 0
+    }
+
+    #my-work-app .due-editor .ft-task-inline-display {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        line-height: 1.25
+    }
+
+    #my-work-app .due-editor .ft-task-inline-input {
+        width: 100%;
+        min-width: 0;
+        max-width: 145px
+    }
+
+    #my-work-app .status-wrap {
+        grid-area: status;
+        min-width: 0
+    }
+
+    #my-work-app .status-select {
+        height: 34px;
+        padding-left: 9px;
+        padding-right: 28px;
+        font-size: .625rem;
+        text-overflow: ellipsis
+    }
+
+    #my-work-app .task-row>.flag {
+        grid-area: flag;
+        justify-self: start;
+        max-width: 100%;
+        white-space: normal;
+        line-height: 1.2;
+        text-align: left
+    }
+
+    #my-work-app .updated {
+        grid-area: updated;
+        min-width: 0
+    }
+
+    #my-work-app .task-row>.row-action {
+        grid-area: action;
+        align-self: center;
+        justify-self: end;
+        width: 58px;
+        height: 34px;
+        font-size: .625rem
+    }
+
+    #my-work-app .page-head>.row-action {
+        grid-area: auto;
+        width: auto;
+        height: 34px;
+        align-self: auto;
+        justify-self: auto
+    }
+
+    #my-work-app .footer {
+        gap: 9px;
+        flex-wrap: wrap
+    }
+
+    #my-work-app .footer>span {
+        min-width: 0;
+        overflow-wrap: anywhere
+    }
+
+    #my-work-app .pages {
+        max-width: 100%;
+        flex-wrap: wrap;
+        justify-content: flex-end
+    }
+}
+
+@media(max-width:600px) {
+    body:has(#my-work-app) .content {
+        padding: 14px 9px 90px
+    }
+
+    #my-work-app .page-head {
+        align-items: stretch;
+        flex-direction: column
+    }
+
+    #my-work-app .page-head .row-action {
+        width: 100% !important;
+        min-height: 34px
+    }
+
+    #my-work-app .page-head p {
+        display: none
+    }
+
+    #my-work-app .page-tabs {
+        margin-top: 8px
+    }
+
+    #my-work-app .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    #my-work-app .metric {
+        min-height: 60px
+    }
+
+    #my-work-app .metric small {
+        font-size: .59375rem;
+        white-space: normal;
+        line-height: 1.2
+    }
+
+    #my-work-app .metric strong {
+        font-size: 1.1875rem
+    }
+
+    #my-work-app .toolbar {
+        grid-template-columns: 1fr;
+        padding: 8px
+    }
+
+    #my-work-app .search-wrap,
+    #my-work-app .quick-filters,
+    #my-work-app .sort {
+        grid-column: 1
+    }
+
+    #my-work-app .quick-filters {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        overflow: visible
+    }
+
+    #my-work-app .chip {
+        width: 100%;
+        min-width: 0;
+        padding-inline: 7px;
+        white-space: normal;
+        line-height: 1.2
+    }
+
+    #my-work-app .quick-filters .chip:last-child {
+        grid-column: 1/-1
+    }
+
+    #my-work-app .load-state {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 3px
+    }
+
+    #my-work-app .loading-copy {
+        justify-self: start
+    }
+
+    #my-work-app .order-head {
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        padding: 9px
+    }
+
+    #my-work-app .order-id,
+    #my-work-app .order-title {
+        font-size: .6875rem
+    }
+
+    #my-work-app .order-client {
+        font-size: .59375rem
+    }
+
+    #my-work-app .task-row {
+        grid-template-columns: minmax(0, 1fr) 58px;
+        grid-template-areas:
+            "task action"
+            "assignee assignee"
+            "phase phase"
+            "due due"
+            "status status"
+            "flag flag"
+            "updated updated";
+        gap: 8px;
+        min-height: 0;
+        padding: 11px 10px;
+        align-items: center;
+    }
+
+    #my-work-app .task-row>.row-action {
+        align-self: start;
+        width: 58px
+    }
+
+    #my-work-app .phase,
+    #my-work-app .assignee,
+    #my-work-app .due-editor,
+    #my-work-app .status-wrap,
+    #my-work-app .updated {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    #my-work-app .phase::before,
+    #my-work-app .assignee::before,
+    #my-work-app .due-editor::before,
+    #my-work-app .status-wrap::before,
+    #my-work-app .updated::before {
+        content: attr(data-label);
+        display: inline-block;
+        width: 64px;
+        flex: 0 0 64px;
+        color: #7a889b;
+        font-size: .5rem;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    #my-work-app .phase {
+        display: flex;
+        align-items: center;
+        gap: 6px
+    }
+
+    #my-work-app .assignee {
+        display: flex;
+        align-items: center;
+        gap: 6px
+    }
+
+    #my-work-app .due-editor {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap
+    }
+
+    #my-work-app .due-editor .ft-inline-save-state {
+        left: 64px
+    }
+
+    #my-work-app .status-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px
+    }
+
+    #my-work-app .status-wrap .status-select {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+        height: 36px
+    }
+
+    #my-work-app .updated {
+        display: flex;
+        align-items: center;
+        gap: 6px
+    }
+
+    #my-work-app .task-row>.flag {
+        justify-self: start;
+        max-width: 100%;
+        margin-left: 70px
+    }
+
+    #my-work-app .assignee-name {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        overflow-wrap: anywhere
+    }
+
+    #my-work-app .footer {
+        align-items: stretch;
+        flex-direction: column;
+        padding: 10px
+    }
+
+    #my-work-app .pages {
+        display: flex;
+        width: 100%;
+        gap: 5px;
+        flex-wrap: nowrap;
+        justify-content: stretch
+    }
+
+    #my-work-app .page-button {
+        min-width: 34px;
+        width: auto;
+        height: 34px;
+        padding: 0 8px;
+        font-size: .59375rem;
+        flex: 0 0 auto
+    }
+
+    #my-work-app .pages .page-button:first-child,
+    #my-work-app .pages .page-button:last-child {
+        flex: 1 1 90px;
+        min-width: 72px
+    }
+}
+
+@media(max-width:420px) {
+    #my-work-app .metrics {
+        gap: 6px
+    }
+
+    #my-work-app .metric {
+        padding: 8px;
+        gap: 5px
+    }
+
+    #my-work-app .metric i {
+        width: 25px;
+        height: 25px;
+        flex-basis: 25px
+    }
+
+    #my-work-app .quick-filters {
+        grid-template-columns: 1fr
+    }
+
+    #my-work-app .quick-filters .chip:last-child {
+        grid-column: auto
+    }
+
+    #my-work-app .order-head>.health {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+
+    #my-work-app .task-row {
+        grid-template-columns: minmax(0, 1fr) 54px;
+        padding-inline: 9px
+    }
+
+    #my-work-app .task-row>.row-action {
+        width: 54px
+    }
+
+    #my-work-app .phase::before,
+    #my-work-app .assignee::before,
+    #my-work-app .due-editor::before,
+    #my-work-app .status-wrap::before,
+    #my-work-app .updated::before {
+        width: 58px;
+        flex-basis: 58px
+    }
+
+    #my-work-app .task-row>.flag {
+        margin-left: 64px
+    }
+
+    #my-work-app .pages .page-button:not(:first-child):not(:last-child) {
+        display: none
+    }
+}
+
+/* 2026-08-09 performance UX: compact progress feedback while Livewire refreshes the list. */
+#my-work-app .work-progress {
+    display: none;
+    min-height: 28px;
+    align-items: center;
+    gap: 7px;
+    margin: 2px 2px 7px;
+    color: #62738c;
+    font-size: .625rem;
+    font-weight: 650
+}
+
+#my-work-app .work-progress span {
+    width: 12px;
+    height: 12px;
+    flex: 0 0 12px;
+    border: 2px solid #dce5f2;
+    border-top-color: var(--ft-theme-primary);
+    border-radius: 50%;
+    animation: spin .6s linear infinite
+}
+
+#my-work-app .list-shell {
+    transition: opacity .12s ease
+}
+
+#my-work-app .list-shell.is-refreshing {
+    opacity: .7;
+    pointer-events: none
+}
+
+/* 2026-08-10: task-list visibility and group controls. */
+@media(max-width:820px) {
+    #my-work-app .completed-toggle {
+        flex: 0 0 auto
+    }
+
+    #my-work-app .load-actions {
+        width: 100%;
+        justify-content: space-between;
+        margin-left: 0
+    }
+}
+
+@media(max-width:520px) {
+    #my-work-app .completed-toggle {
+        order: 4
+    }
+
+    #my-work-app .load-actions {
+        align-items: center;
+        gap: 7px
+    }
+
+    #my-work-app .loading-copy {
+        min-width: 0;
+        overflow: hidden
+    }
+
+    #my-work-app .loading-copy>span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap
+    }
+}
+
+/* 2026-08-14: My Work phase filters + single clear action. */
+#my-work-app .clear-filters {
+    white-space: nowrap
+}
+
+#my-work-app .clear-filters:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+    background: #f8fafc;
+    color: #8a96a8
+}
+
+/* 2026-08-14: phase filters use the same compact toggle language as Hide completed. */
+#my-work-app .phase-filters {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    flex: 1 1 auto;
+    overflow-x: auto;
+    scrollbar-width: none
+}
+
+#my-work-app .phase-filters::-webkit-scrollbar {
+    display: none
+}
+
+#my-work-app .phase-toggle {
+    display: inline-flex;
+    min-height: 35px;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+    padding: 0 9px;
+    border: 1px solid #d2dce9;
+    border-radius: 8px;
+    background: #fff;
+    color: #526078;
+    font-size: .625rem;
+    font-weight: 720;
+    white-space: nowrap;
+    cursor: pointer
+}
+
+#my-work-app .phase-toggle:hover,
+#my-work-app .phase-toggle.active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary)
+}
+
+#my-work-app .phase-check {
+    display: grid;
+    width: 15px;
+    height: 15px;
+    place-items: center;
+    border: 1px solid #b9c8dc;
+    border-radius: 4px;
+    background: #fff;
+    color: transparent;
+    font-size: .5625rem;
+    line-height: 1
+}
+
+#my-work-app .phase-toggle.active .phase-check {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+#my-work-app .order-stage,
+#my-work-app .phase {
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+@media(max-width:900px) {
+    #my-work-app .phase-filters {
+        grid-column: 1/-1;
+        width: 100%;
+        order: 2
+    }
+}
+
+@media(max-width:600px) {
+    #my-work-app .phase-filters {
+        display: flex;
+        grid-column: 1;
+        width: 100%;
+        overflow-x: auto
+    }
+
+    .phase-toggle {
+        max-width: none
+    }
+}
+
+/* 2026-08-14: My Work filters arranged as two clean rows. */
+#my-work-app .toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+    align-items: stretch
+}
+
+#my-work-app .toolbar-primary {
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    min-width: 0
+}
+
+#my-work-app .toolbar-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0
+}
+
+#my-work-app .toolbar-primary .search-wrap {
+    width: 100%;
+    min-width: 0;
+    flex: none
+}
+
+#my-work-app .toolbar-primary .phase-filters {
+    width: 100%;
+    min-width: 0;
+    flex: none
+}
+
+#my-work-app .toolbar-secondary .quick-filters {
+    display: flex;
+    gap: 6px
+}
+
+#my-work-app .toolbar-secondary .sort {
+    min-width: 190px
+}
+
+#my-work-app .toolbar-secondary .assignee-filter {
+    width: 230px;
+    min-width: 230px
+}
+
+@media(max-width:900px) {
+    #my-work-app .toolbar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px
+    }
+
+    #my-work-app .toolbar-primary {
+        grid-template-columns: 1fr
+    }
+
+    #my-work-app .toolbar-primary .search-wrap,
+    #my-work-app .toolbar-primary .phase-filters {
+        grid-column: 1;
+        width: 100%
+    }
+
+    #my-work-app .toolbar-secondary {
+        justify-content: flex-start;
+        flex-wrap: wrap
+    }
+
+    #my-work-app .toolbar-secondary .sort,
+    #my-work-app .toolbar-secondary .assignee-filter {
+        min-width: 180px;
+        flex: 1 1 180px
+    }
+}
+
+@media(max-width:600px) {
+    #my-work-app .toolbar-secondary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px
+    }
+
+    #my-work-app .toolbar-secondary .quick-filters {
+        width: 100%;
+        overflow: visible
+    }
+
+    #my-work-app .toolbar-secondary .quick-filters .chip {
+        width: 100%
+    }
+
+    #my-work-app .toolbar-secondary .sort,
+    #my-work-app .toolbar-secondary .assignee-filter,
+    #my-work-app .toolbar-secondary .clear-filters {
+        width: 100%;
+        min-width: 0
+    }
+}
+
+
+/* 2026-08-14: align the two-row My Work filter bar and improve desktop table readability. */
+@media(min-width:901px) {
+    #my-work-app .toolbar {
+        display: grid;
+        grid-template-columns: minmax(330px, 420px) minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        column-gap: 10px;
+        row-gap: 8px;
+        align-items: center;
+        padding: 10px 12px;
+    }
+
+    #my-work-app .toolbar-primary {
+        display: contents
+    }
+
+    #my-work-app .toolbar-primary .search-wrap {
+        grid-column: 1;
+        grid-row: 1;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #my-work-app .toolbar-primary .phase-filters {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+        min-width: 0;
+        justify-content: flex-start;
+    }
+
+    #my-work-app .toolbar-secondary {
+        grid-column: 2;
+        grid-row: 2;
+        width: 100%;
+        min-width: 0;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+
+    #my-work-app .toolbar-secondary .sort {
+        min-width: 190px;
+        max-width: 250px;
+    }
+}
+
+#my-work-app .task-table-scroll {
+    width: 100%;
+    min-width: 0;
+}
+
+@media(min-width:1181px) {
+    #my-work-app .task-table-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: #c7d3e3 transparent;
+    }
+
+    #my-work-app .task-table-scroll::-webkit-scrollbar {
+        height: 9px
+    }
+
+    #my-work-app .task-table-scroll::-webkit-scrollbar-track {
+        background: transparent
+    }
+
+    #my-work-app .task-table-scroll::-webkit-scrollbar-thumb {
+        background: #c7d3e3;
+        border-radius: 999px
+    }
+
+    #my-work-app .task-head,
+    #my-work-app .order-group {
+        min-width: 1530px;
+    }
+
+    #my-work-app .task-head,
+    #my-work-app .task-row {
+        grid-template-columns: minmax(350px, 2fr) minmax(220px, 1.15fr) minmax(180px, 1fr) 150px 160px minmax(150px, .85fr) 120px 68px;
+        gap: 10px;
+    }
+
+    #my-work-app .order-head {
+        grid-template-columns: 22px minmax(360px, 1.8fr) minmax(180px, .9fr) minmax(220px, 1.1fr) minmax(150px, .8fr) minmax(180px, .9fr) 90px;
+        gap: 10px;
+    }
+
+    #my-work-app .task-link,
+    #my-work-app .phase,
+    #my-work-app .assignee-name,
+    #my-work-app .due-editor .ft-task-inline-display,
+    #my-work-app .updated {
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+
+    #my-work-app .task-row {
+        min-height: 60px
+    }
+
+    #my-work-app .order-title {
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* 2026-08-14: final My Work toolbar alignment -- two full-width rows with no offset column. */
+@media(min-width:901px) {
+    #my-work-app .toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        gap: 9px;
+        align-items: stretch;
+        padding: 10px 12px;
+    }
+
+    #my-work-app .toolbar-primary {
+        display: grid;
+        grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+        min-width: 0;
+    }
+
+    #my-work-app .toolbar-primary .search-wrap {
+        grid-column: auto;
+        grid-row: auto;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #my-work-app .toolbar-primary .phase-filters {
+        grid-column: auto;
+        grid-row: auto;
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        align-items: center;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 1px;
+    }
+
+    #my-work-app .phase-toggle {
+        min-height: 36px;
+        padding: 0 11px;
+    }
+
+    #my-work-app .toolbar-secondary {
+        grid-column: 1;
+        grid-row: 2;
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+
+    #my-work-app .toolbar-secondary .quick-filters {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 6px;
+    }
+
+    #my-work-app .toolbar-secondary .sort {
+        width: 230px;
+        min-width: 230px;
+        max-width: 230px;
+    }
+
+    #my-work-app .toolbar-secondary .assignee-filter {
+        width: 230px;
+        min-width: 230px;
+        max-width: 230px;
+    }
+
+    #my-work-app .toolbar-secondary .clear-filters {
+        margin-left: auto;
+    }
+}
+
+/* 2026-08-14: extra desktop reading room for My Work table columns. */
+@media(min-width:1181px) {
+
+    #my-work-app .task-head,
+    #my-work-app .order-group {
+        min-width: 1680px;
+    }
+
+    #my-work-app .task-head,
+    #my-work-app .task-row {
+        grid-template-columns: minmax(390px, 2.1fr) minmax(260px, 1.25fr) minmax(190px, 1fr) 160px 165px minmax(170px, .9fr) 130px 72px;
+        gap: 11px;
+    }
+
+    #my-work-app .order-head {
+        grid-template-columns: 22px minmax(410px, 1.9fr) minmax(190px, .9fr) minmax(260px, 1.2fr) minmax(160px, .8fr) minmax(190px, .9fr) 95px;
+        gap: 11px;
+    }
+}
+
+/* 2026-08-14: responsive My Work filter toolbar across desktop, tablet and mobile. */
+#my-work-app .toolbar,
+#my-work-app .toolbar-primary,
+#my-work-app .toolbar-secondary {
+    min-width: 0
+}
+
+#my-work-app .toolbar-primary .phase-filters {
+    flex-wrap: wrap;
+    overflow: visible;
+    align-content: center;
+}
+
+#my-work-app .toolbar-primary .phase-toggle {
+    max-width: 100%
+}
+
+@media(max-width:1440px) {
+    #my-work-app .toolbar-primary {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px
+    }
+
+    #my-work-app .toolbar-primary .search-wrap,
+    #my-work-app .toolbar-primary .phase-filters {
+        width: 100%;
+        grid-column: 1
+    }
+
+    #my-work-app .toolbar-primary .phase-filters {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        overflow: visible
+    }
+
+    #my-work-app .phase-toggle {
+        min-height: 38px;
+        padding-inline: 12px
+    }
+}
+
+@media(max-width:900px) {
+    #my-work-app .toolbar {
+        gap: 8px;
+        padding: 9px
+    }
+
+    #my-work-app .toolbar-primary {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px
+    }
+
+    #my-work-app .toolbar-primary .search-wrap {
+        width: 100%;
+        min-width: 0
+    }
+
+    #my-work-app .toolbar-primary .phase-filters {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+        gap: 7px;
+        overflow: visible;
+        padding: 0
+    }
+
+    #my-work-app .phase-toggle {
+        flex: 0 1 auto;
+        min-height: 40px;
+        max-width: 100%;
+        padding: 0 12px
+    }
+
+    #my-work-app .toolbar-secondary {
+        display: grid;
+        grid-template-columns: auto auto minmax(180px, 1fr) minmax(180px, 1fr) auto;
+        gap: 8px;
+        width: 100%;
+        align-items: stretch
+    }
+
+    #my-work-app .toolbar-secondary .quick-filters,
+    #my-work-app .toolbar-secondary .completed-toggle,
+    #my-work-app .toolbar-secondary .assignee-filter,
+    #my-work-app .toolbar-secondary .sort,
+    #my-work-app .toolbar-secondary .clear-filters {
+        min-width: 0;
+        width: auto;
+        margin: 0
+    }
+
+    #my-work-app .toolbar-secondary .quick-filters .chip,
+    #my-work-app .toolbar-secondary .completed-toggle,
+    #my-work-app .toolbar-secondary .assignee-filter .ft-search-select__trigger,
+    #my-work-app .toolbar-secondary .sort,
+    #my-work-app .toolbar-secondary .clear-filters {
+        min-height: 40px
+    }
+
+    #my-work-app .toolbar-secondary .sort,
+    #my-work-app .toolbar-secondary .assignee-filter {
+        width: 100%;
+        min-width: 0;
+        max-width: none
+    }
+}
+
+@media(max-width:700px) {
+    #my-work-app .toolbar {
+        border-radius: 10px;
+        padding: 8px
+    }
+
+    #my-work-app .search {
+        height: 42px;
+        font-size: .75rem
+    }
+
+    #my-work-app .toolbar-primary .phase-filters {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px
+    }
+
+    #my-work-app .phase-toggle {
+        width: 100%;
+        min-width: 0;
+        justify-content: flex-start;
+        min-height: 42px;
+        white-space: normal;
+        line-height: 1.25;
+        text-align: left
+    }
+
+    #my-work-app .phase-toggle>span:last-child {
+        min-width: 0;
+        overflow-wrap: anywhere
+    }
+
+    #my-work-app .toolbar-secondary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px
+    }
+
+    #my-work-app .toolbar-secondary .quick-filters,
+    #my-work-app .toolbar-secondary .quick-filters .chip,
+    #my-work-app .toolbar-secondary .completed-toggle,
+    #my-work-app .toolbar-secondary .assignee-filter,
+    #my-work-app .toolbar-secondary .sort,
+    #my-work-app .toolbar-secondary .clear-filters {
+        width: 100%
+    }
+
+    #my-work-app .toolbar-secondary .quick-filters {
+        display: block
+    }
+
+    #my-work-app .toolbar-secondary .sort,
+    #my-work-app .toolbar-secondary .clear-filters {
+        grid-column: 1/-1;
+        min-height: 42px
+    }
+
+    #my-work-app .completed-toggle,
+    #my-work-app .chip {
+        justify-content: center;
+        min-height: 42px
+    }
+}
+
+@media(max-width:460px) {
+    body:has(#my-work-app) .content {
+        padding-inline: 7px
+    }
+
+    #my-work-app .toolbar-primary .phase-filters {
+        grid-template-columns: minmax(0, 1fr)
+    }
+
+    #my-work-app .toolbar-secondary {
+        grid-template-columns: minmax(0, 1fr)
+    }
+
+    #my-work-app .toolbar-secondary .sort,
+    #my-work-app .toolbar-secondary .clear-filters {
+        grid-column: 1
+    }
+
+    #my-work-app .phase-toggle,
+    #my-work-app .toolbar-secondary .quick-filters .chip,
+    #my-work-app .toolbar-secondary .completed-toggle,
+    #my-work-app .toolbar-secondary .sort,
+    #my-work-app .toolbar-secondary .clear-filters {
+        min-height: 44px
+    }
+}
+
+/* 2026-08-15 my-work mobile card refinement: compact, scannable personal tasks. */
+#my-work-app .row-action-mobile,
+#my-work-app .row-action-arrow {
+    display: none
+}
+
+@media(max-width:600px) {
+    #my-work-app .list-shell {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    #my-work-app .task-table-scroll {
+        overflow: visible
+    }
+
+    #my-work-app .order-group {
+        margin-bottom: 10px;
+        overflow: hidden;
+        border: 1px solid #d8e1ec;
+        border-radius: 13px;
+        background: #f7f9fc;
+        contain: none;
+        content-visibility: visible;
+    }
+
+    #my-work-app .order-group:last-child {
+        border-bottom: 1px solid #d8e1ec
+    }
+
+    #my-work-app .order-head {
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        grid-template-areas:
+            "toggle order count"
+            "toggle client health";
+        min-height: 0;
+        gap: 4px 8px;
+        padding: 10px 11px;
+        border-bottom: 1px solid #e2e8f1;
+        background: var(--ft-theme-surface-subtle);
+    }
+
+    #my-work-app .collapse {
+        width: 22px;
+        height: 22px;
+        align-self: start;
+        margin-top: 1px;
+        border-radius: 6px;
+        background: var(--ft-theme-primary-soft);
+        color: #51627b;
+    }
+
+    #my-work-app .order-id {
+        font-size: .71875rem;
+        font-weight: 820;
+        line-height: 1.2
+    }
+
+    #my-work-app .order-title {
+        margin-top: 3px;
+        font-size: .65625rem;
+        font-weight: 720;
+        line-height: 1.3;
+    }
+
+    #my-work-app .order-client {
+        font-size: .59375rem;
+        line-height: 1.25
+    }
+
+    #my-work-app .task-count {
+        align-self: start;
+        padding-top: 1px;
+        font-size: .5625rem;
+        font-weight: 700
+    }
+
+    #my-work-app .order-head>.health {
+        align-self: end;
+        font-size: .53125rem;
+        padding: 3px 7px
+    }
+
+    #my-work-app .task-rows {
+        display: grid;
+        gap: 7px;
+        padding: 8px;
+        background: #f7f9fc;
+    }
+
+    #my-work-app .task-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        grid-template-areas:
+            "task task action"
+            "assignee phase phase"
+            "due updated updated"
+            "status status status"
+            "flag flag flag";
+        gap: 9px 10px;
+        min-height: 0;
+        padding: 11px;
+        border: 1px solid #e1e7ef;
+        border-radius: 11px;
+        background: #fff;
+        box-shadow: none;
+    }
+
+    #my-work-app .task-row:hover {
+        background: #fff
+    }
+
+    #my-work-app .task-main {
+        align-self: start;
+        padding-right: 3px
+    }
+
+    #my-work-app .task-link {
+        font-size: .75rem;
+        font-weight: 780;
+        line-height: 1.28;
+        text-decoration: none;
+    }
+
+    #my-work-app .task-ref {
+        margin-top: 3px;
+        font-size: .59375rem;
+        line-height: 1.2
+    }
+
+    #my-work-app .phase,
+    #my-work-app .assignee,
+    #my-work-app .due-editor,
+    #my-work-app .status-wrap,
+    #my-work-app .updated {
+        display: grid;
+        width: 100%;
+        min-width: 0;
+        gap: 4px;
+        align-content: start;
+        align-items: start;
+    }
+
+    #my-work-app .phase::before,
+    #my-work-app .assignee::before,
+    #my-work-app .due-editor::before,
+    #my-work-app .status-wrap::before,
+    #my-work-app .updated::before {
+        content: attr(data-label);
+        display: block;
+        width: auto;
+        flex: 0 0 auto;
+        color: #7a889b;
+        font-size: .484375rem;
+        font-weight: 800;
+        letter-spacing: .07em;
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    #my-work-app .assignee {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas: "label label" "avatar name";
+        column-gap: 6px;
+    }
+
+    #my-work-app .assignee::before {
+        grid-area: label
+    }
+
+    #my-work-app .assignee .avatar {
+        grid-area: avatar;
+        width: 22px !important;
+        height: 22px !important
+    }
+
+    #my-work-app .assignee-name {
+        grid-area: name;
+        align-self: center;
+        font-size: .625rem;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #my-work-app .phase {
+        font-size: .625rem;
+        line-height: 1.25
+    }
+
+    #my-work-app .due-editor {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 5px
+    }
+
+    #my-work-app .due-editor::before {
+        width: 100%;
+        flex-basis: 100%
+    }
+
+    #my-work-app .due-editor .ft-task-inline-display {
+        font-size: .625rem;
+        line-height: 1.2
+    }
+
+    #my-work-app .due-editor .ft-inline-edit-button {
+        width: 19px;
+        height: 19px;
+        font-size: .5625rem
+    }
+
+    #my-work-app .due-editor .ft-inline-save-state {
+        left: 0
+    }
+
+    #my-work-app .updated {
+        font-size: .625rem;
+        line-height: 1.2
+    }
+
+    #my-work-app .status-wrap {
+        padding-top: 1px;
+    }
+
+    #my-work-app .status-wrap .status-select {
+        width: min(100%, 210px);
+        min-width: 0;
+        height: 34px;
+        padding: 0 28px 0 10px;
+        border-radius: 8px;
+        font-size: .625rem;
+        justify-self: start;
+    }
+
+    #my-work-app .task-row>.flag {
+        grid-area: flag;
+        justify-self: start;
+        max-width: 100%;
+        margin: 0;
+        padding: 4px 7px;
+        font-size: .53125rem;
+        line-height: 1.15;
+        white-space: normal;
+    }
+
+    #my-work-app .task-row>.flag::before {
+        display: none
+    }
+
+    #my-work-app .task-row>.row-action {
+        grid-area: action;
+        display: inline-flex;
+        width: auto;
+        min-width: 0;
+        height: 29px;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        align-self: start;
+        justify-self: end;
+        padding: 0 8px;
+        border-color: var(--ft-theme-primary-100);
+        border-radius: 8px;
+        font-size: .53125rem;
+        font-weight: 680;
+        line-height: 1;
+    }
+
+    #my-work-app .row-action-desktop {
+        display: none
+    }
+
+    #my-work-app .row-action-mobile,
+    #my-work-app .row-action-arrow {
+        display: inline
+    }
+
+    #my-work-app .row-action-arrow {
+        font-size: .625rem;
+        font-weight: 600
+    }
+
+    #my-work-app .footer {
+        margin-top: 8px;
+        overflow: hidden;
+        border: 1px solid #d8e1ec;
+        border-radius: 11px;
+        background: #fff;
+    }
+}
+
+@media(max-width:420px) {
+    #my-work-app .task-rows {
+        gap: 6px;
+        padding: 6px
+    }
+
+    #my-work-app .task-row {
+        grid-template-columns: minmax(0, 1fr) minmax(0, .9fr) auto;
+        gap: 8px;
+        padding: 10px 9px;
+        border-radius: 10px;
+    }
+
+    #my-work-app .task-link {
+        font-size: .71875rem
+    }
+
+    #my-work-app .status-wrap .status-select {
+        width: min(100%, 190px);
+        height: 32px;
+        font-size: .59375rem
+    }
+
+    #my-work-app .task-row>.row-action {
+        height: 27px;
+        padding-inline: 7px;
+        font-size: .5rem
+    }
+
+    #my-work-app .row-action-arrow {
+        font-size: .5625rem
+    }
+}
+
+/* 2026-08-17: My Tasks assignee inline editing. */
+@media(max-width:600px) {
+    #my-work-app .assignee-editor {
+        display: grid;
+        width: 100%;
+        max-width: 100%;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "label" "person";
+        gap: 5px;
+    }
+
+    #my-work-app .assignee-editor::before {
+        grid-area: label
+    }
+
+    #my-work-app .assignee-display {
+        grid-area: person;
+        width: 100%
+    }
+
+    #my-work-app .assignee-picker {
+        grid-area: person;
+        width: min(100%, 240px)
+    }
+
+    #my-work-app .assignee-picker .ft-inline-remote-user {
+        max-width: none
+    }
+
+    #my-work-app .assignee-picker-trigger {
+        height: 34px;
+        font-size: .625rem
+    }
+
+    #my-work-app .assignee-editor>.ft-inline-save-state {
+        grid-area: person;
+        position: static;
+        justify-self: start;
+        margin: 2px 0 0
+    }
+}
+
+
+/* 2026-08-20: My Tasks + All Tasks filter bars now follow the Order/Inquiry list filter structure.
+   Search occupies the full first row; every task filter below uses the same compact, equal-height
+   control language and responsive grid used by the main list pages. */
+#my-work-app .work-view .toolbar.ft-list-filter-bar {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 7px;
+    width: 100%;
+    min-width: 0;
+    align-items: stretch;
+    margin-top: 10px;
+    margin-bottom: 0;
+    padding: 10px;
+    border: 1px solid #dbe3ed;
+    border-radius: 11px;
+    background: #fff;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar>.toolbar-primary,
+#my-work-app .work-view .toolbar.ft-list-filter-bar>.toolbar-secondary,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .phase-filters,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .quick-filters {
+    display: contents;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .search-wrap {
+    grid-column: 1/-1;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .search {
+    width: 100%;
+    max-width: none;
+    height: 38px;
+    min-height: 38px;
+    padding: 0 62px 0 34px;
+    border: 1px solid #ccd8e8;
+    border-radius: 8px;
+    background: #fff;
+    color: #172033;
+    font-size: .6875rem;
+    line-height: 38px;
+    box-sizing: border-box;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .search:hover {
+    border-color: #b9c8dc
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .search:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent);
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .search-icon {
+    left: 11px;
+    font-size: .8125rem
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .clear {
+    right: 8px;
+    font-size: .5625rem
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .phase-toggle,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .chip,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .completed-toggle,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .assignee-filter .ft-search-select__trigger,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .sort {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: 36px;
+    min-height: 36px;
+    margin: 0;
+    border: 1px solid #d2dce9;
+    border-radius: 8px;
+    background: #fff;
+    color: #526078;
+    font-size: .625rem;
+    font-weight: 720;
+    line-height: 1;
+    box-sizing: border-box;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .phase-toggle,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .chip,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .completed-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 10px;
+    white-space: nowrap;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .phase-toggle {
+    justify-content: flex-start;
+    overflow: hidden;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .phase-toggle>span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .sort {
+    padding: 0 30px 0 10px;
+    appearance: auto;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .phase-toggle:hover,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .chip:hover,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .completed-toggle:hover,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .assignee-filter .ft-search-select__trigger:hover,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .assignee-filter .ft-search-select__trigger[aria-expanded="true"],
+#my-work-app .work-view .toolbar.ft-list-filter-bar .sort:hover,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .sort:focus {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary);
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .phase-toggle.active,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .chip.active,
+#my-work-app .work-view .toolbar.ft-list-filter-bar .completed-toggle.active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .clear-filters {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: 36px;
+    min-height: 36px;
+    margin: 0;
+    padding: 0 10px;
+    border: 1px solid #d8e1ec;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: .625rem;
+    font-weight: 650;
+    line-height: 1;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .clear-filters:not(:disabled):hover {
+    border-color: #c4cfdd;
+    background: #f1f5f9;
+    color: #334155;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar .clear-filters:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+    border-color: #e2e8f0;
+    background: #f8fafc;
+    color: #94a3b8;
+}
+
+@media(max-width:1100px) {
+    #my-work-app .work-view .toolbar.ft-list-filter-bar {
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+    }
+}
+
+@media(max-width:700px) {
+    #my-work-app .work-view .toolbar.ft-list-filter-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+        padding: 9px
+    }
+
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .phase-toggle,
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .chip,
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .completed-toggle,
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .assignee-filter .ft-search-select__trigger,
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .sort,
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .clear-filters {
+        min-height: 40px;
+        height: 40px
+    }
+}
+
+@media(max-width:460px) {
+    #my-work-app .work-view .toolbar.ft-list-filter-bar {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 8px
+    }
+
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .phase-toggle,
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .chip,
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .completed-toggle,
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .assignee-filter .ft-search-select__trigger,
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .sort,
+    #my-work-app .work-view .toolbar.ft-list-filter-bar .clear-filters {
+        min-height: 42px;
+        height: 42px
+    }
+}
+
+
+/* Order Health removed from My Task group summaries. */
+#my-work-app .order-head {
+    grid-template-columns: 22px minmax(180px,1.3fr) minmax(130px,.8fr) minmax(110px,.7fr) minmax(120px,.8fr) auto;
+}
+@media (max-width:1180px) {
+    #my-work-app .order-head { grid-template-columns:22px minmax(170px,1fr) minmax(110px,.7fr) minmax(100px,.7fr) auto; }
+}
+@media (max-width:820px) {
+    #my-work-app .order-head {
+        grid-template-columns:22px minmax(0,1fr) auto;
+        grid-template-areas:"toggle order count" "toggle client client";
+    }
+}
+
+/* 2026-09-02: All Tasks filter hierarchy — stage filters stay together on one
+   colored row; task utilities live on the following row. This is scoped to
+   All Tasks so the existing My Tasks layout is unchanged. */
+#my-work-app .work-view .toolbar.ft-list-filter-bar.all-tasks-filter-bar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar > .toolbar-primary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-column: 1 / -1;
+    gap: 8px;
+    min-width: 0;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .search-wrap {
+    grid-column: 1 / -1;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-stage-filters {
+    display: flex;
+    grid-column: 1 / -1;
+    gap: 7px;
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 1px;
+    scrollbar-width: thin;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-stage-filters .phase-toggle {
+    --phase-color: var(--ft-theme-primary);
+    width: auto;
+    min-width: 0;
+    flex: 1 0 126px;
+    justify-content: flex-start;
+    border-color: color-mix(in srgb, var(--phase-color) 30%, #d9e3ec 70%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--phase-color) 7%, #fff 93%) 0%, color-mix(in srgb, var(--phase-color) 3%, #fff 97%) 100%);
+    color: color-mix(in srgb, var(--phase-color) 78%, #334155 22%);
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-stage-filters .phase-toggle:hover {
+    border-color: color-mix(in srgb, var(--phase-color) 52%, #d9e3ec 48%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--phase-color) 10%, #fff 90%) 0%, color-mix(in srgb, var(--phase-color) 5%, #fff 95%) 100%);
+    color: color-mix(in srgb, var(--phase-color) 88%, #10213b 12%);
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-stage-filters .phase-toggle.active {
+    border-color: color-mix(in srgb, var(--phase-color) 68%, #d9e3ec 32%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--phase-color) 14%, #fff 86%) 0%, color-mix(in srgb, var(--phase-color) 7%, #fff 93%) 100%);
+    color: color-mix(in srgb, var(--phase-color) 92%, #10213b 8%);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--phase-color) 13%, transparent);
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-stage-filters .phase-check {
+    flex: 0 0 15px;
+    border-color: color-mix(in srgb, var(--phase-color) 50%, #cbd5e1 50%);
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-stage-filters .phase-toggle.active .phase-check {
+    border-color: var(--phase-color);
+    background: var(--phase-color);
+    color: #fff;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar > .all-tasks-secondary-filters {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: stretch;
+    gap: 7px;
+    width: 100%;
+    min-width: 0;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .quick-filters {
+    display: block;
+    flex: 0 0 150px;
+    min-width: 0;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .quick-filters .chip,
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .completed-toggle {
+    width: 100%;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .completed-toggle {
+    flex: 0 0 160px;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .assignee-filter {
+    flex: 1 1 220px;
+    min-width: 170px;
+    max-width: 320px;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .sort {
+    flex: 1 1 220px;
+    min-width: 190px;
+    max-width: 320px;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-clear-filters {
+    display: inline-flex;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0 10px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background: #fff7f7;
+    color: #b42318;
+    font-size: .59375rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-clear-filters .clear-filter-icon {
+    display: inline-grid;
+    width: 14px;
+    height: 14px;
+    place-items: center;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #b42318;
+    font-size: .6875rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-clear-filters:not(:disabled):hover {
+    border-color: #fca5a5;
+    background: #fff1f2;
+    color: #991b1b;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-clear-filters:disabled {
+    border-color: #f1d5d5;
+    background: #fffafa;
+    color: #c99a9a;
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-clear-filters:disabled .clear-filter-icon {
+    background: #f8e8e8;
+    color: #c99a9a;
+}
+
+@media (max-width: 900px) {
+    #my-work-app .work-view .all-tasks-filter-bar > .all-tasks-secondary-filters {
+        flex-wrap: wrap;
+    }
+
+    #my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .quick-filters,
+    #my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .completed-toggle,
+    #my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .assignee-filter,
+    #my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .sort {
+        flex: 1 1 calc(50% - 4px);
+        max-width: none;
+    }
+}
+
+@media (max-width: 520px) {
+    #my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .quick-filters,
+    #my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .completed-toggle,
+    #my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .assignee-filter,
+    #my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .sort {
+        flex-basis: 100%;
+        min-width: 0;
+    }
+
+    #my-work-app .work-view .all-tasks-filter-bar .all-tasks-clear-filters {
+        width: 100%;
+        min-height: 40px;
+        height: 40px;
+    }
+}
+
+/* 2026-09-02: All Tasks filter row lock.
+   Keep every workflow stage on exactly one row and every utility filter on
+   exactly one second row at every viewport. Smaller screens scroll the row
+   horizontally instead of stacking controls. */
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-stage-filters {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(118px, 1fr));
+    grid-auto-flow: column;
+    flex-wrap: nowrap !important;
+    width: 100%;
+    min-width: 0;
+    gap: 7px;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 0 0 1px;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-stage-filters .phase-toggle {
+    width: 100% !important;
+    min-width: 118px;
+    max-width: none !important;
+    flex: none !important;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar > .all-tasks-secondary-filters {
+    display: grid !important;
+    grid-template-columns: 150px 160px minmax(190px, 1fr) minmax(190px, 1fr) auto;
+    grid-auto-flow: column;
+    align-items: stretch;
+    flex-wrap: nowrap !important;
+    width: 100%;
+    min-width: 0;
+    gap: 7px;
+    overflow-x: auto;
+    overflow-y: visible;
+    padding-bottom: 1px;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .quick-filters,
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .completed-toggle,
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .assignee-filter,
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-secondary-filters .sort,
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-clear-filters {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: none !important;
+}
+
+#my-work-app .work-view .all-tasks-filter-bar .all-tasks-clear-filters {
+    width: auto !important;
+    min-width: max-content !important;
+    height: 36px !important;
+    min-height: 36px !important;
+}
+
+/* 2026-09-02: All Tasks definitive filter DOM order.
+   Search is its own row. Workflow stages are always the first filter row,
+   utility filters are always the second filter row. Direct children and
+   explicit grid rows avoid older display:contents/order rules changing it. */
+#my-work-app .work-view .toolbar.ft-list-filter-bar.all-tasks-filter-bar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto !important;
+    grid-auto-flow: row !important;
+    gap: 8px !important;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar.all-tasks-filter-bar > .all-tasks-search-row {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    order: 0 !important;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar.all-tasks-filter-bar > .all-tasks-stage-filters {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    order: 0 !important;
+}
+
+#my-work-app .work-view .toolbar.ft-list-filter-bar.all-tasks-filter-bar > .all-tasks-secondary-filters {
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+    order: 0 !important;
+}

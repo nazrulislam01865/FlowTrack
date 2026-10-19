@@ -1,0 +1,266 @@
+/**
+ * Central asynchronous feedback system.
+ * --------------------------------------------------------------------------
+ * Scope: authenticated MAIN CONTENT only. The sidebar is intentionally not
+ * affected. This file owns the visual language for Loading / Saving / Saved /
+ * Error states while feature files keep responsibility for local positioning.
+ */
+
+/* Shared inline-save state ------------------------------------------------- */
+.main .ft-inline-save-state {
+    box-sizing: border-box;
+    align-items: center;
+    gap: 5px;
+    width: max-content;
+    max-width: 100%;
+    min-height: var(--ft-theme-feedback-height);
+    padding: 2px 7px;
+    border: 1px solid transparent;
+    border-radius: var(--ft-theme-feedback-radius);
+    background: var(--ft-theme-feedback-neutral-bg);
+    color: var(--ft-theme-feedback-neutral-text);
+    box-shadow: var(--ft-theme-feedback-shadow);
+    font-family: var(--ft-theme-font-family);
+    font-size: var(--ft-theme-feedback-font-size);
+    font-weight: var(--ft-theme-feedback-font-weight);
+    line-height: 1.2;
+    letter-spacing: 0;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.main .ft-inline-save-state.compact {
+    min-height: var(--ft-theme-feedback-height-compact);
+    padding: 1px 6px;
+    font-size: var(--ft-theme-feedback-font-size-compact);
+}
+
+.main .ft-inline-save-state:not(.is-saving):not(.is-saved):not(.is-error) {
+    display: none !important;
+}
+
+.main .ft-inline-save-state.is-saving,
+.main .ft-inline-save-state.is-saved,
+.main .ft-inline-save-state.is-error {
+    display: inline-flex;
+}
+
+.main .ft-inline-save-state::before {
+    content: '';
+    display: block;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 1;
+}
+
+.main .ft-inline-save-state.compact::before {
+    width: 6px;
+    height: 6px;
+    flex-basis: 6px;
+}
+
+.main .ft-inline-save-state.is-saving {
+    border-color: var(--ft-theme-feedback-saving-border);
+    background: var(--ft-theme-feedback-saving-bg);
+    color: var(--ft-theme-feedback-saving-text);
+}
+
+.main .ft-inline-save-state.is-saving::before {
+    box-sizing: border-box;
+    background: transparent;
+    border: 1.5px solid currentColor;
+    border-right-color: transparent;
+    animation: ft-feedback-spin .7s linear infinite;
+}
+
+.main .ft-inline-save-state.is-saved {
+    border-color: var(--ft-theme-feedback-saved-border);
+    background: var(--ft-theme-feedback-saved-bg);
+    color: var(--ft-theme-feedback-saved-text);
+}
+
+.main .ft-inline-save-state.is-error {
+    border-color: var(--ft-theme-feedback-error-border);
+    background: var(--ft-theme-feedback-error-bg);
+    color: var(--ft-theme-feedback-error-text);
+}
+
+.main .ft-inline-save-state button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+/* Contextual fallback for foreground Livewire requests --------------------
+ *
+ * The component is centralized, but its physical position is contextual.
+ * JavaScript places it beside the control that started the request. This keeps
+ * feedback connected to the user's action instead of floating in a random
+ * page corner. Feature-level inline save states still take priority.
+ */
+.ft-async-feedback {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: auto;
+    bottom: auto;
+    z-index: 175;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 30px;
+    max-width: min(220px, calc(100vw - 24px));
+    padding: 6px 10px;
+    border: 1px solid var(--ft-theme-feedback-loading-border);
+    border-radius: var(--ft-theme-feedback-radius);
+    background: var(--ft-theme-feedback-loading-bg);
+    box-shadow: var(--ft-theme-feedback-hud-shadow);
+    color: var(--ft-theme-feedback-loading-text);
+    font-family: var(--ft-theme-font-family);
+    font-size: var(--ft-theme-feedback-font-size);
+    font-weight: var(--ft-theme-feedback-font-weight);
+    line-height: 1.2;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.ft-async-feedback[hidden] {
+    display: none !important;
+}
+
+.ft-async-feedback__indicator {
+    box-sizing: border-box;
+    width: 9px;
+    height: 9px;
+    flex: 0 0 9px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.ft-async-feedback[data-status="loading"] .ft-async-feedback__indicator,
+.ft-async-feedback[data-status="saving"] .ft-async-feedback__indicator {
+    background: transparent;
+    border: 1.5px solid currentColor;
+    border-right-color: transparent;
+    animation: ft-feedback-spin .7s linear infinite;
+}
+
+.ft-async-feedback[data-status="saving"] {
+    border-color: var(--ft-theme-feedback-saving-border);
+    background: var(--ft-theme-feedback-saving-bg);
+    color: var(--ft-theme-feedback-saving-text);
+}
+
+.ft-async-feedback[data-status="saved"] {
+    border-color: var(--ft-theme-feedback-saved-border);
+    background: var(--ft-theme-feedback-saved-bg);
+    color: var(--ft-theme-feedback-saved-text);
+}
+
+.ft-async-feedback[data-status="error"] {
+    border-color: var(--ft-theme-feedback-error-border);
+    background: var(--ft-theme-feedback-error-bg);
+    color: var(--ft-theme-feedback-error-text);
+}
+
+/* Keep the interacted control usable-looking without blocking the screen. */
+.main [data-ft-request-pending="true"] {
+    cursor: progress;
+}
+
+.main button[data-ft-request-pending="true"],
+.main [role="button"][data-ft-request-pending="true"] {
+    opacity: .82;
+}
+
+@keyframes ft-feedback-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .main .ft-inline-save-state.is-saving::before,
+    .ft-async-feedback[data-status="loading"] .ft-async-feedback__indicator,
+    .ft-async-feedback[data-status="saving"] .ft-async-feedback__indicator {
+        animation: none;
+        border-right-color: currentColor;
+        opacity: .58;
+    }
+}
+
+@media (max-width: 760px) {
+    .ft-async-feedback {
+        max-width: calc(100vw - 24px);
+    }
+}
+
+/* Legacy task-list loaders disabled the whole row and showed page-specific
+ * corner spinners. The centralized HUD replaces those patterns. Only the
+ * control currently being saved remains disabled by its feature logic. */
+.main #my-work-app .task-row.saving,
+.main #my-work-app.ft-my-task-v5 .ft-my-task-row.is-saving,
+.main .ft-mywork-v2-task-row.saving,
+.main .ft-board-taskpack-task-row.saving {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.main #my-work-app .task-row.saving::after,
+.main #my-work-app.ft-my-task-v5 .ft-my-task-row.is-saving::after,
+.main .ft-mywork-v2-task-row.saving::after,
+.main .ft-board-taskpack-task-row.saving::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* Error toasts use the same centralized semantic palette as inline states. */
+.main ~ .ft-inline-toast-region .ft-inline-toast,
+.ft-inline-toast-region .ft-inline-toast {
+    border-color: var(--ft-theme-feedback-error-border);
+    background: var(--ft-theme-feedback-error-bg);
+    color: var(--ft-theme-feedback-error-text);
+}
+
+/* Final visual authority: feature modules may position the badge differently,
+ * but size, typography and semantic colors always come from central tokens. */
+.main .ft-inline-save-state {
+    min-height: var(--ft-theme-feedback-height) !important;
+    padding: 2px 7px !important;
+    border-radius: var(--ft-theme-feedback-radius) !important;
+    font-size: var(--ft-theme-feedback-font-size) !important;
+    font-weight: var(--ft-theme-feedback-font-weight) !important;
+    box-shadow: var(--ft-theme-feedback-shadow) !important;
+}
+
+.main .ft-inline-save-state.compact {
+    min-height: var(--ft-theme-feedback-height-compact) !important;
+    padding: 1px 6px !important;
+    font-size: var(--ft-theme-feedback-font-size-compact) !important;
+}
+
+.main .ft-inline-save-state.is-saving {
+    border-color: var(--ft-theme-feedback-saving-border) !important;
+    background: var(--ft-theme-feedback-saving-bg) !important;
+    color: var(--ft-theme-feedback-saving-text) !important;
+}
+
+.main .ft-inline-save-state.is-saved {
+    border-color: var(--ft-theme-feedback-saved-border) !important;
+    background: var(--ft-theme-feedback-saved-bg) !important;
+    color: var(--ft-theme-feedback-saved-text) !important;
+}
+
+.main .ft-inline-save-state.is-error {
+    border-color: var(--ft-theme-feedback-error-border) !important;
+    background: var(--ft-theme-feedback-error-bg) !important;
+    color: var(--ft-theme-feedback-error-text) !important;
+}

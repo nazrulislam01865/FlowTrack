@@ -1,0 +1,317 @@
+/* Cancelled order history card -------------------------------------------------
+ * Keeps cancellation reasons/evidence out of the header flow and exposes the
+ * full audit content on demand. This prevents pasted images from stretching the
+ * page header while preserving the original rich-text cancellation record.
+ */
+.ft-order-prototype-detail .pill.cancelled {
+    background: #fff0f1;
+    color: #b2353e;
+    border: 1px solid #f0b7bb;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-lock {
+    display: inline-flex;
+    align-items: center;
+    min-height: 31px;
+    padding: 5px 10px;
+    border: 1px solid #e1e7ee;
+    border-radius: 8px;
+    background: #f7f9fb;
+    color: #6f7f91;
+    font-size: .625rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-card {
+    margin: 0 0 14px;
+    border: 1px solid #efb2b6;
+    border-radius: 12px;
+    background: #fffafa;
+    box-shadow: 0 5px 18px rgba(117, 30, 38, .045);
+    overflow: hidden;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-summary {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+    padding: 13px 15px;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-icon {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #ffe8e9;
+    color: #b52f38;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-main {
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-heading-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-eyebrow {
+    margin-bottom: 2px;
+    color: #a9686d;
+    font-size: .5625rem;
+    font-weight: 850;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-heading-row h2 {
+    margin: 0;
+    color: #8e2f36;
+    font-size: .875rem;
+    line-height: 1.3;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #ffe7e9;
+    color: #a92d36;
+    font-size: .5625rem;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-preview {
+    margin: 5px 0 9px;
+    color: #6e4b4e;
+    font-size: .6875rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    color: #5f6877;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-meta-item > span:last-child {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-meta-item small {
+    color: #9a777a;
+    font-size: .5rem;
+    line-height: 1.1;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-meta-item strong {
+    max-width: 220px;
+    color: #5d3438;
+    font-size: .59375rem;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-avatar,
+.ft-order-prototype-detail .ft-order-cancellation-meta-icon {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-avatar {
+    background: #f4d8da;
+    color: #96333a;
+    font-size: .5625rem;
+    font-weight: 900;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-meta-icon {
+    background: #fff;
+    border: 1px solid #efdbdd;
+    color: #a84a51;
+    font-size: .6875rem;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 6px 10px;
+    margin-top: 1px;
+    border: 1px solid #e8bfc2;
+    border-radius: 8px;
+    background: #fff;
+    color: #a2333b;
+    font: inherit;
+    font-size: .625rem;
+    font-weight: 850;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-toggle:hover {
+    background: #fff5f5;
+    border-color: #db9da2;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(178, 53, 62, .12);
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-chevron {
+    display: inline-block;
+    font-size: .8125rem;
+    line-height: 1;
+    transition: transform .15s ease;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-chevron.is-open {
+    transform: rotate(180deg);
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-details {
+    padding: 0 15px 14px 65px;
+    border-top: 1px solid #f1d7d9;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-detail-block {
+    padding-top: 12px;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-detail-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    color: #6b3439;
+    font-size: .625rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-detail-title small {
+    color: #9a7f81;
+    font-size: .53125rem;
+    font-weight: 650;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-rich-content {
+    padding: 10px 12px;
+    border: 1px solid #eadfe0;
+    border-radius: 9px;
+    background: #fbfcfd;
+    color: #39485b;
+    font-size: .6875rem;
+    line-height: 1.55;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-rich-content img {
+    width: auto;
+    max-width: min(100%, 360px);
+    max-height: 240px;
+    margin: 9px 0 0;
+    object-fit: contain;
+    border-color: #dfd3d4;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-empty {
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px dashed #e2d1d3;
+    border-radius: 8px;
+    color: #8a7477;
+    font-size: .6875rem;
+}
+
+.ft-order-prototype-detail .ft-order-cancellation-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    margin-top: 9px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #68778a;
+    font-size: .59375rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+    .ft-order-prototype-detail .ft-order-cancellation-summary {
+        grid-template-columns: 36px minmax(0, 1fr);
+    }
+
+    .ft-order-prototype-detail .ft-order-cancellation-toggle {
+        grid-column: 2;
+        justify-self: start;
+        margin-top: 1px;
+    }
+
+    .ft-order-prototype-detail .ft-order-cancellation-details {
+        padding-left: 62px;
+    }
+}
+
+@media (max-width: 620px) {
+    .ft-order-prototype-detail .ft-order-cancellation-summary {
+        grid-template-columns: 1fr;
+        padding: 12px;
+    }
+
+    .ft-order-prototype-detail .ft-order-cancellation-icon {
+        display: none;
+    }
+
+    .ft-order-prototype-detail .ft-order-cancellation-heading-row {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .ft-order-prototype-detail .ft-order-cancellation-toggle {
+        grid-column: 1;
+    }
+
+    .ft-order-prototype-detail .ft-order-cancellation-details {
+        padding: 0 12px 12px;
+    }
+
+    .ft-order-prototype-detail .ft-order-cancellation-detail-title {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 2px;
+    }
+}

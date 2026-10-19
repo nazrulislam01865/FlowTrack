@@ -1,0 +1,226 @@
+/* Archived Artwork — prototype-matched, query-free Order detail component. */
+.ft-order-prototype-detail .ft-order-archived-artwork {
+    margin: 0 14px 14px;
+    padding: 16px 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    box-shadow: var(--ft-shadow-sm);
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__head {
+    margin-bottom: 13px;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__title-row h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: .9375rem;
+    font-weight: 850;
+    line-height: 1.25;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__count {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 9px;
+    border-radius: 7px;
+    background: var(--purple2);
+    color: var(--purple);
+    font-size: .5625rem;
+    font-weight: 850;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__head p {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: .625rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    -webkit-overflow-scrolling: touch;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__table th {
+    padding: 10px 12px;
+    background: var(--ft-bg-surface-subtle);
+    color: var(--muted);
+    font-size: .53125rem;
+    font-weight: 900;
+    letter-spacing: .055em;
+    line-height: 1.2;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__table th:nth-child(1) { width: 32%; }
+.ft-order-prototype-detail .ft-order-archived-artwork__table th:nth-child(2) { width: 8%; }
+.ft-order-prototype-detail .ft-order-archived-artwork__table th:nth-child(3) { width: 16%; }
+.ft-order-prototype-detail .ft-order-archived-artwork__table th:nth-child(4) { width: 21%; }
+.ft-order-prototype-detail .ft-order-archived-artwork__table th:nth-child(5) { width: 8%; }
+.ft-order-prototype-detail .ft-order-archived-artwork__table th:nth-child(6) { width: 15%; }
+
+.ft-order-prototype-detail .ft-order-archived-artwork__table td {
+    height: 49px;
+    padding: 7px 12px;
+    border-top: 1px solid var(--ft-border-subtle);
+    color: var(--text);
+    font-size: .625rem;
+    font-weight: 650;
+    line-height: 1.25;
+    vertical-align: middle;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__file {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__file-copy {
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__filename {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__reason {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    min-width: 0;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: .53125rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__reason strong {
+    flex: 0 0 auto;
+    color: #c24141;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__reason span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__version {
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 23px;
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--ft-bg-surface-subtle);
+    color: var(--muted);
+    font-size: .53125rem;
+    font-weight: 850;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__table th.ft-order-archived-artwork__action-heading {
+    text-align: right;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--card);
+    color: var(--teal);
+    font-size: .5625rem;
+    font-weight: 850;
+    line-height: 1;
+    text-decoration: none;
+    transition: border-color .15s ease, background-color .15s ease;
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__actions a:hover,
+.ft-order-prototype-detail .ft-order-archived-artwork__actions a:focus-visible {
+    border-color: var(--ft-border-success);
+    background: var(--ft-color-teal-50);
+    outline: none;
+}
+
+@container ft-order-workflow-detail (max-width: 760px) {
+    .ft-order-prototype-detail .ft-order-archived-artwork {
+        margin-right: 10px;
+        margin-left: 10px;
+        padding: 14px;
+    }
+}
+
+@media (max-width: 640px) {
+    .ft-order-prototype-detail .ft-order-archived-artwork__title-row {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+    .ft-order-prototype-detail .ft-order-archived-artwork {
+        padding: 12px;
+    }
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__reason--products strong {
+    color: var(--text);
+}
+
+.ft-order-prototype-detail .ft-order-archived-artwork__status.is-cancelled {
+    border-color: var(--ft-border-danger);
+    background: var(--ft-bg-danger);
+    color: var(--ft-text-danger);
+}

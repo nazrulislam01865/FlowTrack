@@ -1,0 +1,2 @@
+/** Pre-foundation interaction styles retained before app.css for cascade parity. */
+@import '../components/inline-editing.css';

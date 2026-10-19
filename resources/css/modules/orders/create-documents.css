@@ -1,0 +1,542 @@
+/* Create Order > Documents prototype.
+   Scope every rule to the Create Order page so the shared upload component
+   keeps its existing appearance in Inquiry Create and other forms. */
+.ft-create-job-page .ft-order-documents-section{
+    padding:13px 14px 14px;
+}
+.ft-create-job-page .ft-order-documents-heading{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+}
+.ft-create-job-page .ft-order-documents-title{
+    margin:0;
+}
+.ft-create-job-page .ft-order-documents-title>span{
+    width:24px;
+    height:24px;
+    flex:0 0 24px;
+}
+.ft-create-job-page .ft-order-documents-count{
+    display:inline-flex;
+    min-height:23px;
+    align-items:center;
+    justify-content:center;
+    padding:0 9px;
+    border-radius:999px;
+    background:var(--ft-order-create-accent-soft);
+    color:var(--ft-order-create-accent);
+    font-size:var(--ft-form-label-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1;
+    white-space:nowrap;
+}
+.ft-create-job-page .ft-order-documents-intro{
+    margin:5px 0 10px 33px;
+    color:var(--ft-form-page-copy-color);
+    font-size:var(--ft-form-page-copy-size);
+    font-weight:var(--ft-form-page-copy-weight);
+    line-height:1.4;
+}
+.ft-create-job-page .ft-order-documents-panel{
+    overflow:hidden;
+    border:1px solid #b9ded8;
+    border-radius:8px;
+    background:#fff;
+}
+.ft-create-job-page .ft-order-document-group{
+    padding:12px 13px 13px;
+}
+.ft-create-job-page .ft-order-document-group-heading{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    min-width:0;
+}
+.ft-create-job-page .ft-order-document-group-heading>strong{
+    color:var(--ft-form-label-color);
+    font-size:var(--ft-form-label-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.25;
+}
+.ft-create-job-page .ft-order-document-required,
+.ft-create-job-page .ft-order-document-optional{
+    display:inline-flex;
+    min-height:18px;
+    align-items:center;
+    padding:0 6px;
+    border-radius:5px;
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1;
+}
+.ft-create-job-page .ft-order-document-required{
+    background:#fff0dc;
+    color:#b86717;
+}
+.ft-create-job-page .ft-order-document-optional{
+    background:#eef2f7;
+    color:#6d7c91;
+}
+.ft-create-job-page .ft-order-document-group>p{
+    margin:3px 0 8px;
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+    line-height:1.45;
+}
+.ft-create-job-page .ft-create-attachment-uploader{
+    gap:6px;
+}
+.ft-create-job-page .ft-create-attachment-dropzone--order-document{
+    display:grid;
+    grid-template-columns:40px minmax(0,1fr) auto;
+    min-height:72px;
+    gap:12px;
+    padding:9px 11px;
+    border:1px dashed #84c8bf;
+    border-radius:8px;
+    background:#fbfefd;
+}
+.ft-create-job-page .ft-create-attachment-dropzone--order-document .ft-create-attachment-dropzone-icon{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    background:#e5f7f3;
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-attachment-dropzone--order-document .ft-create-attachment-dropzone-icon svg{
+    width:18px;
+    height:18px;
+}
+.ft-create-job-page .ft-create-attachment-dropzone--order-document .ft-create-attachment-dropzone-copy{
+    align-items:flex-start;
+    justify-content:center;
+    text-align:left;
+}
+.ft-create-job-page .ft-create-attachment-dropzone--order-document .ft-create-attachment-dropzone-copy strong{
+    color:var(--ft-form-control-color);
+    font-size:var(--ft-form-control-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.3;
+}
+.ft-create-job-page .ft-create-attachment-dropzone--order-document .ft-create-attachment-dropzone-copy strong>span{
+    color:var(--ft-form-page-copy-color);
+    font-weight:var(--ft-theme-font-weight-semibold);
+}
+.ft-create-job-page .ft-create-attachment-dropzone--order-document .ft-create-attachment-dropzone-copy strong b{
+    color:var(--ft-order-create-accent);
+    font-weight:var(--ft-theme-font-weight-extrabold);
+}
+.ft-create-job-page .ft-create-attachment-dropzone--order-document .ft-create-attachment-dropzone-copy small{
+    margin-top:4px;
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+    line-height:1.35;
+}
+.ft-create-job-page .ft-create-attachment-browse-button{
+    display:inline-flex;
+    min-height:32px;
+    align-items:center;
+    justify-content:center;
+    align-self:center;
+    padding:0 12px;
+    border:1px solid #cbd8e5;
+    border-radius:6px;
+    background:#fff;
+    color:var(--ft-form-control-color);
+    box-shadow:0 1px 2px rgba(15,35,65,.03);
+    font-size:var(--ft-form-button-size);
+    font-weight:var(--ft-form-button-weight);
+    line-height:1;
+    white-space:nowrap;
+}
+.ft-create-job-page .ft-create-attachment-dropzone--order-document:hover .ft-create-attachment-browse-button,
+.ft-create-job-page .ft-create-attachment-dropzone--order-document:focus-within .ft-create-attachment-browse-button{
+    border-color:#8fc8c0;
+    color:var(--ft-order-create-accent);
+}
+.ft-create-job-page .ft-create-attachment-progress{
+    padding:0 2px;
+}
+.ft-create-job-page .ft-order-document-list-block{
+    margin-top:9px;
+}
+.ft-create-job-page .ft-order-document-list-label{
+    display:block;
+    margin:0 0 5px;
+    color:var(--ft-form-label-color);
+    font-size:var(--ft-form-label-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.2;
+}
+.ft-create-job-page .ft-order-document-file-list{
+    display:grid;
+    gap:5px;
+}
+.ft-create-job-page .ft-order-document-file-row{
+    display:grid;
+    grid-template-columns:30px minmax(0,1fr) auto minmax(170px,auto);
+    gap:9px;
+    align-items:center;
+    min-height:46px;
+    padding:6px 8px;
+    border:1px solid #dce5ee;
+    border-radius:6px;
+    background:#fff;
+}
+.ft-create-job-page .ft-order-document-file-icon{
+    display:grid;
+    width:28px;
+    height:32px;
+    place-items:center;
+    border-radius:4px;
+    background:#edf2f7;
+    color:#596a80;
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-theme-font-weight-extrabold);
+    letter-spacing:-.02em;
+    line-height:1;
+    text-align:center;
+}
+.ft-create-job-page .ft-order-document-file-icon.is-pdf{
+    background:#ffebe9;
+    color:#cf3e36;
+}
+.ft-create-job-page .ft-order-document-file-icon.is-vector{
+    background:#eee8ff;
+    color:#6650b9;
+}
+.ft-create-job-page .ft-order-document-file-icon.is-sheet{
+    background:#e6f7ef;
+    color:#2f8b62;
+}
+.ft-create-job-page .ft-order-document-file-icon.is-image{
+    background:#eaf2ff;
+    color:#3972b8;
+}
+.ft-create-job-page .ft-order-document-file-copy{
+    display:flex;
+    min-width:0;
+    flex-direction:column;
+    gap:2px;
+}
+.ft-create-job-page .ft-order-document-file-copy strong{
+    overflow:hidden;
+    color:var(--ft-form-control-color);
+    font-size:var(--ft-form-control-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.25;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.ft-create-job-page .ft-order-document-file-copy small{
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+    line-height:1.2;
+}
+.ft-create-job-page .ft-order-document-uploaded-badge{
+    display:inline-flex;
+    min-height:23px;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    padding:0 8px;
+    border-radius:999px;
+    background:#e4f7f2;
+    color:#14866f;
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1;
+    white-space:nowrap;
+}
+.ft-create-job-page .ft-order-document-uploaded-badge svg{
+    width:12px;
+    height:12px;
+    flex:0 0 12px;
+}
+.ft-create-job-page .ft-order-document-file-actions{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:18px;
+    min-width:0;
+}
+.ft-create-job-page .ft-order-document-file-action{
+    display:inline-flex;
+    min-height:24px;
+    align-items:center;
+    justify-content:center;
+    margin:0;
+    padding:0;
+    border:0;
+    background:transparent;
+    color:#126dc2;
+    font:inherit;
+    font-size:var(--ft-form-button-size);
+    font-weight:var(--ft-form-button-weight);
+    line-height:1;
+    text-decoration:none;
+    white-space:nowrap;
+    cursor:pointer;
+}
+.ft-create-job-page .ft-order-document-file-action:hover,
+.ft-create-job-page .ft-order-document-file-action:focus-visible{
+    color:#0b559c;
+    text-decoration:underline;
+    outline:0;
+}
+.ft-create-job-page .ft-order-document-file-action.is-remove{
+    color:#cf493f;
+}
+.ft-create-job-page .ft-order-document-file-action.is-remove:hover,
+.ft-create-job-page .ft-order-document-file-action.is-remove:focus-visible{
+    color:#aa2f28;
+}
+.ft-create-job-page .ft-order-document-file-action:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+    text-decoration:none;
+}
+.ft-create-job-page .ft-order-document-success{
+    display:flex;
+    min-height:31px;
+    align-items:center;
+    gap:6px;
+    margin-top:6px;
+    padding:5px 8px;
+    border:1px solid #bee2da;
+    border-radius:4px;
+    background:#eefaf7;
+    color:#1b7e6d;
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.25;
+}
+.ft-create-job-page .ft-order-document-success svg{
+    width:13px;
+    height:13px;
+    flex:0 0 13px;
+}
+.ft-create-job-page .ft-order-document-divider{
+    height:1px;
+    background:#e3eaf1;
+}
+.ft-create-job-page .ft-order-document-archive-note{
+    display:flex;
+    min-height:31px;
+    align-items:center;
+    gap:6px;
+    margin:0 13px 12px;
+    padding:5px 8px;
+    border:1px solid #dbe7f2;
+    border-radius:4px;
+    background:#f2f7fc;
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+    line-height:1.3;
+}
+.ft-create-job-page .ft-order-document-archive-note svg{
+    width:13px;
+    height:13px;
+    flex:0 0 13px;
+    color:#2d78bd;
+}
+.ft-create-job-page .ft-order-document-permission-note{
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    padding:9px 10px;
+    border:1px dashed #ccd8e4;
+    border-radius:7px;
+    background:#f8fafc;
+}
+.ft-create-job-page .ft-order-document-error{
+    display:block;
+    margin-top:6px;
+}
+
+/* Order workflow prototype details shown immediately below Documents. */
+.ft-create-job-page .ft-order-workflow-create-section{
+    padding:12px 14px 13px;
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-heading{
+    margin-bottom:9px;
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-heading>span{
+    width:24px;
+    height:24px;
+    flex-basis:24px;
+    border-radius:50%;
+    background:var(--ft-order-create-accent);
+    color:#fff;
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-heading em{
+    min-height:19px;
+    display:inline-flex;
+    align-items:center;
+    padding:0 7px;
+    background:#e7f7f3;
+    color:#1a8672;
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-label-weight);
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-card{
+    border-color:#b9ded8;
+    background:#fbfefd;
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-selected{
+    grid-template-columns:36px minmax(0,1fr) auto 16px;
+    gap:9px;
+    padding:9px 10px 8px;
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-icon{
+    width:30px;
+    height:30px;
+    border-width:1px;
+    background:#fff;
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-icon svg{
+    width:16px;
+    height:16px;
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-copy small{
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-label-weight);
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-copy strong{
+    margin-top:1px;
+    font-size:var(--ft-form-control-size);
+    font-weight:var(--ft-form-label-weight);
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-copy>span{
+    margin-top:1px;
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-preview-toggle{
+    min-height:29px;
+    padding:0 9px;
+    border-color:#cfe5e1;
+    border-radius:6px;
+    font-size:var(--ft-form-button-size);
+    font-weight:var(--ft-form-button-weight);
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-preview{
+    grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:7px;
+    padding:8px 10px 9px;
+    background:#fff;
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-stage{
+    min-height:59px;
+    padding:7px 8px;
+    border-left-width:2px;
+    border-radius:5px;
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-stage small{
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-label-weight);
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-stage strong{
+    margin-top:2px;
+    font-size:var(--ft-form-label-size);
+    font-weight:var(--ft-form-label-weight);
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-stage span{
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+}
+.ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-footnote{
+    margin-top:7px;
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+}
+
+@media(max-width:900px){
+    .ft-create-job-page .ft-order-document-file-row{
+        grid-template-columns:30px minmax(0,1fr) auto;
+    }
+    .ft-create-job-page .ft-order-document-file-actions{
+        grid-column:2 / -1;
+        justify-content:flex-start;
+        gap:16px;
+        padding-top:1px;
+    }
+    .ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-preview{
+        grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+}
+
+@media(max-width:640px){
+    .ft-create-job-page .ft-order-documents-section{
+        padding:12px;
+    }
+    .ft-create-job-page .ft-order-documents-heading{
+        align-items:flex-start;
+    }
+    .ft-create-job-page .ft-order-documents-intro{
+        margin-left:33px;
+        margin-right:0;
+    }
+    .ft-create-job-page .ft-order-document-group{
+        padding:11px;
+    }
+    .ft-create-job-page .ft-create-attachment-dropzone--order-document{
+        grid-template-columns:36px minmax(0,1fr);
+        gap:8px;
+        min-height:88px;
+        padding:10px;
+    }
+    .ft-create-job-page .ft-create-attachment-dropzone--order-document .ft-create-attachment-dropzone-icon{
+        width:34px;
+        height:34px;
+    }
+    .ft-create-job-page .ft-create-attachment-browse-button{
+        grid-column:2;
+        justify-self:start;
+        min-height:29px;
+        margin-top:1px;
+        padding:0 10px;
+    }
+    .ft-create-job-page .ft-order-document-file-row{
+        grid-template-columns:28px minmax(0,1fr);
+        gap:8px;
+    }
+    .ft-create-job-page .ft-order-document-uploaded-badge{
+        grid-column:2;
+        justify-self:start;
+    }
+    .ft-create-job-page .ft-order-document-file-actions{
+        grid-column:2;
+        flex-wrap:wrap;
+        gap:13px;
+    }
+    .ft-create-job-page .ft-order-document-archive-note{
+        margin:0 11px 11px;
+    }
+    .ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-preview{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+
+@media(max-width:420px){
+    .ft-create-job-page .ft-order-documents-heading{
+        display:grid;
+        grid-template-columns:minmax(0,1fr) auto;
+    }
+    .ft-create-job-page .ft-order-documents-count{
+        min-height:21px;
+        padding:0 7px;
+    }
+    .ft-create-job-page .ft-order-documents-intro{
+        margin-left:32px;
+    }
+    .ft-create-job-page .ft-order-workflow-create-section .ft-create-workflow-preview{
+        grid-template-columns:1fr;
+    }
+}

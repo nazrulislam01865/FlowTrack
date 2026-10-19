@@ -1,0 +1,35 @@
+@layer ft-components {
+    .ft-pagination[data-ft-ui-component="pagination"] {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ft-space-3);
+        padding: var(--ft-space-3) var(--ft-space-4);
+        border: var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-default);
+        border-radius: var(--ft-radius-lg);
+        background: var(--ft-bg-surface);
+        color: var(--ft-text-secondary);
+        font-size: var(--ft-font-size-sm);
+    }
+
+    .ft-pagination__actions {
+        display: flex;
+        align-items: center;
+        gap: var(--ft-space-2);
+    }
+
+    .ft-pagination__status {
+        min-width: 0;
+    }
+
+    @media (max-width: 30rem) {
+        .ft-pagination[data-ft-ui-component="pagination"] {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .ft-pagination__actions {
+            justify-content: space-between;
+        }
+    }
+}

@@ -1,0 +1,153 @@
+/** Create Client adapter: uses the Create Order typography/control standard. */
+.ft-form-standard--client.ft-client-create-prototype {
+    background: var(--ft-theme-page-bg);
+    color: var(--ft-form-page-title-color);
+}
+
+.ft-form-standard--client .ft-client-create-shell {
+    max-width: 1180px;
+}
+
+.ft-form-standard--client .ft-create-breadcrumb {
+    color: var(--ft-form-breadcrumb-color);
+    font-size: var(--ft-form-breadcrumb-size);
+    font-weight: var(--ft-form-breadcrumb-weight);
+}
+
+.ft-form-standard--client .ft-client-create-top h1 {
+    color: var(--ft-form-page-title-color);
+    font-size: var(--ft-form-page-title-size);
+    font-weight: var(--ft-form-page-title-weight);
+    line-height: 1.15;
+}
+
+.ft-form-standard--client .ft-client-create-top p,
+.ft-form-standard--client .ft-client-prototype-head p {
+    color: var(--ft-form-page-copy-color);
+    font-size: var(--ft-form-page-copy-size);
+    font-weight: var(--ft-form-page-copy-weight);
+}
+
+.ft-form-standard--client .ft-back-clients,
+.ft-form-standard--client .ft-client-prototype-footer button,
+.ft-form-standard--client .ft-client-add-contact,
+.ft-form-standard--client .ft-shipping-prototype-add,
+.ft-form-standard--client .ft-client-shipping-saved-action,
+.ft-form-standard--client .ft-tax-toggle button {
+    font-size: var(--ft-form-button-size);
+    font-weight: var(--ft-form-button-weight);
+}
+
+.ft-form-standard--client .ft-client-prototype-card {
+    border-color: var(--ft-form-section-border);
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+.ft-form-standard--client .ft-client-prototype-head h2 {
+    color: var(--ft-form-section-title-color);
+    font-size: 1.25rem;
+    font-weight: var(--ft-form-page-title-weight);
+}
+
+.ft-form-standard--client .ft-client-required-note,
+.ft-form-standard--client .ft-client-prototype-footer > span,
+.ft-form-standard--client .ft-tax-certificate-note {
+    color: var(--ft-form-helper-color);
+    font-size: var(--ft-form-helper-size);
+    font-weight: var(--ft-form-helper-weight);
+}
+
+.ft-form-standard--client .ft-client-prototype-section {
+    border-color: var(--ft-form-section-border);
+}
+
+.ft-form-standard--client .ft-client-section-title > span,
+.ft-form-standard--client .ft-section-title-left > span {
+    width: var(--ft-form-step-size);
+    height: var(--ft-form-step-size);
+    flex-basis: var(--ft-form-step-size);
+    font-size: var(--ft-form-breadcrumb-size);
+    font-weight: var(--ft-form-label-weight);
+}
+
+.ft-form-standard--client .ft-client-section-title h3 {
+    color: var(--ft-form-section-title-color);
+    font-size: var(--ft-form-section-title-size);
+    font-weight: var(--ft-form-section-title-weight);
+    line-height: 1.2;
+}
+
+.ft-form-standard--client .ft-client-section-title p {
+    color: var(--ft-form-helper-color);
+    font-size: var(--ft-form-helper-size);
+    font-weight: var(--ft-form-helper-weight);
+    line-height: 1.45;
+}
+
+.ft-form-standard--client .ft-proto-field > b,
+.ft-form-standard--client .ft-client-logo-upload-copy > b,
+.ft-form-standard--client .ft-theme-field > span {
+    color: var(--ft-form-label-color);
+    font-size: var(--ft-form-label-size);
+    font-weight: var(--ft-form-label-weight);
+    line-height: 1.2;
+}
+
+.ft-form-standard--client .ft-proto-field > b span,
+.ft-form-standard--client .ft-client-logo-optional {
+    color: var(--ft-form-helper-color);
+    font-weight: var(--ft-form-helper-weight);
+}
+
+.ft-form-standard--client .ft-proto-field input,
+.ft-form-standard--client .ft-proto-field select,
+.ft-form-standard--client .ft-proto-field textarea,
+.ft-form-standard--client .ft-theme-field input,
+.ft-form-standard--client .ft-theme-field select,
+.ft-form-standard--client .ft-theme-field textarea,
+.ft-form-standard--client .ft-client-code-lock {
+    border-color: var(--ft-form-control-border);
+    border-radius: var(--ft-form-control-radius);
+    color: var(--ft-form-control-color);
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+}
+
+.ft-form-standard--client .ft-proto-field input,
+.ft-form-standard--client .ft-proto-field select,
+.ft-form-standard--client .ft-theme-field input,
+.ft-form-standard--client .ft-theme-field select,
+.ft-form-standard--client .ft-client-code-lock {
+    height: var(--ft-form-control-height);
+    min-height: var(--ft-form-control-height);
+}
+
+.ft-form-standard--client .ft-proto-field textarea,
+.ft-form-standard--client .ft-theme-field textarea {
+    min-height: 88px;
+}
+
+.ft-form-standard--client .ft-proto-field > small,
+.ft-form-standard--client .ft-client-logo-upload-copy p,
+.ft-form-standard--client .ft-client-logo-upload-copy small,
+.ft-form-standard--client .ft-shipping-prototype-save small {
+    color: var(--ft-form-helper-color);
+    font-size: var(--ft-form-helper-size);
+    font-weight: var(--ft-form-helper-weight);
+}
+
+.ft-form-standard--client .ft-form-search-select .ft-remote-filter-button {
+    height: var(--ft-form-control-height);
+    min-height: var(--ft-form-control-height);
+    border-color: var(--ft-form-control-border);
+    border-radius: var(--ft-form-control-radius);
+    color: var(--ft-form-control-color);
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+}
+
+.ft-form-standard--client .ft-client-prototype-footer button,
+.ft-form-standard--client .ft-back-clients {
+    min-height: 42px;
+}

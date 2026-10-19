@@ -1,0 +1,123 @@
+/** Workflow / Task Pack setup migration styles. */
+.ft-delete-impact-modal {
+    width: min(45rem, calc(100vw - 2rem));
+}
+
+.ft-delete-impact-flush,
+.ft-delete-impact-stats {
+    margin: 0;
+}
+
+.ft-delete-impact-title {
+    display: block;
+    color: var(--ft-text-primary);
+    font-size: 0.9375rem;
+}
+
+.ft-delete-impact-subtitle {
+    display: block;
+    margin-top: var(--ft-space-1);
+    color: var(--ft-text-secondary);
+    font-size: var(--ft-font-size-xs);
+}
+
+.ft-delete-impact-box {
+    padding: var(--ft-space-3);
+    border: var(--ft-border-width-thin) solid var(--ft-border-default);
+    border-radius: var(--ft-radius-lg);
+    background: var(--ft-bg-surface);
+}
+
+.ft-delete-impact-box--danger {
+    border-color: var(--ft-border-danger);
+    background: var(--ft-bg-danger);
+}
+
+.ft-delete-impact-box--info {
+    border-color: var(--ft-border-info);
+    background: var(--ft-bg-surface-subtle);
+}
+
+.ft-delete-impact-heading {
+    display: block;
+    margin-bottom: var(--ft-space-2);
+    color: var(--ft-text-primary);
+    font-size: var(--ft-font-size-xs);
+}
+
+.ft-delete-impact-heading--danger {
+    color: var(--ft-text-danger);
+}
+
+.ft-delete-impact-list {
+    display: grid;
+    gap: 0.4375rem;
+    max-height: 11.875rem;
+    overflow: auto;
+}
+
+.ft-delete-impact-list--compact {
+    gap: 0.375rem;
+    max-height: none;
+}
+
+.ft-delete-impact-row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--ft-space-3);
+    padding-bottom: 0.375rem;
+    border-bottom: var(--ft-border-width-thin) solid var(--ft-border-subtle);
+}
+
+.ft-delete-impact-item {
+    color: var(--ft-text-secondary);
+    font-size: 0.65625rem;
+}
+
+.ft-delete-impact-item strong,
+.ft-delete-impact-item b {
+    color: var(--ft-text-primary);
+}
+
+.ft-delete-impact-job {
+    font-size: var(--ft-font-size-xs);
+}
+
+.ft-delete-impact-muted {
+    color: var(--ft-text-secondary);
+}
+
+.ft-delete-impact-more {
+    display: block;
+    margin-top: var(--ft-space-2);
+    color: var(--ft-text-secondary);
+}
+
+.ft-delete-impact-note {
+    display: block;
+    margin-top: 0.5625rem;
+    color: var(--ft-text-secondary);
+}
+
+.ft-delete-impact-copy {
+    margin: 0;
+    color: var(--ft-text-secondary);
+    font-size: var(--ft-font-size-xs);
+    line-height: var(--ft-line-height-normal);
+}
+
+/* Phase 4: shared remote MultiSelect adapter for Workflow Setup client scope. */
+.ft-workflow-client-multi-select[data-ft-ui-component="multi-select"] {
+    width: 100%;
+}
+
+.ft-workflow-client-multi-select .ft-multi-select__trigger {
+    min-height: var(--ft-control-height-md);
+    border-color: var(--ft-border-strong);
+    border-radius: var(--ft-radius-md);
+}
+
+.ft-workflow-client-multi-select .ft-multi-select__trigger:hover,
+.ft-workflow-client-multi-select .ft-multi-select__trigger[aria-expanded="true"] {
+    border-color: var(--ft-border-focus);
+}

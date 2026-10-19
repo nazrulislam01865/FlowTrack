@@ -1,0 +1,1528 @@
+/* ========================================================================== 
+   Order Hold action - 2026-09-09
+   Scoped to Order Details so the prototype treatment does not affect any
+   existing page, modal, activity badge, or button elsewhere in FlowTrack.
+   ========================================================================== */
+.ft-order-prototype-detail {
+    --ft-order-hold: #ff6a00;
+    --ft-order-hold-dark: #e85f00;
+    --ft-order-hold-soft: #fff7f0;
+    --ft-order-hold-border: #f3a66d;
+}
+
+.ft-order-prototype-detail .ft-order-hold-pause-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+}
+
+.ft-order-prototype-detail .ft-order-hold-pause-icon i {
+    display: block;
+    width: 2px;
+    height: 10px;
+    border-radius: 2px;
+    background: currentColor;
+}
+
+/* Header state pill shown beside the current phase while an Order is held. */
+.ft-order-prototype-detail .ft-order-hold-header-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 29px;
+    padding: 5px 11px;
+    border: 1px solid #ffb37c;
+    border-radius: 8px;
+    background: #fff6ee;
+    color: var(--ft-order-hold);
+    font-weight: 850;
+}
+
+/* Planning & ownership Hold row. */
+.ft-order-prototype-detail .ft-order-hold-row > b {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.ft-order-prototype-detail .ft-order-hold-action-button,
+.ft-order-prototype-detail .ft-order-hold-status-button,
+.ft-order-prototype-detail .ft-order-release-hold-button,
+.ft-order-prototype-detail .ft-order-hold-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font: inherit;
+    font-weight: 850;
+    cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.ft-order-prototype-detail .ft-order-hold-action-button,
+.ft-order-prototype-detail .ft-order-hold-status-button {
+    min-height: 31px;
+    padding: 6px 11px;
+    border: 1px solid var(--ft-order-hold-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ft-order-hold);
+    font-size: .625rem;
+    line-height: 1;
+}
+
+.ft-order-prototype-detail .ft-order-hold-status-button {
+    background: var(--ft-order-hold-soft);
+}
+
+.ft-order-prototype-detail .ft-order-hold-action-button:hover,
+.ft-order-prototype-detail .ft-order-hold-status-button:hover,
+.ft-order-prototype-detail .ft-order-release-hold-button:hover:not(:disabled) {
+    border-color: var(--ft-order-hold);
+    background: #fff2e8;
+}
+
+.ft-order-prototype-detail .ft-order-hold-action-button:focus-visible,
+.ft-order-prototype-detail .ft-order-hold-status-button:focus-visible,
+.ft-order-prototype-detail .ft-order-release-hold-button:focus-visible,
+.ft-order-prototype-detail .ft-order-hold-submit:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(255, 106, 0, .16);
+}
+
+.ft-order-prototype-detail .ft-order-hold-static-state {
+    color: #8a6b52;
+    font-size: .625rem;
+    font-weight: 750;
+}
+
+/* Compact Hold metadata sits beneath the Hold order row, matching the
+ * prototype without changing the two-column planning grid used by other rows. */
+.ft-order-prototype-detail .ft-order-hold-compact-details {
+    display: grid;
+    gap: 5px;
+    margin: -5px 0 2px 125px;
+    padding: 0 0 8px 10px;
+    border-left: 1px solid #e5ebf1;
+}
+
+.ft-order-prototype-detail .ft-order-hold-compact-details > div {
+    display: grid;
+    grid-template-columns: minmax(68px, auto) minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+}
+
+.ft-order-prototype-detail .ft-order-hold-compact-details span {
+    color: #7b8ca0;
+    font-size: .5625rem;
+}
+
+.ft-order-prototype-detail .ft-order-hold-compact-details b {
+    color: #354b67;
+    text-align: right;
+    font-size: .5625rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+/* Expanded Hold details panel. */
+.ft-order-prototype-detail .ft-order-hold-detail-panel {
+    margin: -5px 0 2px;
+    padding: 11px 12px;
+    border: 1px solid #f0b17f;
+    border-radius: 10px;
+    background: #fffaf6;
+    color: #263950;
+}
+
+.ft-order-prototype-detail .ft-order-hold-detail-panel > strong {
+    display: block;
+    margin-bottom: 7px;
+    font-size: .625rem;
+    font-weight: 900;
+}
+
+.ft-order-prototype-detail .ft-order-hold-detail-panel dl {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+}
+
+.ft-order-prototype-detail .ft-order-hold-detail-panel dl > div {
+    display: grid;
+    grid-template-columns: 83px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+}
+
+.ft-order-prototype-detail .ft-order-hold-detail-panel dt,
+.ft-order-prototype-detail .ft-order-hold-detail-panel dd {
+    margin: 0;
+    font-size: .5625rem;
+    line-height: 1.35;
+}
+
+.ft-order-prototype-detail .ft-order-hold-detail-panel dt {
+    color: #72839a;
+}
+
+.ft-order-prototype-detail .ft-order-hold-detail-panel dd {
+    color: #344b67;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-order-release-hold-button {
+    min-height: 30px;
+    margin-top: 9px;
+    padding: 6px 11px;
+    border: 1px solid var(--ft-order-hold-border);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--ft-order-hold);
+    font-size: .5625rem;
+    line-height: 1;
+}
+
+.ft-order-prototype-detail .ft-order-release-hold-button:disabled,
+.ft-order-prototype-detail .ft-order-hold-submit:disabled {
+    cursor: wait;
+    opacity: .68;
+}
+
+.ft-order-prototype-detail .ft-order-release-hold-icon {
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid currentColor;
+}
+
+/* Hold Order modal. It intentionally overrides the generic Order modal teal
+ * action only for this one destructive/pausing action, as shown in prototype. */
+.ft-order-prototype-detail .ft-order-hold-modal-backdrop {
+    background: rgba(7, 24, 39, .61);
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal {
+    width: min(520px, calc(100vw - 36px));
+    border-radius: 13px;
+    overflow: hidden;
+    box-shadow: 0 24px 68px rgba(5, 20, 35, .30);
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal > .ft-order-hold-modal__header {
+    padding: 25px 31px 13px;
+    border-bottom: 0;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal .ft-order-hold-modal__header h2 {
+    color: #102342;
+    font-size: 1.5rem;
+    line-height: 1.15;
+    font-weight: 900;
+    letter-spacing: -.025em;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal .ft-order-hold-modal__header p {
+    margin-top: 7px;
+    color: #59708d;
+    font-size: .75rem;
+    line-height: 1.4;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal .ft-order-hold-modal__header > button {
+    width: 30px;
+    height: 30px;
+    margin-top: -3px;
+    border-radius: 7px;
+    background: transparent;
+    color: #36506e;
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal .ft-order-hold-modal__header > button:hover {
+    background: #f3f6f9;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal__body {
+    display: grid;
+    gap: 21px;
+    padding: 16px 31px 18px;
+}
+
+.ft-order-prototype-detail .ft-order-hold-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.ft-order-prototype-detail .ft-order-hold-fieldset legend,
+.ft-order-prototype-detail .ft-order-hold-reason-field > label {
+    display: block;
+    margin: 0 0 9px;
+    color: #162a49;
+    font-size: .75rem;
+    font-weight: 900;
+}
+
+.ft-order-prototype-detail .ft-order-hold-fieldset legend span,
+.ft-order-prototype-detail .ft-order-hold-reason-field > label span {
+    color: #e33636;
+}
+
+.ft-order-prototype-detail .ft-order-hold-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 11px;
+}
+
+.ft-order-prototype-detail .ft-order-hold-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    min-height: 46px;
+    padding: 9px 14px;
+    border: 1px solid #c8d4e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #16304f;
+    font-size: .75rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+}
+
+.ft-order-prototype-detail .ft-order-hold-option:hover {
+    border-color: #92bfb7;
+    background: #fbfefd;
+}
+
+.ft-order-prototype-detail .ft-order-hold-option.is-selected {
+    border-color: #009d82;
+    background: #f4fcfa;
+    box-shadow: inset 0 0 0 1px #009d82;
+    color: #087867;
+}
+
+.ft-order-prototype-detail .ft-order-hold-option input {
+    position: absolute;
+    width: 1px !important;
+    height: 1px;
+    padding: 0 !important;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ft-order-prototype-detail .ft-order-hold-option__radio {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    border: 1.5px solid #8fa6c0;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-order-hold-option.is-selected .ft-order-hold-option__radio {
+    border: 5px solid #009d82;
+}
+
+.ft-order-prototype-detail .ft-order-hold-reason-field {
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal .ft-order-hold-reason-field textarea {
+    min-height: 116px;
+    padding: 12px 13px;
+    border: 1px solid #c7d4e3;
+    border-radius: 8px;
+    color: #213b5d;
+    font-size: .75rem;
+    line-height: 1.45;
+    resize: vertical;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal .ft-order-hold-reason-field textarea::placeholder {
+    color: #8294ab;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal .ft-order-hold-reason-field textarea:focus {
+    border-color: #69bdb0 !important;
+    box-shadow: 0 0 0 3px rgba(0, 157, 130, .11) !important;
+}
+
+.ft-order-prototype-detail .ft-order-hold-reason-count {
+    margin-top: 5px;
+    color: #71849c;
+    text-align: right;
+    font-size: .625rem;
+    line-height: 1;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal > .ft-order-hold-modal__footer {
+    gap: 11px;
+    justify-content: flex-end;
+    padding: 12px 31px 22px;
+    border-top: 0;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal > .ft-order-hold-modal__footer .secondary {
+    min-width: 96px;
+    min-height: 42px;
+    padding: 8px 16px;
+    border: 1px solid #c6d2df !important;
+    border-radius: 8px;
+    background: #fff !important;
+    color: #1b3352 !important;
+    font-size: .75rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal > .ft-order-hold-modal__footer .ft-order-hold-submit {
+    min-width: 144px;
+    min-height: 42px;
+    padding: 8px 18px;
+    border: 1px solid var(--ft-order-hold) !important;
+    border-radius: 8px;
+    background: var(--ft-order-hold) !important;
+    color: #fff !important;
+    font-size: .75rem;
+    line-height: 1;
+    box-shadow: 0 4px 10px rgba(255, 106, 0, .15);
+}
+
+.ft-order-prototype-detail .ft-order-hold-modal > .ft-order-hold-modal__footer .ft-order-hold-submit:hover:not(:disabled) {
+    border-color: var(--ft-order-hold-dark) !important;
+    background: var(--ft-order-hold-dark) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+
+.ft-order-prototype-detail .ft-order-hold-button-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-hold-mini-spinner {
+    width: 13px;
+    height: 13px;
+    flex: 0 0 13px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: ft-order-hold-spin .7s linear infinite;
+}
+
+@keyframes ft-order-hold-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Hold history entries in Activity. */
+.ft-order-prototype-detail .activity-kind.is-order-hold,
+.ft-order-prototype-detail .activity-kind.is-order-hold-released {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: .5rem;
+    font-weight: 900;
+    letter-spacing: .035em;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.ft-order-prototype-detail .activity-kind.is-order-hold {
+    border: 1px solid #ffc18f;
+    background: #fff1e5;
+    color: #e76500;
+}
+
+.ft-order-prototype-detail .activity-kind.is-order-hold-released {
+    border: 1px solid #b8e2d5;
+    background: #e7f8f1;
+    color: #087d66;
+}
+
+.ft-order-prototype-detail .ft-order-hold-activity-content {
+    max-width: 850px;
+    margin-top: 4px;
+    color: #28405f;
+}
+
+.ft-order-prototype-detail .ft-order-hold-activity-title {
+    margin-bottom: 7px;
+    color: #263c5a;
+    font-size: .6875rem;
+    font-weight: 700;
+}
+
+.ft-order-prototype-detail .ft-order-hold-activity-grid {
+    display: grid;
+    grid-template-columns: minmax(240px, .9fr) minmax(300px, 1.1fr);
+    gap: 18px 50px;
+}
+
+.ft-order-prototype-detail .ft-order-hold-activity-grid dl {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    margin: 0;
+}
+
+.ft-order-prototype-detail .ft-order-hold-activity-grid dl > div {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+}
+
+.ft-order-prototype-detail .ft-order-hold-activity-grid dt,
+.ft-order-prototype-detail .ft-order-hold-activity-grid dd {
+    min-width: 0;
+    margin: 0;
+    font-size: .625rem;
+    line-height: 1.35;
+}
+
+.ft-order-prototype-detail .ft-order-hold-activity-grid dt {
+    color: #6d819a;
+}
+
+.ft-order-prototype-detail .ft-order-hold-activity-grid dd {
+    color: #385374;
+    overflow-wrap: anywhere;
+}
+
+@media(max-width: 720px) {
+    .ft-order-prototype-detail .ft-order-hold-options,
+    .ft-order-prototype-detail .ft-order-hold-activity-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-compact-details {
+        margin-left: 0;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-modal > .ft-order-hold-modal__header {
+        padding: 20px 20px 12px;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-modal__body {
+        padding: 14px 20px 17px;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-modal > .ft-order-hold-modal__footer {
+        padding: 10px 20px 20px;
+    }
+}
+
+@media(max-width: 480px) {
+    .ft-order-prototype-detail .ft-order-hold-modal-backdrop {
+        padding: 10px;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-modal .ft-order-hold-modal__header h2 {
+        font-size: 1.25rem;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-modal > .ft-order-hold-modal__footer {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-modal > .ft-order-hold-modal__footer .secondary,
+    .ft-order-prototype-detail .ft-order-hold-submit {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+/* ========================================================================== 
+   Hold experience refresh - compact planning state + full order lock dialog
+   ========================================================================== */
+.ft-order-prototype-detail .ft-order-hold-status-button {
+    cursor: default;
+    pointer-events: none;
+}
+
+.ft-order-prototype-detail .ft-order-hold-reason-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 9px;
+}
+
+.ft-order-prototype-detail .ft-order-hold-reason-label-row > label {
+    margin: 0;
+    color: #162a49;
+    font-size: .75rem;
+    font-weight: 900;
+}
+
+.ft-order-prototype-detail .ft-order-hold-reason-label-row > span {
+    color: #74869d;
+    font-size: .625rem;
+    font-weight: 650;
+}
+
+.ft-order-prototype-detail .ft-order-hold-reason-label-row > span b {
+    color: #087d69;
+}
+
+.ft-order-prototype-detail .ft-order-hold-optional {
+    display: inline-flex;
+    align-items: center;
+    min-height: 18px;
+    margin-left: 5px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #718198 !important;
+    font-size: .5rem;
+    font-weight: 800;
+    vertical-align: 1px;
+}
+
+/* The held state is a single readable surface instead of detached metadata
+   rows, so narrow Planning & ownership cards remain balanced. */
+.ft-order-prototype-detail .ft-order-hold-state-card {
+    display: grid;
+    gap: 10px;
+    margin: -2px 0 5px;
+    padding: 12px;
+    border: 1px solid #f2c79f;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #fffaf6 0%, #fffdfb 100%);
+    box-shadow: 0 3px 10px rgba(97, 52, 15, .045);
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__top {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: #fff0e4;
+    color: var(--ft-order-hold);
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__copy strong {
+    color: #263c58;
+    font-size: .6875rem;
+    font-weight: 900;
+    line-height: 1.25;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__copy span {
+    color: #75869c;
+    font-size: .5625rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 4px 8px;
+    border: 1px solid #f2aa72;
+    border-radius: 999px;
+    background: #fff5ec;
+    color: #e85f00;
+    font-size: .5625rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 9px;
+    padding: 9px 0;
+    border-top: 1px solid #f3e3d5;
+    border-bottom: 1px solid #f3e3d5;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__facts > div,
+.ft-order-prototype-detail .ft-order-hold-state-card__details > div {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__facts span,
+.ft-order-prototype-detail .ft-order-hold-state-card__details span,
+.ft-order-prototype-detail .ft-order-hold-state-card__reason > span {
+    color: #8190a4;
+    font-size: .5625rem;
+    line-height: 1.25;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__facts b,
+.ft-order-prototype-detail .ft-order-hold-state-card__details b {
+    min-width: 0;
+    color: #354b67;
+    font-size: .625rem;
+    font-weight: 800;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__reason {
+    display: grid;
+    gap: 4px;
+    padding: 8px 9px;
+    border-radius: 7px;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__reason > div {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #405671;
+    font-size: .625rem;
+    line-height: 1.45;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-order-hold-details-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 28px;
+    padding: 4px 3px;
+    border: 0;
+    background: transparent;
+    color: #536b87;
+    font-size: .5625rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-order-hold-details-toggle:hover {
+    color: #233c5a;
+}
+
+.ft-order-prototype-detail .ft-order-hold-chevron {
+    display: inline-block;
+    font-size: .75rem;
+    transition: transform .15s ease;
+}
+
+.ft-order-prototype-detail .ft-order-hold-chevron.is-open {
+    transform: rotate(180deg);
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card .ft-order-release-hold-button {
+    margin: 0;
+    min-height: 29px;
+    padding: 6px 9px;
+    background: #fff8f2;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    padding-top: 2px;
+}
+
+/* Order-held interaction blocker. It does not cover the page permanently:
+   users can continue reviewing tabs/history, but every attempted write action
+   is intercepted and explained with this reusable dialog. */
+.ft-order-prototype-detail .ft-order-hold-blocked-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2140;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(8, 24, 39, .58);
+    backdrop-filter: blur(1.5px);
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-modal {
+    position: relative;
+    width: min(440px, calc(100vw - 28px));
+    padding: 28px;
+    border: 1px solid rgba(255, 255, 255, .8);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(5, 20, 35, .30);
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 8px;
+    background: #f6f8fa;
+    color: #47617e;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-close:hover {
+    background: #eef2f6;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 14px;
+    border-radius: 13px;
+    background: #fff1e5;
+    color: var(--ft-order-hold);
+    box-shadow: inset 0 0 0 1px #ffd6b8;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-icon .ft-order-hold-pause-icon {
+    transform: scale(1.15);
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-copy {
+    display: grid;
+    gap: 7px;
+    padding-right: 28px;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-eyebrow {
+    color: #e55e00;
+    font-size: .5625rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-copy h2 {
+    margin: 0;
+    color: #132b49;
+    font-size: 1.15rem;
+    line-height: 1.2;
+    font-weight: 900;
+    letter-spacing: -.015em;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-copy p {
+    margin: 0;
+    color: #60748d;
+    font-size: .6875rem;
+    line-height: 1.55;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-copy p b {
+    color: #334c69;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 14px;
+    margin-top: 18px;
+    padding: 12px;
+    border: 1px solid #edf1f5;
+    border-radius: 10px;
+    background: #f9fbfc;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-summary > div {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-summary span,
+.ft-order-prototype-detail .ft-order-hold-blocked-reason > span {
+    color: #8593a6;
+    font-size: .5625rem;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-summary strong {
+    color: #314965;
+    font-size: .625rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-reason {
+    display: grid;
+    gap: 5px;
+    margin-top: 10px;
+    padding: 11px 12px;
+    border: 1px solid #f3dfce;
+    border-radius: 10px;
+    background: #fffaf6;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-reason > div {
+    color: #415773;
+    font-size: .625rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 20px;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-actions .secondary,
+.ft-order-prototype-detail .ft-order-hold-blocked-release {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: .6875rem;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-actions .secondary {
+    border: 1px solid #c9d5e1 !important;
+    background: #fff !important;
+    color: #273f5d !important;
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-release {
+    gap: 7px;
+    border: 1px solid var(--ft-order-hold);
+    background: var(--ft-order-hold);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 106, 0, .16);
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-release:hover:not(:disabled) {
+    border-color: var(--ft-order-hold-dark);
+    background: var(--ft-order-hold-dark);
+}
+
+.ft-order-prototype-detail .ft-order-hold-blocked-permission {
+    max-width: 210px;
+    color: #72839a;
+    text-align: right;
+    font-size: .5625rem;
+    line-height: 1.35;
+}
+
+@media(max-width: 540px) {
+    .ft-order-prototype-detail .ft-order-hold-reason-label-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-state-card__top {
+        grid-template-columns: 30px minmax(0, 1fr);
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-state-card__badge {
+        grid-column: 2;
+        justify-self: start;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-state-card__facts,
+    .ft-order-prototype-detail .ft-order-hold-state-card__details,
+    .ft-order-prototype-detail .ft-order-hold-blocked-summary {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-blocked-modal {
+        padding: 24px 20px 20px;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-blocked-actions {
+        align-items: stretch;
+        flex-direction: column-reverse;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-blocked-actions .secondary,
+    .ft-order-prototype-detail .ft-order-hold-blocked-release {
+        width: 100%;
+    }
+
+    .ft-order-prototype-detail .ft-order-hold-blocked-permission {
+        max-width: none;
+        text-align: left;
+    }
+}
+
+/* Task Details inherits the same lock-dialog experience without opting into the
+   Order Details page skin. */
+.ft-task-detail-page {
+    --ft-order-hold: #ff6a00;
+    --ft-order-hold-dark: #e85f00;
+    --ft-order-hold-soft: #fff7f0;
+    --ft-order-hold-border: #f3a66d;
+}
+
+.ft-task-detail-page .ft-order-hold-pause-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+}
+
+.ft-task-detail-page .ft-order-hold-pause-icon i {
+    display: block;
+    width: 2px;
+    height: 10px;
+    border-radius: 2px;
+    background: currentColor;
+}
+
+.ft-task-detail-page .ft-task-order-hold-banner {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 11px;
+    align-items: center;
+    margin: 12px 0 0;
+    padding: 11px 13px;
+    border: 1px solid #f1c49c;
+    border-radius: 10px;
+    background: #fff9f4;
+}
+
+.ft-task-detail-page .ft-task-order-hold-banner__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #fff0e4;
+    color: #f26300;
+}
+
+.ft-task-detail-page .ft-task-order-hold-banner__copy {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.ft-task-detail-page .ft-task-order-hold-banner__copy strong {
+    color: #263d59;
+    font-size: .75rem;
+    font-weight: 900;
+}
+
+.ft-task-detail-page .ft-task-order-hold-banner__copy span {
+    color: #77899f;
+    font-size: .625rem;
+}
+
+.ft-task-detail-page .ft-task-order-hold-banner > button {
+    min-height: 32px;
+    padding: 6px 10px;
+    border: 1px solid #e9a36d;
+    border-radius: 7px;
+    background: #fff;
+    color: #dd5c00;
+    font: inherit;
+    font-size: .625rem;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+
+/* Task-page copy of reusable held-order dialog. */
+/* Order-held interaction blocker. It does not cover the page permanently:
+   users can continue reviewing tabs/history, but every attempted write action
+   is intercepted and explained with this reusable dialog. */
+.ft-task-detail-page .ft-order-hold-blocked-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2140;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(8, 24, 39, .58);
+    backdrop-filter: blur(1.5px);
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-modal {
+    position: relative;
+    width: min(440px, calc(100vw - 28px));
+    padding: 28px;
+    border: 1px solid rgba(255, 255, 255, .8);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(5, 20, 35, .30);
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 8px;
+    background: #f6f8fa;
+    color: #47617e;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-close:hover {
+    background: #eef2f6;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 14px;
+    border-radius: 13px;
+    background: #fff1e5;
+    color: var(--ft-order-hold);
+    box-shadow: inset 0 0 0 1px #ffd6b8;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-icon .ft-order-hold-pause-icon {
+    transform: scale(1.15);
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-copy {
+    display: grid;
+    gap: 7px;
+    padding-right: 28px;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-eyebrow {
+    color: #e55e00;
+    font-size: .5625rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-copy h2 {
+    margin: 0;
+    color: #132b49;
+    font-size: 1.15rem;
+    line-height: 1.2;
+    font-weight: 900;
+    letter-spacing: -.015em;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-copy p {
+    margin: 0;
+    color: #60748d;
+    font-size: .6875rem;
+    line-height: 1.55;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-copy p b {
+    color: #334c69;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 14px;
+    margin-top: 18px;
+    padding: 12px;
+    border: 1px solid #edf1f5;
+    border-radius: 10px;
+    background: #f9fbfc;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-summary > div {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-summary span,
+.ft-task-detail-page .ft-order-hold-blocked-reason > span {
+    color: #8593a6;
+    font-size: .5625rem;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-summary strong {
+    color: #314965;
+    font-size: .625rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-reason {
+    display: grid;
+    gap: 5px;
+    margin-top: 10px;
+    padding: 11px 12px;
+    border: 1px solid #f3dfce;
+    border-radius: 10px;
+    background: #fffaf6;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-reason > div {
+    color: #415773;
+    font-size: .625rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 20px;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-actions .secondary,
+.ft-task-detail-page .ft-order-hold-blocked-release {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: .6875rem;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-actions .secondary {
+    border: 1px solid #c9d5e1 !important;
+    background: #fff !important;
+    color: #273f5d !important;
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-release {
+    gap: 7px;
+    border: 1px solid var(--ft-order-hold);
+    background: var(--ft-order-hold);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 106, 0, .16);
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-release:hover:not(:disabled) {
+    border-color: var(--ft-order-hold-dark);
+    background: var(--ft-order-hold-dark);
+}
+
+.ft-task-detail-page .ft-order-hold-blocked-permission {
+    max-width: 210px;
+    color: #72839a;
+    text-align: right;
+    font-size: .5625rem;
+    line-height: 1.35;
+}
+
+
+@media(max-width: 540px) {
+    .ft-task-detail-page .ft-task-order-hold-banner { grid-template-columns: 34px minmax(0, 1fr); }
+    .ft-task-detail-page .ft-task-order-hold-banner > button { grid-column: 2; justify-self: start; }
+    .ft-task-detail-page .ft-order-hold-blocked-summary { grid-template-columns: minmax(0, 1fr); }
+    .ft-task-detail-page .ft-order-hold-blocked-modal { padding: 24px 20px 20px; }
+    .ft-task-detail-page .ft-order-hold-blocked-actions { align-items: stretch; flex-direction: column-reverse; }
+    .ft-task-detail-page .ft-order-hold-blocked-actions .secondary,
+    .ft-task-detail-page .ft-order-hold-blocked-release { width: 100%; }
+    .ft-task-detail-page .ft-order-hold-blocked-permission { max-width: none; text-align: left; }
+}
+
+/* Held task rows stay readable but expose no write affordance. The original
+   action label remains visible in a deliberate hold-styled button so clicking
+   it explains why the task cannot run instead of silently doing nothing. */
+.ft-order-prototype-detail .ft-order-task-row.is-order-held {
+    background-image: linear-gradient(90deg, rgba(255, 247, 240, .58), rgba(255, 255, 255, 0) 34%);
+}
+
+.ft-order-prototype-detail .ft-order-task-held-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    width: max-content;
+    margin-top: 5px;
+    padding: 3px 7px;
+    border: 1px solid #f3c49f;
+    border-radius: 999px;
+    background: #fff8f2;
+    color: #dc5d08;
+    font-size: .5625rem;
+    font-weight: 850;
+    line-height: 1;
+}
+
+.ft-order-prototype-detail .ft-order-task-held-badge .ft-order-hold-pause-icon,
+.ft-order-prototype-detail .ft-order-task-hold-locked-action .ft-order-hold-pause-icon,
+.ft-task-detail-page .ft-task-held-action .ft-order-hold-pause-icon {
+    width: 10px;
+    height: 11px;
+    gap: 3px;
+}
+
+.ft-order-prototype-detail .ft-order-task-held-badge .ft-order-hold-pause-icon i,
+.ft-order-prototype-detail .ft-order-task-hold-locked-action .ft-order-hold-pause-icon i,
+.ft-task-detail-page .ft-task-held-action .ft-order-hold-pause-icon i {
+    width: 2px;
+    height: 9px;
+}
+
+.ft-order-prototype-detail .ft-order-task-hold-locked-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-color: #f0ae7d !important;
+    background: #fff7f0 !important;
+    color: #df5d00 !important;
+    box-shadow: none !important;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-order-task-hold-locked-action:hover {
+    border-color: #ef8a42 !important;
+    background: #fff1e6 !important;
+    color: #c95000 !important;
+}
+
+.ft-task-detail-page .ft-task-held-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid #f0ae7d !important;
+    background: #fff7f0 !important;
+    color: #df5d00 !important;
+    box-shadow: none !important;
+}
+
+.ft-task-detail-page .ft-task-held-action:hover {
+    border-color: #ef8a42 !important;
+    background: #fff1e6 !important;
+    color: #c95000 !important;
+}
+
+/* Global fallback for any held-order mutation that originates outside Order
+   Details (for example My Tasks or an inline list action). Server-side hold
+   guards remain authoritative; this converts their 422 response into the same
+   clear, deliberate UX instead of exposing a generic request error. */
+body.ft-global-order-hold-open {
+    overflow: hidden;
+}
+
+.ft-global-order-hold-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(8, 24, 39, .62);
+    backdrop-filter: blur(2px);
+}
+
+.ft-global-order-hold-backdrop[hidden] {
+    display: none !important;
+}
+
+.ft-global-order-hold-modal {
+    position: relative;
+    width: min(450px, calc(100vw - 28px));
+    padding: 28px;
+    border: 1px solid rgba(255, 255, 255, .84);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 26px 72px rgba(5, 20, 35, .32);
+}
+
+.ft-global-order-hold-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: #f5f7fa;
+    color: #405975;
+    font: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.ft-global-order-hold-icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 14px;
+    border: 1px solid #ffd0ae;
+    border-radius: 13px;
+    background: #fff1e5;
+    color: #f26300;
+}
+
+.ft-global-order-hold-icon > span {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.ft-global-order-hold-icon i {
+    display: block;
+    width: 3px;
+    height: 15px;
+    border-radius: 2px;
+    background: currentColor;
+}
+
+.ft-global-order-hold-eyebrow {
+    display: block;
+    margin-bottom: 6px;
+    color: #e55e00;
+    font-size: .625rem;
+    font-weight: 900;
+    letter-spacing: .08em;
+}
+
+.ft-global-order-hold-modal h2 {
+    margin: 0;
+    padding-right: 30px;
+    color: #132b49;
+    font-size: 1.15rem;
+    line-height: 1.25;
+    font-weight: 900;
+}
+
+.ft-global-order-hold-modal > p {
+    margin: 9px 0 0;
+    color: #60748d;
+    font-size: .75rem;
+    line-height: 1.55;
+}
+
+.ft-global-order-hold-note {
+    display: grid;
+    gap: 4px;
+    margin-top: 17px;
+    padding: 12px 13px;
+    border: 1px solid #f2d6c0;
+    border-radius: 10px;
+    background: #fff9f4;
+}
+
+.ft-global-order-hold-note strong {
+    color: #9d4c11;
+    font-size: .6875rem;
+    font-weight: 900;
+}
+
+.ft-global-order-hold-note span {
+    color: #5e7188;
+    font-size: .6875rem;
+    line-height: 1.45;
+}
+
+.ft-global-order-hold-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.ft-global-order-hold-dismiss {
+    min-width: 92px;
+    min-height: 38px;
+    padding: 8px 15px;
+    border: 1px solid #cbd6e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #263f5d;
+    font: inherit;
+    font-size: .75rem;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.ft-global-order-hold-dismiss:hover,
+.ft-global-order-hold-close:hover {
+    background: #f2f5f8;
+}
+
+@media(max-width: 520px) {
+    .ft-global-order-hold-modal {
+        padding: 24px 20px 20px;
+    }
+
+    .ft-global-order-hold-dismiss {
+        width: 100%;
+    }
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__full-reason {
+    grid-column: 1 / -1;
+}
+
+.ft-order-prototype-detail .ft-order-hold-state-card__full-reason > div {
+    margin-top: 2px;
+    color: #405671;
+    font-size: .625rem;
+    font-weight: 650;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}

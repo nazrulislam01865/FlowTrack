@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "generated_at": "2026-08-20T08:53:03.386Z",
+  "source": {
+    "resources/css/flowtrack.css": {
+      "bytes": 598980,
+      "gzip_bytes": 101483
+    },
+    "resources/css/app.css": {
+      "bytes": 125,
+      "gzip_bytes": 127
+    },
+    "resources/css/login.css": {
+      "bytes": 5767,
+      "gzip_bytes": 1649
+    },
+    "resources/css/components/management-theme.css": {
+      "bytes": 68767,
+      "gzip_bytes": 10204
+    },
+    "resources/js/app.js": {
+      "bytes": 29184,
+      "gzip_bytes": 7223
+    }
+  },
+  "build": {
+    "resources/css/generated/flowtrack-01.css": {
+      "file": "assets/flowtrack-01-DASm_ODV.css",
+      "bytes": 141380,
+      "gzip_bytes": 25022
+    },
+    "resources/css/generated/flowtrack-02.css": {
+      "file": "assets/flowtrack-02-Dwmvl3G5.css",
+      "bytes": 135573,
+      "gzip_bytes": 22893
+    },
+    "resources/css/generated/flowtrack-03.css": {
+      "file": "assets/flowtrack-03-BRUjTr5P.css",
+      "bytes": 131597,
+      "gzip_bytes": 20028
+    },
+    "resources/css/generated/flowtrack-04.css": {
+      "file": "assets/flowtrack-04-DZcH_Crd.css",
+      "bytes": 135329,
+      "gzip_bytes": 21059
+    },
+    "resources/css/login.css": {
+      "file": "assets/login-BenZO71L.css",
+      "bytes": 4174,
+      "gzip_bytes": 1517
+    },
+    "resources/js/app.js": {
+      "file": "assets/app-BDm4zBBg.js",
+      "bytes": 31972,
+      "gzip_bytes": 10029
+    }
+  },
+  "build_totals": {
+    "bytes": 580025,
+    "gzip_bytes": 100548
+  }
+}

@@ -1,0 +1,13 @@
+# FlowTrack Artwork upload reliability settings.
+# Include these directives inside the HTTPS server block that serves FlowTrack.
+#
+# Artwork itself is transferred through 15MB application chunks (3 concurrent per file). The 512MB body
+# ceiling is retained for compatibility with any existing 400MB Artwork-related
+# Livewire endpoints that have not yet moved to the chunk transport.
+client_max_body_size 512m;
+client_body_timeout 300s;
+
+# The network transfer is chunked, but the final authenticated save may need to
+# reconstruct, inspect, malware-scan and promote a 400MB design package.
+fastcgi_read_timeout 900s;
+fastcgi_send_timeout 300s;

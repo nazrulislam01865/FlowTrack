@@ -1,0 +1,47 @@
+; Install with Supervisor in addition to the existing application workers.
+; Change directory and user to match the actual FlowTracker installation.
+; The Redis or database queue connection comes from FlowTracker .env.
+; Never run these queues in QUEUE_CONNECTION=sync mode.
+
+[program:flowtrack-supplier-critical]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php artisan queue:work --queue=supplier-critical --sleep=1 --tries=1 --timeout=45 --max-time=3600 --memory=384
+directory=/var/www/FlowTracker
+autostart=true
+autorestart=true
+user=www-data
+numprocs=2
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/flowtrack-supplier-critical.log
+stopwaitsecs=60
+
+[program:flowtrack-supplier-branding]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php artisan queue:work --queue=supplier-branding --sleep=1 --tries=1 --timeout=30 --max-time=3600 --memory=256
+directory=/var/www/FlowTracker
+autostart=true
+autorestart=true
+user=www-data
+numprocs=2
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/flowtrack-supplier-branding.log
+stopwaitsecs=45
+
+; Keep the full catalogue and pricing sync on its own slower lane.
+[program:flowtrack-supplier-catalog]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php artisan queue:work --queue=supplier-sync --sleep=1 --tries=1 --timeout=120 --max-time=3600 --memory=384
+directory=/var/www/FlowTracker
+autostart=true
+autorestart=true
+user=www-data
+numprocs=1
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/flowtrack-supplier-catalog.log
+stopwaitsecs=135

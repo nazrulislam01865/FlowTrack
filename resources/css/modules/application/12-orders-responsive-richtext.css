@@ -1,0 +1,3296 @@
+/** Application CSS segment 12: orders-responsive-richtext. Source-preserving split of the former monolith. */
+/* ========================================================================== */
+/* 2026-08-09 responsive Orders + Order overview correction                    */
+/* ========================================================================== */
+
+/* Keep the order detail shell shrinkable at every viewport size. */
+.ft-exact-job-detail,
+.ft-exact-job-detail .ft-job-heading-copy,
+.ft-exact-job-detail .ft-exact-overview,
+.ft-exact-job-detail .ft-overview-top-grid,
+.ft-exact-job-detail .ft-detail-card,
+.ft-exact-job-detail .ft-mini-grid-table,
+.ft-exact-job-detail .ft-inline-field-editor,
+.ft-exact-job-detail .ft-planning-value {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.ft-exact-job-detail .ft-editable-job-title,
+.ft-exact-job-detail .ft-editable-job-title>span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.ft-exact-job-detail .ft-exact-job-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap
+}
+
+.ft-exact-job-detail .ft-inline-product-table {
+    table-layout: fixed
+}
+
+.ft-exact-job-detail .ft-inline-product-table th:nth-child(1) {
+    width: 24%
+}
+
+.ft-exact-job-detail .ft-inline-product-table th:nth-child(2) {
+    width: auto
+}
+
+.ft-exact-job-detail .ft-inline-product-table th:nth-child(3) {
+    width: 96px
+}
+
+.ft-exact-job-detail .ft-inline-product-table th:nth-child(4) {
+    width: 42px
+}
+
+.ft-exact-job-detail .ft-inline-product-table .ft-inline-field-value {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-exact-job-detail .ft-planning-panel {
+    min-height: 0
+}
+
+.ft-exact-job-detail .ft-planning-panel .ft-side-row>span:first-child {
+    min-width: 0;
+    color: #60728a
+}
+
+.ft-exact-job-detail .ft-planning-panel .ft-side-row>b {
+    min-width: 0;
+    overflow-wrap: anywhere
+}
+
+@media(max-width:980px) {
+    .ft-exact-job-detail .ft-overview-top-grid {
+        gap: 10px
+    }
+
+    .ft-exact-job-detail .ft-overview-card,
+    .ft-exact-job-detail .ft-planning-panel {
+        min-height: 0
+    }
+}
+
+@media(max-width:760px) {
+    .ft-exact-job-detail .ft-exact-job-header {
+        gap: 7px;
+        margin-bottom: 9px;
+        align-items: flex-start;
+    }
+
+    .ft-exact-job-detail .ft-detail-breadcrumb {
+        font-size: .6875rem;
+        margin-bottom: 7px;
+        line-height: 1.3
+    }
+
+    .ft-exact-job-detail .ft-exact-job-header h1 {
+        width: 100%;
+        margin-bottom: 9px;
+        font-size: 1.375rem;
+        line-height: 1.12;
+        letter-spacing: -.025em;
+    }
+
+    .ft-exact-job-detail .ft-editable-job-title input {
+        width: 100%;
+        max-width: 100%
+    }
+
+    .ft-exact-job-detail .ft-exact-job-meta {
+        gap: 6px;
+        font-size: .6875rem;
+        line-height: 1.2
+    }
+
+    .ft-exact-job-detail .ft-soft-pill {
+        font-size: .625rem;
+        padding: 5px 8px
+    }
+
+    .ft-exact-job-detail .ft-exact-tabs {
+        gap: 22px;
+        margin-bottom: 11px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .ft-exact-job-detail .ft-exact-tabs::-webkit-scrollbar {
+        display: none
+    }
+
+    .ft-exact-job-detail .ft-exact-tabs button {
+        flex: 0 0 auto;
+        font-size: .75rem;
+        padding: 10px 0
+    }
+
+    .ft-exact-job-detail .ft-overview-metrics {
+        gap: 8px;
+        margin-bottom: 9px
+    }
+
+    .ft-exact-job-detail .ft-overview-metric {
+        min-height: 0;
+        padding: 11px 12px;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .ft-exact-job-detail .ft-overview-metric .ft-metric-icon {
+        width: 34px;
+        height: 34px;
+        flex-basis: 34px;
+        font-size: .8125rem
+    }
+
+    .ft-exact-job-detail .ft-overview-metric>div {
+        min-width: 0;
+        flex: 1
+    }
+
+    .ft-exact-job-detail .ft-overview-metric small {
+        font-size: .65625rem
+    }
+
+    .ft-exact-job-detail .ft-overview-metric b {
+        font-size: .8125rem;
+        line-height: 1.3;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-overview-metric p {
+        font-size: .65625rem;
+        line-height: 1.35
+    }
+
+    .ft-exact-job-detail .ft-overview-metric .ft-line-progress {
+        width: min(210px, 100%)
+    }
+
+    .ft-exact-job-detail .ft-overview-top-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 9px;
+        margin-bottom: 9px
+    }
+
+    .ft-exact-job-detail .ft-overview-card,
+    .ft-exact-job-detail .ft-planning-panel {
+        padding: 12px;
+        border-radius: 10px
+    }
+
+    .ft-exact-job-detail .ft-overview-card h2,
+    .ft-exact-job-detail .ft-planning-panel h2 {
+        font-size: .9375rem;
+        margin-bottom: 9px
+    }
+
+    .ft-exact-job-detail .ft-editable-copy {
+        margin: 8px 0 10px;
+        padding: 9px;
+        font-size: .6875rem;
+        line-height: 1.45
+    }
+
+    .ft-exact-job-detail .ft-card-section-head {
+        align-items: flex-start;
+        gap: 6px;
+        flex-wrap: wrap;
+        font-size: .65625rem
+    }
+
+    /* Products become compact mobile records instead of a clipped desktop table. */
+    .ft-exact-job-detail .ft-inline-product-table,
+    .ft-exact-job-detail .ft-inline-product-table tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table {
+        table-layout: auto
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table thead {
+        display: none
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table tbody {
+        display: grid;
+        gap: 8px
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table tr {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0;
+        width: 100%;
+        padding: 9px 38px 9px 10px;
+        border: 1px solid #e0e7f0;
+        border-radius: 9px;
+        background: var(--ft-theme-surface-subtle);
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table td {
+        display: grid;
+        grid-template-columns: 82px minmax(0, 1fr);
+        align-items: center;
+        gap: 8px;
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 5px 0 !important;
+        border: 0 !important;
+        text-align: left !important;
+        font-size: .6875rem;
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table td::before {
+        content: attr(data-label);
+        min-width: 0;
+        color: #6a7c93;
+        font-size: .53125rem;
+        font-weight: 800;
+        letter-spacing: .035em;
+        text-transform: uppercase;
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table .ft-inline-field-editor,
+    .ft-exact-job-detail .ft-inline-product-table .ft-inline-product-quantity-wrap {
+        width: 100%;
+        min-width: 0;
+        justify-content: flex-start;
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table .ft-inline-cell-input,
+    .ft-exact-job-detail .ft-inline-product-table .ft-inline-remote-catalog-trigger {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table .ft-readonly-product-value {
+        margin-left: 0;
+        justify-content: flex-start;
+        text-align: left
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table .ft-product-delete-cell {
+        position: absolute;
+        top: 7px;
+        right: 7px;
+        display: block;
+        width: 28px !important;
+        min-width: 28px !important;
+        padding: 0 !important;
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table .ft-product-delete-cell::before {
+        display: none
+    }
+
+    .ft-exact-job-detail .ft-product-actions {
+        padding-top: 9px
+    }
+
+    /* Always keep planning labels and their values on screen together. */
+    .ft-exact-job-detail .ft-planning-panel .ft-side-row,
+    .ft-exact-job-detail .ft-inline-planning-row {
+        grid-template-columns: 118px minmax(0, 1fr) !important;
+        gap: 10px !important;
+        min-height: 0 !important;
+        padding: 10px 0 !important;
+        font-size: .6875rem !important;
+        align-items: center;
+    }
+
+    .ft-exact-job-detail .ft-planning-value {
+        width: 100%;
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    .ft-exact-job-detail .ft-planning-value>span:not(.ft-planning-person) {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip
+    }
+
+    .ft-exact-job-detail .ft-planning-person-value {
+        min-width: 0;
+        max-width: 100%
+    }
+
+    .ft-exact-job-detail .ft-inline-planning-row select,
+    .ft-exact-job-detail .ft-inline-planning-row input {
+        height: 34px
+    }
+
+    .ft-exact-job-detail .ft-overview-workflow-line {
+        gap: 0;
+        padding: 10px 7px;
+        margin-bottom: 9px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+    }
+
+    .ft-exact-job-detail .ft-overview-workflow-line::-webkit-scrollbar {
+        display: none
+    }
+
+    .ft-exact-job-detail .ft-overview-workflow-line button {
+        min-width: 72px;
+        flex: 1 0 72px
+    }
+
+    .ft-exact-job-detail .ft-overview-workflow-line small {
+        font-size: .59375rem;
+        max-width: 76px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap
+    }
+
+    .ft-exact-job-detail .ft-overview-task-card {
+        border-radius: 10px;
+        margin-bottom: 9px
+    }
+
+    .ft-exact-job-detail .ft-task-card-heading {
+        padding: 11px 11px 8px
+    }
+
+    .ft-exact-job-detail .ft-task-card-heading h2 {
+        font-size: .9375rem
+    }
+
+    .ft-exact-job-detail .ft-task-card-heading p {
+        font-size: .65625rem
+    }
+
+    .ft-exact-job-detail .ft-phase-load-note {
+        padding: 6px 10px;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: .59375rem;
+        line-height: 1.25
+    }
+
+    .ft-exact-job-detail .ft-editable-task-line {
+        grid-template-columns: 32px minmax(0, 1fr) 32px !important;
+        gap: 7px !important;
+        min-height: 0 !important;
+        padding: 10px !important;
+        align-items: center;
+    }
+
+    .ft-exact-job-detail .ft-editable-task-line>span:first-child {
+        grid-column: 1;
+        grid-row: 1;
+        align-self: start;
+        padding-top: 3px
+    }
+
+    .ft-exact-job-detail .ft-editable-task-line>.ft-inline-task-link {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0;
+        line-height: 1.35;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-editable-task-line>.ft-task-action-wrap {
+        grid-column: 3;
+        grid-row: 1;
+        align-self: start
+    }
+
+    .ft-exact-job-detail .ft-editable-task-line>.ft-task-inline-editor:nth-child(3) {
+        grid-column: 2/4;
+        grid-row: 2
+    }
+
+    .ft-exact-job-detail .ft-editable-task-line>.ft-task-inline-editor:nth-child(4) {
+        grid-column: 2/4;
+        grid-row: 3
+    }
+
+    .ft-exact-job-detail .ft-editable-task-line>.ft-task-inline-status-shell {
+        grid-column: 2/4;
+        grid-row: 4;
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-inline-task-status {
+        width: 100%;
+        max-width: 280px;
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-task-inline-input {
+        width: 100%;
+        max-width: 280px
+    }
+
+    .ft-exact-job-detail .ft-job-overview-attachments {
+        padding: 11px;
+        border-radius: 10px
+    }
+
+    .ft-exact-job-detail .ft-job-file-row {
+        grid-template-columns: 30px minmax(0, 1fr) auto;
+        gap: 7px
+    }
+
+    .ft-exact-job-detail .ft-job-file-row>button {
+        grid-column: 2/4;
+        justify-self: start
+    }
+}
+
+@media(max-width:520px) {
+    .ft-exact-job-detail .ft-exact-job-header h1 {
+        font-size: 1.3125rem
+    }
+
+    .ft-exact-job-detail .ft-overview-metric {
+        padding: 10px
+    }
+
+    .ft-exact-job-detail .ft-overview-card,
+    .ft-exact-job-detail .ft-planning-panel {
+        padding: 11px
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table tr {
+        padding-left: 9px;
+        padding-right: 36px
+    }
+
+    .ft-exact-job-detail .ft-inline-product-table td {
+        grid-template-columns: 76px minmax(0, 1fr);
+        gap: 7px
+    }
+
+    .ft-exact-job-detail .ft-planning-panel .ft-side-row,
+    .ft-exact-job-detail .ft-inline-planning-row {
+        grid-template-columns: 108px minmax(0, 1fr) !important;
+        gap: 8px !important;
+        padding: 9px 0 !important;
+    }
+
+    .ft-exact-job-detail .ft-overview-workflow-line button {
+        min-width: 66px;
+        flex-basis: 66px
+    }
+
+    .ft-exact-job-detail .ft-overview-workflow-line small {
+        font-size: .5625rem;
+        max-width: 68px
+    }
+
+    .ft-exact-job-detail .ft-phase-toggle {
+        grid-template-columns: 20px minmax(0, 1fr) 24px !important;
+        gap: 7px !important
+    }
+
+    .ft-exact-job-detail .ft-phase-toggle>b {
+        grid-column: 1
+    }
+
+    .ft-exact-job-detail .ft-phase-toggle>strong {
+        grid-column: 2
+    }
+
+    .ft-exact-job-detail .ft-phase-toggle>i {
+        grid-column: 3
+    }
+
+    .ft-exact-job-detail .ft-phase-toggle>small,
+    .ft-exact-job-detail .ft-phase-toggle>em {
+        display: none !important
+    }
+}
+
+/* ========================================================================== */
+/* 2026-08-09 responsive Order details (Overview / Workflow / Documents)      */
+/* ========================================================================== */
+.ft-exact-job-detail,
+.ft-exact-job-detail .ft-workflow-detail-section,
+.ft-exact-job-detail .ft-documents-detail-section,
+.ft-exact-job-detail .ft-job-overview-section {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.ft-exact-job-detail .ft-workflow-main-full,
+.ft-exact-job-detail .ft-detail-doc-full,
+.ft-exact-job-detail .ft-detail-doc-full>main,
+.ft-exact-job-detail .ft-job-documents-table,
+.ft-exact-job-detail .ft-doc-table-wrap {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.ft-exact-job-detail .ft-warning-banner,
+.ft-exact-job-detail .ft-success-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ft-exact-job-detail .ft-warning-banner>div,
+.ft-exact-job-detail .ft-success-banner>div {
+    min-width: 0;
+    flex: 1
+}
+
+.ft-exact-job-detail .ft-warning-banner p,
+.ft-exact-job-detail .ft-success-banner p {
+    overflow-wrap: anywhere
+}
+
+.ft-exact-job-detail .ft-doc-phase-name {
+    font-weight: 800
+}
+
+.ft-exact-job-detail .ft-job-document-row td:first-child a {
+    overflow-wrap: anywhere;
+    word-break: break-word
+}
+
+.ft-exact-job-detail .ft-doc-task-caption {
+    display: block;
+    margin-top: 3px;
+    color: #6b7d94
+}
+
+@media(max-width:900px) {
+
+    /* Shared detail header: never let title, metadata or tabs widen the page. */
+    .ft-exact-job-detail .ft-exact-job-header {
+        width: 100%;
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-job-heading-copy {
+        width: 100%;
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-detail-breadcrumb {
+        max-width: 100%;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-exact-job-meta {
+        width: 100%;
+        gap: 7px
+    }
+
+    .ft-exact-job-detail .ft-exact-tabs {
+        width: 100%;
+        max-width: 100%;
+        padding-right: 2px
+    }
+
+    /* Workflow warning/success banner becomes a readable two-column mobile block. */
+    .ft-exact-job-detail .ft-warning-banner,
+    .ft-exact-job-detail .ft-success-banner {
+        display: grid;
+        grid-template-columns: 30px minmax(0, 1fr);
+        align-items: start;
+        gap: 8px 10px;
+        padding: 11px 12px;
+        min-height: 0;
+    }
+
+    .ft-exact-job-detail .ft-warning-banner>span,
+    .ft-exact-job-detail .ft-success-banner>span {
+        grid-column: 1;
+        grid-row: 1
+    }
+
+    .ft-exact-job-detail .ft-warning-banner>div,
+    .ft-exact-job-detail .ft-success-banner>div {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-warning-banner button,
+    .ft-exact-job-detail .ft-success-banner button {
+        grid-column: 2;
+        justify-self: start;
+        max-width: 100%;
+        padding: 4px 0;
+        border: 0;
+        background: transparent;
+        color: var(--ft-theme-primary);
+        text-align: left;
+        line-height: 1.25;
+        white-space: normal;
+    }
+
+    /* Workflow stepper scrolls intentionally instead of squeezing phase names. */
+    .ft-exact-job-detail .ft-workflow-stepper-card {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+    }
+
+    .ft-exact-job-detail .ft-workflow-stepper-card::-webkit-scrollbar {
+        display: none
+    }
+
+    .ft-exact-job-detail .ft-workflow-stepper {
+        width: max-content;
+        min-width: 100%;
+        justify-content: flex-start;
+    }
+
+    .ft-exact-job-detail .ft-workflow-step {
+        flex: 0 0 88px;
+        min-width: 88px;
+    }
+
+    .ft-exact-job-detail .ft-workflow-step small {
+        max-width: 84px;
+        margin-inline: auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Current phase heading and progress no longer push the phase badge off-screen. */
+    .ft-exact-job-detail .ft-current-phase-card .ft-card-row-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .ft-exact-job-detail .ft-current-phase-card .ft-card-row-head>div {
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-current-phase-card h2 {
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-phase-count-pill {
+        align-self: flex-start;
+        max-width: 100%
+    }
+
+    .ft-exact-job-detail .ft-phase-progress-copy {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px 10px;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 7px;
+    }
+
+    .ft-exact-job-detail .ft-phase-progress-copy>span:first-child {
+        grid-column: 1/-1
+    }
+
+    .ft-exact-job-detail .ft-phase-progress-copy .ft-line-progress {
+        grid-column: 1;
+        min-width: 0;
+        width: 100%;
+        margin: 0
+    }
+
+    .ft-exact-job-detail .ft-phase-progress-copy>b {
+        grid-column: 2;
+        align-self: center
+    }
+
+    /* Readiness rows become compact cards with predictable wrapping. */
+    .ft-exact-job-detail .ft-readiness-table {
+        display: grid;
+        gap: 8px;
+        border: 0;
+        overflow: visible;
+    }
+
+    .ft-exact-job-detail .ft-readiness-table>div {
+        display: grid;
+        grid-template-columns: 22px 24px minmax(0, 1fr);
+        gap: 7px 8px;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid #e1e8f0;
+        border-radius: 9px;
+        background: #fff;
+    }
+
+    .ft-exact-job-detail .ft-readiness-table>div>span:first-child {
+        grid-column: 1;
+        grid-row: 1
+    }
+
+    .ft-exact-job-detail .ft-readiness-table>div>b {
+        grid-column: 2;
+        grid-row: 1
+    }
+
+    .ft-exact-job-detail .ft-readiness-table>div>span:nth-of-type(2) {
+        grid-column: 3;
+        grid-row: 1;
+        min-width: 0;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-readiness-table>div>strong {
+        grid-column: 2/4;
+        grid-row: 2;
+        min-width: 0;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-readiness-table>div>em {
+        grid-column: 2/4;
+        grid-row: 3;
+        width: 100%;
+        max-width: 100%;
+        text-align: center
+    }
+
+    .ft-exact-job-detail .ft-readiness-table>div>button {
+        grid-column: 2/4;
+        grid-row: 4;
+        justify-self: end;
+        text-align: right;
+        padding: 4px 0
+    }
+
+    /* Next phase action block stacks all controls instead of clipping them. */
+    .ft-exact-job-detail .ft-next-phase-box {
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr);
+        gap: 9px 10px;
+        align-items: start;
+        padding: 11px;
+    }
+
+    .ft-exact-job-detail .ft-next-phase-box>span {
+        grid-column: 1;
+        grid-row: 1
+    }
+
+    .ft-exact-job-detail .ft-next-phase-box>div {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-next-phase-box>div b,
+    .ft-exact-job-detail .ft-next-phase-box>div p {
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-next-phase-box>button,
+    .ft-exact-job-detail .ft-next-phase-box>.ft-permission-note {
+        grid-column: 1/-1;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        justify-self: stretch;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .ft-exact-job-detail .ft-next-phase-box>.ft-square-action {
+        width: 100% !important;
+        min-width: 0 !important
+    }
+
+    /* Documents top controls. */
+    .ft-exact-job-detail .ft-doc-title-row {
+        align-items: flex-start;
+        gap: 8px
+    }
+
+    .ft-exact-job-detail .ft-doc-title-row h2 {
+        font-size: 1.25rem
+    }
+
+    .ft-exact-job-detail .ft-doc-filter-chips {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+        overflow: visible;
+    }
+
+    .ft-exact-job-detail .ft-doc-filter-chips button {
+        width: 100%;
+        min-width: 0;
+        min-height: 38px;
+        border-radius: 10px;
+        padding: 6px 8px;
+        white-space: normal;
+        line-height: 1.2;
+        text-align: center;
+    }
+
+    .ft-exact-job-detail .ft-upload-panel {
+        padding: 12px
+    }
+
+    .ft-exact-job-detail .ft-document-purpose-field .ft-document-purpose-select {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .ft-exact-job-detail .ft-task-upload-zone {
+        grid-template-columns: 1fr;
+        gap: 0;
+        overflow: visible;
+    }
+
+    .ft-exact-job-detail .ft-task-upload-drop {
+        width: 100%;
+        min-width: 0;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .ft-exact-job-detail .ft-task-choose-document {
+        width: calc(100% - 20px);
+        min-width: 0;
+        max-width: 100%;
+        margin: 8px 10px 10px;
+        align-self: stretch;
+    }
+
+    .ft-exact-job-detail .ft-existing-document-picker .ft-card-row-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ft-exact-job-detail .ft-existing-document-picker select,
+    .ft-exact-job-detail .ft-existing-document-picker .ft-new-job-btn,
+    .ft-exact-job-detail .ft-existing-document-picker .ft-outline-btn {
+        width: 100%;
+        max-width: 100%
+    }
+
+    /* Overview: keep cards and task controls inside the viewport. */
+    .ft-exact-job-detail .ft-overview-metrics {
+        grid-template-columns: 1fr
+    }
+
+    .ft-exact-job-detail .ft-overview-card,
+    .ft-exact-job-detail .ft-planning-panel,
+    .ft-exact-job-detail .ft-overview-task-card,
+    .ft-exact-job-detail .ft-job-overview-attachments {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%
+    }
+
+    .ft-exact-job-detail .ft-card-section-head {
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-card-section-head>* {
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-card-section-head span {
+        text-align: right;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-planning-panel .ft-side-row>b {
+        min-width: 0;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-phase-task-table {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-task-inline-assignee-picker,
+    .ft-exact-job-detail .ft-inline-catalog-picker {
+        max-width: 100%
+    }
+
+    .ft-exact-job-detail .ft-job-file-row>div {
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-job-file-row b,
+    .ft-exact-job-detail .ft-job-file-row small {
+        overflow-wrap: anywhere
+    }
+}
+
+@media(max-width:760px) {
+
+    /* Workflow history converts to cards with labels. */
+    .ft-exact-job-detail .ft-history-card {
+        overflow: hidden
+    }
+
+    .ft-exact-job-detail .ft-history-table,
+    .ft-exact-job-detail .ft-history-table tbody {
+        display: block;
+        width: 100%
+    }
+
+    .ft-exact-job-detail .ft-history-table thead {
+        display: none
+    }
+
+    .ft-exact-job-detail .ft-history-table tbody {
+        display: grid;
+        gap: 8px
+    }
+
+    .ft-exact-job-detail .ft-history-table tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border: 1px solid #e0e7f0;
+        border-radius: 9px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .ft-exact-job-detail .ft-history-table td {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        padding: 9px !important;
+        border: 0 !important;
+        border-bottom: 1px solid #edf1f5 !important;
+        overflow-wrap: anywhere;
+    }
+
+    .ft-exact-job-detail .ft-history-table td::before {
+        content: attr(data-label);
+        color: #74849a;
+        font-size: .5rem;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .ft-exact-job-detail .ft-history-table td:nth-last-child(-n+2) {
+        border-bottom: 0 !important
+    }
+
+    /* Documents table: phase headers, requirements and documents are true mobile cards. */
+    .ft-exact-job-detail .ft-job-documents-table {
+        padding: 11px
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-table-wrap {
+        overflow: visible !important;
+        padding: 0 !important
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-table {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-table thead {
+        display: none !important
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-table tbody {
+        display: grid !important;
+        gap: 9px !important
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-table tr {
+        width: 100%;
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-phase-row {
+        display: block !important;
+        border: 1px solid #dce5f0 !important;
+        border-radius: 9px !important;
+        overflow: hidden !important;
+        background: var(--ft-theme-surface-subtle) !important;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-phase-row td {
+        display: grid !important;
+        grid-template-columns: 18px 24px minmax(0, 1fr) auto;
+        gap: 4px 7px;
+        align-items: center;
+        width: 100% !important;
+        padding: 9px !important;
+        border: 0 !important;
+        background: var(--ft-theme-surface-subtle) !important;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-phase-row td::before {
+        display: none !important
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-phase-row td>span {
+        grid-column: 1;
+        grid-row: 1
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-phase-row td>b {
+        grid-column: 2;
+        grid-row: 1;
+        margin: 0 !important
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-phase-name {
+        grid-column: 3;
+        grid-row: 1;
+        min-width: 0;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-phase-row td>em {
+        grid-column: 4;
+        grid-row: 1;
+        float: none !important;
+        justify-self: end
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-phase-row td>small {
+        grid-column: 3/5;
+        grid-row: 2;
+        margin: 0 !important;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-required-inline-row {
+        display: block !important;
+        border: 1px solid #ead9b9 !important;
+        border-radius: 9px !important;
+        overflow: hidden !important;
+        background: #fff !important;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-required-inline-row>td {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: #fff !important;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-required-inline-row>td::before {
+        display: none !important
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-required-inline-row td>div:first-child {
+        display: flex !important;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 9px 10px !important;
+        background: var(--ft-theme-primary-soft) !important;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-required-inline-row td>div:first-child>* {
+        min-width: 0;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-inline-requirement {
+        display: grid !important;
+        grid-template-columns: 20px minmax(0, 1fr);
+        gap: 7px 9px;
+        width: 100%;
+        padding: 10px;
+        border: 0;
+        border-top: 1px solid #f1dfbc;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-inline-requirement>span:first-child {
+        grid-column: 1;
+        grid-row: 1
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-inline-requirement>div {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-inline-requirement>.ft-soft-pill {
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: start
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-inline-requirement>.ft-outline-btn {
+        grid-column: 2;
+        grid-row: 3;
+        width: 100%;
+        max-width: 180px;
+        justify-self: start;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-job-document-row {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        border: 1px solid #dfe6ef !important;
+        border-radius: 9px !important;
+        overflow: hidden !important;
+        background: #fff !important;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-job-document-row td {
+        display: flex !important;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        min-width: 0;
+        width: 100% !important;
+        padding: 9px !important;
+        border: 0 !important;
+        border-bottom: 1px solid #edf1f5 !important;
+        background: #fff !important;
+        overflow-wrap: anywhere;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-job-document-row td::before {
+        display: block !important;
+        content: attr(data-label) !important;
+        color: #74849a;
+        font-size: .5rem;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-job-document-row td[data-label="Document"],
+    .ft-exact-job-detail .ft-job-documents-table .ft-job-document-row td[data-label="Actions"] {
+        grid-column: 1/-1
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-job-document-row td[data-label="Actions"] {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        border-bottom: 0 !important;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-job-document-row td[data-label="Actions"]::before {
+        margin-right: auto
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-empty-mobile-row {
+        display: block !important;
+        border: 1px dashed #dce5ef !important;
+        border-radius: 9px !important;
+        overflow: hidden !important;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-empty-mobile-row td {
+        display: block !important;
+        width: 100% !important;
+        padding: 12px !important;
+        border: 0 !important;
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-doc-empty-mobile-row td::before {
+        display: none !important
+    }
+
+    /* Overview cards: readable one-column details at phone/tablet widths. */
+    .ft-exact-job-detail .ft-card-section-head {
+        flex-direction: column;
+        align-items: flex-start
+    }
+
+    .ft-exact-job-detail .ft-card-section-head span {
+        text-align: left
+    }
+
+    .ft-exact-job-detail .ft-planning-panel .ft-side-row,
+    .ft-exact-job-detail .ft-inline-planning-row {
+        grid-template-columns: 110px minmax(0, 1fr) !important;
+    }
+
+    .ft-exact-job-detail .ft-task-card-heading {
+        align-items: flex-start;
+        gap: 8px
+    }
+
+    .ft-exact-job-detail .ft-phase-toolbar-icons {
+        flex: 0 0 auto
+    }
+
+    .ft-exact-job-detail .ft-job-overview-dropzone {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-exact-job-detail .ft-job-overview-dropzone .ft-task-choose-document {
+        margin: 8px 10px 10px !important
+    }
+}
+
+@media(max-width:520px) {
+    .ft-exact-job-detail .ft-detail-breadcrumb {
+        font-size: .625rem
+    }
+
+    .ft-exact-job-detail .ft-exact-tabs {
+        gap: 18px
+    }
+
+    .ft-exact-job-detail .ft-exact-tabs button {
+        font-size: .6875rem
+    }
+
+    .ft-exact-job-detail .ft-doc-filter-chips {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .ft-exact-job-detail .ft-doc-filter-chips button:last-child {
+        grid-column: 1/-1
+    }
+
+    .ft-exact-job-detail .ft-task-upload-drop {
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 8px;
+        padding: 10px
+    }
+
+    .ft-exact-job-detail .ft-task-upload-drop>div {
+        min-width: 0;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-task-upload-drop small {
+        white-space: normal;
+        overflow-wrap: anywhere
+    }
+
+    .ft-exact-job-detail .ft-history-table tr {
+        grid-template-columns: 1fr
+    }
+
+    .ft-exact-job-detail .ft-history-table td:nth-last-child(-n+2) {
+        border-bottom: 1px solid #edf1f5 !important
+    }
+
+    .ft-exact-job-detail .ft-history-table td:last-child {
+        border-bottom: 0 !important
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-job-document-row {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-exact-job-detail .ft-job-documents-table .ft-job-document-row td[data-label="Document"],
+    .ft-exact-job-detail .ft-job-documents-table .ft-job-document-row td[data-label="Actions"] {
+        grid-column: auto
+    }
+
+    .ft-exact-job-detail .ft-planning-panel .ft-side-row,
+    .ft-exact-job-detail .ft-inline-planning-row {
+        grid-template-columns: 1fr !important;
+        gap: 5px !important;
+        align-items: start !important;
+    }
+
+    .ft-exact-job-detail .ft-planning-panel .ft-side-row>span:first-child {
+        font-size: .5625rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .03em
+    }
+
+    .ft-exact-job-detail .ft-planning-value {
+        min-height: 28px
+    }
+
+    .ft-exact-job-detail .ft-next-phase-box>button {
+        min-height: 36px;
+        height: auto;
+        padding: 7px 10px
+    }
+
+    .ft-exact-job-detail .ft-readiness-table>div>button {
+        justify-self: stretch;
+        width: 100%;
+        text-align: center;
+        border: 1px solid #d8e2ee;
+        border-radius: 7px
+    }
+
+    .ft-exact-job-detail .ft-job-file-row {
+        grid-template-columns: 30px minmax(0, 1fr) !important;
+        gap: 7px !important;
+    }
+
+    .ft-exact-job-detail .ft-job-file-row>a,
+    .ft-exact-job-detail .ft-job-file-row>button {
+        grid-column: 2;
+        justify-self: start
+    }
+}
+
+/* Final narrow-screen safeguards for detail navigation and document requirement cards. */
+.ft-exact-job-detail .ft-exact-tabs button:focus:not(:focus-visible) {
+    outline: none
+}
+
+.ft-exact-job-detail .ft-exact-tabs button:focus-visible {
+    outline: 2px solid var(--ft-theme-primary);
+    outline-offset: 3px;
+    border-radius: 4px
+}
+
+@media(max-width:900px) {
+    .ft-exact-job-detail .ft-next-phase-box>.ft-permission-note {
+        grid-row: auto !important
+    }
+
+    .ft-exact-job-detail .ft-upload-ready-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center
+    }
+
+    .ft-exact-job-detail .ft-upload-ready-row .ft-new-job-btn {
+        max-width: 100%
+    }
+}
+
+@media(max-width:520px) {
+    .ft-exact-job-detail .ft-job-documents-table .ft-required-inline-row td>div:first-child {
+        display: grid !important;
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .ft-exact-job-detail .ft-upload-ready-row {
+        align-items: stretch;
+        flex-direction: column
+    }
+
+    .ft-exact-job-detail .ft-upload-ready-row .ft-new-job-btn {
+        width: 100%
+    }
+}
+
+/* Order details documents: clearer hierarchy, compact phase groups, and mobile-first actions. */
+.ft-exact-job-detail .ft-doc-ux-title {
+    margin-bottom: 12px;
+    align-items: center;
+}
+
+.ft-exact-job-detail .ft-doc-ux-title h2 {
+    font-size: 1.5rem
+}
+
+.ft-exact-job-detail .ft-doc-ux-title p {
+    font-size: .6875rem;
+    max-width: 620px
+}
+
+.ft-exact-job-detail .ft-doc-completion-copy {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 7px 10px;
+    border: 1px solid #dce5f0;
+    border-radius: 9px;
+    background: #fff;
+    color: #60738c;
+}
+
+.ft-exact-job-detail .ft-doc-completion-copy strong {
+    font-size: .875rem;
+    color: #0c203c
+}
+
+.ft-exact-job-detail .ft-doc-completion-copy span {
+    font-size: .5625rem;
+    font-weight: 700
+}
+
+.ft-exact-job-detail .ft-doc-summary-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ft-exact-job-detail .ft-doc-summary-item {
+    min-width: 0;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 11px;
+    border: 1px solid #dce5f0;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.ft-exact-job-detail .ft-doc-summary-item.needs-action {
+    border-color: #f1d39b;
+    background: #fffbf2
+}
+
+.ft-exact-job-detail .ft-doc-summary-item>div {
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-doc-summary-item small {
+    display: block;
+    color: #667a93;
+    font-size: .53125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.ft-exact-job-detail .ft-doc-summary-item b {
+    display: block;
+    margin-top: 2px;
+    font-size: 1.0625rem;
+    color: #0b1d36
+}
+
+.ft-exact-job-detail .ft-doc-summary-icon {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    font-size: .75rem;
+    font-weight: 900;
+}
+
+.ft-exact-job-detail .ft-doc-summary-icon.blue {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-exact-job-detail .ft-doc-summary-icon.neutral {
+    background: #f0f4f8;
+    color: #50647e
+}
+
+.ft-exact-job-detail .ft-doc-summary-icon.amber {
+    background: #fff2d7;
+    color: #b86a00
+}
+
+.ft-exact-job-detail .ft-doc-summary-icon.green {
+    background: #e9f8ef;
+    color: #13813d
+}
+
+.ft-exact-job-detail .ft-doc-required-progress {
+    margin: 0 0 12px;
+    padding: 8px 10px;
+    border: 1px solid #dce5f0;
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle);
+}
+
+.ft-exact-job-detail .ft-doc-required-progress>div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: .5625rem;
+    color: #62758d
+}
+
+.ft-exact-job-detail .ft-doc-required-progress b {
+    color: #15375f
+}
+
+.ft-exact-job-detail .ft-doc-progress-track {
+    display: block;
+    height: 6px;
+    border-radius: 999px;
+    background: #e7edf4;
+    overflow: hidden
+}
+
+.ft-exact-job-detail .ft-doc-progress-track i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--ft-theme-primary)
+}
+
+.ft-exact-job-detail .ft-doc-upload-card {
+    padding: 14px;
+    margin-bottom: 12px;
+    border-color: #d6e2f0;
+    box-shadow: none;
+}
+
+.ft-exact-job-detail .ft-doc-upload-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px
+}
+
+.ft-exact-job-detail .ft-doc-upload-heading-icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: 1.125rem;
+    font-weight: 800;
+}
+
+.ft-exact-job-detail .ft-doc-upload-heading>div {
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-doc-upload-heading b {
+    font-size: .8125rem;
+    color: #0b1d36
+}
+
+.ft-exact-job-detail .ft-doc-upload-heading p {
+    margin: 3px 0 0;
+    font-size: .625rem;
+    line-height: 1.4;
+    color: #62758d
+}
+
+.ft-exact-job-detail .ft-doc-upload-steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.ft-exact-job-detail .ft-doc-upload-step {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    padding: 8px 9px;
+    border: 1px solid #e0e7ef;
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle);
+}
+
+.ft-exact-job-detail .ft-doc-upload-step>span {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ft-theme-primary);
+    color: #fff;
+    font-size: .5625rem;
+    font-weight: 800;
+}
+
+.ft-exact-job-detail .ft-doc-upload-step b {
+    display: block;
+    font-size: .59375rem;
+    color: #16304f
+}
+
+.ft-exact-job-detail .ft-doc-upload-step small {
+    display: block;
+    margin-top: 1px;
+    font-size: .5rem;
+    color: #70829a;
+    line-height: 1.3
+}
+
+.ft-exact-job-detail .ft-doc-purpose-ux {
+    margin-top: 12px
+}
+
+.ft-exact-job-detail .ft-doc-purpose-ux>label {
+    font-size: .625rem !important;
+    margin-bottom: 6px !important
+}
+
+.ft-exact-job-detail .ft-doc-purpose-ux .ft-document-purpose-select {
+    height: 40px !important;
+    border-radius: 8px !important;
+    font-size: .625rem !important;
+    font-weight: 650;
+}
+
+.ft-exact-job-detail .ft-doc-purpose-ux .ft-document-match-note {
+    font-size: .53125rem !important;
+    margin-top: 5px !important
+}
+
+.ft-exact-job-detail .ft-doc-upload-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 170px;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+}
+
+.ft-exact-job-detail .ft-doc-primary-drop {
+    min-height: 72px;
+    border: 1px dashed #9ab3d1 !important;
+    border-radius: 10px !important;
+    background: var(--ft-theme-surface-subtle) !important;
+    padding: 10px 12px !important;
+}
+
+.ft-exact-job-detail .ft-doc-primary-drop>div {
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-doc-primary-drop>div>b {
+    display: block;
+    font-size: .65625rem;
+    color: #142a46
+}
+
+.ft-exact-job-detail .ft-doc-primary-drop>div>span {
+    display: block;
+    margin-top: 2px;
+    font-size: .5625rem;
+    color: #506984
+}
+
+.ft-exact-job-detail .ft-doc-primary-drop>div>span strong {
+    color: var(--ft-theme-primary)
+}
+
+.ft-exact-job-detail .ft-doc-primary-drop small {
+    display: block;
+    margin-top: 3px;
+    font-size: .5rem;
+    color: #71849c
+}
+
+.ft-exact-job-detail .ft-doc-existing-action {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 72px !important;
+    margin: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    border-radius: 10px;
+    color: var(--ft-theme-primary);
+}
+
+.ft-exact-job-detail .ft-doc-existing-action>span:first-child {
+    font-size: 1.0625rem
+}
+
+.ft-exact-job-detail .ft-doc-existing-action>span:last-child {
+    font-size: .59375rem
+}
+
+.ft-exact-job-detail .ft-doc-upload-ready {
+    margin-top: 9px;
+    padding: 8px 9px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle);
+}
+
+.ft-exact-job-detail .ft-doc-existing-picker {
+    margin-top: 10px;
+    padding: 11px;
+    border: 1px solid #dbe4ef;
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle);
+}
+
+.ft-exact-job-detail .ft-doc-existing-picker .ft-card-row-head b {
+    font-size: .65625rem
+}
+
+.ft-exact-job-detail .ft-doc-existing-picker .ft-card-row-head p {
+    font-size: .53125rem
+}
+
+.ft-exact-job-detail .ft-doc-existing-picker-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    margin-top: 9px
+}
+
+.ft-exact-job-detail .ft-doc-existing-picker-actions select {
+    min-width: 0;
+    width: 100%;
+    height: 38px;
+    border: 1px solid #cedaea;
+    border-radius: 8px;
+    padding: 0 10px;
+    background: #fff;
+    color: #162844;
+    font-size: .5625rem
+}
+
+.ft-exact-job-detail .ft-doc-existing-picker-actions .ft-new-job-btn {
+    height: 38px
+}
+
+.ft-exact-job-detail .ft-doc-library-card {
+    padding: 14px;
+    box-shadow: none
+}
+
+.ft-exact-job-detail .ft-doc-library-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.ft-exact-job-detail .ft-doc-library-heading h3 {
+    margin: 0;
+    font-size: .9375rem
+}
+
+.ft-exact-job-detail .ft-doc-library-heading p {
+    margin: 3px 0 0;
+    font-size: .5625rem;
+    color: #667a93;
+    line-height: 1.4
+}
+
+.ft-exact-job-detail .ft-doc-phase-list {
+    display: grid;
+    gap: 8px
+}
+
+.ft-exact-job-detail .ft-doc-phase-group {
+    border: 1px solid #dce5f0;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.ft-exact-job-detail .ft-doc-phase-group[open] {
+    border-color: #cfdceb;
+    box-shadow: 0 3px 10px rgba(31, 55, 87, .035)
+}
+
+.ft-exact-job-detail .ft-doc-phase-summary {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 18px 28px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    padding: 9px 10px;
+    background: var(--ft-master-bg, var(--ft-theme-surface-subtle));
+    border-left: 3px solid var(--ft-master-color, #94a3b8);
+    cursor: pointer;
+    user-select: none;
+}
+
+.ft-exact-job-detail .ft-doc-phase-summary::-webkit-details-marker {
+    display: none
+}
+
+.ft-exact-job-detail .ft-doc-phase-summary::marker {
+    display: none;
+    content: ""
+}
+
+.ft-exact-job-detail .ft-doc-phase-chevron {
+    font-size: 1rem;
+    color: #536b86;
+    transition: transform .15s ease
+}
+
+.ft-exact-job-detail .ft-doc-phase-group[open] .ft-doc-phase-chevron {
+    transform: rotate(90deg)
+}
+
+.ft-exact-job-detail .ft-doc-phase-number {
+    width: 27px;
+    height: 27px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ft-master-color, #64748b);
+    color: #fff;
+    font-size: .5625rem;
+}
+
+.ft-exact-job-detail .ft-doc-unlinked-group .ft-doc-phase-number {
+    background: #eef2f6;
+    color: #52667e
+}
+
+.ft-exact-job-detail .ft-doc-phase-copy {
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-doc-phase-copy strong {
+    display: block;
+    min-width: 0;
+    font-size: .6875rem;
+    color: #10233e;
+    overflow-wrap: anywhere
+}
+
+.ft-exact-job-detail .ft-doc-phase-copy small {
+    display: block;
+    margin-top: 2px;
+    font-size: .53125rem;
+    color: #667a93;
+    overflow-wrap: anywhere
+}
+
+.ft-exact-job-detail .ft-doc-phase-body {
+    display: grid;
+    gap: 8px;
+    padding: 9px;
+    border-top: 1px solid #e4ebf3;
+    background: #fff
+}
+
+.ft-exact-job-detail .ft-doc-requirement-card {
+    border: 1px solid #dce5ef;
+    border-radius: 9px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.ft-exact-job-detail .ft-doc-requirement-card.needs-action {
+    border-color: #f0d49f;
+    background: #fffdf8
+}
+
+.ft-exact-job-detail .ft-doc-requirement-main {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+    padding: 10px;
+}
+
+.ft-exact-job-detail .ft-doc-requirement-state {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #1d9a4c;
+    color: #fff;
+    font-size: .625rem;
+    font-weight: 900;
+}
+
+.ft-exact-job-detail .ft-doc-requirement-card.needs-action .ft-doc-requirement-state {
+    background: #f2a000
+}
+
+.ft-exact-job-detail .ft-doc-requirement-copy {
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-doc-requirement-title-line {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap
+}
+
+.ft-exact-job-detail .ft-doc-requirement-title-line>b {
+    min-width: 0;
+    font-size: .65625rem;
+    color: #112641;
+    overflow-wrap: anywhere
+}
+
+.ft-exact-job-detail .ft-doc-requirement-copy>small {
+    display: block;
+    margin-top: 2px;
+    font-size: .53125rem;
+    color: #667a93;
+    overflow-wrap: anywhere
+}
+
+.ft-exact-job-detail .ft-doc-requirement-copy>p {
+    margin: 3px 0 0;
+    font-size: .53125rem;
+    color: #7a8798
+}
+
+.ft-exact-job-detail .ft-doc-requirement-upload {
+    height: 31px !important;
+    padding: 0 10px !important;
+    font-size: .5625rem !important;
+    white-space: nowrap
+}
+
+.ft-exact-job-detail .ft-doc-linked-files {
+    display: grid;
+    border-top: 1px solid #e8edf3;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-exact-job-detail .ft-doc-linked-file {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #edf1f5;
+}
+
+.ft-exact-job-detail .ft-doc-linked-file:last-child {
+    border-bottom: 0
+}
+
+.ft-exact-job-detail .ft-doc-linked-file-copy {
+    min-width: 0
+}
+
+.ft-exact-job-detail .ft-doc-linked-file-copy>a {
+    display: block;
+    color: var(--ft-theme-primary);
+    font-size: .59375rem;
+    font-weight: 750;
+    text-decoration: none;
+    overflow-wrap: anywhere
+}
+
+.ft-exact-job-detail .ft-doc-linked-file-copy>small {
+    display: block;
+    margin-top: 2px;
+    color: #728197;
+    font-size: .4875rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere
+}
+
+.ft-exact-job-detail .ft-doc-linked-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-exact-job-detail .ft-doc-linked-actions .ft-link-blue {
+    font-size: .5625rem
+}
+
+.ft-exact-job-detail .ft-doc-linked-actions .ft-doc-delete-button {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 6px;
+    background: #fff0ef;
+    color: #c63d37;
+    font-size: .9375rem;
+    line-height: 1
+}
+
+.ft-exact-job-detail .ft-doc-attachments-block {
+    display: grid;
+    gap: 0;
+    border: 1px solid #e3e9f0;
+    border-radius: 9px;
+    overflow: hidden
+}
+
+.ft-exact-job-detail .ft-doc-subsection-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 9px;
+    background: #f7f9fc
+}
+
+.ft-exact-job-detail .ft-doc-subsection-label span {
+    font-size: .5625rem;
+    font-weight: 800;
+    color: #334a67
+}
+
+.ft-exact-job-detail .ft-doc-subsection-label small {
+    font-size: .46875rem;
+    color: #77869a;
+    text-align: right
+}
+
+.ft-exact-job-detail .ft-doc-empty-phase {
+    padding: 12px;
+    border: 1px dashed #d9e2ec;
+    border-radius: 8px;
+    background: var(--ft-theme-surface-subtle);
+    color: #718197;
+    font-size: .5625rem;
+    text-align: center
+}
+
+@media(max-width:900px) {
+    .ft-exact-job-detail .ft-doc-ux-title {
+        align-items: flex-start
+    }
+
+    .ft-exact-job-detail .ft-doc-summary-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .ft-exact-job-detail .ft-doc-summary-item {
+        min-height: 54px
+    }
+
+    .ft-exact-job-detail .ft-doc-upload-card,
+    .ft-exact-job-detail .ft-doc-library-card {
+        padding: 12px
+    }
+
+    .ft-exact-job-detail .ft-doc-upload-actions {
+        grid-template-columns: minmax(0, 1fr) 150px;
+        gap: 8px
+    }
+
+    .ft-exact-job-detail .ft-task-upload-zone.ft-doc-upload-actions {
+        display: grid;
+        overflow: visible
+    }
+
+    .ft-exact-job-detail .ft-doc-primary-drop {
+        border-radius: 10px !important
+    }
+
+    .ft-exact-job-detail .ft-doc-existing-action {
+        margin: 0 !important;
+        width: 100% !important;
+        min-height: 72px !important
+    }
+
+    .ft-exact-job-detail .ft-doc-library-heading {
+        align-items: center
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-summary {
+        grid-template-columns: 18px 28px minmax(0, 1fr) auto
+    }
+}
+
+@media(max-width:640px) {
+    .ft-exact-job-detail .ft-doc-ux-title {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px
+    }
+
+    .ft-exact-job-detail .ft-doc-completion-copy {
+        justify-self: start
+    }
+
+    .ft-exact-job-detail .ft-doc-upload-steps {
+        grid-template-columns: 1fr
+    }
+
+    .ft-exact-job-detail .ft-doc-upload-actions {
+        grid-template-columns: 1fr
+    }
+
+    .ft-exact-job-detail .ft-doc-existing-action {
+        min-height: 44px !important;
+        flex-direction: row
+    }
+
+    .ft-exact-job-detail .ft-doc-existing-action>span:first-child {
+        font-size: .875rem
+    }
+
+    .ft-exact-job-detail .ft-doc-existing-picker-actions {
+        grid-template-columns: 1fr
+    }
+
+    .ft-exact-job-detail .ft-doc-existing-picker-actions .ft-new-job-btn {
+        width: 100%
+    }
+
+    .ft-exact-job-detail .ft-doc-library-heading {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-summary {
+        grid-template-columns: 16px 26px minmax(0, 1fr);
+        gap: 7px;
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-summary>.ft-soft-pill {
+        grid-column: 3;
+        justify-self: start;
+        margin-top: 2px
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-main {
+        grid-template-columns: 22px minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-upload {
+        grid-column: 2;
+        width: 100%;
+        max-width: 180px;
+        justify-self: start
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-file {
+        grid-template-columns: 26px minmax(0, 1fr) auto;
+        gap: 7px;
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-file>.ft-soft-pill {
+        grid-column: 2;
+        justify-self: start
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-actions {
+        grid-column: 3;
+        grid-row: 1/3;
+        align-self: center
+    }
+
+    .ft-exact-job-detail .ft-doc-subsection-label {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 2px
+    }
+
+    .ft-exact-job-detail .ft-doc-subsection-label small {
+        text-align: left
+    }
+}
+
+@media(max-width:420px) {
+    .ft-exact-job-detail .ft-doc-summary-strip {
+        gap: 6px
+    }
+
+    .ft-exact-job-detail .ft-doc-summary-item {
+        padding: 8px;
+        gap: 7px
+    }
+
+    .ft-exact-job-detail .ft-doc-summary-icon {
+        width: 27px;
+        height: 27px;
+        flex-basis: 27px
+    }
+
+    .ft-exact-job-detail .ft-doc-summary-item small {
+        font-size: .46875rem
+    }
+
+    .ft-exact-job-detail .ft-doc-summary-item b {
+        font-size: .9375rem
+    }
+
+    .ft-exact-job-detail .ft-doc-upload-card,
+    .ft-exact-job-detail .ft-doc-library-card {
+        padding: 10px
+    }
+
+    .ft-exact-job-detail .ft-doc-upload-heading {
+        gap: 8px
+    }
+
+    .ft-exact-job-detail .ft-doc-upload-heading-icon {
+        width: 29px;
+        height: 29px;
+        flex-basis: 29px
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-body {
+        padding: 7px
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-summary {
+        padding: 8px
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-file {
+        grid-template-columns: 24px minmax(0, 1fr);
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-file>.ft-soft-pill {
+        grid-column: 2
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-actions {
+        grid-column: 2;
+        grid-row: auto;
+        justify-self: start
+    }
+}
+
+/* ==========================================================================\n   Order detail mobile centering refinements — 2026-08-09\n   Keep short workflow steppers visually centered and center the document\n   requirement action block without changing desktop layouts.\n   ========================================================================== */
+@media(max-width:640px) {
+
+    /* Workflow: when only a few phases fit on screen, center the whole phase run.\n       The parent still scrolls horizontally for longer workflows. */
+    .ft-exact-job-detail .ft-workflow-stepper {
+        justify-content: center !important;
+        margin-inline: auto;
+    }
+
+    /* Documents: center the requirement content group inside the card while\n       preserving the icon + copy relationship and keeping the action easy to tap. */
+    .ft-exact-job-detail .ft-doc-requirement-main {
+        grid-template-columns: 24px minmax(0, 360px) !important;
+        justify-content: center;
+        align-items: start;
+        column-gap: 10px;
+        padding: 14px 12px;
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-state {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: center;
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-copy {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+        max-width: 360px;
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-upload {
+        grid-column: 2 !important;
+        grid-row: 2;
+        width: 100% !important;
+        max-width: 360px !important;
+        justify-self: center !important;
+        margin-top: 4px;
+    }
+}
+
+@media(max-width:420px) {
+    .ft-exact-job-detail .ft-doc-requirement-main {
+        grid-template-columns: 22px minmax(0, 1fr) !important;
+        padding: 12px 10px;
+        column-gap: 9px;
+    }
+}
+
+/* ==========================================================================
+   Responsive alignment refinements — 2026-08-09
+   Documents: center the mobile device-upload content as one balanced group.
+   Task details: place management attention and order context before Description
+   on phone layouts while preserving the desktop sidebar.
+   ========================================================================== */
+.ft-exact-task-header .ft-detail-actions {
+    margin-left: auto
+}
+
+@media(max-width:700px) {
+
+    /* Keep the upload prompt centered as a single icon + copy group. */
+    .ft-exact-job-detail .ft-doc-primary-drop {
+        grid-template-columns: 28px minmax(0, auto) !important;
+        justify-content: center;
+        align-content: center;
+        align-items: center;
+        column-gap: 10px !important;
+        width: 100%;
+        text-align: left;
+    }
+
+    .ft-exact-job-detail .ft-doc-primary-drop>.ft-paperclip {
+        justify-self: center;
+        align-self: center;
+        margin: 0;
+    }
+
+    .ft-exact-job-detail .ft-doc-primary-drop>div {
+        width: min(100%, 460px);
+        max-width: 460px;
+        justify-self: start;
+    }
+
+    /* Flatten only the task-detail content wrappers on phones so the sidebar
+       cards can participate in the same visual order as the main cards. */
+    .ft-exact-task-detail .ft-task-detail-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 0;
+    }
+
+    .ft-exact-task-detail .ft-task-detail-layout>main,
+    .ft-exact-task-detail .ft-task-detail-layout>aside {
+        display: contents
+    }
+
+    .ft-exact-task-detail .ft-friendly-task-properties {
+        order: 1
+    }
+
+    .ft-exact-task-detail .ft-management-card {
+        order: 2
+    }
+
+    .ft-exact-task-detail .ft-job-context-card {
+        order: 3
+    }
+
+    .ft-exact-task-detail .ft-description-card {
+        order: 4
+    }
+
+    .ft-exact-task-detail .ft-checklist-card {
+        order: 5
+    }
+
+    .ft-exact-task-detail .ft-attachment-card {
+        order: 6
+    }
+
+    .ft-exact-task-detail .ft-task-activity-card {
+        order: 7
+    }
+}
+
+@media(max-width:420px) {
+    .ft-exact-job-detail .ft-doc-primary-drop {
+        grid-template-columns: 24px minmax(0, auto) !important;
+        justify-content: center;
+        padding: 12px !important;
+    }
+
+    .ft-exact-job-detail .ft-doc-primary-drop>div {
+        max-width: 300px
+    }
+}
+
+/* ==========================================================================
+   Order details > Documents alignment polish - 2026-08-09
+   Keeps upload prompts visually centered and gives phase/requirement/file rows
+   a consistent alignment on phone and tablet widths.
+   ========================================================================== */
+@media(max-width:700px) {
+
+    /* Upload from device: use one centered vertical block instead of an icon
+       floating to the left of a differently sized text column. */
+    .ft-exact-job-detail .ft-doc-primary-drop {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px !important;
+        min-height: 96px;
+        padding: 14px 16px !important;
+        text-align: center;
+    }
+
+    .ft-exact-job-detail .ft-doc-primary-drop>.ft-paperclip {
+        width: 24px;
+        min-width: 24px;
+        margin: 0 !important;
+        display: grid;
+        place-items: center;
+        justify-self: auto !important;
+        align-self: center !important;
+    }
+
+    .ft-exact-job-detail .ft-doc-primary-drop>div {
+        width: 100% !important;
+        max-width: 520px !important;
+        min-width: 0;
+        justify-self: auto !important;
+        text-align: center;
+    }
+
+    .ft-exact-job-detail .ft-doc-primary-drop>div>b,
+    .ft-exact-job-detail .ft-doc-primary-drop>div>span,
+    .ft-exact-job-detail .ft-doc-primary-drop>div>small {
+        text-align: center;
+    }
+
+    /* Library heading/status share one clean left edge. */
+    .ft-exact-job-detail .ft-doc-library-heading {
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .ft-exact-job-detail .ft-doc-library-heading>.ft-soft-pill {
+        align-self: flex-start;
+    }
+
+    /* Keep phase status on the phase row instead of dropping into an
+       unrelated-looking second line. */
+    .ft-exact-job-detail .ft-doc-phase-summary {
+        grid-template-columns: 18px 32px minmax(0, 1fr) auto !important;
+        column-gap: 8px !important;
+        row-gap: 4px !important;
+        align-items: center;
+        padding: 10px 11px;
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-summary>.ft-soft-pill {
+        grid-column: 4 !important;
+        grid-row: 1 !important;
+        justify-self: end !important;
+        align-self: center;
+        margin-top: 0 !important;
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-number {
+        width: 32px;
+        height: 32px;
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-copy strong {
+        line-height: 1.2;
+    }
+
+    /* Requirement rows: icon and copy align to one baseline, with consistent
+       internal spacing. */
+    .ft-exact-job-detail .ft-doc-requirement-main {
+        grid-template-columns: 34px minmax(0, 1fr) !important;
+        justify-content: stretch !important;
+        column-gap: 10px !important;
+        row-gap: 8px;
+        padding: 12px !important;
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-state {
+        width: 32px;
+        height: 32px;
+        grid-column: 1;
+        grid-row: 1;
+        align-self: start;
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-copy {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+        max-width: none !important;
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-title-line {
+        gap: 6px;
+        align-items: center;
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-upload {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        width: min(100%, 220px) !important;
+        max-width: 220px !important;
+        justify-self: start !important;
+        margin-top: 0 !important;
+    }
+
+    /* Linked file row: filename/meta on the first line, status and actions on
+       one aligned second line. */
+    .ft-exact-job-detail .ft-doc-linked-file {
+        grid-template-columns: 34px minmax(0, 1fr) auto !important;
+        column-gap: 10px !important;
+        row-gap: 7px !important;
+        align-items: start;
+        padding: 10px 12px;
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-file>.ft-file-icon {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: #fff0f3;
+        border: 1px solid #ffd8e1;
+        line-height: 1;
+        justify-self: center;
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-file>.ft-file-icon.sheet {
+        background: #eef9f1;
+        border-color: #d6efdd;
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-file-copy {
+        grid-column: 2 / 4;
+        grid-row: 1;
+        align-self: center;
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-file>.ft-soft-pill {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        justify-self: start !important;
+        align-self: center;
+        margin: 0;
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-actions {
+        grid-column: 3 !important;
+        grid-row: 2 !important;
+        justify-self: end !important;
+        align-self: center !important;
+        gap: 8px;
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-actions .ft-doc-delete-button {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+@media(max-width:420px) {
+    .ft-exact-job-detail .ft-doc-primary-drop {
+        min-height: 100px;
+        padding: 13px 12px !important;
+    }
+
+    .ft-exact-job-detail .ft-doc-primary-drop>div {
+        max-width: 100% !important;
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-summary {
+        grid-template-columns: 16px 30px minmax(0, 1fr) auto !important;
+        column-gap: 7px !important;
+        padding: 9px 8px;
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-number {
+        width: 30px;
+        height: 30px;
+    }
+
+    .ft-exact-job-detail .ft-doc-phase-summary>.ft-soft-pill {
+        padding: 4px 7px;
+        font-size: .5625rem;
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-main {
+        grid-template-columns: 32px minmax(0, 1fr) !important;
+        padding: 11px 10px !important;
+        column-gap: 9px !important;
+    }
+
+    .ft-exact-job-detail .ft-doc-requirement-state {
+        width: 30px;
+        height: 30px;
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-file {
+        grid-template-columns: 32px minmax(0, 1fr) auto !important;
+        padding: 9px 10px;
+        column-gap: 9px !important;
+    }
+
+    .ft-exact-job-detail .ft-doc-linked-file>.ft-file-icon {
+        width: 28px;
+        height: 28px;
+    }
+}
+
+
+/* ========================================================================== */
+/* 2026-08-09 final mobile alignment: overview documents + task header UX     */
+/* ========================================================================== */
+
+/* Order details > Overview > Attachments: keep the library action aligned
+   with the upload area rather than floating with legacy grid margins. */
+@media(max-width:900px) {
+    .ft-exact-job-detail .ft-job-overview-dropzone {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 10px !important;
+        width: 100%;
+        max-width: 100%;
+        padding: 12px !important;
+        overflow: visible !important;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-dropzone .ft-task-upload-drop {
+        width: min(100%, 620px) !important;
+        max-width: 620px;
+        min-width: 0;
+        margin: 0 auto !important;
+        padding: 6px 4px !important;
+        justify-self: center;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-dropzone .ft-task-choose-document {
+        width: min(100%, 620px) !important;
+        max-width: 620px !important;
+        min-width: 0 !important;
+        min-height: 42px;
+        height: auto;
+        margin: 0 auto !important;
+        justify-self: center !important;
+        align-self: center !important;
+        text-align: center;
+    }
+}
+
+@media(max-width:520px) {
+    .ft-exact-job-detail .ft-job-overview-dropzone {
+        padding: 11px !important;
+        gap: 9px !important;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-dropzone .ft-task-upload-drop {
+        grid-template-columns: 28px minmax(0, 1fr) !important;
+        gap: 9px !important;
+        padding: 5px 2px !important;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-dropzone .ft-task-choose-document {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 44px;
+        margin: 0 !important;
+    }
+}
+
+/* Task details: on phones give the title the full content width while keeping
+   the close control as the right-most action.  This removes the tiny inline
+   title input created when the completion action shared the same row. */
+@media(max-width:700px) {
+    .ft-exact-task-detail .ft-exact-task-header {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        gap: 12px !important;
+    }
+
+    .ft-exact-task-detail .ft-exact-task-header .ft-task-heading-copy {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .ft-exact-task-detail .ft-task-title-line {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        align-items: center;
+    }
+
+    .ft-exact-task-detail .ft-editable-task-title {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        flex: 1 1 100%;
+    }
+
+    .ft-exact-task-detail .ft-editable-task-title>span[x-show],
+    .ft-exact-task-detail .ft-editable-task-title>span:first-child {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .ft-exact-task-detail .ft-editable-task-title input {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        height: 48px !important;
+        padding: 0 13px !important;
+        border-radius: 9px !important;
+        font-size: 1.25rem !important;
+        line-height: 1.2 !important;
+        box-sizing: border-box;
+    }
+
+    .ft-exact-task-detail .ft-exact-task-header .ft-detail-actions {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+        max-width: 100%;
+        margin-left: 0 !important;
+        gap: 10px !important;
+    }
+
+    .ft-exact-task-detail .ft-exact-task-header .ft-mark-complete {
+        flex: 0 1 auto;
+        min-width: 0;
+        max-width: calc(100% - 50px);
+        margin-left: auto;
+        white-space: nowrap;
+    }
+
+    .ft-exact-task-detail .ft-exact-task-header .ft-close-page {
+        flex: 0 0 40px;
+        width: 40px !important;
+        height: 40px !important;
+        margin-left: 0 !important;
+        padding: 0 !important;
+        display: grid;
+        place-items: center;
+        justify-self: end;
+        font-size: 1.8125rem;
+        line-height: 1;
+    }
+}
+
+@media(max-width:420px) {
+    .ft-exact-task-detail .ft-editable-task-title input {
+        height: 46px !important;
+        font-size: 1.125rem !important;
+    }
+
+    .ft-exact-task-detail .ft-exact-task-header .ft-mark-complete {
+        height: 40px;
+        padding: 0 13px;
+        font-size: .6875rem;
+    }
+}
+
+/* Rich text fields: operational descriptions/comments can accept pasted screenshots. */
+.ft-rich-text {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #d7e1ed;
+    border-radius: 9px;
+    background: #fff;
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: border-color .15s ease, box-shadow .15s ease
+}
+
+.ft-rich-text:focus-within {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-rich-text.is-uploading {
+    opacity: .82
+}
+
+.ft-rich-text-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    padding: 6px 8px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc
+}
+
+.ft-rich-text-tool {
+    height: 28px;
+    min-width: 28px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: #334a68;
+    font-size: .6875rem;
+    font-weight: 750;
+    padding: 0 7px;
+    cursor: pointer
+}
+
+.ft-rich-text-tool:hover,
+.ft-rich-text-tool:focus-visible {
+    border-color: #cbd9ec;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    outline: none
+}
+
+.ft-rich-text-tool.is-bold {
+    font-weight: 900
+}
+
+.ft-rich-text-tool.is-italic {
+    font-style: italic
+}
+
+.ft-rich-text-tool.is-underline {
+    text-decoration: underline
+}
+
+.ft-rich-text-image-button {
+    margin-left: auto
+}
+
+.ft-rich-text-editor {
+    width: 100%;
+    min-height: 96px;
+    max-height: 440px;
+    overflow: auto;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    color: #0b1d36;
+    font: inherit;
+    line-height: 1.5;
+    outline: 0;
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.ft-rich-text-editor:empty:before {
+    content: attr(data-placeholder);
+    color: #8190a5;
+    pointer-events: none
+}
+
+.ft-rich-text-editor p {
+    margin: 0 0 7px
+}
+
+.ft-rich-text-editor p:last-child {
+    margin-bottom: 0
+}
+
+.ft-rich-text-editor ul,
+.ft-rich-text-editor ol {
+    margin: 5px 0 7px;
+    padding-left: 22px
+}
+
+.ft-rich-text-editor img,
+.ft-rich-text-content img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    max-height: 520px;
+    object-fit: contain;
+    margin: 8px 0;
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    background: #f8fafc
+}
+
+.ft-rich-text-footer {
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px;
+    border-top: 1px solid #edf1f5;
+    background: var(--ft-theme-surface-subtle);
+    color: #6b7e97;
+    font-size: .625rem
+}
+
+.ft-rich-text-status {
+    margin-left: auto;
+    color: #1b6f3b;
+    font-weight: 700
+}
+
+.ft-rich-text-status.is-error {
+    color: #c62828
+}
+
+.ft-rich-text.is-compact .ft-rich-text-toolbar {
+    padding: 4px 6px
+}
+
+.ft-rich-text.is-compact .ft-rich-text-tool {
+    height: 24px;
+    min-width: 24px;
+    padding: 0 5px;
+    font-size: .5625rem
+}
+
+.ft-rich-text.is-compact .ft-rich-text-editor {
+    min-height: 42px;
+    max-height: 180px;
+    padding: 7px 9px;
+    font-size: .6875rem
+}
+
+.ft-rich-text.is-compact .ft-rich-text-footer {
+    font-size: .5rem;
+    min-height: 20px;
+    padding: 2px 6px
+}
+
+.ft-rich-comment-composer {
+    align-items: flex-start
+}
+
+.ft-rich-comment-composer>.avatar,
+.ft-rich-comment-composer>[class*="avatar"] {
+    margin-top: 7px
+}
+
+.ft-rich-comment-composer>.ft-new-job-btn {
+    margin-top: 4px
+}
+
+.ft-comment-composer .ft-rich-text {
+    min-width: 0
+}
+
+.ft-task-activity-card .ft-rich-comment-composer button.ft-rich-text-tool {
+    height: 24px;
+    padding: 0 5px;
+    font-size: .5625rem
+}
+
+.ft-task-activity-card .ft-rich-comment-composer>.ft-new-job-btn {
+    height: 32px;
+    padding: 0 9px;
+    font-size: .5625rem
+}
+
+.ft-inline-description-editor .ft-rich-text,
+.ft-description-card .ft-inline-description-editor .ft-rich-text {
+    display: block;
+    width: 100%;
+    margin: 0;
+    min-width: 0
+}
+
+.ft-inline-description-editor .ft-rich-text-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    width: 100%;
+    box-sizing: border-box
+}
+
+.ft-inline-description-editor .ft-rich-text-image-button {
+    margin-left: auto
+}
+
+.ft-inline-description-editor .ft-rich-text-editor {
+    display: block;
+    width: 100%;
+    min-height: 100px;
+    box-sizing: border-box
+}
+
+.ft-inline-description-editor .ft-rich-text-footer {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box
+}
+
+.ft-inquiry-description-editor .ft-rich-text {
+    margin-top: 8px
+}
+
+.ft-inquiry-description-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px
+}
+
+.ft-rich-text-content {
+    min-width: 0;
+    color: inherit;
+    line-height: 1.5;
+    overflow-wrap: anywhere
+}
+
+.ft-rich-text-content p {
+    margin: 0 0 7px
+}
+
+.ft-rich-text-content p:last-child {
+    margin-bottom: 0
+}
+
+.ft-rich-text-content ul,
+.ft-rich-text-content ol {
+    margin: 5px 0 7px;
+    padding-left: 22px
+}
+
+.ft-activity-entry-content>.ft-rich-text-content {
+    margin-top: 3px
+}
+
+.ft-editable-rich-display {
+    flex: 1;
+    min-width: 0
+}
+
+.ft-inquiry-task-description {
+    margin-top: 3px;
+    color: #60718a;
+    font-size: .75rem
+}
+
+.ft-rich-text-mention-menu {
+    z-index: 1200
+}
+
+@media(max-width:700px) {
+    .ft-rich-text-toolbar {
+        gap: 2px
+    }
+
+    .ft-rich-text-tool {
+        padding: 0 5px
+    }
+
+    .ft-rich-text-footer {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-rich-comment-composer {
+        grid-template-columns: 28px minmax(0, 1fr)
+    }
+
+    .ft-rich-comment-composer>.ft-new-job-btn {
+        grid-column: 2;
+        justify-self: end
+    }
+
+    .ft-rich-text-editor img,
+    .ft-rich-text-content img {
+        max-height: 360px
+    }
+}
+
+/* Rich-text saved image preview / download */
+.ft-rich-text-content img {
+    cursor: zoom-in;
+    transition: box-shadow .15s ease, transform .15s ease
+}
+
+.ft-rich-text-content img:hover {
+    box-shadow: 0 8px 24px rgba(15, 29, 54, .14)
+}
+
+.ft-rich-image-viewer-open {
+    overflow: hidden
+}
+
+.ft-rich-image-viewer[hidden] {
+    display: none !important
+}
+
+.ft-rich-image-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(5, 16, 31, .78);
+    backdrop-filter: blur(3px)
+}
+
+.ft-rich-image-viewer-panel {
+    width: min(1180px, 96vw);
+    height: min(860px, 92vh);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .28)
+}
+
+.ft-rich-image-viewer-toolbar {
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 8px 10px 8px 16px;
+    border-bottom: 1px solid #dfe7f1;
+    background: #f8fafc
+}
+
+.ft-rich-image-viewer-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #243a57;
+    font-size: .8125rem;
+    font-weight: 750
+}
+
+.ft-rich-image-viewer-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto
+}
+
+.ft-rich-image-viewer-btn,
+.ft-rich-image-viewer-zoom,
+.ft-rich-image-viewer-close,
+.ft-rich-image-viewer-open-window,
+.ft-rich-image-viewer-download {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cfdbea;
+    border-radius: 8px;
+    background: #fff;
+    color: #243a57;
+    font: inherit;
+    font-size: .75rem;
+    font-weight: 750;
+    text-decoration: none;
+    cursor: pointer
+}
+
+.ft-rich-image-viewer-btn {
+    width: 36px;
+    font-size: 1.125rem
+}
+
+.ft-rich-image-viewer-zoom {
+    min-width: 58px;
+    padding: 0 9px
+}
+
+.ft-rich-image-viewer-open-window {
+    gap: 5px;
+    padding: 0 12px;
+    white-space: nowrap
+}
+
+.ft-rich-image-viewer-download {
+    padding: 0 14px;
+    background: var(--ft-theme-primary);
+    border-color: var(--ft-theme-primary);
+    color: #fff
+}
+
+.ft-rich-image-viewer-close {
+    width: 36px;
+    font-size: 1.375rem
+}
+
+.ft-rich-image-viewer-btn:hover,
+.ft-rich-image-viewer-zoom:hover,
+.ft-rich-image-viewer-close:hover,
+.ft-rich-image-viewer-open-window:hover {
+    border-color: var(--ft-theme-primary-300);
+    color: var(--ft-theme-primary);
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-rich-image-viewer-download:hover {
+    background: var(--ft-theme-primary)
+}
+
+.ft-rich-image-viewer-stage {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+    background: #eef3f8
+}
+
+.ft-rich-image-viewer-stage img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transform-origin: center center;
+    transition: transform .12s ease;
+    box-shadow: 0 10px 30px rgba(15, 29, 54, .14);
+    user-select: none
+}
+
+.ft-rich-image-viewer-stage img:hover {
+    box-shadow: 0 10px 30px rgba(15, 29, 54, .14)
+}
+
+@media(max-width:700px) {
+    .ft-rich-image-viewer {
+        padding: 8px
+    }
+
+    .ft-rich-image-viewer-panel {
+        width: 100%;
+        height: 94vh;
+        border-radius: 11px
+    }
+
+    .ft-rich-image-viewer-toolbar {
+        padding-left: 10px
+    }
+
+    .ft-rich-image-viewer-title {
+        display: none
+    }
+
+    .ft-rich-image-viewer-actions {
+        width: 100%;
+        justify-content: flex-end;
+        overflow-x: auto;
+        scrollbar-width: none
+    }
+
+    .ft-rich-image-viewer-actions::-webkit-scrollbar {
+        display: none
+    }
+
+    .ft-rich-image-viewer-open-window {
+        padding: 0 10px
+    }
+
+    .ft-rich-image-viewer-download {
+        margin-left: 0;
+        padding: 0 11px
+    }
+
+    .ft-rich-image-viewer-stage {
+        padding: 10px
+    }
+}
+

@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'database'),
+    'default' => env('QUEUE_CONNECTION', env('FLOWTRACK_HORIZONTAL_SCALING', false) ? 'redis' : 'database'),
 
     /*
     |--------------------------------------------------------------------------
@@ -41,7 +41,7 @@ return [
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
-            'after_commit' => true,
+            'after_commit' => false,
         ],
 
         'beanstalkd' => [
@@ -50,7 +50,7 @@ return [
             'queue' => env('BEANSTALKD_QUEUE', 'default'),
             'retry_after' => (int) env('BEANSTALKD_QUEUE_RETRY_AFTER', 90),
             'block_for' => 0,
-            'after_commit' => true,
+            'after_commit' => false,
         ],
 
         'sqs' => [
@@ -61,16 +61,16 @@ return [
             'queue' => env('SQS_QUEUE', 'default'),
             'suffix' => env('SQS_SUFFIX'),
             'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
-            'after_commit' => true,
+            'after_commit' => false,
         ],
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'connection' => env('REDIS_QUEUE_CONNECTION', env('FLOWTRACK_HORIZONTAL_SCALING', false) ? 'queue' : 'default'),
             'queue' => env('REDIS_QUEUE', 'default'),
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
-            'block_for' => null,
-            'after_commit' => true,
+            'block_for' => (int) env('REDIS_QUEUE_BLOCK_FOR', 5),
+            'after_commit' => env('REDIS_QUEUE_AFTER_COMMIT', true),
         ],
 
         'deferred' => [

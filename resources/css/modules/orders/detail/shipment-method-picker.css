@@ -1,0 +1,196 @@
+/* Reusable Shipment shipping-method picker. */
+.ft-order-prototype-detail .ft-ms-method-cell {
+    overflow: visible;
+}
+
+.ft-order-prototype-detail .ft-ms-method {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-method__trigger {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid #c8d6e5;
+    border-radius: 6px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 10px;
+    text-align: left;
+    color: var(--ms-text);
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-method__trigger.is-open,
+.ft-order-prototype-detail .ft-ms-method__trigger:focus-visible {
+    border-color: var(--ms-green);
+    box-shadow: 0 0 0 2px rgba(0, 139, 122, .09);
+    outline: none;
+}
+
+.ft-order-prototype-detail .ft-ms-method__trigger:disabled {
+    cursor: default;
+    background: #fbfcfe;
+}
+
+.ft-order-prototype-detail .ft-ms-method__icon,
+.ft-order-prototype-detail .ft-ms-method-label__icon {
+    width: 20px;
+    height: 20px;
+    color: var(--ms-green);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 20px;
+}
+
+.ft-order-prototype-detail .ft-ms-method__icon svg,
+.ft-order-prototype-detail .ft-ms-method-label__icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.ft-order-prototype-detail .ft-ms-method__copy {
+    min-width: 0;
+    display: grid;
+    gap: 1px;
+    flex: 1;
+}
+
+.ft-order-prototype-detail .ft-ms-method__copy strong {
+    font-size: 10px;
+    font-weight: 800;
+    white-space: normal;
+}
+
+.ft-order-prototype-detail .ft-ms-method__copy small {
+    color: #667892;
+    font-size: 9px;
+}
+
+.ft-order-prototype-detail .ft-ms-method__copy--inline {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.ft-order-prototype-detail .ft-ms-method__chevron {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+    transition: transform .12s ease;
+    color: #536987;
+}
+
+.ft-order-prototype-detail .ft-ms-method__chevron.is-open {
+    transform: rotate(180deg);
+}
+
+.ft-order-prototype-detail .ft-ms-method__menu {
+    position: absolute;
+    z-index: 80;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    min-width: 260px;
+    border: 1px solid #d7e1ec;
+    border-radius: 7px;
+    background: #fff;
+    box-shadow: 0 14px 30px rgba(28, 45, 70, .16);
+    overflow: hidden;
+}
+
+.ft-order-prototype-detail .ft-ms-method__option {
+    width: 100%;
+    border: 0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    text-align: left;
+    cursor: pointer;
+    color: var(--ms-text);
+}
+
+.ft-order-prototype-detail .ft-ms-method__option:hover {
+    background: #eef9f6;
+}
+
+.ft-order-prototype-detail .ft-ms-method__group-title {
+    border-top: 1px solid #e3eaf2;
+    padding: 10px 12px 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #61738c;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .05em;
+}
+
+.ft-order-prototype-detail .ft-ms-method__group-title svg {
+    width: 13px;
+    height: 13px;
+}
+
+/* Table-cell shipping method editor: visually matches the small inline edit
+ * affordance used for Assignee. Selecting an option saves immediately through
+ * selectOrderShipmentMethod; the rest of the shipment stays in view mode. */
+.ft-order-prototype-detail .ft-ms-method--inline-display {
+    width: auto;
+    max-width: 100%;
+}
+
+.ft-order-prototype-detail .ft-ms-method--inline-display .ft-ms-method__trigger {
+    width: auto;
+    max-width: 100%;
+    min-height: 28px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    padding: 3px 5px;
+    gap: 7px;
+}
+
+.ft-order-prototype-detail .ft-ms-method--inline-display .ft-ms-method__trigger:hover,
+.ft-order-prototype-detail .ft-ms-method--inline-display .ft-ms-method__trigger.is-open {
+    background: #f2faf8;
+}
+
+.ft-order-prototype-detail .ft-ms-method--inline-display .ft-ms-method__trigger.is-open,
+.ft-order-prototype-detail .ft-ms-method--inline-display .ft-ms-method__trigger:focus-visible {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px rgba(0, 139, 122, .09);
+}
+
+.ft-order-prototype-detail .ft-ms-method--inline-display .ft-ms-method__icon {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+}
+
+.ft-order-prototype-detail .ft-ms-method--inline-display .ft-ms-method__icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.ft-order-prototype-detail .ft-ms-method--inline-display .ft-ms-method__copy strong {
+    font-size: 10px;
+    line-height: 1.3;
+}
+
+.ft-order-prototype-detail .ft-ms-method__edit-icon {
+    width: 13px;
+    height: 13px;
+    flex: 0 0 13px;
+    color: #4ca99f;
+}
+
+.ft-order-prototype-detail .ft-ms-method--inline-display .ft-ms-method__trigger:hover .ft-ms-method__edit-icon,
+.ft-order-prototype-detail .ft-ms-method--inline-display .ft-ms-method__trigger:focus-visible .ft-ms-method__edit-icon {
+    color: var(--ms-green);
+}

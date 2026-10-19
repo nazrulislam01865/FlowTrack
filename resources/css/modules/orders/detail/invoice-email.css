@@ -1,0 +1,297 @@
+/** Billing-stage generated invoice preview and email delivery workspace. */
+/* ==========================================================================
+   Billing invoice delivery workspace — 2026-09-02
+   Keep the generated PDF beside the same exact-email preview used by the
+   Purchase Order / Artwork handoffs. Scoped to Billing so other dialogs keep
+   their current dimensions and interaction patterns.
+   ========================================================================== */
+.ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-invoice-send-workspace) {
+    width: min(1240px, calc(100vw - 48px));
+    max-height: calc(100vh - 32px);
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-invoice-send-workspace) .ft-prototype-action-body {
+    min-height: 0;
+    overflow: auto;
+    padding: 16px 18px;
+    background: #f7f9fb;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-workspace {
+    display: grid;
+    grid-template-columns: minmax(360px, .88fr) minmax(440px, 1.12fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document,
+.ft-order-prototype-detail .ft-invoice-send-compose {
+    min-width: 0;
+    border: 1px solid #d9e2eb;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 15px;
+    border-bottom: 1px solid #e5ebf0;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__head>div:first-child,
+.ft-order-prototype-detail .ft-invoice-send-compose__title {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__head small,
+.ft-order-prototype-detail .ft-invoice-send-compose__title small {
+    color: #63768c;
+    font-size: .5rem;
+    font-weight: 850;
+    letter-spacing: .08em;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__head strong,
+.ft-order-prototype-detail .ft-invoice-send-compose__title strong {
+    color: #172a43;
+    font-size: .75rem;
+    line-height: 1.35;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__head span,
+.ft-order-prototype-detail .ft-invoice-send-compose__title span {
+    color: #6f8095;
+    font-size: .5625rem;
+    line-height: 1.45;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__actions a {
+    min-height: 31px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    border: 1px solid #cfdbe5;
+    border-radius: 7px;
+    background: #fff;
+    color: #32536c;
+    font-size: .53125rem;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__actions a:first-child {
+    border-color: #9dcfc6;
+    color: #087d6b;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__actions a:hover,
+.ft-order-prototype-detail .ft-invoice-send-document__actions a:focus-visible {
+    background: #f2f8f7;
+    outline: 0;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-bottom: 1px solid #e6ebf0;
+    background: #f9fbfc;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__summary>span {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+    padding: 10px 12px;
+    border-right: 1px solid #e6ebf0;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__summary>span:last-child {
+    border-right: 0;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__summary b {
+    overflow: hidden;
+    color: #223a52;
+    font-size: .59375rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-document__summary small {
+    color: #7a899a;
+    font-size: .46875rem;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-pdf-preview {
+    margin: 12px;
+    border: 1px solid #d8e1e9;
+    border-radius: 9px;
+    overflow: hidden;
+    background: #eef2f5;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-pdf-preview__bar {
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    border-bottom: 1px solid #d8e1e9;
+    background: #f3f6f8;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-pdf-preview__bar span {
+    display: grid;
+    place-items: center;
+    min-width: 28px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 4px;
+    background: #e74a4a;
+    color: #fff;
+    font-size: .4375rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-pdf-preview__bar b {
+    min-width: 0;
+    overflow: hidden;
+    color: #53667b;
+    font-size: .53125rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-pdf-preview iframe {
+    display: block;
+    width: 100%;
+    height: 575px;
+    border: 0;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-compose {
+    padding-bottom: 12px;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-compose__title {
+    padding: 14px 15px 12px;
+    border-bottom: 1px solid #e5ebf0;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-invoice-mail-recipients {
+    margin: 12px 14px 0;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-compose .ft-order-email-preview-shell {
+    margin: 12px 14px 0;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-compose .ft-order-email-preview-frame {
+    height: 425px;
+}
+
+.ft-order-prototype-detail .ft-invoice-send-email-error {
+    margin: 10px 14px 0;
+    padding: 9px 10px;
+    border: 1px solid #f0c7c3;
+    border-radius: 7px;
+    background: #fff7f6;
+}
+
+@media(max-width: 980px) {
+    .ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-invoice-send-workspace) {
+        width: min(820px, calc(100vw - 28px));
+    }
+
+    .ft-order-prototype-detail .ft-invoice-send-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-invoice-send-pdf-preview iframe {
+        height: 480px;
+    }
+}
+
+@media(max-width: 620px) {
+    .ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-invoice-send-workspace) {
+        width: calc(100vw - 18px);
+        max-height: calc(100vh - 18px);
+    }
+
+    .ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-invoice-send-workspace) .ft-prototype-action-body {
+        padding: 10px;
+    }
+
+    .ft-order-prototype-detail .ft-invoice-send-document__head {
+        flex-direction: column;
+    }
+
+    .ft-order-prototype-detail .ft-invoice-send-document__actions {
+        width: 100%;
+    }
+
+    .ft-order-prototype-detail .ft-invoice-send-document__actions a {
+        flex: 1 1 0;
+    }
+
+    .ft-order-prototype-detail .ft-invoice-send-document__summary {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-invoice-send-document__summary>span {
+        border-right: 0;
+        border-bottom: 1px solid #e6ebf0;
+    }
+
+    .ft-order-prototype-detail .ft-invoice-send-document__summary>span:last-child {
+        border-bottom: 0;
+    }
+
+    .ft-order-prototype-detail .ft-invoice-send-pdf-preview iframe {
+        height: 360px;
+    }
+}
+
+.ft-order-prototype-detail .ft-order-task-invoice-file {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.ft-order-prototype-detail .ft-order-task-invoice-file a {
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ft-order-prototype-detail .ft-order-task-invoice-file a:hover,
+.ft-order-prototype-detail .ft-order-task-invoice-file a:focus-visible {
+    text-decoration: underline;
+}
+
+.ft-order-prototype-detail .ft-order-task-invoice-download {
+    padding-left: 6px;
+    border-left: 1px solid #dbe4ec;
+}

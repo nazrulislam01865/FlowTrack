@@ -1,0 +1,163 @@
+/**
+ * Compatibility aliases for FlowTrack's existing design-token contracts.
+ * Do not put raw theme values here; edit settings.css instead.
+ */
+:root {
+    /* Official Phase 1 token bridge */
+    --ft-color-primary-50: var(--ft-theme-primary-50);
+    --ft-color-primary-100: var(--ft-theme-primary-100);
+    --ft-color-primary-200: var(--ft-theme-primary-200);
+    --ft-color-primary-300: var(--ft-theme-primary-300);
+    --ft-color-primary-400: var(--ft-theme-primary-400);
+    --ft-color-primary-500: var(--ft-theme-primary-500);
+    --ft-color-primary-600: var(--ft-theme-primary-600);
+    --ft-color-primary-700: var(--ft-theme-primary-700);
+    --ft-color-primary-800: var(--ft-theme-primary-800);
+    --ft-color-primary-900: var(--ft-theme-primary-900);
+    --ft-color-primary-950: var(--ft-theme-primary-950);
+    --ft-color-teal-50: var(--ft-theme-primary-50);
+    --ft-color-teal-100: var(--ft-theme-primary-100);
+    --ft-color-teal-500: var(--ft-theme-primary-500);
+    --ft-color-teal-600: var(--ft-theme-primary-600);
+    --ft-color-teal-700: var(--ft-theme-primary-700);
+
+    --ft-color-brand-primary: var(--ft-theme-primary);
+    --ft-color-brand-primary-hover: var(--ft-theme-primary-hover);
+    --ft-color-brand-primary-soft: var(--ft-theme-primary-soft);
+    --ft-color-brand-accent: var(--ft-theme-primary);
+    --ft-bg-page: var(--ft-theme-page-bg);
+    --ft-bg-surface: var(--ft-theme-surface);
+    --ft-bg-surface-subtle: var(--ft-theme-surface-subtle);
+    --ft-bg-surface-hover: var(--ft-theme-surface-hover);
+    --ft-text-primary: var(--ft-theme-text-primary);
+    --ft-text-secondary: var(--ft-theme-text-secondary);
+    --ft-text-muted: var(--ft-theme-text-muted);
+    --ft-text-inverse: var(--ft-theme-text-inverse);
+    --ft-text-link: var(--ft-theme-primary);
+    --ft-text-link-hover: var(--ft-theme-primary-hover);
+    --ft-border-default: var(--ft-theme-border);
+    --ft-border-subtle: var(--ft-theme-border-subtle);
+    --ft-border-strong: var(--ft-theme-border-strong);
+    --ft-border-focus: var(--ft-theme-focus);
+    --ft-focus-border: var(--ft-theme-focus);
+    --ft-focus-ring: 0 0 0 3px var(--ft-theme-focus-ring);
+    --ft-overlay-backdrop: var(--ft-theme-overlay);
+
+    --ft-font-family-sans: var(--ft-theme-font-family);
+    --ft-font-family: var(--ft-theme-font-family);
+    --ft-font-size-xs: var(--ft-theme-font-size-xs);
+    --ft-font-size-sm: var(--ft-theme-font-size-sm);
+    --ft-font-size-md: var(--ft-theme-font-size-base);
+    --ft-font-size-lg: var(--ft-theme-font-size-lg);
+    --ft-font-size-xl: var(--ft-theme-font-size-xl);
+    --ft-font-size-2xl: var(--ft-theme-font-size-2xl);
+    --ft-font-size-3xl: var(--ft-theme-font-size-3xl);
+    --ft-font-size-4xl: var(--ft-theme-font-size-4xl);
+    --ft-font-weight-regular: var(--ft-theme-font-weight-regular);
+    --ft-font-weight-medium: var(--ft-theme-font-weight-medium);
+    --ft-font-weight-semibold: var(--ft-theme-font-weight-semibold);
+    --ft-font-weight-strong: var(--ft-theme-font-weight-strong);
+    --ft-font-weight-bold: var(--ft-theme-font-weight-bold);
+    --ft-font-weight-extrabold: var(--ft-theme-font-weight-extrabold);
+    --ft-line-height-tight: var(--ft-theme-line-height-tight);
+    --ft-line-height-snug: var(--ft-theme-line-height-snug);
+    --ft-line-height-normal: var(--ft-theme-line-height-normal);
+    --ft-line-height-relaxed: var(--ft-theme-line-height-relaxed);
+
+    --ft-radius-xs: var(--ft-theme-radius-xs);
+    --ft-radius-sm: var(--ft-theme-radius-sm);
+    --ft-radius-md: var(--ft-theme-radius-md);
+    --ft-radius-lg: var(--ft-theme-radius-lg);
+    --ft-radius-xl: var(--ft-theme-radius-xl);
+    --ft-radius-2xl: var(--ft-theme-radius-2xl);
+    --ft-radius-pill: var(--ft-theme-radius-pill);
+    --ft-shadow-xs: var(--ft-theme-shadow-xs);
+    --ft-shadow-sm: var(--ft-theme-shadow-sm);
+    --ft-shadow-md: var(--ft-theme-shadow-md);
+    --ft-shadow-lg: var(--ft-theme-shadow-lg);
+    --ft-shadow-xl: var(--ft-theme-shadow-lg);
+    --ft-transition-fast: var(--ft-theme-transition-fast);
+    --ft-transition-normal: var(--ft-theme-transition-normal);
+
+    /* Shared semantic feedback */
+    --ft-bg-info: var(--ft-theme-info-soft);
+    --ft-bg-success: var(--ft-theme-success-soft);
+    --ft-bg-warning: var(--ft-theme-warning-soft);
+    --ft-bg-danger: var(--ft-theme-danger-soft);
+    --ft-bg-purple: var(--ft-theme-purple-soft);
+    --ft-text-info: var(--ft-theme-info);
+    --ft-text-success: var(--ft-theme-success);
+    --ft-text-warning: var(--ft-theme-warning);
+    --ft-text-danger: var(--ft-theme-danger);
+    --ft-text-purple: var(--ft-theme-purple);
+
+    /* Historical global aliases still consumed by compatibility CSS */
+    --navy: var(--ft-theme-sidebar-bg);
+    --navy2: var(--ft-theme-sidebar-bg-bottom);
+    --bg: var(--ft-theme-page-bg);
+    --card: var(--ft-theme-surface);
+    --text: var(--ft-theme-text-primary);
+    --muted: var(--ft-theme-text-secondary);
+    --line: var(--ft-theme-border);
+    --blue: var(--ft-theme-primary);
+    --blue2: var(--ft-theme-primary-soft);
+    --green: var(--ft-theme-success);
+    --green2: var(--ft-theme-success-soft);
+    --amber: var(--ft-theme-warning);
+    --amber2: var(--ft-theme-warning-soft);
+    --red: var(--ft-theme-danger);
+    --red2: var(--ft-theme-danger-soft);
+    --purple: var(--ft-theme-purple);
+    --purple2: var(--ft-theme-purple-soft);
+    --shadow: var(--ft-theme-shadow-lg);
+    --radius: var(--ft-theme-radius-2xl);
+
+    /* Dashboard management-theme API */
+    --mgmt-navy: var(--ft-theme-sidebar-bg);
+    --mgmt-navy2: var(--ft-theme-sidebar-bg-bottom);
+    --mgmt-teal: var(--ft-theme-primary);
+    --mgmt-teal2: var(--ft-theme-primary-500);
+    --mgmt-mint: var(--ft-theme-primary-soft);
+    --mgmt-blue: var(--ft-theme-info);
+    --mgmt-bg: var(--ft-theme-dashboard-page-bg);
+    --mgmt-surface: var(--ft-theme-surface);
+    --mgmt-line: var(--ft-theme-border);
+    --mgmt-text: var(--ft-theme-text-primary);
+    --mgmt-muted: var(--ft-theme-text-secondary);
+    --mgmt-red: var(--ft-theme-danger);
+    --mgmt-redbg: var(--ft-theme-danger-soft);
+    --mgmt-amber: var(--ft-theme-warning);
+    --mgmt-amberbg: var(--ft-theme-warning-soft);
+    --mgmt-green: var(--ft-theme-success);
+    --mgmt-greenbg: var(--ft-theme-success-soft);
+    --mgmt-purple: var(--ft-theme-purple);
+    --mgmt-purplebg: var(--ft-theme-purple-soft);
+    --mgmt-shadow: var(--ft-theme-shadow-md);
+
+    /* Older dashboard-prototype bridge */
+    --dashboard-navy: var(--ft-theme-sidebar-bg);
+    --dashboard-navy-2: var(--ft-theme-sidebar-bg-bottom);
+    --dashboard-blue: var(--ft-theme-primary);
+    --dashboard-blue-soft: var(--ft-theme-primary-soft);
+    --dashboard-surface: var(--ft-theme-surface);
+    --dashboard-line: var(--ft-theme-border);
+    --dashboard-text: var(--ft-theme-text-primary);
+    --dashboard-muted: var(--ft-theme-text-secondary);
+    --dashboard-green: var(--ft-theme-success);
+    --dashboard-green-soft: var(--ft-theme-success-soft);
+    --dashboard-amber: var(--ft-theme-warning);
+    --dashboard-amber-soft: var(--ft-theme-warning-soft);
+    --dashboard-red: var(--ft-theme-danger);
+    --dashboard-red-soft: var(--ft-theme-danger-soft);
+    --dashboard-purple: var(--ft-theme-purple);
+    --dashboard-purple-soft: var(--ft-theme-purple-soft);
+
+    /* Sidebar API used by the package component */
+    --ft-sidebar-width: var(--ft-theme-sidebar-width);
+    --ft-sidebar-bg: var(--ft-theme-sidebar-bg);
+    --ft-sidebar-bg-2: var(--ft-theme-sidebar-bg-bottom);
+    --ft-sidebar-text: var(--ft-theme-sidebar-text);
+    --ft-sidebar-muted: var(--ft-theme-sidebar-muted);
+    --ft-sidebar-line: var(--ft-theme-sidebar-line);
+    --ft-sidebar-blue: var(--ft-theme-sidebar-active);
+}

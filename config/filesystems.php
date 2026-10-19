@@ -40,19 +40,57 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/storage',
+            'root' => env('FLOWTRACK_PUBLIC_STORAGE_PATH', storage_path('app/public')),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
         ],
 
-        // Authenticated FlowTrack documents are deliberately kept outside the
-        // public storage symlink. Preview/download always pass through the
-        // authorization-aware DocumentController.
-        'flowtrack_documents' => [
+        'flowtrack_private' => [
             'driver' => 'local',
-            'root' => storage_path('app/flowtrack-documents'),
+            'root' => env('FLOWTRACK_PRIVATE_STORAGE_PATH', storage_path('app/flowtrack-private')),
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'flowtrack_quarantine' => [
+            'driver' => 'local',
+            'root' => env('FLOWTRACK_QUARANTINE_STORAGE_PATH', storage_path('app/flowtrack-quarantine')),
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // Optional S3-compatible private object disks. They are not the default
+        // because the shared-mount profile requires no additional PHP package.
+        // To use these disks install league/flysystem-aws-s3-v3 and set
+        // FLOWTRACK_DOCUMENT_DISK / FLOWTRACK_QUARANTINE_DISK accordingly.
+        'flowtrack_object' => [
+            'driver' => 's3',
+            'key' => env('FLOWTRACK_OBJECT_KEY', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('FLOWTRACK_OBJECT_SECRET', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('FLOWTRACK_OBJECT_REGION', env('AWS_DEFAULT_REGION')),
+            'bucket' => env('FLOWTRACK_OBJECT_BUCKET'),
+            'url' => env('FLOWTRACK_OBJECT_URL'),
+            'endpoint' => env('FLOWTRACK_OBJECT_ENDPOINT'),
+            'use_path_style_endpoint' => env('FLOWTRACK_OBJECT_PATH_STYLE', false),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'flowtrack_object_quarantine' => [
+            'driver' => 's3',
+            'key' => env('FLOWTRACK_OBJECT_KEY', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('FLOWTRACK_OBJECT_SECRET', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('FLOWTRACK_OBJECT_REGION', env('AWS_DEFAULT_REGION')),
+            'bucket' => env('FLOWTRACK_OBJECT_QUARANTINE_BUCKET', env('FLOWTRACK_OBJECT_BUCKET')),
+            'root' => env('FLOWTRACK_OBJECT_QUARANTINE_PREFIX', 'quarantine'),
+            'url' => env('FLOWTRACK_OBJECT_URL'),
+            'endpoint' => env('FLOWTRACK_OBJECT_ENDPOINT'),
+            'use_path_style_endpoint' => env('FLOWTRACK_OBJECT_PATH_STYLE', false),
             'visibility' => 'private',
             'throw' => true,
             'report' => true,
@@ -85,7 +123,7 @@ return [
     */
 
     'links' => [
-        public_path('storage') => storage_path('app/public'),
+        public_path('storage') => env('FLOWTRACK_PUBLIC_STORAGE_PATH', storage_path('app/public')),
     ],
 
 ];

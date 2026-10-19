@@ -1,0 +1,26 @@
+/** Ordered application composition. Keep imports in this order to preserve cascade behavior. */
+@import '../modules/application/01-shell-dashboard-core.css';
+@import '../modules/application/02-boards-v2.css';
+@import '../modules/application/03-orders-list-detail.css';
+@import '../modules/application/04-work-order-create.css';
+@import '../modules/application/05-setup-workflows.css';
+@import '../modules/application/06-board-filters.css';
+@import '../modules/application/07-order-task-inline.css';
+@import '../modules/application/08-clients-documents-admin.css';
+@import '../modules/application/09-progressive-shared-ui.css';
+@import '../modules/application/10-shared-filters-order-overview.css';
+@import '../modules/application/11-my-work-task-board.css';
+@import '../modules/application/12-orders-responsive-richtext.css';
+@import '../modules/application/13-inquiries-create-workflow.css';
+@import '../modules/application/14-client-inquiry-details.css';
+@import '../modules/application/15-order-taskflow.css';
+@import '../modules/application/16-catalog-roles-company.css';
+@import '../modules/application/17-shipping-addresses.css';
+@import '../modules/application/18-taskpack-work-calendar.css';
+@import '../modules/application/19-board-load-more.css';
+@import '../modules/application/20-inquiry-rfq.css';
+@import '../modules/application/21-inquiry-create-rfq.css';
+@import '../modules/application/22-inquiry-product-rfq-prototype.css';
+@import '../modules/application/23-inquiry-product-rfq-overview.css';
+@import '../modules/application/24-inquiry-rfq-product-workspace.css';
+@import '../modules/application/25-public-rfq-quotation-prototype.css';

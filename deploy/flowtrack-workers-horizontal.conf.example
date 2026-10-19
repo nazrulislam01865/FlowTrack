@@ -1,0 +1,62 @@
+; Separate worker pools prevent realtime/notification/email bursts from
+; starving other asynchronous work. All workers load Redis settings from .env.
+
+[program:flowtrack-worker-realtime]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php artisan queue:work redis --queue=realtime --sleep=1 --tries=3 --timeout=30 --max-time=3600 --memory=256
+directory=/var/www/FlowTracker
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/flowtrack-worker-realtime.log
+stopwaitsecs=60
+
+[program:flowtrack-worker-notifications]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php artisan queue:work redis --queue=notifications --sleep=1 --tries=3 --timeout=60 --max-time=3600 --memory=256
+directory=/var/www/FlowTracker
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/flowtrack-worker-notifications.log
+stopwaitsecs=90
+
+[program:flowtrack-worker-emails]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php artisan queue:work redis --queue=emails --sleep=1 --tries=100 --timeout=45 --max-time=3600 --memory=256
+directory=/var/www/FlowTracker
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/flowtrack-worker-emails.log
+stopwaitsecs=90
+
+[program:flowtrack-worker-default]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php artisan queue:work redis --queue=default --sleep=1 --tries=3 --timeout=120 --max-time=3600 --memory=384
+directory=/var/www/FlowTracker
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/flowtrack-worker-default.log
+stopwaitsecs=150
+
+[group:flowtrack-queue]
+programs=flowtrack-worker-realtime,flowtrack-worker-notifications,flowtrack-worker-emails,flowtrack-worker-default
+priority=999

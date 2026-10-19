@@ -1,0 +1,31 @@
+{
+  "phase": 4,
+  "name": "Shared forms, filters, search and selection architecture",
+  "selector_contract": {
+    "service": "App\\Services\\FilterOptionService::searchPage",
+    "page_dto": "App\\Support\\Filters\\FilterOptionPage",
+    "max_per_page": 20,
+    "min_search_length": 2,
+    "max_selected": 100,
+    "no_random_fallback_for_incomplete_search": true,
+    "selected_values_resolved_separately": true
+  },
+  "official_components": [
+    "search-select",
+    "multi-select",
+    "search-input",
+    "filter-bar",
+    "filter-chip",
+    "filter-reset",
+    "date-range",
+    "validation-message",
+    "server-error",
+    "inline-save-state"
+  ],
+  "compatibility": {
+    "legacy_options_adapter_retained": true,
+    "shipping_address_select_filter_adapter_retained": true,
+    "multi_role_select_retained_until_dedicated_visual_migration": true
+  },
+  "release_gate": "npm run quality:phase4"
+}

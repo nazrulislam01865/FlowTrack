@@ -1,0 +1,17 @@
+# FlowTrack Phase 14 health endpoints.
+# /up = process liveness only.
+# /health/ready = database/cache/queue/shared-storage readiness.
+# Configure the external load balancer to use /health/ready and remove a node
+# from rotation after consecutive 503 responses.
+
+location = /up {
+    try_files $uri $uri/ /index.php?$query_string;
+    access_log off;
+    add_header Cache-Control "no-store" always;
+}
+
+location = /health/ready {
+    try_files $uri $uri/ /index.php?$query_string;
+    access_log off;
+    add_header Cache-Control "no-store" always;
+}

@@ -1,0 +1,947 @@
+/** Application CSS segment 10: shared-filters-order-overview. Source-preserving split of the former monolith. */
+/* Shared list-filter final sizing (2026-08-07). */
+.ft-list-filter-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+    align-items: end;
+}
+
+.ft-jl-control-search {
+    grid-column: auto !important;
+}
+
+.ft-remote-filter-menu {
+    left: 0 !important;
+    right: auto !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+}
+
+.ft-remote-filter-option>span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-list-filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.ft-list-filter-actions .ft-board-group-controls {
+    margin-left: 0;
+}
+
+@media (max-width: 720px) {
+    .ft-list-filter-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .ft-list-filter-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .ft-remote-filter-menu {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Remote-filter overflow hardening: trigger-width menu, vertical scroll only. */
+.ft-remote-filter-menu {
+    left: 0 !important;
+    right: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    max-height: min(var(--ft-remote-dropdown-max-height, 280px), calc(100dvh - 24px));
+    overflow: hidden;
+}
+
+.ft-remote-filter-search {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box
+}
+
+.ft-remote-filter-list {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    max-height: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable
+}
+
+/* Infinite remote selectors must remain a real scroll container.
+ * This rule intentionally lives in the unlayered application cascade because
+ * the legacy shared-filter sizing above overrides the component-layer
+ * max-height. Without this override, all five initial Inquiry rows expand the
+ * menu and there is no scroll event to request the next page. */
+.ft-remote-filter-list.ft-search-select__list--infinite {
+    flex: 1 1 auto;
+    max-height: 9rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable
+}
+
+.ft-search-select__scroll-status {
+    min-height: 1.75rem;
+    display: flex;
+    align-items: center;
+    padding-inline: var(--ft-space-3);
+}
+
+.ft-remote-filter-option {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden
+}
+
+.ft-remote-filter-option>span:first-child {
+    flex: 1 1 0%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-remote-filter-option>small {
+    flex: 0 1 42%;
+    min-width: 0;
+    max-width: 42%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-remote-filter-message {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere
+}
+
+
+/* Shared list-filter action placement: do not let legacy board rules absolutely position
+   expand/collapse buttons over the page-header action. */
+.ft-list-active-row .ft-list-filter-actions .ft-board-group-controls {
+    position: static !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    width: auto !important;
+    margin: 0 !important;
+    grid-column: auto !important;
+    flex: 0 0 auto !important
+}
+
+.ft-list-active-row .ft-list-filter-actions .ft-board-group-controls .ft-filter-collapse {
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    margin: 0 !important;
+    transform: none !important
+}
+
+/* 2026-08-07: Job Overview searchable assignee popover must not be clipped by
+   the phase/task table's rounded overflow container. */
+.ft-exact-job-detail .ft-overview-task-card,
+.ft-exact-job-detail .ft-overview-task-card .ft-phase-task-table {
+    overflow: visible !important;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-task-inline-assignee-picker,
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-remote-user {
+    position: relative;
+    z-index: 1240;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-remote-user-menu {
+    z-index: 1300 !important;
+}
+
+/* Job Details catalog inline editing uses the shared searchable remote menu.
+   Keep the closed/editing controls at the exact table typography and dimensions
+   already used by the native inline fields; only the option-loading technique changes. */
+.ft-inline-catalog-editor {
+    position: relative;
+    overflow: visible;
+    width: 100%
+}
+
+.ft-inline-catalog-picker {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    overflow: visible
+}
+
+.ft-inline-remote-catalog {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    font: inherit;
+    overflow: visible
+}
+
+.ft-inline-remote-catalog-trigger {
+    box-sizing: border-box;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-width: 135px;
+    max-width: 100%;
+    height: 32px;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600
+}
+
+.ft-inline-remote-catalog-trigger>span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-inline-remote-catalog-trigger .ft-filter-chevron {
+    flex: 0 0 auto
+}
+
+.ft-inline-remote-catalog.is-disabled .ft-inline-remote-catalog-trigger {
+    cursor: not-allowed;
+    color: #708096
+}
+
+.ft-inline-remote-catalog-menu {
+    z-index: 1350 !important
+}
+
+.ft-inline-product-table,
+.ft-inline-product-table tbody,
+.ft-inline-product-table tr,
+.ft-inline-product-table td {
+    overflow: visible
+}
+
+.ft-inline-product-table .ft-inline-remote-catalog .ft-remote-filter-search,
+.ft-inline-product-table .ft-inline-remote-catalog .ft-remote-filter-option {
+    font-size: .6875rem
+}
+
+.ft-inline-product-table .ft-inline-remote-catalog .ft-remote-filter-message {
+    font-size: .625rem
+}
+
+.ft-inline-product-draft-row .ft-inline-cell-input {
+    border-color: var(--ft-theme-primary-300);
+    background: #fff
+}
+
+.ft-inline-product-quantity-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    min-width: 0;
+    width: 100%
+}
+
+.ft-inline-product-quantity-wrap>.ft-inline-field-editor {
+    flex: 0 1 110px;
+    min-width: 0;
+    margin-left: auto
+}
+
+.ft-inline-product-delete {
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: #7c8ca3;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer
+}
+
+.ft-inline-product-delete:hover,
+.ft-inline-product-delete:focus-visible {
+    border-color: #f2b8b8;
+    background: #fff6f6;
+    color: #b42318;
+    outline: 0
+}
+
+.ft-inline-product-delete:disabled {
+    opacity: .45;
+    cursor: not-allowed
+}
+
+.ft-add-product-inline:disabled {
+    opacity: .55;
+    cursor: wait
+}
+
+.ft-inline-product-table th:last-child,
+.ft-inline-product-table td:last-child {
+    text-align: right
+}
+
+.ft-inline-product-table .ft-inline-cell-input.quantity {
+    text-align: right
+}
+
+
+
+
+/* 2026-08-07 Job Overview cleanup: compact phase controls, task actions and read-only saved products. */
+.ft-overview-task-card {
+    overflow: visible
+}
+
+.ft-phase-toolbar-icons {
+    gap: 7px !important;
+    flex-wrap: nowrap !important
+}
+
+.ft-phase-toolbar-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid #d7e1ee;
+    border-radius: 6px;
+    background: #fff;
+    color: #17304e;
+    cursor: pointer;
+}
+
+.ft-phase-toolbar-icon:hover {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary)
+}
+
+.ft-phase-toolbar-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-overview-task-card .ft-phase-group-head {
+    grid-template-columns: 20px minmax(220px, 1fr) auto 80px
+}
+
+.ft-inline-task-link {
+    font-size: inherit;
+    font-weight: 400;
+    color: inherit;
+    line-height: inherit
+}
+
+.ft-task-action-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 0
+}
+
+.ft-task-action-menu {
+    position: absolute;
+    right: 0;
+    top: 30px;
+    width: 126px;
+    padding: 5px;
+    z-index: 120;
+    border: 1px solid #dce5ef;
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: 0 14px 32px rgba(15, 35, 65, .16)
+}
+
+.ft-task-action-menu button {
+    width: 100%;
+    border: 0;
+    background: #fff;
+    border-radius: 6px;
+    text-align: left;
+    padding: 8px 9px;
+    font-size: .625rem;
+    color: #1a2c45;
+    font-weight: 650
+}
+
+.ft-task-action-menu button:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-task-action-menu button.danger {
+    color: #c7352c
+}
+
+.ft-task-action-menu button.danger:hover {
+    background: #fff1ef
+}
+
+.ft-readonly-product-value {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 30px;
+    margin-left: auto;
+    color: #10233e;
+    font: inherit;
+    text-align: right
+}
+
+.ft-job-overview-dropzone {
+    margin-top: 8px
+}
+
+.ft-job-overview-dropzone .ft-task-upload-drop {
+    min-height: 58px
+}
+
+@media(max-width:760px) {
+    .ft-phase-toolbar-icons {
+        display: flex !important;
+        width: auto !important
+    }
+
+    .ft-overview-task-card .ft-phase-group-head {
+        grid-template-columns: 20px minmax(120px, 1fr) auto 55px !important
+    }
+}
+
+@media(max-width:520px) {
+    .ft-overview-task-card .ft-phase-group-head {
+        grid-template-columns: 20px minmax(100px, 1fr) !important
+    }
+
+    .ft-overview-task-card .ft-phase-group-head small,
+    .ft-overview-task-card .ft-phase-group-head em {
+        display: none
+    }
+}
+
+/* 2026-08-07 Job Overview product row alignment correction. */
+.ft-inline-product-table .ft-product-delete-column,
+.ft-inline-product-table .ft-product-delete-cell {
+    width: 42px;
+    min-width: 42px;
+    text-align: right;
+    padding-left: 4px;
+    padding-right: 8px;
+}
+
+.ft-inline-product-table .ft-product-quantity-cell {
+    text-align: left;
+}
+
+.ft-inline-product-table .ft-product-quantity-cell .ft-readonly-product-value {
+    justify-content: flex-start;
+    margin-left: 0;
+    text-align: left;
+}
+
+.ft-inline-product-table .ft-inline-product-quantity-editor {
+    width: 110px;
+    max-width: 110px;
+    margin-left: 0;
+}
+
+.ft-inline-product-table .ft-product-quantity-cell .ft-inline-cell-input.quantity {
+    text-align: left;
+}
+
+.ft-inline-product-table .ft-product-delete-cell .ft-inline-product-delete {
+    margin-left: auto;
+}
+
+/* Task detail reference refinements: compact identity, completion time, flags and workspace-local timestamps. */
+.ft-task-title-line {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    min-width: 0;
+    flex-wrap: wrap
+}
+
+.ft-task-title-line .ft-editable-task-title {
+    margin: 0
+}
+
+.ft-task-title-phase {
+    color: #60728b;
+    font-size: .75rem;
+    font-weight: 700;
+    white-space: nowrap
+}
+
+.ft-friendly-task-properties {
+    grid-template-columns: repeat(7, minmax(0, 1fr))
+}
+
+.ft-task-completed-property .ft-property-value {
+    font-size: .6875rem;
+    line-height: 1.25
+}
+
+.ft-task-completed-property .ft-completed-date-time {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0
+}
+
+.ft-task-completed-property .ft-completed-time {
+    display: block;
+    color: #60728b;
+    font-size: .625rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap
+}
+
+.ft-task-flag-row {
+    grid-template-columns: 135px minmax(0, 1fr) !important;
+    align-items: center
+}
+
+.ft-task-flag-select {
+    width: 100%;
+    min-width: 0;
+    height: 34px;
+    border: 1px solid #d8e2ee;
+    border-radius: 7px;
+    background: #fff;
+    padding: 0 30px 0 9px;
+    color: #172b47;
+    font: inherit;
+    font-weight: 750;
+    outline: 0
+}
+
+.ft-task-flag-select:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-task-flag-select.is-flagged {
+    color: #b42318;
+    background: #fff8f7
+}
+
+.ft-task-flag-help {
+    display: block;
+    margin-top: 7px;
+    color: #6b7d94;
+    font-size: .625rem;
+    line-height: 1.4
+}
+
+.ft-job-context-card .ft-open-job {
+    display: flex;
+    justify-content: flex-start;
+    padding-left: 0;
+    margin-left: 0;
+    text-align: left
+}
+
+.ft-workspace-settings-card {
+    max-width: 900px
+}
+
+.ft-workspace-setting-row {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) minmax(260px, 360px) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0
+}
+
+.ft-workspace-setting-row>div b,
+.ft-workspace-setting-row>div span {
+    display: block
+}
+
+.ft-workspace-setting-row>div span {
+    margin-top: 4px;
+    color: #65778f;
+    font-size: .6875rem;
+    line-height: 1.45
+}
+
+.ft-workspace-setting-row select {
+    height: 40px;
+    border: 1px solid #d7e1ed;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0 10px;
+    color: #172b47
+}
+
+@media(max-width:1300px) {
+    .ft-friendly-task-properties {
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+    }
+
+    .ft-friendly-task-properties .ft-task-property:nth-child(3n) {
+        border-right: 0
+    }
+}
+
+@media(max-width:800px) {
+    .ft-friendly-task-properties {
+        grid-template-columns: 1fr
+    }
+
+    .ft-friendly-task-properties .ft-task-property {
+        border-right: 0
+    }
+
+    .ft-workspace-setting-row {
+        grid-template-columns: 1fr
+    }
+
+    .ft-task-title-phase {
+        white-space: normal
+    }
+}
+
+
+/* 2026-08-07 Task Details inline-edit UX: match the compact Job Details phase-assignee pattern.
+   Editors replace the displayed value inside the property cell instead of opening a nested card/popover. */
+/* Keep task/inquiry property rows below the sticky shell header while scrolling.
+   The property grid still owns a local stacking context for inline editors, but
+   it must never tie the shell topbar z-index (20), otherwise later DOM content
+   can paint over the header. */
+.ft-exact-task-detail .ft-friendly-task-properties {
+    overflow: visible !important;
+    z-index: 5
+}
+
+.ft-exact-task-detail .ft-friendly-task-properties .ft-task-property {
+    overflow: visible !important;
+    z-index: auto
+}
+
+.ft-exact-task-detail .ft-friendly-task-properties .ft-task-property:focus-within {
+    z-index: 80
+}
+
+.ft-exact-task-detail .ft-task-property-inline-editor {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 34px;
+    gap: 6px;
+    position: relative;
+    overflow: visible;
+}
+
+.ft-exact-task-detail .ft-task-property-inline-input {
+    width: 100%;
+    min-width: 0;
+    max-width: 190px;
+    height: 31px;
+    box-sizing: border-box;
+    border: 1px solid var(--ft-theme-primary-300);
+    border-radius: 7px;
+    background: #fff;
+    color: #0b1d36;
+    padding: 0 8px;
+    outline: 0;
+    font: inherit;
+    font-size: .625rem;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.ft-exact-task-detail .ft-task-property-inline-input:focus {
+    border-color: var(--ft-theme-primary-500);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent);
+}
+
+.ft-exact-task-detail .ft-task-property-assignee-editor .ft-inline-remote-user {
+    width: 100%;
+    max-width: 190px;
+    position: relative;
+    z-index: 90
+}
+
+.ft-exact-task-detail .ft-task-property-assignee-editor .ft-inline-remote-user-trigger {
+    width: 100%;
+    min-width: 0;
+    max-width: 190px;
+    height: 31px;
+    border: 1px solid var(--ft-theme-primary-300);
+    border-radius: 7px;
+    background: #fff;
+    color: #0b1d36;
+    padding: 0 8px;
+    font: inherit;
+    font-size: .625rem;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.ft-exact-task-detail .ft-task-property-assignee-editor .ft-inline-remote-user-menu {
+    z-index: 1500 !important;
+    width: 300px !important;
+    min-width: 260px !important;
+    max-width: min(300px, calc(100vw - 24px)) !important;
+    padding: 8px !important;
+}
+
+.ft-exact-task-detail .ft-task-property-assignee-editor .ft-remote-filter-search {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    margin: 0 0 7px !important;
+    font-size: .6875rem !important;
+}
+
+.ft-exact-task-detail .ft-task-property-assignee-editor .ft-remote-filter-list {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 2px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-height: 220px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.ft-exact-task-detail .ft-task-property-assignee-editor .ft-remote-filter-option {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 8px 9px !important;
+    font-size: .6875rem !important;
+    text-align: left !important;
+}
+
+.ft-exact-task-detail .ft-task-property-assignee-editor .ft-remote-filter-option>span:first-child {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important
+}
+
+.ft-exact-task-detail .ft-task-property-assignee-editor .ft-remote-filter-option>small {
+    display: block !important;
+    flex: 0 1 42% !important;
+    min-width: 0 !important;
+    max-width: 42% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    text-align: right !important;
+    font-size: .5625rem !important
+}
+
+.ft-exact-task-detail .ft-task-property-assignee-editor .ft-remote-filter-message {
+    display: block !important;
+    width: 100% !important;
+    padding: 8px 9px 3px !important;
+    font-size: .5625rem !important;
+    line-height: 1.35 !important
+}
+
+.ft-exact-task-detail .ft-task-property .ft-inline-save-state {
+    position: absolute;
+    right: 5px;
+    bottom: 3px;
+    margin: 0;
+    z-index: 5
+}
+
+.ft-exact-task-detail .ft-task-property .ft-inline-save-state:empty {
+    display: none
+}
+
+@media(max-width:800px) {
+
+    .ft-exact-task-detail .ft-task-property-inline-input,
+    .ft-exact-task-detail .ft-task-property-assignee-editor .ft-inline-remote-user,
+    .ft-exact-task-detail .ft-task-property-assignee-editor .ft-inline-remote-user-trigger {
+        max-width: none
+    }
+
+    .ft-exact-task-detail .ft-task-property-assignee-editor .ft-inline-remote-user-menu {
+        width: min(300px, calc(100vw - 24px)) !important;
+        min-width: 0 !important
+    }
+}
+
+/* 2026-08-08 Task Details: keep Completed On as a normal property card in the desktop property row. */
+.ft-exact-task-detail .ft-friendly-task-properties {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+@media(max-width:1300px) {
+    .ft-exact-task-detail .ft-friendly-task-properties {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media(max-width:800px) {
+    .ft-exact-task-detail .ft-friendly-task-properties {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Automatic per-user local time: settings summary and two-line completion timestamp. */
+.ft-auto-timezone-row {
+    grid-template-columns: minmax(240px, 1fr) minmax(260px, 360px)
+}
+
+.ft-auto-timezone-row .ft-access-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin: 0
+}
+
+.ft-auto-timezone-row .ft-access-info span {
+    margin: 0
+}
+
+@media(max-width:800px) {
+    .ft-auto-timezone-row {
+        grid-template-columns: 1fr
+    }
+}
+
+/* 2026-08-08 shared list-filter typography alignment. The standalone
+   flowtrack-list-filters.css is loaded last in the app layout; keep these
+   source styles in sync for the generated Vite bundle as well. */
+.ft-list-filter-shell .ft-jl-control>label {
+    margin-bottom: 6px;
+    font-size: .8125rem;
+    line-height: 1.3;
+    font-weight: 500;
+    letter-spacing: 0
+}
+
+.ft-list-filter-shell .ft-remote-filter-button {
+    min-height: 42px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: .875rem;
+    line-height: 1.35;
+    font-weight: 400
+}
+
+.ft-list-filter-shell .ft-filter-chevron {
+    font-size: .8125rem;
+    font-weight: 400
+}
+
+.ft-list-filter-shell .ft-remote-filter-menu {
+    width: min(320px, calc(100vw - 24px)) !important;
+    min-width: min(260px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    padding: 8px !important;
+    border-radius: 12px;
+    box-shadow: 0 14px 32px rgba(28, 45, 66, .14)
+}
+
+.ft-list-filter-shell .ft-remote-filter-search {
+    min-height: 42px;
+    margin: 0 0 8px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: .875rem;
+    line-height: 1.35;
+    font-weight: 400
+}
+
+.ft-list-filter-shell .ft-remote-filter-list {
+    gap: 2px;
+    max-height: 245px
+}
+
+.ft-list-filter-shell .ft-remote-filter-option {
+    min-height: 40px;
+    padding: 9px 11px;
+    border-radius: 9px;
+    font-size: .875rem;
+    line-height: 1.35;
+    font-weight: 400
+}
+
+.ft-list-filter-shell .ft-remote-filter-option[aria-selected="true"] {
+    font-weight: 400
+}
+
+.ft-list-filter-shell .ft-remote-filter-option>small {
+    font-size: .75rem;
+    line-height: 1.3;
+    font-weight: 400;
+    text-align: right
+}
+
+.ft-list-filter-shell .ft-remote-filter-message {
+    padding: 8px 10px 4px;
+    font-size: .75rem;
+    line-height: 1.4;
+    font-weight: 400
+}
+
+@media(max-width:520px) {
+    .ft-list-filter-shell .ft-remote-filter-menu {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important
+    }
+}
+

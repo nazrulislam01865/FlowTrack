@@ -1,0 +1,9 @@
+/**
+ * FlowTrack standard create-form theme.
+ * Create Order is the visual reference. Page-specific adapters map existing
+ * markup to the centralized form tokens defined in settings.css.
+ */
+@import './foundation.css';
+@import './order.css';
+@import './inquiry.css';
+@import './client.css';

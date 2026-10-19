@@ -1,0 +1,620 @@
+/* Create Order / Shipment address.
+   This module intentionally mirrors the approved Create Order prototype while
+   keeping the shipment row reusable and the existing Livewire behavior intact. */
+.ft-create-job-page .ft-create-shipping-setup{
+    padding:18px 20px 20px;
+    overflow:visible;
+    container-type:inline-size;
+    container-name:create-shipping-setup;
+}
+
+.ft-create-job-page .ft-create-shipping-setup-heading>p{
+    margin:4px 0 16px 35px;
+    color:var(--ft-form-page-copy-color);
+    font-size:var(--ft-form-page-copy-size);
+    font-weight:var(--ft-form-page-copy-weight);
+    line-height:1.45;
+}
+
+/* Two prototype mode cards. */
+.ft-create-job-page .ft-create-shipping-modes{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    margin-bottom:12px;
+}
+
+.ft-create-job-page .ft-create-shipping-mode{
+    position:relative;
+    display:flex;
+    min-width:0;
+    min-height:72px;
+    align-items:center;
+    gap:13px;
+    padding:12px 18px;
+    overflow:hidden;
+    border:1px solid var(--ft-form-control-border);
+    border-radius:var(--ft-form-control-radius);
+    background:#fff;
+    color:var(--ft-form-control-color);
+    cursor:pointer;
+    transition:border-color .15s ease,background .15s ease,box-shadow .15s ease;
+}
+
+.ft-create-job-page .ft-create-shipping-mode:hover{
+    border-color:color-mix(in srgb,var(--ft-theme-primary,#0f8f83) 38%,#cbd9e9);
+}
+
+.ft-create-job-page .ft-create-shipping-mode.is-selected{
+    border-color:#c6dbe4;
+    background:linear-gradient(105deg,color-mix(in srgb,var(--ft-theme-primary,#0f8f83) 6%,#fff),#fff 62%);
+    box-shadow:inset 0 -3px 0 var(--ft-theme-primary,#0f8f83);
+}
+
+.ft-create-job-page .ft-create-shipping-mode input[type="radio"]{
+    appearance:none;
+    width:20px!important;
+    height:20px!important;
+    min-height:20px!important;
+    flex:0 0 20px;
+    margin:0!important;
+    padding:0!important;
+    border:2px solid #aebfd3;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:none!important;
+    cursor:pointer;
+}
+
+.ft-create-job-page .ft-create-shipping-mode input[type="radio"]:checked{
+    border:6px solid var(--ft-theme-primary,#0f8f83);
+}
+
+.ft-create-job-page .ft-create-shipping-mode input[type="radio"]:focus-visible{
+    outline:2px solid color-mix(in srgb,var(--ft-theme-primary,#0f8f83) 35%,transparent);
+    outline-offset:2px;
+}
+
+.ft-create-job-page .ft-create-shipping-mode-copy{
+    display:grid;
+    min-width:0;
+    gap:2px;
+}
+
+.ft-create-job-page .ft-create-shipping-mode-copy strong{
+    color:var(--ft-form-label-color);
+    font-size:var(--ft-form-control-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.25;
+}
+
+.ft-create-job-page .ft-create-shipping-mode-copy small{
+    max-width:300px;
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-helper-weight);
+    line-height:1.35;
+}
+
+.ft-create-job-page .ft-create-shipping-mode-error{
+    display:block;
+    margin:-4px 0 10px;
+}
+
+/* Prototype summary strip. */
+.ft-create-job-page .ft-create-shipping-summary{
+    display:flex;
+    min-height:44px;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:14px;
+    padding:9px 16px;
+    border:1px solid color-mix(in srgb,var(--ft-theme-primary,#0f8f83) 22%,#d4e1ec);
+    border-radius:8px;
+    background:color-mix(in srgb,var(--ft-theme-primary,#0f8f83) 4%,#fff);
+    color:var(--ft-form-page-copy-color);
+    font-size:var(--ft-form-button-size);
+    font-weight:var(--ft-form-page-copy-weight);
+}
+
+.ft-create-job-page .ft-create-shipping-summary>div{
+    display:flex;
+    min-width:0;
+    align-items:center;
+    gap:10px;
+}
+
+.ft-create-job-page .ft-create-shipping-summary-item,
+.ft-create-job-page .ft-create-shipping-summary-note{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+}
+
+.ft-create-job-page .ft-create-shipping-summary-divider{
+    width:1px;
+    height:16px;
+    background:#9fb2c8;
+}
+
+.ft-create-job-page .ft-create-shipping-summary-item svg,
+.ft-create-job-page .ft-create-shipping-summary-note svg{
+    width:16px;
+    height:16px;
+    flex:0 0 16px;
+}
+
+.ft-create-job-page .ft-create-shipping-summary-item:first-child{
+    color:#385b62;
+}
+
+.ft-create-job-page .ft-create-shipping-summary-item:first-child svg{
+    color:var(--ft-theme-primary,#0f8f83);
+}
+
+.ft-create-job-page .ft-create-shipping-summary-item i{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:color-mix(in srgb,var(--ft-theme-primary,#0f8f83) 56%,#fff);
+}
+
+.ft-create-job-page .ft-create-shipping-summary strong{
+    color:var(--ft-form-label-color);
+    font-weight:var(--ft-form-label-weight);
+}
+
+.ft-create-job-page .ft-create-shipping-summary-note{
+    color:var(--ft-form-helper-color);
+}
+
+/* Shipment workspace and card. */
+.ft-create-job-page .ft-create-shipment-workspace{
+    overflow:visible;
+    padding:12px;
+    border:1px solid #d7e3ef;
+    border-radius:10px;
+    background:#f8fafc;
+}
+
+.ft-create-job-page .ft-create-shipment-rows{
+    display:grid;
+    gap:12px;
+}
+
+.ft-create-job-page .ft-create-shipment-card{
+    min-width:0;
+    max-width:100%;
+    overflow:visible;
+    container-type:inline-size;
+    container-name:create-shipment-card;
+    border:1px solid var(--ft-form-section-border);
+    border-radius:var(--ft-form-control-radius);
+    background:#fff;
+    box-shadow:0 1px 2px rgba(15,35,65,.025);
+}
+
+.ft-create-job-page .ft-create-shipment-card-head{
+    display:flex;
+    min-height:58px;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:10px 14px;
+    border-bottom:1px solid #e8eef5;
+    border-radius:9px 9px 0 0;
+    background:#fbfcfe;
+}
+
+.ft-create-job-page .ft-create-shipment-card-title{
+    display:flex;
+    min-width:0;
+    align-items:center;
+}
+
+.ft-create-job-page .ft-create-shipment-card-title>div{
+    display:grid;
+    min-width:0;
+    gap:2px;
+}
+
+.ft-create-job-page .ft-create-shipment-card-title strong{
+    color:var(--ft-form-label-color);
+    font-size:var(--ft-form-control-size);
+    font-weight:var(--ft-form-label-weight);
+    line-height:1.25;
+}
+
+.ft-create-job-page .ft-create-shipment-card-title small{
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    line-height:1.35;
+}
+
+.ft-create-job-page .ft-create-shipment-card-actions{
+    display:flex;
+    flex:0 0 auto;
+    align-items:center;
+    gap:10px;
+}
+
+.ft-create-job-page .ft-create-shipment-primary-badge{
+    display:inline-flex;
+    min-height:30px;
+    align-items:center;
+    justify-content:center;
+    padding:0 12px;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--ft-theme-primary,#0f8f83) 10%,#fff);
+    color:var(--ft-theme-primary,#0f8f83);
+    font-size:var(--ft-form-helper-size);
+    font-weight:var(--ft-form-label-weight);
+}
+
+.ft-create-job-page .ft-create-shipment-remove{
+    display:inline-grid;
+    width:34px;
+    height:34px;
+    min-width:34px;
+    place-items:center;
+    padding:0;
+    border:1px solid #ffd9dc;
+    border-radius:var(--ft-form-control-radius);
+    background:#fff1f2;
+    color:#ef2929;
+    font:inherit;
+    cursor:pointer;
+    transition:background .15s ease,border-color .15s ease,opacity .15s ease;
+}
+
+.ft-create-job-page .ft-create-shipment-remove:hover:not(:disabled),
+.ft-create-job-page .ft-create-shipment-remove:focus-visible:not(:disabled){
+    border-color:#ffc7cc;
+    background:#ffe9eb;
+    outline:0;
+}
+
+.ft-create-job-page .ft-create-shipment-remove:disabled,
+.ft-create-job-page .ft-create-shipment-remove.is-disabled{
+    opacity:1;
+    cursor:not-allowed;
+}
+
+.ft-create-job-page .ft-create-shipment-remove svg{
+    width:16px;
+    height:16px;
+}
+
+.ft-create-job-page .ft-create-shipment-body{
+    padding:14px;
+}
+
+.ft-create-job-page .ft-create-shipment-primary-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+}
+
+.ft-create-job-page .ft-create-shipment-address-block{
+    display:grid;
+    gap:10px;
+    margin-top:13px;
+}
+
+.ft-create-job-page .ft-create-shipment-field{
+    min-width:0;
+}
+
+/* Field typography, font family, height, border, radius, focus and placeholder
+   styling come from the centralized .ft-form-standard--order / .ft-create-field
+   contract. This module owns only shipment-specific layout. */
+.ft-create-job-page .ft-create-shipment-phone-row{
+    display:grid;
+    grid-template-columns:92px minmax(0,1fr);
+    align-items:start;
+    gap:8px;
+}
+
+.ft-create-job-page .ft-create-shipment-phone-control{
+    display:grid;
+    min-width:0;
+    align-content:start;
+}
+
+.ft-create-job-page .ft-create-shipment-phone-control .validation-error{
+    margin-top:4px;
+    overflow-wrap:anywhere;
+    line-height:1.25;
+}
+
+/* Phone country code uses the same shared searchable selector used elsewhere
+   in FlowTrack. Only shipment-specific sizing is defined here; typography,
+   colors, focus states and dropdown behavior stay on the centralized form and
+   shared search-select contracts. */
+.ft-create-job-page .ft-create-shipment-phone-code-select{
+    min-width:0;
+}
+
+.ft-create-job-page .ft-create-shipment-phone-code-select .ft-search-select__trigger{
+    width:100%;
+    min-height:var(--ft-form-control-height);
+    height:var(--ft-form-control-height);
+    padding:0 9px 0 10px;
+    border-color:var(--ft-form-control-border);
+    border-radius:var(--ft-form-control-radius);
+    color:var(--ft-form-control-color);
+    font-size:var(--ft-form-control-size);
+    font-weight:var(--ft-form-control-weight);
+    background:#fff;
+}
+
+.ft-create-job-page .ft-create-shipment-phone-code-select .ft-search-select__trigger:hover:not(:disabled),
+.ft-create-job-page .ft-create-shipment-phone-code-select .ft-search-select__trigger[aria-expanded="true"],
+.ft-create-job-page .ft-create-shipment-phone-code-select .ft-search-select__trigger:focus-visible{
+    border-color:var(--ft-focus-border);
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--ft-theme-primary) 10%,transparent);
+    outline:0;
+}
+
+.ft-create-job-page .ft-create-shipment-phone-code-select .ft-search-select__value{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.ft-create-job-page .ft-create-shipment-address-field{
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;
+}
+
+.ft-create-job-page .ft-create-shipment-address-field>b{
+    margin:0;
+}
+
+.ft-create-job-page .ft-create-shipment-saved-address{
+    display:inline-flex;
+    min-height:34px;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    padding:0 11px;
+    border:1px solid var(--ft-theme-primary);
+    border-radius:var(--ft-form-control-radius);
+    background:#fff;
+    color:var(--ft-theme-primary);
+    font-size:var(--ft-form-button-size);
+    font-weight:var(--ft-form-button-weight);
+    cursor:pointer;
+}
+
+.ft-create-job-page .ft-create-shipment-saved-address:hover,
+.ft-create-job-page .ft-create-shipment-saved-address:focus-visible{
+    background:var(--ft-theme-primary-soft);
+    outline:0;
+}
+
+.ft-create-job-page .ft-create-shipment-saved-address svg{
+    width:14px;
+    height:14px;
+    flex:0 0 14px;
+}
+
+.ft-create-job-page .ft-create-shipment-address-input,
+.ft-create-job-page .ft-create-shipment-address-error{
+    grid-column:1 / -1;
+}
+
+.ft-create-job-page .ft-create-shipment-postal-field{
+    margin-top:1px;
+}
+
+/* Same-address mode keeps repeated shipments compact. */
+.ft-create-job-page .ft-create-shipment-shared-address{
+    display:flex;
+    min-width:0;
+    align-items:flex-start;
+    gap:11px;
+    margin:14px;
+    padding:12px 13px;
+    border:1px solid color-mix(in srgb,var(--ft-theme-primary,#0f8f83) 18%,#dbe3ed);
+    border-radius:8px;
+    background:color-mix(in srgb,var(--ft-theme-primary,#0f8f83) 3%,#fff);
+}
+
+.ft-create-job-page .ft-create-shipment-shared-icon{
+    display:grid;
+    width:30px;
+    height:30px;
+    flex:0 0 30px;
+    place-items:center;
+    border-radius:var(--ft-form-control-radius);
+    background:color-mix(in srgb,var(--ft-theme-primary,#0f8f83) 10%,#fff);
+    color:var(--ft-theme-primary,#0f8f83);
+}
+
+.ft-create-job-page .ft-create-shipment-shared-icon svg{
+    width:16px;
+    height:16px;
+}
+
+.ft-create-job-page .ft-create-shipment-shared-copy{
+    display:grid;
+    min-width:0;
+    gap:3px;
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    line-height:1.4;
+}
+
+.ft-create-job-page .ft-create-shipment-shared-copy strong{
+    color:var(--ft-form-label-color);
+    font-size:var(--ft-form-button-size);
+    font-weight:var(--ft-form-label-weight);
+}
+
+.ft-create-job-page .ft-create-shipment-shared-copy span{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+/* Add shipment sits below the workspace exactly as in the prototype. */
+.ft-create-job-page .ft-create-shipment-add-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:14px;
+}
+
+.ft-create-job-page .ft-create-shipment-add{
+    display:inline-flex;
+    min-height:var(--ft-form-control-height);
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:0 15px;
+    border:1px solid var(--ft-theme-primary,#0f8f83);
+    border-radius:var(--ft-form-control-radius);
+    background:#fff;
+    color:var(--ft-theme-primary,#0f8f83);
+    font-size:var(--ft-form-button-size);
+    font-weight:var(--ft-form-button-weight);
+    cursor:pointer;
+}
+
+.ft-create-job-page .ft-create-shipment-add:hover:not(:disabled){
+    background:var(--ft-theme-primary-soft,#effaf8);
+}
+
+.ft-create-job-page .ft-create-shipment-add:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+.ft-create-job-page .ft-create-shipment-add-help{
+    color:var(--ft-form-helper-color);
+    font-size:var(--ft-form-helper-size);
+    line-height:1.35;
+}
+
+.ft-create-job-page .ft-create-shipping-table-error{
+    display:block;
+    margin-top:8px;
+}
+
+.ft-create-job-page .ft-create-shipping-setup .validation-error{
+    display:block;
+    margin-top:4px;
+    font-size:var(--ft-form-helper-size);
+}
+
+@media (max-width:900px){
+    .ft-create-job-page .ft-create-shipping-modes{
+        grid-template-columns:1fr;
+    }
+
+    .ft-create-job-page .ft-create-shipping-summary{
+        align-items:flex-start;
+        flex-direction:column;
+        gap:7px;
+    }
+}
+
+@media (max-width:700px){
+    .ft-create-job-page .ft-create-shipment-primary-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width:620px){
+    .ft-create-job-page .ft-create-shipping-setup{
+        padding-left:14px;
+        padding-right:14px;
+    }
+
+    .ft-create-job-page .ft-create-shipping-summary>div{
+        flex-wrap:wrap;
+        row-gap:7px;
+    }
+
+    .ft-create-job-page .ft-create-shipping-summary-item,
+    .ft-create-job-page .ft-create-shipping-summary-note{
+        white-space:normal;
+    }
+
+    .ft-create-job-page .ft-create-shipment-workspace{
+        padding:8px;
+    }
+
+    .ft-create-job-page .ft-create-shipment-add-row{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+}
+
+/* Component-width responsiveness matters because the left navigation can make
+   the Create Order form narrow even on a wide desktop viewport. */
+@container create-shipping-setup (max-width: 760px){
+    .ft-create-job-page .ft-create-shipping-modes{
+        grid-template-columns:1fr;
+    }
+
+    .ft-create-job-page .ft-create-shipping-summary{
+        align-items:flex-start;
+        flex-direction:column;
+        gap:7px;
+    }
+
+    .ft-create-job-page .ft-create-shipping-summary>div{
+        flex-wrap:wrap;
+        row-gap:7px;
+    }
+}
+
+@container create-shipment-card (max-width: 620px){
+    .ft-create-job-page .ft-create-shipment-primary-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@container create-shipment-card (max-width: 460px){
+    .ft-create-job-page .ft-create-shipment-card-head{
+        align-items:flex-start;
+    }
+
+    .ft-create-job-page .ft-create-shipment-card-actions{
+        gap:7px;
+    }
+
+    .ft-create-job-page .ft-create-shipment-primary-badge{
+        padding:0 9px;
+    }
+
+    .ft-create-job-page .ft-create-shipment-phone-row{
+        grid-template-columns:76px minmax(0,1fr);
+        gap:7px;
+    }
+
+    .ft-create-job-page .ft-create-shipment-address-field{
+        grid-template-columns:1fr;
+    }
+
+    .ft-create-job-page .ft-create-shipment-saved-address{
+        width:100%;
+    }
+
+    .ft-create-job-page .ft-create-shipment-address-input,
+    .ft-create-job-page .ft-create-shipment-address-error{
+        grid-column:1;
+    }
+
+    .ft-create-job-page .ft-create-shipment-add{
+        width:100%;
+    }
+
+    .ft-create-job-page .ft-create-shipment-shared-copy span{
+        white-space:normal;
+    }
+}

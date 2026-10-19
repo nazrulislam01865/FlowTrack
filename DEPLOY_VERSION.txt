@@ -1,8 +1,0 @@
-FlowTrack Production Update
-Deployment ID: 20260804-015705
-Built: 2026-08-04 01:57:05 +06
-Source: local flowline
-Frontend: locally built
-HTTPS: enabled
-CSRF recovery: enabled
-Dashboard fix: enabled

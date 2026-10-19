@@ -1,0 +1,56 @@
+/** Dashboard Phase 3 static layout migration. */
+.ft-mgmt-panel-spaced {
+    margin-bottom: var(--ft-space-4);
+}
+
+.ft-dashboard-col--8 {
+    width: 8%;
+}
+
+.ft-dashboard-col--10 {
+    width: 10%;
+}
+
+.ft-dashboard-col--13 {
+    width: 13%;
+}
+
+.ft-dashboard-col--15 {
+    width: 15%;
+}
+
+.ft-dashboard-col--16 {
+    width: 16%;
+}
+
+.ft-dashboard-col--17 {
+    width: 17%;
+}
+
+.ft-dashboard-col--18 {
+    width: 18%;
+}
+
+.ft-dashboard-col--19 {
+    width: 19%;
+}
+
+.ft-dashboard-col--20 {
+    width: 20%;
+}
+
+.ft-dashboard-col--23 {
+    width: 23%;
+}
+
+.ft-dashboard-col--28 {
+    width: 28%;
+}
+
+.ft-dashboard-col--29 {
+    width: 29%;
+}
+
+.ft-dashboard-col--31 {
+    width: 31%;
+}

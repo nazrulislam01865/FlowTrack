@@ -1,0 +1,42 @@
+@layer ft-components {
+    .ft-table-shell[data-ft-ui-component="table-shell"] {
+        width: 100%;
+        overflow-x: auto;
+        border: var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-default);
+        border-radius: var(--ft-radius-xl);
+        background: var(--ft-bg-surface);
+        box-shadow: var(--ft-shadow-xs);
+    }
+
+    .ft-table[data-ft-ui-component="table"] {
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--ft-text-primary);
+        font-size: var(--ft-font-size-sm);
+    }
+
+    .ft-table[data-ft-ui-component="table"] th,
+    .ft-table[data-ft-ui-component="table"] td {
+        padding: var(--ft-space-3) var(--ft-space-4);
+        border-block-end: var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-subtle);
+        text-align: start;
+        vertical-align: middle;
+    }
+
+    .ft-table[data-ft-ui-component="table"] th {
+        background: var(--ft-bg-surface-subtle);
+        color: var(--ft-text-secondary);
+        font-size: var(--ft-font-size-xs);
+        font-weight: var(--ft-font-weight-bold);
+        letter-spacing: var(--ft-letter-spacing-wide);
+        text-transform: uppercase;
+    }
+
+    .ft-table[data-ft-ui-component="table"] tbody tr:hover {
+        background: var(--ft-bg-surface-hover);
+    }
+
+    .ft-table[data-ft-ui-component="table"] tr:last-child td {
+        border-block-end: 0;
+    }
+}

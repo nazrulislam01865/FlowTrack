@@ -1,0 +1,290 @@
+/**
+ * Create Order - missing Product Supplier resolution.
+ *
+ * The shared modal, field, search-select and button components own their base
+ * visuals. This module only composes the Supplier resolution layout and uses
+ * centralized FlowTrack design tokens. The compact scale keeps the dialog
+ * readable without overpowering the Create Order page.
+ */
+.ft-order-supplier-resolution-modal {
+    font-family: var(--ft-font-family);
+}
+
+.ft-order-supplier-resolution-modal .ft-modal__dialog {
+    width: min(100%, var(--ft-content-width-md));
+}
+
+.ft-order-supplier-resolution-modal .ft-modal__header {
+    align-items: center;
+    padding: var(--ft-space-5) var(--ft-space-6) var(--ft-space-4);
+    border-block-end: 0;
+}
+
+.ft-order-supplier-resolution-modal .ft-modal__title {
+    color: var(--ft-text-primary);
+    font-size: var(--ft-font-size-xl);
+    font-weight: var(--ft-font-weight-semibold);
+    line-height: var(--ft-line-height-snug);
+}
+
+.ft-order-supplier-resolution-modal .ft-modal__body {
+    padding: 0 var(--ft-space-6) var(--ft-space-6);
+}
+
+.ft-order-supplier-resolution-modal .ft-modal__footer {
+    padding: var(--ft-space-3) var(--ft-space-6);
+}
+
+.ft-order-supplier-resolution__close {
+    display: inline-grid;
+    width: var(--ft-control-height-sm);
+    height: var(--ft-control-height-sm);
+    flex: 0 0 auto;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ft-radius-md);
+    background: transparent;
+    color: var(--ft-text-secondary);
+    cursor: pointer;
+    transition: background-color var(--ft-transition-fast), color var(--ft-transition-fast), box-shadow var(--ft-transition-fast);
+}
+
+.ft-order-supplier-resolution__close:hover {
+    background: var(--ft-bg-surface-hover);
+    color: var(--ft-text-primary);
+}
+
+.ft-order-supplier-resolution__close:focus-visible {
+    outline: 0;
+    box-shadow: var(--ft-focus-ring);
+}
+
+.ft-order-supplier-resolution__close svg {
+    width: var(--ft-icon-size-sm);
+    height: var(--ft-icon-size-sm);
+}
+
+.ft-order-supplier-resolution {
+    color: var(--ft-text-primary);
+    font-size: var(--ft-font-size-sm);
+    line-height: var(--ft-line-height-normal);
+}
+
+.ft-order-supplier-resolution__notice {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--ft-space-3);
+    padding: var(--ft-space-4);
+    border: var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-danger);
+    border-radius: var(--ft-radius-lg);
+    background: var(--ft-bg-danger);
+}
+
+.ft-order-supplier-resolution__notice-icon {
+    display: grid;
+    width: var(--ft-control-height-sm);
+    height: var(--ft-control-height-sm);
+    place-items: center;
+    border: var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-color-danger-600);
+    border-radius: var(--ft-radius-pill);
+    color: var(--ft-color-danger-600);
+    font-size: var(--ft-font-size-lg);
+    font-weight: var(--ft-font-weight-semibold);
+    line-height: var(--ft-line-height-tight);
+}
+
+.ft-order-supplier-resolution__notice-copy {
+    display: grid;
+    min-width: 0;
+    gap: var(--ft-space-1);
+}
+
+.ft-order-supplier-resolution__notice-copy strong {
+    overflow-wrap: anywhere;
+    font-size: var(--ft-font-size-md);
+    font-weight: var(--ft-font-weight-semibold);
+    line-height: var(--ft-line-height-snug);
+}
+
+.ft-order-supplier-resolution__notice-copy p,
+.ft-order-supplier-resolution__helper {
+    margin: 0;
+    color: var(--ft-text-secondary);
+    font-size: var(--ft-font-size-sm);
+}
+
+.ft-order-supplier-resolution__options {
+    display: grid;
+    gap: var(--ft-space-3);
+    margin-top: var(--ft-space-4);
+}
+
+.ft-order-supplier-resolution__option {
+    display: grid;
+    gap: var(--ft-space-3);
+    padding: var(--ft-space-4);
+    border: var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-default);
+    border-radius: var(--ft-radius-lg);
+    background: var(--ft-bg-surface);
+    transition: border-color var(--ft-transition-fast), box-shadow var(--ft-transition-fast), background-color var(--ft-transition-fast);
+}
+
+.ft-order-supplier-resolution__option:hover {
+    border-color: var(--ft-border-strong);
+}
+
+.ft-order-supplier-resolution__option.is-selected {
+    border-color: var(--ft-color-brand-primary);
+}
+
+.ft-order-supplier-resolution__option-heading {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ft-space-3);
+    min-width: 0;
+    cursor: pointer;
+}
+
+.ft-order-supplier-resolution__option-heading input[type="radio"] {
+    position: absolute;
+    width: var(--ft-space-4);
+    height: var(--ft-space-4);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ft-order-supplier-resolution__radio {
+    position: relative;
+    width: var(--ft-space-4);
+    height: var(--ft-space-4);
+    flex: 0 0 var(--ft-space-4);
+    border: var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-strong);
+    border-radius: var(--ft-radius-pill);
+    background: var(--ft-bg-surface);
+    transition: border-color var(--ft-transition-fast), box-shadow var(--ft-transition-fast);
+}
+
+.ft-order-supplier-resolution__option.is-selected .ft-order-supplier-resolution__radio {
+    border-color: var(--ft-color-brand-primary);
+}
+
+.ft-order-supplier-resolution__option.is-selected .ft-order-supplier-resolution__radio::after {
+    content: '';
+    position: absolute;
+    inset: var(--ft-space-1);
+    border-radius: var(--ft-radius-pill);
+    background: var(--ft-color-brand-primary);
+}
+
+.ft-order-supplier-resolution__option-heading input[type="radio"]:focus-visible + .ft-order-supplier-resolution__radio {
+    box-shadow: var(--ft-focus-ring);
+}
+
+.ft-order-supplier-resolution__option-heading strong {
+    color: var(--ft-text-primary);
+    font-size: var(--ft-font-size-md);
+    font-weight: var(--ft-font-weight-semibold);
+    line-height: var(--ft-line-height-snug);
+}
+
+.ft-order-supplier-resolution__option-content,
+.ft-order-supplier-resolution__helper {
+    margin-inline-start: calc(var(--ft-space-4) + var(--ft-space-3));
+}
+
+.ft-order-supplier-resolution__option-content {
+    display: grid;
+    gap: var(--ft-space-3);
+}
+
+.ft-order-supplier-resolution__new-supplier-fields {
+    gap: var(--ft-space-4);
+}
+
+.ft-order-supplier-resolution__option-content .ft-field__label-row {
+    justify-content: flex-start;
+    gap: var(--ft-space-1);
+}
+
+.ft-order-supplier-resolution__option-content .ft-field__label {
+    font-weight: var(--ft-font-weight-medium);
+}
+
+.ft-order-supplier-resolution__option-content .ft-field__optional {
+    text-transform: lowercase;
+}
+
+.ft-order-supplier-resolution__option-content .ft-field__optional::before {
+    content: '(';
+}
+
+.ft-order-supplier-resolution__option-content .ft-field__optional::after {
+    content: ')';
+}
+
+.ft-order-supplier-resolution__option-content .ft-field__control,
+.ft-order-supplier-resolution__supplier-select .ft-search-select__trigger {
+    min-height: var(--ft-control-height-md);
+}
+
+.ft-order-supplier-resolution__helper {
+    margin-block: calc(var(--ft-space-1) * -1) 0;
+}
+
+.ft-order-supplier-resolution__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--ft-space-2);
+    width: 100%;
+}
+
+/*
+ * Keep the primary action readable inside legacy Create Order scopes.
+ * Some unlayered page rules can otherwise override the shared button text
+ * color. The modal owns only this local contrast correction and still uses
+ * the centralized inverse-text token.
+ */
+.ft-order-supplier-resolution__primary-action.ft-btn--primary {
+    color: var(--ft-text-inverse);
+}
+
+.ft-order-supplier-resolution__primary-action.ft-btn--primary > span,
+.ft-order-supplier-resolution__primary-action.ft-btn--primary > span > span {
+    color: inherit;
+}
+
+@media (max-width: 42rem) {
+    .ft-order-supplier-resolution-modal .ft-modal__header {
+        padding: var(--ft-space-4) var(--ft-space-4) var(--ft-space-3);
+    }
+
+    .ft-order-supplier-resolution-modal .ft-modal__body {
+        padding: 0 var(--ft-space-4) var(--ft-space-4);
+    }
+
+    .ft-order-supplier-resolution-modal .ft-modal__footer {
+        padding: var(--ft-space-3) var(--ft-space-4);
+    }
+
+    .ft-order-supplier-resolution__notice,
+    .ft-order-supplier-resolution__option {
+        padding: var(--ft-space-3);
+    }
+
+    .ft-order-supplier-resolution__option-content,
+    .ft-order-supplier-resolution__helper {
+        margin-inline-start: 0;
+    }
+
+    .ft-order-supplier-resolution__actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-supplier-resolution__actions .ft-btn {
+        width: 100%;
+    }
+}

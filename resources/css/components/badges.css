@@ -1,0 +1,65 @@
+@layer ft-components {
+    .ft-badge[data-ft-ui-component="badge"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--ft-space-1);
+        min-height: var(--ft-control-height-xs);
+        padding: 0 var(--ft-space-2);
+        border: var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-default);
+        border-radius: var(--ft-radius-pill);
+        background: var(--ft-bg-surface-subtle);
+        color: var(--ft-text-secondary);
+        font-size: var(--ft-font-size-xs);
+        font-weight: var(--ft-font-weight-semibold);
+        line-height: var(--ft-line-height-tight);
+        white-space: nowrap;
+    }
+
+    .ft-badge--info[data-ft-ui-component="badge"] {
+        border-color: var(--ft-border-info);
+        background: var(--ft-bg-info);
+        color: var(--ft-text-info);
+    }
+
+    .ft-badge--success[data-ft-ui-component="badge"] {
+        border-color: var(--ft-border-success);
+        background: var(--ft-bg-success);
+        color: var(--ft-text-success);
+    }
+
+    .ft-badge--warning[data-ft-ui-component="badge"] {
+        border-color: var(--ft-border-warning);
+        background: var(--ft-bg-warning);
+        color: var(--ft-text-warning);
+    }
+
+    .ft-badge--danger[data-ft-ui-component="badge"] {
+        border-color: var(--ft-border-danger);
+        background: var(--ft-bg-danger);
+        color: var(--ft-text-danger);
+    }
+
+    .ft-badge--purple[data-ft-ui-component="badge"] {
+        border-color: var(--ft-border-purple);
+        background: var(--ft-bg-purple);
+        color: var(--ft-text-purple);
+    }
+
+    .ft-badge--dynamic[data-ft-ui-component="badge"] {
+        border-color: var(--ft-dynamic-border, var(--ft-master-border, var(--ft-border-default)));
+        background: var(--ft-dynamic-bg, var(--ft-master-bg, var(--ft-bg-surface-subtle)));
+        color: var(--ft-dynamic-text, var(--ft-master-text, var(--ft-text-primary)));
+    }
+
+    .ft-badge__dot {
+        width: var(--ft-space-2);
+        height: var(--ft-space-2);
+        flex: 0 0 auto;
+        border-radius: var(--ft-radius-pill);
+        background: currentColor;
+    }
+
+    .ft-badge--dynamic .ft-badge__dot {
+        background: var(--ft-dynamic-color, var(--ft-master-color, currentColor));
+    }
+}

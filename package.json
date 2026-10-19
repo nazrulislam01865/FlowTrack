@@ -1,15 +1,50 @@
 {
-  "name": "flowtrack-modular-frontend",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "node scripts/build-flowtrack-runtime.mjs && vite",
-    "build:runtime": "node scripts/build-flowtrack-runtime.mjs",
-    "verify:assets": "node scripts/verify-assets.mjs",
-    "build": "node scripts/build-flowtrack-runtime.mjs && vite build && node scripts/verify-assets.mjs"
-  },
-  "devDependencies": {
-    "vite": "^6.1.0"
-  }
+    "$schema": "https://www.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite",
+        "quality:architecture": "php scripts/quality/architecture-budget.php --check",
+        "quality:css": "php scripts/quality/css-foundation-budget.php",
+        "quality:phase1": "npm run quality:architecture && npm run quality:css",
+        "quality:baseline": "bash scripts/quality/phase0-baseline.sh",
+        "visual:update": "node tests/Visual/visual-regression.mjs update",
+        "visual:test": "node tests/Visual/visual-regression.mjs test",
+        "quality:components": "php scripts/quality/ui-component-library.php",
+        "quality:phase2": "npm run quality:architecture && npm run quality:css && npm run quality:components",
+        "quality:phase3": "npm run quality:architecture && npm run quality:css && npm run quality:components && php scripts/quality/phase3-migration.php && npm run quality:css-modularization",
+        "quality:filters": "php scripts/quality/phase4-shared-filters.php",
+        "quality:phase4": "npm run quality:phase3 && npm run quality:filters && npm run quality:test-contracts",
+        "quality:test-contracts": "php scripts/quality/test-contracts.php",
+        "quality:phase5": "npm run quality:phase4 && php scripts/quality/phase5-orders.php",
+        "quality:phase6": "npm run quality:phase5 && php scripts/quality/phase6-inquiries.php",
+        "quality:phase7": "npm run quality:phase6 && php scripts/quality/phase7-administration.php",
+        "quality:phase8": "npm run quality:phase7 && php scripts/quality/phase8-application.php",
+        "quality:phase9": "npm run quality:phase8 && php scripts/quality/phase9-security.php",
+        "quality:phase10": "npm run quality:phase9 && php scripts/quality/phase10-document-security.php",
+        "quality:phase11": "npm run quality:phase10 && php scripts/quality/phase11-performance.php",
+        "quality:phase12": "npm run quality:phase11 && php scripts/quality/phase12-dashboard-reporting.php",
+        "quality:phase13": "npm run quality:phase12 && npm run test:js:syntax && npm run test:js:unit && php scripts/quality/phase13-javascript.php",
+        "test:js:syntax": "node scripts/quality/js-syntax.mjs",
+        "test:js:unit": "node tests/JavaScript/phase13-unit.mjs",
+        "test:js:browser": "node tests/Browser/phase13-smoke.mjs",
+        "quality:phase14": "npm run quality:phase13 && node --check tests/Load/phase14-flowtrack.k6.js && php scripts/quality/phase14-infrastructure.php",
+        "quality:bundle": "node scripts/quality/bundle-budget.mjs",
+        "visual:baseline-check": "node scripts/quality/visual-baseline-check.mjs",
+        "quality:phase15": "npm run quality:phase14 && php scripts/quality/final-security-review.php && php scripts/quality/phase15-release-hardening.php",
+        "release:manifest": "php scripts/release/release-manifest.php",
+        "quality:theme": "npm run quality:phase15 && php scripts/quality/theme-package.php && php scripts/quality/theme-coverage.php",
+        "quality:css-modularization": "php scripts/quality/css-modularization.php",
+        "quality:page-loading": "php scripts/quality/progressive-page-loading.php"
+    },
+    "devDependencies": {
+        "laravel-vite-plugin": "^3.1",
+        "vite": "^8.0.0",
+        "pixelmatch": "7.2.0",
+        "playwright": "1.62.1",
+        "pngjs": "7.0.0",
+        "postcss": "8.5.26",
+        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+    }
 }

@@ -1,0 +1,38 @@
+{
+  "phase": 12,
+  "dashboard_query_contracts": [
+    "DashboardSummaryQuery",
+    "DashboardPriorityWorkQuery",
+    "DashboardAttentionQuery",
+    "DashboardMentionsQuery",
+    "DashboardTeamPerformanceQuery",
+    "DashboardClientPortfolioQuery",
+    "DashboardDistributionQuery",
+    "DashboardActivityQuery",
+    "DashboardCatalogueReadinessQuery",
+    "DashboardReferenceQuery"
+  ],
+  "cached_sections": {
+    "summary": 45,
+    "flow-distribution": 45,
+    "task-status-distribution": 45,
+    "catalogue-readiness": 45
+  },
+  "uncached_operational_sections": [
+    "priority-work",
+    "attention",
+    "mentions",
+    "team-performance",
+    "client-portfolio",
+    "recent-activity"
+  ],
+  "invalidation": [
+    "workspace refresh version",
+    "client lifecycle version",
+    "per-user generation bump",
+    "DashboardService::forget",
+    "DashboardService::forgetMentions"
+  ],
+  "materialized_tables": false,
+  "reason": "No representative production measurement justifies materialized dashboard tables yet."
+}

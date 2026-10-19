@@ -1,0 +1,120 @@
+/** Create Order adapter: locks the reference form to the centralized standard. */
+.ft-form-standard--order .ft-create-shell {
+    max-width: 1180px;
+}
+
+.ft-form-standard--order .ft-create-breadcrumb {
+    color: var(--ft-form-breadcrumb-color);
+    font-size: var(--ft-form-breadcrumb-size);
+    font-weight: var(--ft-form-breadcrumb-weight);
+}
+
+.ft-form-standard--order .ft-create-title h1 {
+    color: var(--ft-form-page-title-color);
+    font-size: var(--ft-form-page-title-size);
+    font-weight: var(--ft-form-page-title-weight);
+}
+
+.ft-form-standard--order .ft-create-title p,
+.ft-form-standard--order .ft-order-shipping-heading > p {
+    color: var(--ft-form-page-copy-color);
+    font-size: var(--ft-form-page-copy-size);
+    font-weight: var(--ft-form-page-copy-weight);
+}
+
+.ft-form-standard--order .ft-create-section {
+    border-color: var(--ft-form-section-border);
+}
+
+.ft-form-standard--order .ft-create-section-title > span {
+    width: var(--ft-form-step-size);
+    height: var(--ft-form-step-size);
+    font-size: var(--ft-form-breadcrumb-size);
+    font-weight: var(--ft-form-label-weight);
+}
+
+.ft-form-standard--order .ft-create-section-title h2 {
+    color: var(--ft-form-section-title-color);
+    font-size: var(--ft-form-section-title-size);
+    font-weight: var(--ft-form-section-title-weight);
+}
+
+.ft-form-standard--order .ft-create-field > b,
+.ft-form-standard--order .ft-product-row label > b,
+.ft-form-standard--order .ft-order-shipping-address-field > b,
+.ft-form-standard--order .ft-order-shipping-contact-grid .ft-create-field > b {
+    color: var(--ft-form-label-color);
+    font-size: var(--ft-form-label-size);
+    font-weight: var(--ft-form-label-weight);
+}
+
+.ft-form-standard--order .ft-create-field input,
+.ft-form-standard--order .ft-create-field select,
+.ft-form-standard--order .ft-create-field textarea,
+.ft-form-standard--order .ft-product-row input,
+.ft-form-standard--order .ft-product-row select,
+.ft-form-standard--order .ft-order-shipping-address-field textarea,
+.ft-form-standard--order .ft-order-shipping-contact-grid input {
+    border-color: var(--ft-form-control-border);
+    border-radius: var(--ft-form-control-radius);
+    color: var(--ft-form-control-color);
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+}
+
+.ft-form-standard--order .ft-create-field input,
+.ft-form-standard--order .ft-create-field select,
+.ft-form-standard--order .ft-product-row input,
+.ft-form-standard--order .ft-product-row select,
+.ft-form-standard--order .ft-order-shipping-contact-grid input {
+    min-height: var(--ft-form-control-height);
+}
+
+.ft-form-standard--order .ft-locked-input {
+    height: var(--ft-form-control-height);
+    border-radius: var(--ft-form-control-radius);
+    color: var(--ft-form-placeholder-color);
+    font-size: var(--ft-form-control-size);
+    font-weight: var(--ft-form-control-weight);
+}
+
+.ft-form-standard--order .ft-create-field > small,
+.ft-form-standard--order .ft-create-note,
+.ft-form-standard--order .ft-create-upload small,
+.ft-form-standard--order .ft-product-row-footer span {
+    color: var(--ft-form-helper-color);
+    font-size: var(--ft-form-helper-size);
+    font-weight: var(--ft-form-helper-weight);
+}
+
+.ft-form-standard--order .ft-create-actions button,
+.ft-form-standard--order .ft-order-saved-address-button,
+.ft-form-standard--order .ft-product-row-footer button {
+    font-size: var(--ft-form-button-size);
+    font-weight: var(--ft-form-button-weight);
+}
+
+/* Create Order: keep the shared workflow picker header visually identical to
+   the standard numbered section header (e.g. Purchase Order). */
+.ft-form-standard--order .ft-order-workflow-create-section .ft-create-workflow-heading {
+    gap: 9px;
+    margin-bottom: 11px;
+}
+
+.ft-form-standard--order .ft-order-workflow-create-section .ft-create-workflow-heading > span {
+    width: var(--ft-form-step-size);
+    height: var(--ft-form-step-size);
+    flex: 0 0 var(--ft-form-step-size);
+    border-radius: 50%;
+    background: var(--ft-theme-primary);
+    color: #fff;
+    font-size: var(--ft-form-breadcrumb-size);
+    font-weight: var(--ft-form-label-weight);
+}
+
+.ft-form-standard--order .ft-order-workflow-create-section .ft-create-workflow-heading h2 {
+    color: var(--ft-form-section-title-color);
+    font-size: var(--ft-form-section-title-size);
+    font-weight: var(--ft-form-section-title-weight);
+    line-height: normal;
+}

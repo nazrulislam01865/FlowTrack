@@ -1,0 +1,200 @@
+/** Individual artwork cancellation controls for Order Details. */
+/* Individual Artwork cancellation — compact follow-up inside Artwork Review. */
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-prototype-action-body {
+    gap: 14px;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation {
+    display: grid;
+    gap: 14px;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-section {
+    display: grid;
+    gap: 10px;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-section-head > div {
+    min-width: 0;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-section-head strong {
+    display: block;
+    color: var(--text);
+    font-size: .75rem;
+    font-weight: 850;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-section-head strong span {
+    color: var(--muted);
+    font-size: .625rem;
+    font-weight: 700;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-section-head small {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: .625rem;
+    line-height: 1.4;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-section-head > em {
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--ft-bg-surface-subtle);
+    color: var(--muted);
+    font-size: .5625rem;
+    font-style: normal;
+    font-weight: 850;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-products {
+    padding-top: 2px;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-product-list {
+    display: grid;
+    gap: 8px;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    cursor: pointer;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-product.is-selected {
+    border-color: var(--ft-border-danger);
+    background: var(--ft-bg-danger);
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-product > input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-product.is-selected .ft-artwork-revision-selector-check {
+    border-color: var(--ft-color-danger-600);
+    background: var(--ft-color-danger-600);
+    color: var(--ft-text-inverse);
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-product-copy {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-product-copy b {
+    overflow: hidden;
+    color: var(--text);
+    font-size: .6875rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-product-copy small {
+    color: var(--muted);
+    font-size: .5625rem;
+    font-weight: 600;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-reason {
+    display: grid;
+    gap: 6px;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-reason > span {
+    color: var(--text);
+    font-size: .6875rem;
+    font-weight: 800;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-reason > span b {
+    color: var(--ft-text-danger);
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-reason textarea {
+    width: 100%;
+    min-height: 82px;
+    resize: vertical;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    font-size: .6875rem;
+    line-height: 1.45;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-reason textarea:focus {
+    border-color: var(--ft-color-danger-600);
+    outline: 2px solid var(--ft-bg-danger);
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--ft-bg-surface-subtle);
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-note > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    color: var(--muted);
+    font-size: .5625rem;
+    font-weight: 900;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-note p {
+    margin: 0;
+    color: var(--muted);
+    font-size: .59375rem;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-submit {
+    background: var(--ft-color-danger-600);
+    border-color: var(--ft-color-danger-600);
+    color: var(--ft-text-inverse);
+}
+
+@media (max-width: 640px) {
+    .ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-section-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ft-order-workflow-action-modal--artwork-cancellation-request .ft-artwork-cancellation-section-head > em {
+        align-self: flex-start;
+    }
+}

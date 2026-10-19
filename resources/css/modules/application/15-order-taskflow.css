@@ -1,0 +1,2247 @@
+/** Application CSS segment 15: order-taskflow. Source-preserving split of the former monolith. */
+/* Order Overview taskflow parity with Inquiry details.
+   Phase row colors come from Workflow Setup; task rows alternate mint/white.
+   Task documents can be uploaded directly against the owning Task Pack task. */
+.ft-overview-task-card .ft-order-overview-taskflow {
+    overflow: visible
+}
+
+.ft-overview-task-card .ft-order-phase-head {
+    width: 100%;
+    height: 38px;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid #dce5f0;
+    border-radius: 0;
+    display: grid;
+    grid-template-columns: 20px minmax(220px, 1fr) auto 80px;
+    gap: 8px;
+    align-items: center;
+    padding: 0 10px;
+    text-align: left;
+    color: #10233e;
+    font: inherit;
+    background: var(--ft-master-bg, #f8fafc);
+}
+
+.ft-overview-task-card .ft-order-phase-head b {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 5px;
+    background: var(--ft-master-bg, #e8eef5);
+    border: 1px solid var(--ft-master-border, #dce5ed);
+    color: var(--ft-master-text, #536984);
+    font-size: .5625rem;
+    font-weight: 800;
+}
+
+.ft-overview-task-card .ft-order-phase-head b.current-number {
+    background: var(--ft-master-color, #64748b);
+    border-color: var(--ft-master-color, #64748b);
+    color: #fff
+}
+
+.ft-overview-task-card .ft-order-phase-head strong {
+    font-size: .65625rem;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-overview-task-card .ft-order-phase-head small {
+    font-size: .5625rem;
+    text-align: right;
+    color: #60738b;
+    white-space: nowrap
+}
+
+.ft-overview-task-card .ft-order-phase-head em {
+    position: relative;
+    width: 80px !important;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(99, 117, 141, .14);
+    overflow: hidden
+}
+
+.ft-overview-task-card .ft-order-phase-head em:before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--phase-progress, 0%);
+    border-radius: inherit;
+    background: var(--ft-master-color, #64748b)
+}
+
+.ft-overview-task-card .ft-phase-task-columns {
+    grid-template-columns: minmax(245px, 1fr) 190px 135px 190px 118px 55px;
+    padding: 7px 12px 6px 53px;
+    background: #f8fafc;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row {
+    grid-template-columns: 42px minmax(220px, 1fr) 190px 135px 190px 118px 55px;
+    gap: 10px;
+    min-height: 60px;
+    padding: 7px 12px;
+    border-bottom: 1px solid #e1e9f1;
+    align-items: center;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row.is-green,
+.ft-overview-task-card .ft-order-task-resource-list.is-green {
+    background: #f3faf7
+}
+
+.ft-overview-task-card .ft-order-taskflow-row.is-white,
+.ft-overview-task-card .ft-order-task-resource-list.is-white {
+    background: #fff
+}
+
+.ft-order-task-number {
+    align-self: start;
+    padding-top: 6px;
+    color: #19304c;
+    font-weight: 600
+}
+
+.ft-order-task-copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px
+}
+
+.ft-order-task-copy .ft-inline-task-link {
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    color: #10233e;
+    font-size: .65625rem;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer
+}
+
+.ft-order-task-copy .ft-inline-task-link:hover {
+    color: var(--ft-theme-primary)
+}
+
+.ft-order-task-description {
+    max-width: 100%;
+    color: #667991;
+    font-size: .53125rem;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-order-task-required-file {
+    display: inline-flex;
+    margin-top: 1px;
+    color: #b7791f;
+    font-size: .5rem;
+    font-weight: 700
+}
+
+.ft-order-task-required-file.is-complete {
+    color: #17875f
+}
+
+.ft-order-task-files {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    flex-wrap: wrap
+}
+
+.ft-order-task-file-add {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border: 1px solid var(--ft-theme-primary-300);
+    border-radius: 7px;
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary);
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+    transition: .15s ease;
+}
+
+.ft-order-task-file-add:hover {
+    background: var(--ft-theme-primary-soft);
+    border-color: var(--ft-theme-primary-300)
+}
+
+.ft-order-task-file-add.is-uploading {
+    opacity: .58;
+    cursor: wait
+}
+
+.ft-order-task-file-add input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none
+}
+
+.ft-order-task-file-add svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.65;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-order-task-file-plus {
+    position: absolute;
+    left: 2px;
+    top: 0;
+    font-size: .8125rem;
+    line-height: 1;
+    font-weight: 900;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-order-task-file-count {
+    color: #667991;
+    font-size: .53125rem;
+    white-space: nowrap
+}
+
+.ft-order-task-file-count b {
+    color: #314b69
+}
+
+.ft-order-task-upload-error {
+    flex-basis: 100%;
+    color: #c7352c;
+    font-size: .46875rem;
+    line-height: 1.2
+}
+
+.ft-order-task-resource-list {
+    padding: 0 12px 5px 53px;
+    border-bottom: 1px solid #e1e9f1
+}
+
+.ft-order-task-document-row {
+    min-height: 40px;
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+    padding: 5px 8px;
+    border-top: 1px solid #e5ecf3;
+    background: rgba(255, 255, 255, .72);
+}
+
+.ft-order-task-file-type {
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    background: #ef3340;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: .4375rem;
+    font-weight: 800
+}
+
+.ft-order-task-file-copy {
+    min-width: 0
+}
+
+.ft-order-task-file-copy b {
+    display: block;
+    color: #132640;
+    font-size: .5625rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-order-task-file-copy small {
+    display: block;
+    margin-top: 2px;
+    color: #718197;
+    font-size: .46875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-order-task-file-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap
+}
+
+.ft-order-task-file-actions a {
+    color: var(--ft-theme-primary);
+    font-size: .53125rem;
+    font-weight: 750;
+    text-decoration: none
+}
+
+.ft-order-task-file-actions button {
+    width: 25px;
+    height: 25px;
+    border: 1px solid #f0b3b0;
+    border-radius: 6px;
+    background: #fff;
+    color: #d52f27;
+    font-size: .9375rem;
+    line-height: 1;
+    cursor: pointer
+}
+
+@media(max-width:1280px) {
+    .ft-overview-task-card .ft-phase-task-columns {
+        grid-template-columns: minmax(220px, 1fr) 170px 120px 165px 100px 48px
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row {
+        grid-template-columns: 38px minmax(200px, 1fr) 170px 120px 165px 100px 48px;
+        gap: 8px
+    }
+}
+
+@media(max-width:1040px) {
+    .ft-overview-task-card .ft-order-overview-taskflow {
+        overflow-x: auto
+    }
+
+    .ft-overview-task-card .ft-order-overview-taskflow>.ft-phase-group {
+        min-width: 920px
+    }
+}
+
+@media(max-width:760px) {
+    .ft-overview-task-card .ft-order-phase-head {
+        grid-template-columns: 20px minmax(120px, 1fr) auto 55px !important
+    }
+
+    .ft-order-task-resource-list {
+        padding-left: 47px
+    }
+}
+
+@media(max-width:520px) {
+    .ft-overview-task-card .ft-order-phase-head {
+        grid-template-columns: 20px minmax(110px, 1fr) auto !important
+    }
+
+    .ft-overview-task-card .ft-order-phase-head em {
+        display: none
+    }
+
+    .ft-order-task-resource-list {
+        padding-left: 43px
+    }
+}
+
+/* 2026-08-12 Order Overview task resources: match Inquiry Taskflow file/link actions. */
+.ft-order-task-resource-add-actions {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px
+}
+
+.ft-order-task-resource-add-icon {
+    display: inline-flex;
+    width: 34px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 7px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease
+}
+
+.ft-order-task-resource-add-icon:hover,
+.ft-order-task-resource-add-icon.is-active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-primary-soft);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 6%, transparent)
+}
+
+.ft-order-task-resource-add-icon svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-order-task-resource-plus {
+    font-size: .8125rem;
+    font-weight: 800;
+    line-height: 1
+}
+
+.ft-order-task-file-note {
+    display: block;
+    margin-top: 2px;
+    color: #718097;
+    font-size: .5rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-order-task-link-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px 9px;
+    align-items: center;
+    padding: 8px 8px;
+    border-top: 1px solid #edf1f5;
+    background: rgba(255, 255, 255, .7)
+}
+
+.ft-order-task-link-input-wrap {
+    display: flex;
+    min-width: 0;
+    height: 34px;
+    align-items: center;
+    gap: 7px;
+    padding: 0 9px;
+    border: 1px solid #cfd9e7;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 34, 63, .03)
+}
+
+.ft-order-task-link-input-wrap:focus-within {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-order-task-link-input-wrap svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    fill: none;
+    stroke: #63758d;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-order-task-link-input-wrap input {
+    width: 100%;
+    min-width: 0;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #1d2d45;
+    font: inherit;
+    font-size: .625rem
+}
+
+.ft-order-task-link-input-wrap input::placeholder {
+    color: #8a98aa
+}
+
+.ft-order-task-link-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px
+}
+
+.ft-order-task-link-form-actions .secondary,
+.ft-order-task-link-form-actions .primary {
+    min-height: 32px;
+    padding: 0 11px;
+    border-radius: 7px;
+    font-size: .5625rem
+}
+
+.ft-order-task-link-error {
+    grid-column: 1/-1;
+    color: #c5222d;
+    font-size: .546875rem;
+    font-weight: 600
+}
+
+.ft-order-task-link-row {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+    min-height: 40px;
+    padding: 5px 8px;
+    border-top: 1px solid #e5ecf3;
+    background: rgba(255, 255, 255, .72)
+}
+
+.ft-order-task-link-type {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border-radius: 6px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-order-task-link-type svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-order-task-link-copy {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    gap: 8px
+}
+
+.ft-order-task-link-copy>a {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-order-task-link-copy>a:hover {
+    text-decoration: underline
+}
+
+.ft-order-task-link-copy small {
+    flex: 0 0 auto;
+    color: #6f7e93;
+    font-size: .5rem;
+    white-space: nowrap
+}
+
+.ft-order-task-link-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap
+}
+
+.ft-order-task-link-actions>a {
+    color: var(--ft-theme-primary);
+    font-size: .53125rem;
+    font-weight: 650;
+    text-decoration: none
+}
+
+.ft-order-task-link-actions button {
+    width: 25px;
+    height: 25px;
+    border: 1px solid #f0b3b0;
+    border-radius: 6px;
+    background: #fff;
+    color: #d52f27;
+    font-size: .9375rem;
+    line-height: 1;
+    cursor: pointer
+}
+
+.ft-order-task-document-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(16, 30, 52, .58);
+    backdrop-filter: blur(1px)
+}
+
+.ft-order-task-document-modal {
+    width: min(610px, calc(100vw - 32px));
+    max-height: calc(100vh - 40px);
+    overflow: auto;
+    border: 1px solid #d9e1ec;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 26px 70px rgba(15, 31, 55, .25)
+}
+
+.ft-order-task-document-modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 22px 26px 14px
+}
+
+.ft-order-task-document-modal-head h2 {
+    margin: 0;
+    color: #16243a;
+    font-size: 1.25rem;
+    line-height: 1.25;
+    font-weight: 750
+}
+
+.ft-order-task-document-modal-head p {
+    margin: 5px 0 0;
+    color: #67778f;
+    font-size: .75rem;
+    line-height: 1.45
+}
+
+.ft-order-task-document-modal-close {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin: -3px -4px 0 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #263a58;
+    font-size: 1.5625rem;
+    line-height: 1;
+    cursor: pointer
+}
+
+.ft-order-task-document-modal-close:hover {
+    background: #f1f5fa
+}
+
+.ft-order-task-document-modal-body {
+    display: grid;
+    gap: 15px;
+    padding: 0 26px 18px
+}
+
+.ft-order-task-document-target {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 13px 15px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-order-task-document-target-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: 1.1875rem;
+    font-weight: 800
+}
+
+.ft-order-task-document-target>div {
+    display: grid;
+    min-width: 0
+}
+
+.ft-order-task-document-target small {
+    color: #41618f;
+    font-size: .5625rem;
+    font-weight: 800;
+    letter-spacing: .05em
+}
+
+.ft-order-task-document-target strong {
+    overflow: hidden;
+    margin-top: 2px;
+    color: #17263c;
+    font-size: .75rem;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-order-task-document-target div span {
+    margin-top: 3px;
+    color: #58708f;
+    font-size: .625rem
+}
+
+.ft-order-task-document-target .ft-order-task-document-reference {
+    margin-top: 4px;
+    color: #365b8d;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    white-space: normal
+}
+
+.ft-order-task-document-target .ft-order-task-document-reference b {
+    color: var(--ft-theme-primary-800);
+    font-weight: 800
+}
+
+.ft-order-task-document-target-lock {
+    color: #48617f;
+    font-size: .59375rem;
+    font-weight: 650;
+    white-space: nowrap
+}
+
+.ft-order-task-document-source-label {
+    margin-bottom: -8px;
+    color: #17263c;
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-order-task-document-source-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px
+}
+
+.ft-order-task-document-source-tabs button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 43px;
+    border: 1px solid #cbd6e5;
+    border-radius: 7px;
+    background: #fff;
+    color: #243650;
+    font-size: .6875rem;
+    font-weight: 700;
+    cursor: pointer
+}
+
+.ft-order-task-document-source-tabs button.active {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-surface-subtle);
+    box-shadow: inset 0 0 0 1px var(--ft-theme-primary);
+    color: var(--ft-theme-primary)
+}
+
+.ft-order-task-document-source-tabs button:disabled {
+    opacity: .45;
+    cursor: not-allowed
+}
+
+.ft-order-task-document-dropzone {
+    position: relative;
+    display: flex;
+    min-height: 145px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border: 2px dashed var(--ft-theme-primary-300);
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle);
+    text-align: center;
+    cursor: pointer
+}
+
+.ft-order-task-document-dropzone:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-order-task-document-dropzone input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer
+}
+
+.ft-order-task-document-upload-icon {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 7px;
+    color: var(--ft-theme-primary);
+    font-size: 2.1875rem;
+    font-weight: 700;
+    line-height: 1
+}
+
+.ft-order-task-document-dropzone strong {
+    color: #16243a;
+    font-size: .875rem;
+    font-weight: 750
+}
+
+.ft-order-task-document-dropzone b {
+    margin-top: 2px;
+    color: var(--ft-theme-primary);
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-order-task-document-dropzone small {
+    margin-top: 7px;
+    color: #6e7e93;
+    font-size: .59375rem
+}
+
+.ft-order-task-document-existing {
+    padding: 13px;
+    border: 1px solid #d9e1ec;
+    border-radius: 8px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-order-task-document-existing label {
+    display: grid;
+    gap: 7px
+}
+
+.ft-order-task-document-existing label>span {
+    color: #263850;
+    font-size: .625rem;
+    font-weight: 700
+}
+
+.ft-order-task-document-existing select,
+.ft-order-task-document-note input {
+    width: 100%;
+    min-height: 39px;
+    padding: 0 12px;
+    border: 1px solid #cfd8e5;
+    border-radius: 7px;
+    background: #fff;
+    color: #1d2d45;
+    font-size: .6875rem;
+    outline: none
+}
+
+.ft-order-task-document-existing select:focus,
+.ft-order-task-document-note input:focus {
+    border-color: var(--ft-theme-primary-500);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-order-task-document-existing-empty {
+    padding: 16px;
+    color: #6d7c91;
+    font-size: .6875rem;
+    text-align: center
+}
+
+.ft-order-task-document-note {
+    display: grid;
+    gap: 7px
+}
+
+.ft-order-task-document-note>span {
+    color: #17263c;
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-order-task-document-info {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 7px;
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary-800)
+}
+
+.ft-order-task-document-info>span {
+    color: var(--ft-theme-primary);
+    font-size: .875rem;
+    font-weight: 800
+}
+
+.ft-order-task-document-info p {
+    margin: 0;
+    font-size: .59375rem;
+    line-height: 1.45
+}
+
+.ft-order-task-document-info strong {
+    font-weight: 750
+}
+
+.ft-order-task-document-error {
+    margin: -8px 0 0;
+    color: #c62828;
+    font-size: .625rem
+}
+
+.ft-order-task-document-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 26px 18px;
+    border-top: 1px solid #e4e9f0;
+    background: #fff
+}
+
+.ft-order-task-document-modal-actions button {
+    min-width: 88px;
+    min-height: 38px;
+    border-radius: 7px;
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-order-task-document-modal-actions .primary {
+    min-width: 116px
+}
+
+.ft-order-task-document-modal-actions .primary:disabled {
+    opacity: .5;
+    cursor: not-allowed
+}
+
+/* Generic Order task attachment picker: selected-file state from the approved prototype. */
+.ft-order-attachment-upload-modal .ft-order-popup-field {
+    display: grid;
+    gap: 10px
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-field-label,
+.ft-order-attachment-upload-modal .ft-order-attachment-selected-count {
+    color: #17263c;
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-selected-count {
+    color: var(--ft-theme-primary)
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-selected-file {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    min-height: 66px;
+    padding: 10px 14px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 8px;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-selected-check {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--ft-theme-primary);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 800
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-selected-copy {
+    display: grid;
+    min-width: 0;
+    gap: 3px
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-selected-copy strong {
+    overflow: hidden;
+    color: #17263c;
+    font-size: .8125rem;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-selected-copy small {
+    color: #65768c;
+    font-size: .625rem
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-selected-file button {
+    padding: 7px 4px;
+    border: 0;
+    background: transparent;
+    color: #d42f3a;
+    font-size: .625rem;
+    font-weight: 750;
+    cursor: pointer
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-selected-file button:hover {
+    color: #aa1722;
+    text-decoration: underline
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-dropzone {
+    min-height: 188px;
+    padding: 18px 20px;
+    background: #fff
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-dropzone:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-dropzone.is-compact {
+    min-height: 120px;
+    padding: 13px 20px
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-upload-icon {
+    width: 38px;
+    height: 38px;
+    margin-bottom: 5px;
+    fill: none;
+    stroke: var(--ft-theme-primary);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-dropzone.is-compact .ft-order-attachment-upload-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 2px
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-dropzone b {
+    color: #52647b;
+    font-weight: 500
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-dropzone b span {
+    color: var(--ft-theme-primary);
+    font-weight: 750
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-browse {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    margin-top: 10px;
+    padding: 0 18px;
+    border: 1px solid var(--ft-theme-primary-300);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-order-attachment-upload-modal .ft-order-attachment-dropzone small {
+    margin-top: 9px
+}
+
+@media(max-width:760px) {
+    .ft-order-task-link-form {
+        grid-template-columns: minmax(0, 1fr)
+    }
+
+    .ft-order-task-link-form-actions {
+        justify-content: flex-end
+    }
+
+    .ft-order-task-document-modal-backdrop {
+        align-items: flex-end;
+        padding: 0
+    }
+
+    .ft-order-task-document-modal {
+        width: 100%;
+        max-height: 92vh;
+        border-radius: 16px 16px 0 0
+    }
+
+    .ft-order-task-document-modal-head {
+        padding: 18px 18px 12px
+    }
+
+    .ft-order-task-document-modal-body {
+        padding: 0 18px 15px
+    }
+
+    .ft-order-task-document-modal-actions {
+        padding: 13px 18px 17px
+    }
+
+    .ft-order-task-document-target {
+        grid-template-columns: 34px minmax(0, 1fr)
+    }
+
+    .ft-order-task-document-target-lock {
+        grid-column: 2;
+        white-space: normal
+    }
+
+    .ft-order-task-document-source-tabs {
+        grid-template-columns: 1fr
+    }
+
+    .ft-order-attachment-upload-modal .ft-order-attachment-selected-file {
+        grid-template-columns: 34px minmax(0, 1fr)
+    }
+
+    .ft-order-attachment-upload-modal .ft-order-attachment-selected-file button {
+        grid-column: 2;
+        justify-self: start;
+        padding: 0
+    }
+}
+
+@media(max-width:520px) {
+    .ft-order-task-resource-add-icon {
+        width: 38px;
+        height: 34px;
+        border-radius: 9px
+    }
+
+    .ft-order-task-link-copy small {
+        display: none
+    }
+}
+
+/* 2026-08-12 Order Overview task row alignment hardening.
+   Header and task rows share the exact same responsive grid so assignee,
+   due date, status, files and action never drift as the viewport changes. */
+.ft-overview-task-card {
+    --ft-order-task-grid: 42px minmax(300px, 1.45fr) minmax(190px, .82fr) minmax(135px, .58fr) minmax(190px, .72fr) minmax(145px, .58fr) 55px;
+    --ft-order-task-gap: 10px;
+}
+
+.ft-overview-task-card .ft-phase-task-columns,
+.ft-overview-task-card .ft-order-taskflow-row {
+    grid-template-columns: var(--ft-order-task-grid) !important;
+    column-gap: var(--ft-order-task-gap) !important;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.ft-overview-task-card .ft-phase-task-columns {
+    min-height: 32px;
+    padding: 7px 12px 6px;
+    align-items: center;
+}
+
+.ft-overview-task-card .ft-phase-task-columns span {
+    min-width: 0;
+    white-space: nowrap
+}
+
+.ft-overview-task-card .ft-phase-task-columns span:first-child {
+    grid-column: 1/3
+}
+
+.ft-overview-task-card .ft-phase-task-columns span:nth-child(2) {
+    grid-column: 3
+}
+
+.ft-overview-task-card .ft-phase-task-columns span:nth-child(3) {
+    grid-column: 4
+}
+
+.ft-overview-task-card .ft-phase-task-columns span:nth-child(4) {
+    grid-column: 5
+}
+
+.ft-overview-task-card .ft-phase-task-columns span:nth-child(5) {
+    grid-column: 6
+}
+
+.ft-overview-task-card .ft-phase-task-columns span:nth-child(6) {
+    grid-column: 7;
+    justify-self: center;
+    text-align: center
+}
+
+.ft-overview-task-card .ft-order-taskflow-row {
+    min-height: 64px;
+    padding: 9px 12px;
+    align-items: start;
+    row-gap: 4px;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>* {
+    min-width: 0;
+    box-sizing: border-box
+}
+
+.ft-overview-task-card .ft-order-task-number {
+    align-self: start;
+    padding-top: 7px;
+    line-height: 1.2;
+}
+
+.ft-overview-task-card .ft-order-task-copy {
+    align-self: start;
+    min-height: 34px;
+    padding-top: 4px;
+    justify-content: flex-start;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-action-wrap {
+    align-self: start;
+    min-height: 36px;
+    margin-top: 0;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell {
+    width: 100%;
+    display: flex !important;
+    align-items: center;
+    align-content: flex-start;
+    flex-wrap: wrap;
+    column-gap: 5px;
+    row-gap: 3px;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor>.ft-task-inline-display,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell>.ft-inline-task-status {
+    min-height: 36px;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor>.ft-task-inline-display {
+    display: flex;
+    align-items: center;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-inline-edit-shell>.ft-inline-save-state {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    line-height: 1.15;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row .ft-inline-save-state>span,
+.ft-overview-task-card .ft-order-taskflow-row .ft-inline-save-state>button {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: .46875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row .ft-inline-save-state>button {
+    color: #c7352c;
+    cursor: pointer
+}
+
+.ft-overview-task-card .ft-order-taskflow-row .ft-inline-save-state.is-saving>span {
+    color: #64748b
+}
+
+.ft-overview-task-card .ft-order-taskflow-row .ft-inline-save-state.is-saved>span {
+    color: #17875f
+}
+
+.ft-overview-task-card .ft-order-taskflow-row .ft-inline-task-status {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row .ft-order-task-files {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding-top: 4px;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row .ft-order-task-resource-add-actions {
+    gap: 4px
+}
+
+.ft-overview-task-card .ft-order-taskflow-row .ft-order-task-file-count {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-action-wrap {
+    width: 100%;
+    justify-content: center;
+    padding-top: 4px;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row .ft-table-kebab {
+    width: 34px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+}
+
+.ft-overview-task-card .ft-order-task-resource-list {
+    box-sizing: border-box;
+    padding-left: 64px;
+}
+
+.ft-overview-workflow-line button:disabled {
+    cursor: default;
+    opacity: 1
+}
+
+.ft-workflow-preview-muted {
+    color: #8492a6 !important;
+    text-decoration: none !important;
+    cursor: default
+}
+
+@media(max-width:1280px) {
+    .ft-overview-task-card {
+        --ft-order-task-grid: 38px minmax(240px, 1.4fr) minmax(170px, .82fr) minmax(120px, .58fr) minmax(165px, .72fr) minmax(125px, .58fr) 48px;
+        --ft-order-task-gap: 8px;
+    }
+
+    .ft-overview-task-card .ft-order-task-resource-list {
+        padding-left: 58px
+    }
+}
+
+@media(max-width:1040px) {
+    .ft-overview-task-card .ft-order-overview-taskflow {
+        overflow-x: auto
+    }
+
+    .ft-overview-task-card .ft-order-overview-taskflow>.ft-phase-group {
+        min-width: 1080px
+    }
+}
+
+@media(max-width:760px) {
+    .ft-overview-task-card .ft-order-overview-taskflow>.ft-phase-group {
+        min-width: 1040px
+    }
+}
+
+/* 2026-08-12 FINAL Order Overview task row alignment.
+   Keep every task cell on one visual center line and keep inline save/error
+   feedback out of the grid flow so status/assignee/date feedback cannot push
+   Files or Action out of alignment. */
+.ft-overview-task-card .ft-order-taskflow-row {
+    min-height: 72px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    align-items: center !important;
+    row-gap: 0 !important;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-number,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-copy,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-action-wrap {
+    align-self: center !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-number {
+    display: flex;
+    min-height: 36px;
+    align-items: center;
+    line-height: 1.2;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-copy {
+    min-height: 36px;
+    justify-content: center;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell {
+    position: relative;
+    display: flex !important;
+    width: 100%;
+    min-width: 0;
+    min-height: 36px;
+    align-items: center;
+    align-content: center;
+    flex-wrap: nowrap;
+    column-gap: 5px;
+    overflow: visible;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor>.ft-task-inline-display,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell>.ft-inline-task-status {
+    min-height: 34px !important;
+    height: 34px !important;
+    margin: 0 !important;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor>.ft-task-inline-display {
+    display: flex !important;
+    min-width: 0;
+    align-items: center;
+    line-height: 1.2;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell>.ft-inline-task-status {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 32px;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-inline-edit-shell>.ft-inline-save-state {
+    position: absolute !important;
+    top: 100%;
+    left: 0;
+    z-index: 12;
+    display: flex;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 2px 0 0 !important;
+    padding: 2px 5px !important;
+    align-items: center;
+    gap: 4px;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(20, 42, 72, .08);
+    line-height: 1.15;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-inline-edit-shell>.ft-inline-save-state:not(.is-saving):not(.is-saved):not(.is-error) {
+    display: none !important;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-inline-edit-shell>.ft-inline-save-state>span,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-inline-edit-shell>.ft-inline-save-state>button {
+    width: auto;
+    max-width: 100%;
+    flex: 0 1 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files {
+    display: flex;
+    width: 100%;
+    min-height: 36px;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 6px;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files .ft-order-task-resource-add-actions {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files .ft-order-task-resource-add-icon {
+    height: 30px;
+    min-height: 30px;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-action-wrap {
+    display: flex;
+    width: 100%;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-action-wrap .ft-table-kebab {
+    width: 34px;
+    height: 30px;
+    margin: 0;
+}
+
+.ft-overview-task-card .ft-phase-task-columns {
+    align-items: center !important;
+}
+
+/* ========================================================================== */
+/* 2026-08-12 Order Overview: attachment actions + responsive taskflow        */
+/* ========================================================================== */
+
+/* Keep each overview attachment on a single, predictable grid and group all
+   actions so the delete control can never wrap onto its own implicit row. */
+.ft-exact-job-detail .ft-job-overview-attachments {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-row {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) max-content;
+    gap: 10px 14px;
+    align-items: center;
+    padding: 10px 8px;
+}
+
+.ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-main {
+    min-width: 0;
+}
+
+.ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-main>b {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    color: #10233f;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-main>small {
+    display: block;
+    max-width: 100%;
+    margin-top: 2px;
+    overflow: hidden;
+    color: #60728a;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-actions {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    white-space: nowrap;
+}
+
+.ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-actions>a {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    text-decoration: none;
+}
+
+.ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-delete {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    display: inline-grid;
+    place-items: center;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #f2b2ae;
+    border-radius: 8px;
+    background: #fff;
+    color: #d52f27;
+    font-size: 1.1875rem;
+    font-weight: 400;
+    line-height: 1;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-delete:hover {
+    border-color: #e9857f;
+    background: #fff5f4;
+    box-shadow: 0 0 0 2px rgba(213, 47, 39, .05);
+}
+
+.ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-delete:focus-visible {
+    outline: 2px solid #ef6b64;
+    outline-offset: 2px;
+}
+
+/* The Order Details content lives beside a persistent sidebar, so viewport
+   breakpoints alone are not enough. Use a more compact desktop grid that can
+   shrink inside the actual content pane without pushing Action outside. */
+.ft-overview-task-card {
+    --ft-order-task-grid: 38px minmax(210px, 1.45fr) minmax(140px, .82fr) minmax(108px, .58fr) minmax(150px, .72fr) minmax(116px, .58fr) 44px;
+    --ft-order-task-gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.ft-overview-task-card .ft-order-overview-taskflow,
+.ft-overview-task-card .ft-order-overview-taskflow>.ft-phase-group {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.ft-overview-task-card .ft-phase-task-columns,
+.ft-overview-task-card .ft-order-taskflow-row {
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell,
+.ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files {
+    max-width: 100%;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor>.ft-task-inline-display {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor>.ft-task-inline-display>* {
+    min-width: 0;
+}
+
+@media(max-width:1280px) {
+    .ft-overview-task-card {
+        --ft-order-task-grid: 36px minmax(190px, 1.4fr) minmax(130px, .8fr) minmax(102px, .58fr) minmax(142px, .72fr) minmax(108px, .56fr) 42px;
+        --ft-order-task-gap: 7px;
+    }
+}
+
+/* On tablets and phones, switch from a wide pseudo-table to readable task
+   cards. This removes horizontal page overflow while retaining every editor,
+   file/link action and task menu. */
+@media(max-width:900px) {
+    .ft-overview-task-card .ft-order-overview-taskflow {
+        overflow: visible !important;
+    }
+
+    .ft-overview-task-card .ft-order-overview-taskflow>.ft-phase-group {
+        min-width: 0 !important;
+    }
+
+    .ft-overview-task-card .ft-phase-task-columns {
+        display: none !important;
+    }
+
+    .ft-overview-task-card .ft-order-phase-head {
+        grid-template-columns: 20px minmax(0, 1fr) auto 62px !important;
+        min-width: 0;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .ft-overview-task-card .ft-order-phase-head strong {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row {
+        position: relative;
+        display: grid !important;
+        grid-template-columns: 34px minmax(0, 1fr) !important;
+        column-gap: 9px !important;
+        row-gap: 8px !important;
+        min-height: 0;
+        padding: 12px 48px 12px 10px !important;
+        align-items: start !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-number {
+        grid-column: 1;
+        grid-row: 1;
+        min-height: 30px;
+        align-items: flex-start !important;
+        padding-top: 3px !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-copy {
+        grid-column: 2;
+        grid-row: 1;
+        min-height: 30px;
+        align-self: start !important;
+        justify-content: flex-start;
+        padding-top: 0 !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor:nth-child(3) {
+        grid-column: 2;
+        grid-row: 2
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor:nth-child(4) {
+        grid-column: 2;
+        grid-row: 3
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell {
+        grid-column: 2;
+        grid-row: 4
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files {
+        grid-column: 2;
+        grid-row: 5
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor,
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell,
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files {
+        width: 100%;
+        min-height: 34px;
+        align-self: start !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor>.ft-task-inline-display,
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell>.ft-inline-task-status {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-action-wrap {
+        position: absolute;
+        top: 10px;
+        right: 8px;
+        width: 34px;
+        min-height: 30px;
+        z-index: 15;
+    }
+
+    .ft-overview-task-card .ft-order-task-resource-list {
+        width: 100%;
+        min-width: 0;
+        padding: 0 10px 7px 53px !important;
+    }
+
+    .ft-overview-task-card .ft-order-task-document-row,
+    .ft-overview-task-card .ft-order-task-link-row {
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 8px;
+        padding: 8px;
+        align-items: start;
+    }
+
+    .ft-overview-task-card .ft-order-task-file-actions,
+    .ft-overview-task-card .ft-order-task-link-actions {
+        grid-column: 2;
+        width: 100%;
+        min-width: 0;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 9px;
+        white-space: normal;
+    }
+
+    .ft-overview-task-card .ft-order-task-link-copy {
+        display: block;
+    }
+
+    .ft-overview-task-card .ft-order-task-link-copy>a,
+    .ft-overview-task-card .ft-order-task-file-copy>b,
+    .ft-overview-task-card .ft-order-task-file-copy>small {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-row {
+        grid-template-columns: 32px minmax(0, 1fr);
+        gap: 8px 10px;
+        align-items: start;
+        padding: 10px 6px;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-main>b,
+    .ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-main>small {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        overflow-wrap: anywhere;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-actions {
+        grid-column: 2;
+        width: 100%;
+        justify-self: stretch;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+        white-space: normal;
+    }
+}
+
+@media(max-width:520px) {
+    .ft-overview-task-card .ft-order-phase-head {
+        grid-template-columns: 20px minmax(0, 1fr) auto !important;
+    }
+
+    .ft-overview-task-card .ft-order-phase-head em {
+        display: none !important
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row {
+        grid-template-columns: 28px minmax(0, 1fr) !important;
+        padding: 11px 42px 11px 8px !important;
+    }
+
+    .ft-overview-task-card .ft-order-task-resource-list {
+        padding-left: 44px !important;
+        padding-right: 8px !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files .ft-order-task-file-count {
+        flex-basis: 100%;
+        width: 100%;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-attachments {
+        padding: 10px !important;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-actions {
+        justify-content: flex-start;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-actions>a {
+        min-height: 30px;
+    }
+
+    .ft-exact-job-detail .ft-job-overview-attachments .ft-job-file-delete {
+        width: 30px;
+        min-width: 30px;
+        height: 30px;
+    }
+}
+
+/* ========================================================================== */
+/* 2026-08-12 Order Details taskflow: container-aware responsive hardening     */
+/* ========================================================================== */
+/* The Order Details page sits beside a persistent sidebar. React to the real
+   detail content width (not only the browser viewport), so the phase/task area
+   cannot get squeezed into a broken pseudo-table on laptops and tablets. */
+.ft-exact-job-detail {
+    container-name: ft-order-detail;
+    container-type: inline-size;
+    min-width: 0;
+}
+
+.ft-overview-task-card .ft-card-row-head,
+.ft-overview-task-card .ft-phase-load-note,
+.ft-overview-task-card .ft-order-overview-taskflow,
+.ft-overview-task-card .ft-phase-group {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.ft-overview-task-card .ft-card-row-head>div:first-child,
+.ft-overview-task-card .ft-task-card-heading>div:first-child {
+    min-width: 0;
+}
+
+.ft-overview-task-card .ft-task-card-heading h2,
+.ft-overview-task-card .ft-task-card-heading p {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.ft-overview-task-card .ft-phase-load-note {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+}
+
+/* Shared compact-card behavior. This is intentionally repeated for a viewport
+   fallback below so older browsers without container queries still behave. */
+@container ft-order-detail (max-width:940px) {
+    .ft-overview-task-card {
+        overflow: visible !important
+    }
+
+    .ft-overview-task-card .ft-order-overview-taskflow {
+        overflow: visible !important
+    }
+
+    .ft-overview-task-card .ft-order-overview-taskflow>.ft-phase-group {
+        min-width: 0 !important
+    }
+
+    .ft-overview-task-card .ft-phase-task-columns {
+        display: none !important
+    }
+
+    .ft-overview-task-card .ft-order-phase-head {
+        grid-template-columns: 24px minmax(0, 1fr) auto 72px !important;
+        gap: 8px !important;
+        min-width: 0;
+        padding: 9px 10px !important;
+    }
+
+    .ft-overview-task-card .ft-order-phase-head strong {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .ft-overview-task-card .ft-order-phase-head small {
+        font-size: .5625rem !important
+    }
+
+    .ft-overview-task-card .ft-order-phase-head em {
+        width: 64px !important
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row {
+        position: relative;
+        display: grid !important;
+        grid-template-columns: 34px minmax(0, 1fr) !important;
+        gap: 10px 10px !important;
+        min-height: 0 !important;
+        padding: 12px 48px 12px 10px !important;
+        align-items: start !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-number {
+        grid-column: 1;
+        grid-row: 1;
+        min-height: 30px !important;
+        align-items: flex-start !important;
+        padding-top: 3px !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-copy {
+        grid-column: 2;
+        grid-row: 1;
+        min-height: 34px !important;
+        align-self: start !important;
+        justify-content: flex-start !important;
+        padding: 0 !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor:nth-child(3) {
+        grid-column: 2;
+        grid-row: 2
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor:nth-child(4) {
+        grid-column: 2;
+        grid-row: 3
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell {
+        grid-column: 2;
+        grid-row: 4
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files {
+        grid-column: 2;
+        grid-row: 5
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>[data-field-label] {
+        position: relative;
+        width: 100% !important;
+        min-width: 0 !important;
+        min-height: 48px !important;
+        padding-top: 16px !important;
+        align-self: start !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>[data-field-label]::before {
+        content: attr(data-field-label);
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: #667a93;
+        font-size: .5rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: .045em;
+        text-transform: uppercase;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor,
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell {
+        align-items: center !important;
+        overflow: visible !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor>.ft-task-inline-display,
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell>.ft-inline-task-status {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-inline-edit-shell>.ft-inline-save-state {
+        top: calc(100% - 1px) !important;
+        max-width: min(100%, 300px) !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files {
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files .ft-order-task-file-count {
+        min-width: 0;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-action-wrap {
+        position: absolute !important;
+        top: 10px;
+        right: 7px;
+        z-index: 20;
+        width: 36px !important;
+        min-height: 32px !important;
+        padding: 0 !important;
+    }
+
+    .ft-overview-task-card .ft-order-task-resource-list {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 0 10px 8px 54px !important;
+    }
+
+    .ft-overview-task-card .ft-order-task-document-row,
+    .ft-overview-task-card .ft-order-task-link-row {
+        display: grid !important;
+        grid-template-columns: 30px minmax(0, 1fr) !important;
+        gap: 8px !important;
+        width: 100%;
+        min-width: 0;
+        align-items: start !important;
+        padding: 8px !important;
+    }
+
+    .ft-overview-task-card .ft-order-task-file-copy,
+    .ft-overview-task-card .ft-order-task-link-copy {
+        min-width: 0 !important
+    }
+
+    .ft-overview-task-card .ft-order-task-file-copy>b,
+    .ft-overview-task-card .ft-order-task-file-copy>small,
+    .ft-overview-task-card .ft-order-task-link-copy>a,
+    .ft-overview-task-card .ft-order-task-link-copy>small {
+        max-width: 100%;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+        word-break: break-word;
+    }
+
+    .ft-overview-task-card .ft-order-task-file-actions,
+    .ft-overview-task-card .ft-order-task-link-actions {
+        grid-column: 2 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        white-space: normal !important;
+    }
+}
+
+@container ft-order-detail (max-width:560px) {
+    .ft-overview-task-card .ft-card-row-head {
+        align-items: flex-start !important;
+        gap: 8px !important;
+        padding: 12px 10px !important;
+    }
+
+    .ft-overview-task-card .ft-phase-toolbar-icons {
+        flex: 0 0 auto
+    }
+
+    .ft-overview-task-card .ft-phase-load-note {
+        padding: 7px 10px !important;
+        gap: 3px 8px !important;
+        font-size: .5rem !important;
+    }
+
+    .ft-overview-task-card .ft-order-phase-head {
+        grid-template-columns: 22px minmax(0, 1fr) auto !important;
+    }
+
+    .ft-overview-task-card .ft-order-phase-head em {
+        display: none !important
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row {
+        grid-template-columns: 28px minmax(0, 1fr) !important;
+        padding: 11px 42px 11px 8px !important;
+        gap: 9px 7px !important;
+    }
+
+    .ft-overview-task-card .ft-order-task-resource-list {
+        padding-left: 43px !important;
+        padding-right: 7px !important;
+    }
+
+    .ft-overview-task-card .ft-order-task-resource-add-icon {
+        width: 36px !important;
+        height: 32px !important;
+    }
+
+    .ft-overview-task-card .ft-order-task-file-actions,
+    .ft-overview-task-card .ft-order-task-link-actions {
+        justify-content: flex-start !important
+    }
+}
+
+/* Viewport fallback for browsers that do not yet apply container queries. */
+@media(max-width:1180px) {
+    .ft-overview-task-card .ft-order-overview-taskflow {
+        overflow: visible !important
+    }
+
+    .ft-overview-task-card .ft-order-overview-taskflow>.ft-phase-group {
+        min-width: 0 !important
+    }
+
+    .ft-overview-task-card .ft-phase-task-columns {
+        display: none !important
+    }
+
+    .ft-overview-task-card .ft-order-phase-head {
+        grid-template-columns: 24px minmax(0, 1fr) auto 72px !important;
+        gap: 8px !important;
+        min-width: 0;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row {
+        position: relative;
+        display: grid !important;
+        grid-template-columns: 34px minmax(0, 1fr) !important;
+        gap: 10px !important;
+        min-height: 0 !important;
+        padding: 12px 48px 12px 10px !important;
+        align-items: start !important;
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-number {
+        grid-column: 1;
+        grid-row: 1;
+        align-items: flex-start !important;
+        padding-top: 3px !important
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-copy {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: start !important;
+        justify-content: flex-start !important;
+        padding: 0 !important
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor:nth-child(3) {
+        grid-column: 2;
+        grid-row: 2
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-editor:nth-child(4) {
+        grid-column: 2;
+        grid-row: 3
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-inline-status-shell {
+        grid-column: 2;
+        grid-row: 4
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-order-task-files {
+        grid-column: 2;
+        grid-row: 5
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>[data-field-label] {
+        position: relative;
+        width: 100% !important;
+        min-width: 0 !important;
+        min-height: 48px !important;
+        padding-top: 16px !important;
+        align-self: start !important
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>[data-field-label]::before {
+        content: attr(data-field-label);
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: #667a93;
+        font-size: .5rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: .045em;
+        text-transform: uppercase
+    }
+
+    .ft-overview-task-card .ft-order-taskflow-row>.ft-task-action-wrap {
+        position: absolute !important;
+        top: 10px;
+        right: 7px;
+        z-index: 20;
+        width: 36px !important;
+        min-height: 32px !important;
+        padding: 0 !important
+    }
+
+    .ft-overview-task-card .ft-order-task-resource-list {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 0 10px 8px 54px !important
+    }
+}

@@ -1,0 +1,430 @@
+/* Multi-shipment Order Details prototype (Stage 5). */
+.ft-order-prototype-detail {
+    --ms-green: #008b7a;
+    --ms-green-soft: #eaf8f4;
+    --ms-border: #dce5ef;
+    --ms-text: #12213c;
+    --ms-muted: #667892;
+    --ms-orange: #d97706;
+    --ms-orange-soft: #fff3df;
+}
+
+.ft-order-prototype-detail .ft-ms-tasks {
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-task {
+    padding-top: 11px;
+    padding-bottom: 10px;
+}
+
+.ft-order-prototype-detail .ft-ms-task .ft-shipment-task__top {
+    grid-template-columns: minmax(320px, 1fr) minmax(345px, .72fr) auto;
+    gap: 20px;
+    align-items: start;
+}
+
+.ft-order-prototype-detail .ft-ms-task__body {
+    margin-top: 9px;
+}
+
+.ft-order-prototype-detail .ft-ms-plan__controls,
+.ft-order-prototype-detail .ft-ms-modal__modes {
+    display: flex;
+    align-items: center;
+    gap: 34px;
+    min-height: 42px;
+}
+
+.ft-order-prototype-detail .ft-ms-plan__controls {
+    padding: 0 4px 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-check,
+.ft-order-prototype-detail .ft-ms-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--ms-text);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-check input,
+.ft-order-prototype-detail .ft-ms-radio input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--ms-green);
+}
+
+.ft-order-prototype-detail .ft-ms-radio.is-disabled {
+    opacity: .48;
+    cursor: default;
+}
+
+.ft-order-prototype-detail .ft-ms-plan__add {
+    margin-left: auto;
+}
+
+.ft-order-prototype-detail .ft-ms-outline-btn,
+.ft-order-prototype-detail .ft-ms-primary-btn,
+.ft-order-prototype-detail .ft-ms-ghost-btn {
+    min-height: 34px;
+    border-radius: 6px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color .12s ease, background .12s ease, color .12s ease, opacity .12s ease;
+}
+
+.ft-order-prototype-detail .ft-ms-outline-btn {
+    border: 1px solid #80c9c0;
+    background: #fff;
+    color: #087f72;
+}
+
+.ft-order-prototype-detail .ft-ms-outline-btn:hover:not(:disabled) {
+    background: #f0fbf8;
+    border-color: #43aa9e;
+}
+
+.ft-order-prototype-detail .ft-ms-primary-btn {
+    border: 1px solid var(--ms-green);
+    background: var(--ms-green);
+    color: #fff;
+}
+
+.ft-order-prototype-detail .ft-ms-primary-btn:hover:not(:disabled) {
+    filter: brightness(.96);
+}
+
+.ft-order-prototype-detail .ft-ms-ghost-btn {
+    border: 1px solid var(--ms-border);
+    background: #fff;
+    color: #52657f;
+}
+
+.ft-order-prototype-detail .ft-ms-outline-btn:disabled,
+.ft-order-prototype-detail .ft-ms-primary-btn:disabled,
+.ft-order-prototype-detail .ft-ms-ghost-btn:disabled {
+    cursor: not-allowed;
+    opacity: .42;
+}
+
+.ft-order-prototype-detail .ft-ms-outline-btn svg,
+.ft-order-prototype-detail .ft-ms-primary-btn svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+}
+
+.ft-order-prototype-detail .ft-ms-table-wrap {
+    overflow: visible;
+    border: 1px solid var(--ms-border);
+    border-radius: 7px;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-ms-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 11px;
+    color: var(--ms-text);
+}
+
+.ft-order-prototype-detail .ft-ms-table th {
+    padding: 8px 10px;
+    text-align: left;
+    color: #5e718e;
+    font-size: 9px;
+    line-height: 1.2;
+    text-transform: none;
+    font-weight: 800;
+    border-bottom: 1px solid var(--ms-border);
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-ms-table td {
+    padding: 8px 10px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e7edf4;
+    overflow: visible;
+}
+
+.ft-order-prototype-detail .ft-ms-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(1) { width: 8%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(2) { width: 12%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(3) { width: 20%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(4) { width: 7%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(5) { width: 5.5%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(6) { width: 7.5%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(7) { width: 7%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(8) { width: 19%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(9) { width: 10.5%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(10) { width: 3.5%; text-align: center; }
+
+.ft-order-prototype-detail .ft-ms-table--tracking th:nth-child(1),
+.ft-order-prototype-detail .ft-ms-table--dispatch th:nth-child(1) { width: 15%; }
+.ft-order-prototype-detail .ft-ms-table--tracking th:nth-child(2) { width: 27%; }
+.ft-order-prototype-detail .ft-ms-table--tracking th:nth-child(3) { width: 31%; }
+.ft-order-prototype-detail .ft-ms-table--tracking th:nth-child(4) { width: 27%; }
+.ft-order-prototype-detail .ft-ms-table--dispatch th:nth-child(2) { width: 21%; }
+.ft-order-prototype-detail .ft-ms-table--dispatch th:nth-child(3) { width: 18%; }
+.ft-order-prototype-detail .ft-ms-table--dispatch th:nth-child(4) { width: 21%; }
+.ft-order-prototype-detail .ft-ms-table--dispatch th:nth-child(5) { width: 25%; }
+
+.ft-order-prototype-detail .ft-ms-shipment-number,
+.ft-order-prototype-detail .ft-ms-recipient,
+.ft-order-prototype-detail .ft-ms-method-label,
+.ft-order-prototype-detail .ft-ms-actions {
+    display: flex;
+    align-items: center;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-number {
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-shipment-number b {
+    font-size: 11px;
+}
+
+.ft-order-prototype-detail .ft-ms-primary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 18px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #dff6ed;
+    color: #18836f;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-ms-recipient {
+    gap: 7px;
+}
+
+.ft-order-prototype-detail .ft-ms-recipient > svg {
+    width: 15px;
+    height: 15px;
+    color: #526b89;
+    flex: 0 0 15px;
+}
+
+.ft-order-prototype-detail .ft-ms-recipient span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-recipient strong,
+.ft-order-prototype-detail .ft-ms-recipient small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-ms-recipient strong {
+    font-size: 10px;
+}
+
+.ft-order-prototype-detail .ft-ms-recipient small {
+    font-size: 9px;
+    color: #667892;
+}
+
+.ft-order-prototype-detail .ft-ms-address {
+    line-height: 1.45;
+    font-weight: 600;
+}
+
+
+.ft-order-prototype-detail .ft-ms-kebab {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.ft-order-prototype-detail .ft-ms-kebab__button {
+    border: 0;
+    background: transparent;
+    color: #14213b;
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-kebab__button:hover {
+    background: #f2f6fa;
+}
+
+.ft-order-prototype-detail .ft-ms-kebab__menu {
+    position: absolute;
+    z-index: 90;
+    right: 0;
+    top: 30px;
+    min-width: 142px;
+    padding: 4px;
+    border: 1px solid var(--ms-border);
+    border-radius: 7px;
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(29, 45, 67, .15);
+}
+
+.ft-order-prototype-detail .ft-ms-kebab__menu button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    border-radius: 5px;
+    padding: 8px 9px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 650;
+    color: var(--ms-text);
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-kebab__menu button:hover {
+    background: #f4f7fb;
+}
+
+.ft-order-prototype-detail .ft-ms-kebab__menu button.is-danger {
+    color: #c33f3f;
+}
+
+.ft-order-prototype-detail .ft-ms-method-label {
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-method-label strong {
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.ft-order-prototype-detail .ft-ms-actions {
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ft-order-prototype-detail .ft-ms-actions .ft-ms-outline-btn,
+.ft-order-prototype-detail .ft-ms-actions .ft-ms-ghost-btn {
+    min-width: 112px;
+    min-height: 28px;
+    padding: 0 11px;
+    font-size: 10px;
+}
+
+.ft-order-prototype-detail .ft-ms-tracking-input {
+    width: 100%;
+    min-height: 30px;
+    border: 1px solid #c9d6e5;
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--ms-text);
+}
+
+.ft-order-prototype-detail .ft-ms-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-ms-status.is-dispatched {
+    background: #dff6ed;
+    color: #18836f;
+}
+
+.ft-order-prototype-detail .ft-ms-status.is-pending {
+    background: var(--ms-orange-soft);
+    color: var(--ms-orange);
+}
+
+.ft-order-prototype-detail .ft-ms-task-action {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+}
+
+.ft-order-prototype-detail .ft-ms-error {
+    margin: 2px 0 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-empty {
+    padding: 18px !important;
+    text-align: center;
+    color: var(--ms-muted);
+}
+
+
+@media (max-width: 1180px) {
+    .ft-order-prototype-detail .ft-ms-task .ft-shipment-task__top {
+        grid-template-columns: minmax(280px, 1fr) minmax(300px, .9fr) auto;
+    }
+
+    .ft-order-prototype-detail .ft-ms-table-wrap { overflow-x: auto; }
+    .ft-order-prototype-detail .ft-ms-table--plan { min-width: 1120px; }
+    .ft-order-prototype-detail .ft-ms-table--tracking,
+    .ft-order-prototype-detail .ft-ms-table--dispatch { min-width: 760px; }
+}
+
+@media (max-width: 860px) {
+    .ft-order-prototype-detail .ft-ms-task .ft-shipment-task__top { grid-template-columns: 1fr; }
+    .ft-order-prototype-detail .ft-ms-plan__controls {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .ft-order-prototype-detail .ft-ms-plan__add { margin-left: 0; }
+}
+
+@media print {
+    .ft-order-prototype-detail .ft-ms-outline-btn,
+    .ft-order-prototype-detail .ft-ms-primary-btn,
+    .ft-order-prototype-detail .ft-ms-kebab,
+    .ft-order-prototype-detail .ft-ms-plan__controls,
+    .ft-order-prototype-detail .ft-shipment-task__meta,
+    .ft-order-prototype-detail .ft-shipment-task__state,
+    .ft-order-prototype-detail .workflow,
+    .ft-order-prototype-detail .ft-shipment-phase__status,
+    .ft-order-prototype-detail .ft-shipment-phase__head { display: none !important; }
+}
+
+/* Task 5.2 initial courier/tracking entry: explicit row save. */
+.ft-order-prototype-detail .ft-ms-table--tracking td:last-child .ft-ms-actions {
+    justify-content: flex-end;
+}
+
+.ft-order-prototype-detail .ft-ms-table--tracking td:last-child .ft-ms-primary-btn {
+    min-width: 84px;
+    min-height: 30px;
+    padding: 0 12px;
+    font-size: 10px;
+}
+
+.ft-order-prototype-detail .ft-ms-row-action-empty {
+    display: block;
+    text-align: right;
+    color: #94a3b8;
+}

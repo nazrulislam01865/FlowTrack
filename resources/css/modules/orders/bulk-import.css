@@ -1,0 +1,1218 @@
+#ft-bulk-import-page {
+    --ftbi-blue: var(--ft-theme-primary);
+    --ftbi-blue-dark: var(--ft-theme-primary-hover);
+    --ftbi-blue-soft: var(--ft-theme-b-soft);
+    --ftbi-blue2: var(--ft-theme-b-soft-2);
+    --ftbi-line: #d8e2ef;
+    --ftbi-text: #13233f;
+    --ftbi-muted: #60718d;
+    --ftbi-green: #087f5b;
+    --ftbi-greenbg: #e9f8f1;
+    --ftbi-red: #cf3c3c;
+    --ftbi-redbg: #fff0f0;
+    --ftbi-amber: #9a5a00;
+    --ftbi-amberbg: #fff7e6;
+    --ftbi-surface: #fff;
+    --ftbi-soft: #f7f9fc;
+    --ftbi-shadow: 0 2px 8px rgba(19, 39, 67, .025);
+    color: var(--ftbi-text);
+    font: .875rem var(--ft-theme-font-family);
+    width: 100%;
+    max-width: 1640px;
+    margin: auto;
+    padding: 1px 0 34px;
+    box-sizing: border-box;
+}
+
+#ft-bulk-import-page * {
+    box-sizing: border-box
+}
+
+#ft-bulk-import-page button,
+#ft-bulk-import-page input,
+#ft-bulk-import-page select {
+    font: inherit
+}
+
+#ft-bulk-import-page .hidden {
+    display: none !important
+}
+
+#ft-bulk-import-page .sub {
+    color: var(--ftbi-muted)
+}
+
+#ft-bulk-import-page .ftbi-page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 18px;
+    margin: 4px 0 18px
+}
+
+#ft-bulk-import-page .ftbi-breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--ftbi-muted);
+    font-size: .75rem;
+    font-weight: 700;
+    text-decoration: none;
+    margin-bottom: 7px
+}
+
+#ft-bulk-import-page .ftbi-breadcrumb:hover {
+    color: var(--ftbi-blue)
+}
+
+#ft-bulk-import-page .ftbi-breadcrumb span {
+    font-size: 1.1875rem;
+    line-height: 12px
+}
+
+#ft-bulk-import-page .ftbi-page-head h1 {
+    font-size: 1.5625rem;
+    line-height: 1.2;
+    margin: 0 0 5px;
+    letter-spacing: -.02em
+}
+
+#ft-bulk-import-page .ftbi-page-head p {
+    margin: 0;
+    color: var(--ftbi-muted);
+    font-size: .8125rem
+}
+
+#ft-bulk-import-page .ftbi-head-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end
+}
+
+#ft-bulk-import-page .btn {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid var(--ftbi-line);
+    background: #fff;
+    border-radius: 9px;
+    padding: 8px 13px;
+    font-weight: 650;
+    color: var(--ftbi-text);
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1.2;
+    transition: border-color .16s, background .16s, box-shadow .16s, transform .16s
+}
+
+#ft-bulk-import-page .btn:hover {
+    background: #f8fafc;
+    border-color: #c1cede
+}
+
+#ft-bulk-import-page .btn:focus-visible,
+#ft-bulk-import-page select:focus-visible,
+#ft-bulk-import-page .drop:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--ft-theme-primary) 16%, transparent);
+    outline-offset: 2px
+}
+
+#ft-bulk-import-page .btn.primary {
+    background: var(--ftbi-blue);
+    border-color: var(--ftbi-blue);
+    color: #fff;
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--ft-theme-primary) 18%, transparent)
+}
+
+#ft-bulk-import-page .btn.primary:hover {
+    background: var(--ftbi-blue-dark);
+    border-color: var(--ftbi-blue-dark)
+}
+
+#ft-bulk-import-page .btn:disabled {
+    opacity: .48;
+    cursor: not-allowed;
+    box-shadow: none
+}
+
+#ft-bulk-import-page .ftbi-template-btn {
+    background: #fff
+}
+
+#ft-bulk-import-page .ftbi-head-actions .btn {
+    font-weight: 500
+}
+
+#ft-bulk-import-page .steps {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: #fff;
+    border: 1px solid var(--ftbi-line);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    box-shadow: var(--ftbi-shadow)
+}
+
+#ft-bulk-import-page .step {
+    position: relative;
+    min-width: 0;
+    padding: 12px 15px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    text-align: left;
+    color: var(--ftbi-muted);
+    border-right: 1px solid var(--ftbi-line);
+    background: #fff
+}
+
+#ft-bulk-import-page .step:last-child {
+    border-right: 0
+}
+
+/* Isolate this stepper from FlowTrack's global timeline .step:before rule. */
+#ft-bulk-import-page .steps .step::before,
+#ft-bulk-import-page .steps .step::after {
+    content: none !important;
+    display: none !important
+}
+
+#ft-bulk-import-page .step strong {
+    display: block;
+    color: var(--ftbi-text);
+    font-size: .78125rem;
+    margin-bottom: 2px;
+    white-space: nowrap
+}
+
+#ft-bulk-import-page .step div span {
+    display: block;
+    font-size: .6875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+#ft-bulk-import-page .n {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #eff3f8;
+    color: #65748d;
+    font-weight: 800;
+    flex: 0 0 28px;
+    border: 1px solid #e4eaf1
+}
+
+#ft-bulk-import-page .step.active {
+    background: var(--ft-theme-b-step);
+    box-shadow: inset 0 3px 0 var(--ftbi-blue)
+}
+
+#ft-bulk-import-page .step.active .n {
+    background: var(--ftbi-blue);
+    border-color: var(--ftbi-blue);
+    color: #fff
+}
+
+#ft-bulk-import-page .step.done .n {
+    font-size: 0;
+    background: var(--ftbi-green);
+    border-color: var(--ftbi-green);
+    color: #fff
+}
+
+#ft-bulk-import-page .step.done .n::before {
+    content: '✓';
+    font-size: .8125rem
+}
+
+#ft-bulk-import-page .step.done strong {
+    color: #34536c
+}
+
+#ft-bulk-import-page .card {
+    background: var(--ftbi-surface);
+    border: 1px solid var(--ftbi-line);
+    border-radius: 12px;
+    box-shadow: var(--ftbi-shadow)
+}
+
+#ft-bulk-import-page .upload {
+    padding: 18px
+}
+
+#ft-bulk-import-page .ftbi-upload-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(330px, .75fr);
+    gap: 18px;
+    align-items: stretch
+}
+
+#ft-bulk-import-page .ftbi-file-panel,
+#ft-bulk-import-page .ftbi-config-panel {
+    min-width: 0
+}
+
+#ft-bulk-import-page .ftbi-config-panel {
+    border-left: 1px solid var(--ftbi-line);
+    padding-left: 18px
+}
+
+#ft-bulk-import-page .ftbi-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px
+}
+
+#ft-bulk-import-page .ftbi-section-heading.compact {
+    margin-bottom: 14px
+}
+
+#ft-bulk-import-page .ftbi-section-number {
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--ftbi-blue-soft);
+    color: var(--ftbi-blue);
+    font-size: .75rem;
+    font-weight: 850;
+    flex: 0 0 27px
+}
+
+#ft-bulk-import-page .ftbi-section-heading h2 {
+    font-size: .9375rem;
+    margin: 0 0 2px;
+    line-height: 1.2
+}
+
+#ft-bulk-import-page .ftbi-section-heading p {
+    margin: 0;
+    color: var(--ftbi-muted);
+    font-size: .71875rem
+}
+
+#ft-bulk-import-page .drop {
+    min-height: 285px;
+    border: 1.5px dashed var(--ft-theme-primary-300);
+    background: var(--ft-theme-b-drop);
+    border-radius: 12px;
+    padding: 28px 22px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: .18s;
+    cursor: pointer
+}
+
+#ft-bulk-import-page .drop:hover,
+#ft-bulk-import-page .drop.drag {
+    background: var(--ft-theme-b-drop-hover);
+    border-color: var(--ftbi-blue);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ft-theme-primary) 5%, transparent)
+}
+
+#ft-bulk-import-page .ftbi-upload-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    color: #23436f;
+    border: 1px solid var(--ft-theme-b-upload-line);
+    margin-bottom: 9px;
+    box-shadow: 0 2px 7px rgba(19, 39, 67, .05)
+}
+
+#ft-bulk-import-page .ftbi-upload-icon svg {
+    width: 25px;
+    height: 25px
+}
+
+#ft-bulk-import-page .drop h3 {
+    font-size: 1rem;
+    margin: 0 0 6px
+}
+
+#ft-bulk-import-page .ftbi-file-limits {
+    margin: 0 0 14px;
+    color: var(--ftbi-muted);
+    font-size: .75rem
+}
+
+#ft-bulk-import-page .ftbi-file-limits span {
+    padding: 0 3px;
+    color: #9aa8ba
+}
+
+#ft-bulk-import-page .fileInput {
+    display: none
+}
+
+#ft-bulk-import-page .ftbi-choose-btn {
+    min-width: 114px
+}
+
+#ft-bulk-import-page .ftbi-safe-note {
+    margin-top: 13px;
+    color: #526983;
+    font-size: .6875rem;
+    display: flex;
+    align-items: center;
+    gap: 5px
+}
+
+#ft-bulk-import-page .ftbi-safe-note span {
+    color: var(--ftbi-green);
+    font-weight: 900
+}
+
+#ft-bulk-import-page .ftbi-template-note {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+    border: 1px solid #e4eaf3;
+    background: #fafbfd;
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--ftbi-muted);
+    font-size: .6875rem
+}
+
+#ft-bulk-import-page .ftbi-template-note strong {
+    display: block;
+    color: var(--ftbi-text);
+    font-size: .71875rem;
+    margin-bottom: 2px
+}
+
+#ft-bulk-import-page .ftbi-template-note span {
+    display: block
+}
+
+#ft-bulk-import-page .ftbi-note-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--ftbi-blue-soft);
+    color: var(--ftbi-blue);
+    font-weight: 850
+}
+
+#ft-bulk-import-page .ftbi-template-note a {
+    color: var(--ftbi-blue);
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap
+}
+
+#ft-bulk-import-page .ftbi-template-note a:hover {
+    text-decoration: underline
+}
+
+#ft-bulk-import-page .ftbi-config-fields {
+    display: grid;
+    gap: 13px
+}
+
+#ft-bulk-import-page .ftbi-client-workflow-note {
+    grid-column: 1/-1;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px 11px;
+    border: 1px solid var(--ft-theme-b-note-line);
+    border-radius: 9px;
+    background: var(--ft-theme-b-note);
+    color: #516681
+}
+
+#ft-bulk-import-page .ftbi-client-workflow-note .ftbi-auto-icon {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    border-radius: 50%;
+    background: var(--ftbi-greenbg);
+    color: var(--ftbi-green);
+    font-size: .6875rem;
+    font-weight: 900
+}
+
+#ft-bulk-import-page .ftbi-client-workflow-note strong {
+    display: block;
+    margin-bottom: 2px;
+    color: #233c5d;
+    font-size: .6875rem
+}
+
+#ft-bulk-import-page .ftbi-client-workflow-note span {
+    font-size: .65625rem;
+    line-height: 1.4
+}
+
+#ft-bulk-import-page .field label {
+    font-size: .6875rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    color: #233c5d
+}
+
+#ft-bulk-import-page .ftbi-required {
+    color: var(--ftbi-red)
+}
+
+#ft-bulk-import-page .ftbi-optional {
+    color: #7a899f;
+    font-size: .59375rem;
+    font-weight: 700;
+    background: #f2f5f8;
+    border-radius: 999px;
+    padding: 2px 6px
+}
+
+#ft-bulk-import-page .field select,
+#ft-bulk-import-page .field input {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--ftbi-line);
+    border-radius: 8px;
+    padding: 0 34px 0 11px;
+    background: #fff;
+    color: var(--ftbi-text);
+    font-size: .75rem;
+    transition: border-color .16s, box-shadow .16s
+}
+
+#ft-bulk-import-page .field select:hover {
+    border-color: #c3cfdf
+}
+
+#ft-bulk-import-page .hint {
+    font-size: .65625rem;
+    color: var(--ftbi-muted);
+    margin-top: 5px;
+    line-height: 1.35
+}
+
+#ft-bulk-import-page .ftbi-source-help,
+#ft-bulk-import-page .ftbi-test-tools {
+    border-top: 1px solid #e8edf4;
+    margin-top: 14px;
+    padding-top: 12px;
+    color: var(--ftbi-muted)
+}
+
+#ft-bulk-import-page .ftbi-source-help summary,
+#ft-bulk-import-page .ftbi-test-tools summary {
+    cursor: pointer;
+    font-weight: 800;
+    font-size: .6875rem;
+    color: #314967;
+    list-style-position: inside
+}
+
+#ft-bulk-import-page .ftbi-source-help p {
+    font-size: .65625rem;
+    line-height: 1.45;
+    margin: 7px 0 0
+}
+
+#ft-bulk-import-page .ftbi-test-tools {
+    margin-top: 10px;
+    padding-top: 10px
+}
+
+#ft-bulk-import-page .ftbi-test-actions {
+    display: flex;
+    gap: 7px;
+    margin-top: 9px;
+    flex-wrap: wrap
+}
+
+#ft-bulk-import-page .ftbi-test-actions .btn {
+    min-height: 33px;
+    font-size: .65625rem;
+    padding: 6px 9px
+}
+
+#ft-bulk-import-page .content-card {
+    margin-top: 0;
+    overflow: hidden
+}
+
+#ft-bulk-import-page .toolbar {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--ftbi-line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    background: #fff
+}
+
+#ft-bulk-import-page .ftbi-file-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0
+}
+
+#ft-bulk-import-page .ftbi-file-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    background: #eef5ec;
+    color: #347653;
+    border: 1px solid #d8e9db;
+    font-size: .5625rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+    flex: 0 0 38px
+}
+
+#ft-bulk-import-page .toolbar h2 {
+    font-size: .875rem;
+    margin: 0 0 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 600px
+}
+
+#ft-bulk-import-page .toolbar .hint {
+    margin: 0
+}
+
+#ft-bulk-import-page .ftbi-review-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+    flex-wrap: wrap
+}
+
+#ft-bulk-import-page .ftbi-compact-action {
+    min-height: 31px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-size: .65625rem;
+    font-weight: 650;
+    line-height: 1
+}
+
+#ft-bulk-import-page .ftbi-review-actions .ftbi-compact-action {
+    white-space: nowrap
+}
+
+#ft-bulk-import-page .pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end
+}
+
+#ft-bulk-import-page .pill {
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #eef2f7;
+    color: #52637c;
+    font-weight: 800;
+    font-size: .625rem;
+    border: 1px solid transparent
+}
+
+#ft-bulk-import-page .pill.ok {
+    color: var(--ftbi-green);
+    background: var(--ftbi-greenbg)
+}
+
+#ft-bulk-import-page .pill.err {
+    color: var(--ftbi-red);
+    background: var(--ftbi-redbg)
+}
+
+#ft-bulk-import-page .pill.warn {
+    color: var(--ftbi-amber);
+    background: var(--ftbi-amberbg)
+}
+
+#ft-bulk-import-page .ftbi-review-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 16px;
+    border-bottom: 1px solid #e7edf4
+}
+
+#ft-bulk-import-page .ftbi-review-heading h3 {
+    font-size: .78125rem;
+    margin: 0 0 2px
+}
+
+#ft-bulk-import-page .ftbi-review-heading p {
+    margin: 0;
+    color: var(--ftbi-muted);
+    font-size: .65625rem
+}
+
+#ft-bulk-import-page .ftbi-review-heading .btn {
+    min-height: 32px;
+    font-size: .65625rem;
+    padding: 6px 9px
+}
+
+#ft-bulk-import-page .tablewrap {
+    max-height: min(52vh, 570px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    background: #fff
+}
+
+#ft-bulk-import-page table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: .6875rem;
+    min-width: 1120px
+}
+
+#ft-bulk-import-page th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: #f6f8fb;
+    text-align: left;
+    color: #52627a;
+    font-size: .5625rem;
+    text-transform: uppercase;
+    letter-spacing: .045em;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--ftbi-line);
+    white-space: nowrap
+}
+
+#ft-bulk-import-page td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #e8edf3;
+    vertical-align: top;
+    color: #31445f;
+    line-height: 1.35
+}
+
+#ft-bulk-import-page tbody tr:last-child td {
+    border-bottom: 0
+}
+
+#ft-bulk-import-page tbody tr:hover td {
+    background: var(--ft-theme-b-row-hover)
+}
+
+#ft-bulk-import-page td:nth-child(1),
+#ft-bulk-import-page th:nth-child(1) {
+    width: 52px;
+    text-align: center
+}
+
+#ft-bulk-import-page td:nth-child(2) {
+    min-width: 170px
+}
+
+#ft-bulk-import-page td:nth-child(6) {
+    min-width: 260px;
+    max-width: 360px
+}
+
+#ft-bulk-import-page .status {
+    display: inline-block;
+    font-size: .59375rem;
+    font-weight: 850;
+    border-radius: 999px;
+    padding: 4px 7px;
+    white-space: nowrap
+}
+
+#ft-bulk-import-page .errorRow td {
+    background: #fffafa
+}
+
+#ft-bulk-import-page .warnRow td {
+    background: #fffdf8
+}
+
+#ft-bulk-import-page .errorRow:hover td {
+    background: #fff7f7
+}
+
+#ft-bulk-import-page .warnRow:hover td {
+    background: #fffaf0
+}
+
+#ft-bulk-import-page .rowmsg {
+    font-size: .59375rem;
+    margin-top: 4px;
+    color: var(--ftbi-red);
+    max-width: 280px
+}
+
+#ft-bulk-import-page .rowmsg.warn {
+    color: var(--ftbi-amber)
+}
+
+#ft-bulk-import-page td .sub {
+    font-size: .625rem
+}
+
+#ft-bulk-import-page .footerbar {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    border-top: 1px solid var(--ftbi-line);
+    padding: 11px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    z-index: 5
+}
+
+#ft-bulk-import-page .checks {
+    display: flex;
+    gap: 14px;
+    color: var(--ftbi-muted);
+    font-size: .59375rem;
+    flex-wrap: wrap
+}
+
+#ft-bulk-import-page .checks span::first-letter {
+    color: var(--ftbi-green)
+}
+
+#ft-bulk-import-page .ftbi-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    flex-wrap: wrap
+}
+
+#ft-bulk-import-page .ftbi-import-btn {
+    min-width: 0;
+    width: auto;
+    white-space: nowrap
+}
+
+#ft-bulk-import-page .ftbi-cancel-btn {
+    background: #fff;
+    color: #52637c
+}
+
+#ft-bulk-import-page .loading {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 25, 47, .38);
+    backdrop-filter: blur(2px);
+    z-index: 100;
+    place-items: center;
+    padding: 18px
+}
+
+#ft-bulk-import-page .loading.show {
+    display: grid
+}
+
+#ft-bulk-import-page .loaderCard {
+    width: min(450px, 100%);
+    background: #fff;
+    border-radius: 13px;
+    box-shadow: 0 18px 50px rgba(9, 30, 66, .2);
+    padding: 19px
+}
+
+#ft-bulk-import-page .ftbi-loader-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px
+}
+
+#ft-bulk-import-page .ftbi-loader-mark {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--ft-theme-primary-soft);
+    border-top-color: var(--ftbi-blue);
+    border-radius: 50%;
+    animation: ftbi-spin .85s linear infinite;
+    flex: 0 0 28px
+}
+
+#ft-bulk-import-page .loaderCard b {
+    display: block;
+    font-size: .8125rem;
+    margin-bottom: 3px
+}
+
+#ft-bulk-import-page .loaderCard .sub {
+    font-size: .65625rem;
+    line-height: 1.4
+}
+
+#ft-bulk-import-page .bar {
+    height: 6px;
+    background: #e7edf5;
+    border-radius: 99px;
+    overflow: hidden;
+    margin: 14px 0 0
+}
+
+#ft-bulk-import-page .bar i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--ftbi-blue);
+    transition: width .35s;
+    border-radius: 99px
+}
+
+@keyframes ftbi-spin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+#ft-bulk-import-page .success {
+    display: none;
+    padding: 36px 24px;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto
+}
+
+#ft-bulk-import-page .success.show {
+    display: block
+}
+
+#ft-bulk-import-page .successIcon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--ftbi-greenbg);
+    color: var(--ftbi-green);
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin: 0 auto 11px
+}
+
+#ft-bulk-import-page .success h2 {
+    font-size: 1.1875rem;
+    margin: 0 0 5px
+}
+
+#ft-bulk-import-page .success>p {
+    font-size: .75rem;
+    margin: 0
+}
+
+#ft-bulk-import-page .summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 9px;
+    margin: 18px auto;
+    max-width: 650px
+}
+
+#ft-bulk-import-page .sum {
+    background: #f8fafc;
+    border: 1px solid var(--ftbi-line);
+    padding: 12px;
+    border-radius: 9px;
+    text-align: left
+}
+
+#ft-bulk-import-page .sum span {
+    font-size: .625rem;
+    color: var(--ftbi-muted);
+    font-weight: 700
+}
+
+#ft-bulk-import-page .sum b {
+    display: block;
+    font-size: 1.25rem;
+    margin-top: 2px
+}
+
+#ft-bulk-import-page .ftbi-import-id {
+    max-width: 650px;
+    margin: 0 auto 15px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: #f3f6fa;
+    color: #4b5e77;
+    font-size: .65625rem
+}
+
+#ft-bulk-import-page .ftbi-import-id span {
+    padding: 0 5px;
+    color: #9aa8b8
+}
+
+#ft-bulk-import-page .ftbi-success-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap
+}
+
+@media(max-width:1180px) {
+    #ft-bulk-import-page .ftbi-upload-grid {
+        grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr)
+    }
+
+    #ft-bulk-import-page .drop {
+        min-height: 300px
+    }
+}
+
+@media(max-width:900px) {
+    #ft-bulk-import-page {
+        padding-bottom: 76px
+    }
+
+    #ft-bulk-import-page .ftbi-upload-grid {
+        grid-template-columns: 1fr
+    }
+
+    #ft-bulk-import-page .ftbi-config-panel {
+        border-left: 0;
+        border-top: 1px solid var(--ftbi-line);
+        padding: 16px 0 0
+    }
+
+    #ft-bulk-import-page .ftbi-config-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        display: grid
+    }
+
+    #ft-bulk-import-page .ftbi-config-fields .field:first-child {
+        grid-column: 1/-1
+    }
+
+    #ft-bulk-import-page .steps {
+        grid-template-columns: repeat(4, minmax(0, 1fr))
+    }
+
+    #ft-bulk-import-page .step {
+        padding: 10px 9px;
+        gap: 7px
+    }
+
+    #ft-bulk-import-page .step div span {
+        display: none
+    }
+
+    #ft-bulk-import-page .footerbar {
+        position: static
+    }
+}
+
+@media(max-width:680px) {
+    #ft-bulk-import-page .ftbi-page-head {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 14px
+    }
+
+    #ft-bulk-import-page .ftbi-head-actions {
+        width: 100%;
+        justify-content: flex-start
+    }
+
+    #ft-bulk-import-page .ftbi-head-actions .btn {
+        flex: 1
+    }
+
+    #ft-bulk-import-page .steps {
+        overflow-x: auto;
+        scrollbar-width: none;
+        grid-template-columns: repeat(4, minmax(132px, 1fr))
+    }
+
+    #ft-bulk-import-page .steps::-webkit-scrollbar {
+        display: none
+    }
+
+    #ft-bulk-import-page .upload {
+        padding: 13px
+    }
+
+    #ft-bulk-import-page .drop {
+        min-height: 250px;
+        padding: 22px 14px
+    }
+
+    #ft-bulk-import-page .ftbi-template-note {
+        grid-template-columns: 26px 1fr
+    }
+
+    #ft-bulk-import-page .ftbi-template-note a {
+        grid-column: 2;
+        justify-self: start
+    }
+
+    #ft-bulk-import-page .ftbi-config-fields {
+        grid-template-columns: 1fr
+    }
+
+    #ft-bulk-import-page .ftbi-config-fields .field:first-child {
+        grid-column: auto
+    }
+
+    #ft-bulk-import-page .toolbar {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    #ft-bulk-import-page .ftbi-review-actions {
+        width: 100%;
+        align-items: flex-start;
+        justify-content: flex-start;
+        flex-direction: column
+    }
+
+    #ft-bulk-import-page .pills {
+        justify-content: flex-start
+    }
+
+    #ft-bulk-import-page .ftbi-review-heading {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    #ft-bulk-import-page .footerbar {
+        align-items: stretch;
+        flex-direction: column
+    }
+
+    #ft-bulk-import-page .ftbi-footer-actions {
+        width: 100%;
+        justify-content: flex-end
+    }
+
+    #ft-bulk-import-page .ftbi-import-btn {
+        width: auto
+    }
+
+    #ft-bulk-import-page .summary {
+        grid-template-columns: 1fr 1fr
+    }
+}
+
+@media(max-width:430px) {
+    #ft-bulk-import-page .ftbi-page-head h1 {
+        font-size: 1.3125rem
+    }
+
+    #ft-bulk-import-page .ftbi-head-actions {
+        display: grid;
+        grid-template-columns: 1fr
+    }
+
+    #ft-bulk-import-page .ftbi-file-limits span {
+        display: none
+    }
+
+    #ft-bulk-import-page .ftbi-file-limits {
+        max-width: 240px;
+        line-height: 1.5
+    }
+
+    #ft-bulk-import-page .summary {
+        grid-template-columns: 1fr 1fr
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+    #ft-bulk-import-page *,
+    #ft-bulk-import-page *::before,
+    #ft-bulk-import-page *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important
+    }
+}
+
+/* Workflow review controls: client-specific Order workflows are read-only;
+   only rows without a client-specific Order workflow expose a manual selector. */
+#ft-bulk-import-page .ftbi-workflow-auto,
+#ft-bulk-import-page .ftbi-workflow-manual {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 190px
+}
+
+#ft-bulk-import-page .ftbi-workflow-auto small,
+#ft-bulk-import-page .ftbi-workflow-manual small {
+    display: block;
+    color: var(--ftbi-muted);
+    font-size: .5625rem;
+    line-height: 1.25;
+    max-width: 230px
+}
+
+#ft-bulk-import-page .ftbi-row-workflow {
+    width: 100%;
+    min-width: 210px;
+    height: 34px;
+    padding: 0 30px 0 9px;
+    border: 1px solid #c9d6e7;
+    border-radius: 7px;
+    background: #fff;
+    color: #243b59;
+    font-size: .65625rem;
+    font-weight: 650;
+    outline: 0
+}
+
+#ft-bulk-import-page .ftbi-row-workflow:hover {
+    border-color: #aebfd5
+}
+
+#ft-bulk-import-page .ftbi-row-workflow:focus {
+    border-color: var(--ftbi-blue);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent)
+}
+
+#ft-bulk-import-page .ftbi-row-workflow.needs-selection {
+    border-color: #e2a541;
+    background: #fffdf7;
+    color: #6f4700
+}

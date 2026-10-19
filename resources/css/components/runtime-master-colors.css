@@ -1,0 +1,272 @@
+/* Master Data driven Task Status, Task Flag, Priority and Inquiry Status colors. */
+.ft-master-color {
+    background: var(--ft-master-bg) !important;
+    color: var(--ft-master-text) !important;
+    border-color: var(--ft-master-border) !important;
+}
+
+.ft-master-color-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    flex: 0 0 8px;
+    border-radius: 999px;
+    background: var(--ft-master-color, #64748b) !important;
+    box-shadow: 0 0 0 2px var(--ft-master-bg, rgba(100, 116, 139, .12));
+}
+
+.ft-master-color-text {
+    color: var(--ft-master-text, var(--ft-master-color, #334155)) !important;
+    font-weight: 700;
+}
+
+.ft-master-color-inline-label {
+    display: inline-flex;
+    align-items: center;
+    width: max-content;
+    max-width: 100%;
+    padding: 3px 7px;
+    border: 1px solid var(--ft-master-border, #d8e2ee);
+    border-radius: 999px;
+    background: var(--ft-master-bg, #f8fafc);
+    color: var(--ft-master-text, #334155) !important;
+    line-height: 1.15;
+}
+
+.ft-master-priority-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+.ft-master-inline-color {
+    width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    flex: 0 0 28px;
+    padding: 2px !important;
+    border: 1px solid rgba(15, 23, 42, .14) !important;
+    border-radius: 7px !important;
+    background: #fff !important;
+    cursor: pointer;
+}
+
+.ft-master-inline-color::-webkit-color-swatch-wrapper {
+    padding: 0
+}
+
+.ft-master-inline-color::-webkit-color-swatch {
+    border: 0;
+    border-radius: 4px
+}
+
+.ft-master-inline-color::-moz-color-swatch {
+    border: 0;
+    border-radius: 4px
+}
+
+.ft-master-color-swatch {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    border: 1px solid rgba(15, 23, 42, .12);
+    border-radius: 6px;
+    background: var(--ft-master-color, #64748b);
+}
+
+.ft-master-color-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 86px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.ft-master-color-picker-row {
+    display: grid;
+    grid-template-columns: 52px minmax(120px, 190px) 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+.ft-master-color-picker {
+    width: 52px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 3px !important;
+    cursor: pointer;
+    border: 1px solid var(--line) !important;
+    border-radius: 9px !important;
+    background: #fff !important;
+}
+
+.ft-master-color-picker::-webkit-color-swatch-wrapper {
+    padding: 0
+}
+
+.ft-master-color-picker::-webkit-color-swatch {
+    border: 0;
+    border-radius: 6px
+}
+
+.ft-master-color-picker::-moz-color-swatch {
+    border: 0;
+    border-radius: 6px
+}
+
+.ft-master-color-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 7px 10px;
+    border: 1px solid var(--ft-master-border, #d8e2ee);
+    border-radius: 9px;
+    background: var(--ft-master-bg, #f8fafc);
+    color: var(--ft-master-text, #334155);
+    font-size: .6875rem;
+    font-weight: 750;
+}
+
+select.ft-master-color {
+    box-shadow: inset 3px 0 0 var(--ft-master-color, transparent);
+}
+
+@media(max-width:680px) {
+    .ft-master-color-picker-row {
+        grid-template-columns: 52px 1fr
+    }
+
+    .ft-master-color-preview {
+        grid-column: 1/-1
+    }
+}
+
+/* Workflow phases use their stored Workflow Setup color everywhere. */
+.ft-phase-color-label {
+    display: inline-flex;
+    align-items: center;
+    width: max-content;
+    max-width: 100%;
+    padding: 3px 7px;
+    border: 1px solid var(--ft-master-border, #d8e2ee);
+    border-radius: 7px;
+    background: var(--ft-master-bg, #f8fafc);
+    color: var(--ft-master-text, #334155) !important;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.ft-phase-color-text {
+    color: var(--ft-master-text, var(--ft-master-color, #334155)) !important;
+    font-weight: 750
+}
+
+.ft-phase-row-color>td {
+    background: var(--ft-master-bg, #fff) !important
+}
+
+.ft-phase-row-color>td:first-child {
+    box-shadow: inset 3px 0 0 var(--ft-master-color, #94a3b8)
+}
+
+.ft-phase-row-color:hover>td {
+    background: var(--ft-master-bg, #f8fafc) !important
+}
+
+/* Runtime overrides are kept in this directly loaded stylesheet too, so phase
+   colors update correctly even before the next Vite production build. */
+.ft-phase-group[style] .ft-phase-group-head,
+.ft-overview-task-card .ft-phase-group[style] .ft-phase-group-head {
+    background: var(--ft-master-bg, #f8fafc) !important;
+    border-color: var(--ft-master-border, #dce5f0) !important;
+}
+
+.ft-phase-group[style] .ft-phase-group-head b,
+.ft-overview-task-card .ft-phase-group[style] .ft-phase-group-head b.current-number {
+    background: var(--ft-master-color, #64748b) !important;
+    border-color: var(--ft-master-color, #64748b) !important;
+    color: #fff !important;
+}
+
+.ft-phase-group[style] .ft-phase-group-head strong {
+    color: var(--ft-master-text, #334155) !important
+}
+
+.ft-phase-group[style] .ft-phase-group-head em:before {
+    background: var(--ft-master-color, #64748b) !important
+}
+
+/* Order workflow completion colors: every phase stays ash until all tasks in
+   that phase are complete. The stored Workflow Setup color is only revealed
+   by the explicit .done state; the current phase alone must not add color. */
+.ft-exact-job-detail .ft-workflow-mini-line button[style] span {
+    background: #eef2f6 !important;
+    border-color: #d7e0ea !important;
+    color: #64748b !important;
+}
+
+.ft-exact-job-detail .ft-workflow-mini-line button[style] small {
+    color: #64748b !important
+}
+
+.ft-exact-job-detail .ft-overview-workflow-line button[style]:before {
+    background: #dce5ed !important
+}
+
+.ft-exact-job-detail .ft-workflow-mini-line button[style].done span {
+    background: var(--ft-master-color, #64748b) !important;
+    border-color: var(--ft-master-color, #64748b) !important;
+    color: #fff !important;
+}
+
+.ft-exact-job-detail .ft-workflow-mini-line button[style].done small {
+    color: var(--ft-master-text, #334155) !important
+}
+
+.ft-exact-job-detail .ft-overview-workflow-line button[style].done:before {
+    background: var(--ft-master-color, #64748b) !important
+}
+
+.ft-exact-job-detail .ft-workflow-step[style] span {
+    background: #eef2f6 !important;
+    border-color: #d7e0ea !important;
+    color: #64748b !important;
+}
+
+.ft-exact-job-detail .ft-workflow-step[style] small,
+.ft-exact-job-detail .ft-workflow-step[style] em {
+    color: #64748b !important
+}
+
+.ft-exact-job-detail .ft-workflow-step[style]:before {
+    background: #d8e0ea !important
+}
+
+.ft-exact-job-detail .ft-workflow-step[style].done span {
+    background: var(--ft-master-color, #64748b) !important;
+    border-color: var(--ft-master-color, #64748b) !important;
+    color: #fff !important;
+}
+
+.ft-exact-job-detail .ft-workflow-step[style].done small,
+.ft-exact-job-detail .ft-workflow-step[style].done em {
+    color: var(--ft-master-text, #334155) !important
+}
+
+.ft-exact-job-detail .ft-workflow-step[style].done:before {
+    background: var(--ft-master-color, #64748b) !important
+}
+
+.ft-exact-job-detail .ft-doc-phase-group[style] .ft-doc-phase-summary {
+    background: var(--ft-master-bg, #f8fafc) !important;
+    border-left-color: var(--ft-master-color, #94a3b8) !important
+}
+
+.ft-exact-job-detail .ft-doc-phase-group[style] .ft-doc-phase-number {
+    background: var(--ft-master-color, #64748b) !important;
+    color: #fff !important
+}

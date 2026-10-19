@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "phase": 15,
+  "generated_at": "2026-08-22",
+  "policy": "release_hardening_final",
+  "protected": {
+    "routes_web": "b28eda429d6dccd79e50b154c0be25598ed6be46fa849e45677a4e71c51fb5e8",
+    "access_control": "3c93baadba6d44e194a4010b2592871c2753dc21a2d203f16c4f1d10c70920c7",
+    "migrations": "8ea669b1207d2ff09edfe674470b8366a8422c6636ab766cc97e5c7fbeebc943",
+    "composer_lock": "703f55c985a7777355607a8b79e86852262341cd8b9cce9591b120977b29be70",
+    "package_lock": "c9f55d2194c671e22c9986196889ece250eec18117da3865d374801e31b3fc79"
+  },
+  "required_files": [
+    ".github/workflows/flowtrack-ci.yml",
+    "config/observability.php",
+    "app/Services/Observability/OperationsMetrics.php",
+    "app/Http/Controllers/Telemetry/RealtimeTelemetryController.php",
+    "resources/js/features/realtime-telemetry.js",
+    "resources/js/core/browser-api.js",
+    "quality/frontend-bundle-budgets.json",
+    "quality/phase15-legacy-exceptions.json",
+    "scripts/quality/bundle-budget.mjs",
+    "scripts/quality/visual-baseline-check.mjs",
+    "scripts/release/release-manifest.php",
+    "docs/observability.md",
+    "docs/ci-cd.md",
+    "docs/legacy-exceptions.md",
+    "docs/database-guidelines.md",
+    "docs/deployment.md",
+    "docs/ENTERPRISE_READINESS_REPORT.md",
+    "docs/refactor/PHASE_15_IMPLEMENTATION.md",
+    "scripts/quality/final-security-review.php",
+    "tests/Feature/Phase15ReleaseHardeningArchitectureTest.php",
+    "tests/Unit/OperationsMetricsAlertsTest.php"
+  ],
+  "removed_files": [
+    "resources/views/welcome.blade.php",
+    "resources/css/components/management-theme.css",
+    "resources/js/compatibility/browser-bridge.js",
+    "scripts/split-flowtrack-css.mjs",
+    "resources/css/generated/flowtrack-01.css",
+    "resources/css/generated/flowtrack-02.css",
+    "resources/css/generated/flowtrack-03.css",
+    "resources/css/generated/flowtrack-04.css"
+  ],
+  "targets": {
+    "blade_style_blocks": 0,
+    "guarded_empty": 0,
+    "broad_flowtrack_globals": 0,
+    "unsafe_unbounded_reads": 0
+  },
+  "dependency_policy": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "reason": "authoritative SheetJS release; stale npm 0.18.5 is prohibited"
+  }
+}

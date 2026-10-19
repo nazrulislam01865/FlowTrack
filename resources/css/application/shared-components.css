@@ -1,0 +1,7 @@
+/** Shared extracted component bridges loaded after feature CSS. */
+@import '../components/summary-card.css';
+@import '../components/date-range-filter-layout.css';
+@import '../components/export-period-modal.css';
+@import '../components/static-bridges.css';
+
+@import '../components/order-workflow-stage-overview.css';

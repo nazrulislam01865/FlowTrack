@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "source": "Post-Phase-15 Dashboard theme token migration, 2026-08-22",
+  "policy": "inherited_non_increasing_exception",
+  "reason": "Original Phase 3 ceilings remain authoritative. Approved later UI additions plus the post-Phase-15 whole-system Dashboard-theme tokenization are recorded as exact non-increasing exceptions. Theme tokenization may increase source bytes only where hard-coded color debt falls; the recorded ceilings may only shrink afterward.",
+  "owner": "Phase 3 compatibility debt",
+  "expiry": "Reduce/remove Order UI exceptions during Phase 5 and setup exceptions during Phase 7; do not increase them in the meantime.",
+  "migrated_css_debt": {
+    "resources/css/migration/components/date-range-filter.css": {
+      "bytes": 1965,
+      "important": 0,
+      "hex": 8,
+      "sha256_at_phase4_start": "332a0034bf5ec77eaacacf5dd153677d7cb6256e5ba736a42c5d18568a8bfe3e",
+      "reason": "Frozen after whole-system Dashboard-theme tokenization; bytes may not grow and hard-coded color debt may only fall."
+    },
+    "resources/css/migration/components/export-period-modal.css": {
+      "bytes": 5425,
+      "important": 1,
+      "hex": 27,
+      "sha256_at_phase4_start": "5e013485e21d26b7bb2f2402b72e86d478335d4c7b0afafc15f4c040dd4f2f5b",
+      "reason": "Frozen after whole-system Dashboard-theme tokenization; bytes may not grow and hard-coded color debt may only fall."
+    },
+    "resources/css/modules/orders/list.css": {
+      "bytes": 65265,
+      "important": 29,
+      "hex": 219,
+      "sha256_at_reconciliation": "3f145afa72dffcd49524c41b6dbd279e85f5151282548ca1827f67941ff72bbe",
+      "reason": "Frozen after whole-system Dashboard-theme tokenization; bytes may not grow and hard-coded color debt may only fall."
+    },
+    "resources/css/migration/components/summary-card.css": {
+      "bytes": 4517,
+      "important": 93,
+      "hex": 19,
+      "reason": "Frozen after whole-system Dashboard-theme tokenization; bytes may not grow and hard-coded color debt may only fall."
+    },
+    "resources/css/modules/work/all-tasks.css": {
+      "bytes": 19775,
+      "important": 2,
+      "hex": 88,
+      "reason": "Frozen after whole-system Dashboard-theme tokenization; bytes may not grow and hard-coded color debt may only fall."
+    }
+  },
+  "ceilings": {
+    "blade_style_attributes": {
+      "ceiling": 134,
+      "reason": "Approved post-Phase-4 prototype/runtime color and geometry bindings. Phase 0 architecture ceiling (157) remains unmodified."
+    }
+  },
+  "compatibility_css_debt": {
+    "resources/css/legacy/compatibility/order-detail-prototype.css": {
+      "bytes": 127930,
+      "important": 58,
+      "hex": 454,
+      "sha256_at_reconciliation": "02edb3896892dfe0fa8e4e703c0272921d5a1a7e284a311bece528dcf4bb0ad6",
+      "reason": "Frozen after whole-system Dashboard-theme tokenization; increased bytes are the one-time cost of replacing hard-coded primary colors with theme variables, while hard-coded color count decreased."
+    },
+    "resources/css/legacy/compatibility/order-workflow-setup-prototype.css": {
+      "bytes": 15291,
+      "important": 8,
+      "hex": 49,
+      "sha256_at_reconciliation": "1ac8e4d2d685d617773537c160429c779be60545ef5300a7806a4e6c3b7a3d8d",
+      "reason": "Frozen after whole-system Dashboard-theme tokenization; increased bytes are the one-time cost of replacing hard-coded primary colors with theme variables, while hard-coded color count decreased."
+    }
+  }
+}

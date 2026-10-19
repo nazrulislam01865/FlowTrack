@@ -1,0 +1,315 @@
+.ft-order-summary-report{
+  --osr-primary:#2f7d32;
+  --osr-primary-dark:#256428;
+  --osr-primary-soft:#edf7ed;
+  --osr-text:#17211a;
+  --osr-muted:#6d776f;
+  --osr-border:#dfe6df;
+  --osr-danger:#b42318;
+  --osr-danger-soft:#fff1f0;
+  --osr-warning:#9a6700;
+  --osr-warning-soft:#fff8df;
+  --osr-success:#237a3b;
+  --osr-success-soft:#effaf1;
+  --osr-shadow:0 10px 28px rgba(35,50,40,.06);
+  max-width:1800px;
+  margin:0 auto;
+  color:var(--osr-text);
+  background:#fff;
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+.ft-order-summary-report *{box-sizing:border-box}
+.ft-order-summary-report .ft-osr-breadcrumb{font-size:13px;color:var(--osr-muted);margin-bottom:18px}
+.ft-order-summary-report .ft-osr-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px}
+.ft-order-summary-report h1{font-size:25px;margin:0 0 5px;color:var(--osr-text);line-height:1.2}
+.ft-order-summary-report .ft-osr-subtitle{color:var(--osr-muted);font-size:13px}
+.ft-order-summary-report .ft-osr-actions{display:flex;gap:9px}
+.ft-order-summary-report button,
+.ft-order-summary-report .ft-osr-btn{border:1px solid var(--osr-border);background:#fff;color:#334039;border-radius:8px;padding:9px 13px;font-weight:650;font-size:13px;cursor:pointer;text-decoration:none;line-height:1.35;display:inline-flex;align-items:center;justify-content:center}
+.ft-order-summary-report button:disabled,
+.ft-order-summary-report .ft-osr-btn:disabled{opacity:.55;cursor:not-allowed}
+.ft-order-summary-report .ft-osr-btn-primary{background:var(--osr-primary);border-color:var(--osr-primary);color:#fff}
+.ft-order-summary-report .ft-osr-btn-primary:hover{background:var(--osr-primary-dark)}
+.ft-order-summary-report .ft-osr-panel{border:1px solid var(--osr-border);border-radius:12px;background:#fff;box-shadow:var(--osr-shadow);overflow:hidden}
+.ft-order-summary-report .ft-osr-filters{padding:15px;display:grid;grid-template-columns:1.5fr repeat(5,minmax(120px,1fr)) auto;gap:10px;align-items:end}
+.ft-order-summary-report .ft-osr-field label{display:block;font-size:11px;font-weight:700;color:#667069;margin-bottom:5px}
+.ft-order-summary-report .ft-osr-field input,
+.ft-order-summary-report .ft-osr-field select{width:100%;height:38px;border:1px solid #d6ddd7;border-radius:8px;padding:0 10px;background:#fff;color:#263029;font-size:13px;outline:none;box-shadow:none}
+.ft-order-summary-report .ft-osr-field input:focus,
+.ft-order-summary-report .ft-osr-field select:focus{border-color:#7aae7c;box-shadow:0 0 0 3px rgba(47,125,50,.08)}
+.ft-order-summary-report .ft-osr-filter-actions{display:flex;gap:8px}
+.ft-order-summary-report .ft-osr-quickbar{border-top:1px solid var(--osr-border);padding:10px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ft-order-summary-report .ft-osr-chips{display:flex;gap:7px;flex-wrap:wrap}
+.ft-order-summary-report .ft-osr-chip{border:1px solid var(--osr-border);background:#fff;border-radius:999px;padding:6px 9px;font-size:12px;color:#5a655d;font-weight:400}
+.ft-order-summary-report .ft-osr-chip b{color:#243029;margin-left:4px}
+.ft-order-summary-report .ft-osr-chip.active{border-color:#a8cba9;background:#f2f9f2;color:var(--osr-primary-dark)}
+.ft-order-summary-report .ft-osr-table-card{margin-top:14px;border:1px solid var(--osr-border);border-radius:12px;background:#fff;overflow:hidden}
+.ft-order-summary-report .ft-osr-table-head{padding:13px 15px;border-bottom:1px solid var(--osr-border);display:flex;justify-content:space-between;align-items:center}
+.ft-order-summary-report .ft-osr-table-title{font-size:14px;font-weight:750}
+.ft-order-summary-report .ft-osr-table-meta{font-size:12px;color:var(--osr-muted)}
+.ft-order-summary-report .ft-osr-table-wrap{overflow:auto;max-height:640px}
+.ft-order-summary-report table{border-collapse:separate;border-spacing:0;width:100%;min-width:1940px;font-size:12.5px}
+.ft-order-summary-report thead th{position:sticky;top:0;z-index:7;background:#f1f8ef;color:#243629;text-align:left;padding:10px;border-bottom:1px solid #cfe0cf;border-right:1px solid #dce7dc;white-space:normal;line-height:1.25;font-weight:800}
+.ft-order-summary-report tbody td{padding:9px 10px;border-bottom:1px solid #e6ebe6;border-right:1px solid #edf0ed;vertical-align:middle;line-height:1.35;background:#fff}
+.ft-order-summary-report tbody tr:hover td{background:#fbfdfb}
+.ft-order-summary-report tbody tr.row-overdue td{background:#fff6f5}
+.ft-order-summary-report tbody tr.row-urgent td{background:#fff9f2}
+.ft-order-summary-report tbody tr.row-complete td{background:#f4fbf5}
+.ft-order-summary-report tbody tr.row-overdue:hover td{background:#fff0ee}
+.ft-order-summary-report tbody tr.row-urgent:hover td{background:#fff5ea}
+.ft-order-summary-report tbody tr.row-complete:hover td{background:#eef8f0}
+.ft-order-summary-report th.sticky1,
+.ft-order-summary-report td.sticky1{position:sticky;left:0;z-index:5}
+.ft-order-summary-report th.sticky2,
+.ft-order-summary-report td.sticky2{position:sticky;left:130px;z-index:5}
+.ft-order-summary-report thead th.sticky1,
+.ft-order-summary-report thead th.sticky2{z-index:9}
+.ft-order-summary-report td.sticky1,
+.ft-order-summary-report td.sticky2{background:inherit}
+.ft-order-summary-report .supplier-cell{font-weight:700}
+.ft-order-summary-report .order-no{font-weight:750;color:#214d27}
+.ft-order-summary-report .ft-osr-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.ft-order-summary-report .ft-osr-badge-danger{background:var(--osr-danger-soft);color:var(--osr-danger)}
+.ft-order-summary-report .ft-osr-badge-warning{background:var(--osr-warning-soft);color:var(--osr-warning)}
+.ft-order-summary-report .ft-osr-badge-neutral{background:#f2f4f2;color:#616a63}
+.ft-order-summary-report .reply-cell{background:#fffbe2!important;font-weight:700}
+.ft-order-summary-report .special{max-width:190px;white-space:normal}
+.ft-order-summary-report .center{text-align:center}
+.ft-order-summary-report .muted{color:var(--osr-muted)}
+.ft-order-summary-report .ft-osr-footer{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;border-top:1px solid var(--osr-border);font-size:12px;color:var(--osr-muted)}
+.ft-order-summary-report .ft-osr-pages{display:flex;gap:5px}
+.ft-order-summary-report .ft-osr-page{width:30px;height:30px;padding:0;border:1px solid var(--osr-border);border-radius:7px;display:grid;place-items:center;background:#fff;color:#334039}
+.ft-order-summary-report .ft-osr-page.active{background:var(--osr-primary);border-color:var(--osr-primary);color:#fff}
+.ft-order-summary-report .ft-osr-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.ft-order-summary-report .ft-osr-legend-item{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--osr-muted)}
+.ft-order-summary-report .ft-osr-dot{width:9px;height:9px;border-radius:3px;border:1px solid rgba(0,0,0,.08)}
+.ft-order-summary-report .ft-osr-dot.red{background:#fff0ee}
+.ft-order-summary-report .ft-osr-dot.orange{background:#fff5ea}
+.ft-order-summary-report .ft-osr-dot.green{background:#eef8f0}
+.ft-order-summary-report .ft-osr-dot.yellow{background:#fffbe2}
+.ft-order-summary-report .ft-osr-empty{text-align:center;padding:36px 15px;color:var(--osr-muted);background:#fff!important}
+@media(max-width:1100px){
+  .ft-order-summary-report .ft-osr-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ft-order-summary-report .ft-osr-filter-actions{grid-column:1/-1}
+  .ft-order-summary-report .ft-osr-actions{flex-wrap:wrap}
+  .ft-order-summary-report .ft-osr-quickbar{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:700px){
+  .ft-order-summary-report .ft-osr-title-row{flex-direction:column}
+  .ft-order-summary-report .ft-osr-filters{grid-template-columns:1fr}
+  .ft-order-summary-report .ft-osr-filter-actions{grid-column:auto}
+  .ft-order-summary-report .ft-osr-table-head,.ft-order-summary-report .ft-osr-footer{align-items:flex-start;gap:8px;flex-direction:column}
+}
+
+/* -------------------------------------------------------------------------
+   Order Summary table overflow hardening
+   Keep the prototype layout, but give every column a deterministic track so
+   long material/order values cannot push neighboring columns underneath the
+   sticky Supplier/Warehouse cells.
+   ------------------------------------------------------------------------- */
+.ft-order-summary-report .ft-osr-table-wrap{
+  overflow-x:auto;
+  overflow-y:auto;
+  overscroll-behavior-inline:contain;
+}
+.ft-order-summary-report .ft-osr-table{
+  width:100%;
+  min-width:1940px;
+  table-layout:fixed;
+}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-supplier{width:130px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-warehouse{width:120px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-order{width:120px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-received{width:105px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-urgency{width:90px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-quantity{width:80px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-material{width:220px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-erp{width:115px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-special{width:195px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-sample-sent{width:125px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-sample-confirmed{width:140px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-revise{width:145px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-delivery{width:155px}
+.ft-order-summary-report .ft-osr-table col.ft-osr-col-reply{width:155px}
+
+.ft-order-summary-report .ft-osr-table th,
+.ft-order-summary-report .ft-osr-table td{
+  min-width:0;
+  max-width:none;
+  overflow:hidden;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.ft-order-summary-report .ft-osr-table .ft-osr-wrap,
+.ft-order-summary-report .ft-osr-table .special{
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.ft-order-summary-report .ft-osr-table .ft-osr-nowrap{
+  white-space:nowrap;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+
+/* Exact sticky widths are required because Warehouse starts at 130px. */
+.ft-order-summary-report .ft-osr-table th.sticky1,
+.ft-order-summary-report .ft-osr-table td.sticky1{
+  width:130px;
+  min-width:130px;
+  max-width:130px;
+  left:0;
+}
+.ft-order-summary-report .ft-osr-table th.sticky2,
+.ft-order-summary-report .ft-osr-table td.sticky2{
+  width:120px;
+  min-width:120px;
+  max-width:120px;
+  left:130px;
+}
+
+/* Sticky cells must be opaque. `background: inherit` left them transparent,
+   which allowed scrolling Order/Date values to show through underneath. */
+.ft-order-summary-report .ft-osr-table tbody td.sticky1,
+.ft-order-summary-report .ft-osr-table tbody td.sticky2{background:#fff!important}
+.ft-order-summary-report .ft-osr-table tbody tr.row-overdue td.sticky1,
+.ft-order-summary-report .ft-osr-table tbody tr.row-overdue td.sticky2{background:#fff6f5!important}
+.ft-order-summary-report .ft-osr-table tbody tr.row-urgent td.sticky1,
+.ft-order-summary-report .ft-osr-table tbody tr.row-urgent td.sticky2{background:#fff9f2!important}
+.ft-order-summary-report .ft-osr-table tbody tr.row-complete td.sticky1,
+.ft-order-summary-report .ft-osr-table tbody tr.row-complete td.sticky2{background:#f4fbf5!important}
+.ft-order-summary-report .ft-osr-table tbody tr:hover td.sticky1,
+.ft-order-summary-report .ft-osr-table tbody tr:hover td.sticky2{background:#fbfdfb!important}
+.ft-order-summary-report .ft-osr-table tbody tr.row-overdue:hover td.sticky1,
+.ft-order-summary-report .ft-osr-table tbody tr.row-overdue:hover td.sticky2{background:#fff0ee!important}
+.ft-order-summary-report .ft-osr-table tbody tr.row-urgent:hover td.sticky1,
+.ft-order-summary-report .ft-osr-table tbody tr.row-urgent:hover td.sticky2{background:#fff5ea!important}
+.ft-order-summary-report .ft-osr-table tbody tr.row-complete:hover td.sticky1,
+.ft-order-summary-report .ft-osr-table tbody tr.row-complete:hover td.sticky2{background:#eef8f0!important}
+
+/* -------------------------------------------------------------------------
+   Client checkbox filter
+   Mirrors the compact checkbox-card language used elsewhere in FlowTrack
+   while remaining horizontally scrollable when the workspace has many
+   clients. No client selection means the report remains unfiltered.
+   ------------------------------------------------------------------------- */
+.ft-order-summary-report .ft-osr-client-filter{
+  border-top:1px solid var(--osr-border);
+  padding:12px 15px 13px;
+  background:#fff;
+}
+.ft-order-summary-report .ft-osr-client-filter-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:9px;
+}
+.ft-order-summary-report .ft-osr-client-filter-label{
+  font-size:11px;
+  line-height:1.2;
+  font-weight:700;
+  color:#667069;
+  letter-spacing:.01em;
+}
+.ft-order-summary-report .ft-osr-client-filter-help{
+  margin-top:4px;
+  font-size:11.5px;
+  line-height:1.35;
+  color:var(--osr-muted);
+}
+.ft-order-summary-report .ft-osr-client-filter-actions{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex:0 0 auto;
+  font-size:11.5px;
+  color:var(--osr-muted);
+}
+.ft-order-summary-report .ft-osr-clear-filters{
+  display:inline-flex;
+  width:auto;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  height:38px;
+  padding:0 12px;
+  border:1px solid #fecaca;
+  border-radius:7px;
+  background:#fff;
+  color:#b42318;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.2;
+  cursor:pointer;
+  text-decoration:none;
+  transition:all .15s ease;
+}
+.ft-order-summary-report .ft-osr-clear-filters .clear-filter-icon{
+  display:inline-grid;
+  width:16px;
+  height:16px;
+  place-items:center;
+  border-radius:50%;
+  background:#fee2e2;
+  color:#b42318;
+  font-size:11px;
+  font-weight:800;
+  line-height:1;
+}
+.ft-order-summary-report .ft-osr-clear-filters:hover{
+  border-color:#fca5a5;
+  background:#fff1f2;
+  color:#991b1b;
+  text-decoration:none;
+}
+.ft-order-summary-report .ft-osr-client-options{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  width:100%;
+}
+.ft-order-summary-report .ft-osr-client-option{
+  height:38px;
+  padding:0 12px 0 10px;
+  border:1px solid #cfdad2;
+  border-radius:999px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#334039;
+  font-size:13px;
+  font-weight:600;
+  line-height:1.2;
+  cursor:pointer;
+  user-select:none;
+  transition:border-color .15s ease,background-color .15s ease,box-shadow .15s ease;
+}
+.ft-order-summary-report .ft-osr-client-option:hover{
+  border-color:#9fc4a2;
+  background:#fbfdfb;
+}
+.ft-order-summary-report .ft-osr-client-option.is-selected{
+  border-color:#79b17d;
+  background:#f2f9f2;
+  box-shadow:inset 0 0 0 1px rgba(47,125,50,.08);
+  color:var(--osr-primary-dark);
+}
+.ft-order-summary-report .ft-osr-client-option input{
+  width:16px;
+  height:16px;
+  margin:0;
+  flex:0 0 auto;
+  accent-color:var(--osr-primary);
+  cursor:pointer;
+}
+.ft-order-summary-report .ft-osr-client-option span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media(max-width:700px){
+  .ft-order-summary-report .ft-osr-client-filter-head{align-items:flex-start;flex-direction:column;gap:6px}
+}

@@ -1,0 +1,71 @@
+{
+    "schema": 1,
+    "generated_at": "2026-08-20T08:53:03+00:00",
+    "source_log": "storage/logs/laravel.log",
+    "sample_count": 3,
+    "note": "This is a historical-log baseline. Re-capture with PERFORMANCE_LOG_ALL_REQUESTS=true on a stable representative dataset before approving performance gates.",
+    "routes": {
+        "default-livewire.update": {
+            "samples": 1,
+            "statuses": {
+                "200": 1
+            },
+            "duration_ms": {
+                "p50": 1797.25,
+                "p95": 1797.25,
+                "max": 1797.25
+            },
+            "queries": {
+                "p50": 1515,
+                "p95": 1515,
+                "max": 1515
+            },
+            "query_time_ms": {
+                "p50": 996.65,
+                "p95": 996.65,
+                "max": 996.65
+            },
+            "memory_peak_mb": {
+                "p95": 6,
+                "max": 6
+            },
+            "cache": {
+                "hits": 906,
+                "misses": 16,
+                "writes": 1,
+                "forgets": 80
+            }
+        },
+        "jobs.index": {
+            "samples": 2,
+            "statuses": {
+                "500": 2
+            },
+            "duration_ms": {
+                "p50": 1179.72,
+                "p95": 1222.92,
+                "max": 1222.92
+            },
+            "queries": {
+                "p50": 75,
+                "p95": 85,
+                "max": 85
+            },
+            "query_time_ms": {
+                "p50": 55.86,
+                "p95": 68.11,
+                "max": 68.11
+            },
+            "memory_peak_mb": {
+                "p95": 25.66,
+                "max": 25.66
+            },
+            "cache": {
+                "hits": 49,
+                "misses": 4,
+                "writes": 4,
+                "forgets": 0
+            }
+        }
+    }
+}

@@ -1,0 +1,963 @@
+/* Unified FlowTrack user editor. Mirrors the supplied edit-user reference while using project scale/spacing. */
+[x-cloak] {
+    display: none !important
+}
+
+.ft-user-editor {
+    width: 100%;
+    max-width: 1220px;
+    margin: 0 auto;
+    padding-bottom: 26px
+}
+
+.ft-user-editor-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 12px;
+    color: #7a899c;
+    font-size: .6875rem
+}
+
+.ft-user-editor-breadcrumb a {
+    color: var(--ft-theme-primary);
+    font-weight: 720;
+    text-decoration: none
+}
+
+.ft-user-editor-breadcrumb a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px
+}
+
+.ft-user-editor-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px
+}
+
+.ft-user-editor-head h1 {
+    margin: 0;
+    color: #172235;
+    font-size: 1.625rem;
+    line-height: 1.15;
+    letter-spacing: -.025em
+}
+
+.ft-user-editor-head p {
+    margin: 5px 0 0;
+    color: #65748a;
+    font-size: .75rem
+}
+
+.ft-user-editor-ref {
+    padding: 7px 10px;
+    border: 1px solid #d7e1ed;
+    border-radius: 8px;
+    background: #fff;
+    color: #69788f;
+    font-size: .625rem;
+    white-space: nowrap
+}
+
+.ft-user-editor-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 12px
+}
+
+.ft-user-editor-profile-card {
+    position: static;
+    display: grid;
+    grid-template-columns: 98px minmax(0, 1fr);
+    column-gap: 15px;
+    padding: 17px;
+    border-radius: 12px
+}
+
+.ft-user-editor-avatar-wrap {
+    position: relative;
+    width: 92px;
+    height: 92px
+}
+
+.ft-user-editor-avatar {
+    display: grid !important;
+    width: 92px !important;
+    height: 92px !important;
+    overflow: hidden;
+    place-items: center;
+    border-radius: 22px !important;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: 1.625rem;
+    font-weight: 800
+}
+
+.ft-user-editor-avatar img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover
+}
+
+.ft-user-editor-avatar-edit {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    display: grid;
+    width: 31px;
+    height: 31px;
+    place-items: center;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: var(--ft-theme-primary);
+    color: #fff;
+    cursor: pointer
+}
+
+.ft-user-editor-avatar-edit svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-user-editor-profile-copy {
+    min-width: 0;
+    padding-top: 5px
+}
+
+.ft-user-editor-profile-copy h2 {
+    margin: 0;
+    overflow: hidden;
+    color: #172235;
+    font-size: 1rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-user-editor-profile-copy>span {
+    display: block;
+    margin-top: 5px;
+    overflow: hidden;
+    color: #6d7b90;
+    font-size: .625rem;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-user-editor-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 5px 8px;
+    border-radius: 9px;
+    font-size: .59375rem;
+    font-weight: 750
+}
+
+.ft-user-editor-status i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor
+}
+
+.ft-user-editor-status.is-active {
+    background: #edf9f4;
+    color: #147e5b
+}
+
+.ft-user-editor-status.is-inactive {
+    background: #fff0f0;
+    color: #bd3f3f
+}
+
+.ft-user-editor-status.is-suspended {
+    background: #fff7e8;
+    color: #96610a
+}
+
+.ft-user-editor-upload-zone {
+    grid-column: 1/-1;
+    display: block;
+    margin-top: 15px;
+    padding: 11px;
+    border: 1px dashed #bdcbe0;
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle);
+    color: #536178;
+    text-align: center;
+    font-size: .5625rem;
+    line-height: 1.5;
+    cursor: pointer
+}
+
+.ft-user-editor-upload-zone strong {
+    display: block;
+    color: var(--ft-theme-primary);
+    font-size: .65625rem
+}
+
+.ft-user-editor-upload-zone input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none
+}
+
+.ft-user-editor-image-help {
+    grid-column: 1/-1;
+    margin: 8px 0 0;
+    color: #8591a3;
+    font-size: .5625rem;
+    line-height: 1.45
+}
+
+.ft-user-editor-image-error {
+    grid-column: 1/-1;
+    margin-top: 7px
+}
+
+.ft-user-editor-facts {
+    grid-column: 1/-1;
+    display: grid;
+    gap: 9px;
+    margin-top: 14px;
+    padding-top: 13px;
+    border-top: 1px solid #e4e9f0
+}
+
+.ft-user-editor-facts div {
+    display: flex;
+    justify-content: space-between;
+    gap: 9px;
+    color: #748298;
+    font-size: .59375rem
+}
+
+.ft-user-editor-facts b {
+    color: #344057;
+    text-align: right;
+    font-weight: 700
+}
+
+.ft-user-editor-stack {
+    display: grid;
+    gap: 12px;
+    min-width: 0
+}
+
+.ft-user-editor-card {
+    min-width: 0;
+    border-radius: 12px;
+    overflow: visible
+}
+
+.ft-user-editor-section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 15px 17px;
+    border-bottom: 1px solid #e5eaf1
+}
+
+.ft-user-editor-section-head h2 {
+    margin: 0;
+    color: #172235;
+    font-size: .875rem
+}
+
+.ft-user-editor-section-head p {
+    margin: 4px 0 0;
+    color: #748298;
+    font-size: .625rem;
+    line-height: 1.45
+}
+
+.ft-user-editor-section-icon {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .6875rem;
+    font-weight: 800
+}
+
+.ft-user-editor-section-icon svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-user-editor-section-body {
+    padding: 16px 17px
+}
+
+.ft-user-editor-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px 14px
+}
+
+.ft-user-editor .field {
+    min-width: 0;
+    margin: 0;
+    gap: 6px
+}
+
+.ft-user-editor .field > label {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0;
+    color: #273349;
+    font-size: .6875rem;
+    font-weight: 750
+}
+
+.ft-user-editor .field > label span {
+    color: #8a96a7;
+    font-size: .5625rem;
+    font-weight: 500
+}
+
+.ft-user-editor .field input,
+.ft-user-editor .field select {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    padding: 0 12px;
+    border: 1px solid #ced9e7;
+    border-radius: 9px;
+    outline: 0;
+    background: #fff;
+    color: #172033;
+    font-size: .75rem
+}
+
+.ft-user-editor .field input:focus,
+.ft-user-editor .field select:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 9%, transparent)
+}
+
+.ft-user-editor .field input:disabled,
+.ft-user-editor .field select:disabled {
+    cursor: not-allowed;
+    background: #f7f9fc;
+    color: #64738a
+}
+
+
+/* Keep nested reusable selectors aligned with the direct User Editor fields. */
+.ft-user-editor .field > .ft-search-select > label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    min-height: 17px;
+    margin: 0 0 6px;
+    color: #273349;
+    font-size: .6875rem;
+    font-weight: 750;
+    line-height: 1.25
+}
+
+.ft-user-editor .field > .ft-search-select > label .ft-filter-required {
+    margin: 0;
+    color: #273349;
+    font-style: normal;
+    font-size: inherit;
+    line-height: inherit
+}
+
+.ft-user-editor .field > .ft-search-select .ft-search-select__trigger {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    padding: 0 12px;
+    border: 1px solid #ced9e7;
+    border-radius: 9px;
+    background: #fff;
+    color: #172033;
+    font-size: .75rem
+}
+
+.ft-user-editor .field > .ft-search-select.is-disabled .ft-search-select__trigger,
+.ft-user-editor .field > .ft-search-select .ft-search-select__trigger:disabled {
+    cursor: not-allowed;
+    background: #f7f9fc;
+    color: #64738a
+}
+
+.ft-user-editor .ft-user-editor-fields {
+    align-items: start
+}
+
+.ft-user-editor .field small {
+    display: block;
+    margin-top: -1px;
+    color: #7c899c;
+    font-size: .5625rem;
+    line-height: 1.45
+}
+
+.ft-user-editor .validation-error {
+    margin-top: 1px;
+    color: #c43f3f;
+    font-size: .5625rem;
+    line-height: 1.4
+}
+
+.ft-user-editor-permission-note,
+.ft-user-editor-managed-note,
+.ft-user-editor-status-warning {
+    display: flex;
+    gap: 9px;
+    margin-top: 13px;
+    padding: 10px 11px;
+    border-radius: 8px;
+    font-size: .59375rem;
+    line-height: 1.5
+}
+
+.ft-user-editor-permission-note {
+    background: #f5f7fa;
+    color: #65748a
+}
+
+.ft-user-editor-permission-note b {
+    color: #334057
+}
+
+.ft-user-editor-managed-note {
+    display: block;
+    border: 1px solid #dfe6ef;
+    background: #fafbfd;
+    color: #66768b
+}
+
+.ft-user-editor-status-warning {
+    display: block;
+    border: 1px solid #f0d5a6;
+    background: #fff9ed;
+    color: #895808
+}
+
+.ft-user-editor-status-warning b {
+    color: #754a05
+}
+
+.ft-user-editor-password-wrap {
+    position: relative
+}
+
+.ft-user-editor-password-wrap input {
+    padding-right: 104px !important
+}
+
+.ft-user-editor-password-tools {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    transform: translateY(-50%)
+}
+
+.ft-user-editor-password-tools button {
+    padding: 5px 4px;
+    border: 0;
+    background: transparent;
+    color: #5e6e84;
+    font-size: .5625rem
+}
+
+.ft-user-editor-password-tools button:hover {
+    color: var(--ft-theme-primary)
+}
+
+.ft-user-editor-strength {
+    display: flex;
+    gap: 4px;
+    margin-top: 2px
+}
+
+.ft-user-editor-strength i {
+    height: 4px;
+    flex: 1;
+    border-radius: 4px;
+    background: #e5eaf0
+}
+
+.ft-user-editor-strength[data-level="1"] i:nth-child(-n+1) {
+    background: #ed5b5b
+}
+
+.ft-user-editor-strength[data-level="2"] i:nth-child(-n+2) {
+    background: #f2b84b
+}
+
+.ft-user-editor-strength[data-level="3"] i:nth-child(-n+3) {
+    background: var(--ft-theme-primary-500)
+}
+
+.ft-user-editor-strength[data-level="4"] i {
+    background: #2eb67d
+}
+
+.ft-user-editor-password-feedback {
+    display: flex;
+    justify-content: space-between;
+    gap: 9px;
+    color: #78869a;
+    font-size: .5625rem
+}
+
+.ft-user-editor-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-top: 13px;
+    color: #48566c;
+    font-size: .59375rem;
+    line-height: 1.45;
+    cursor: pointer
+}
+
+.ft-user-editor-check input {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: var(--ft-theme-primary)
+}
+
+.ft-user-editor-action-bar {
+    position: sticky;
+    bottom: 10px;
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 13px;
+    padding: 11px 13px;
+    border: 1px solid #d7e1ed;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 8px 24px rgba(28, 48, 78, .11);
+    backdrop-filter: blur(8px)
+}
+
+.ft-user-editor-save-state {
+    color: #7b889b;
+    font-size: .625rem
+}
+
+.ft-user-editor-save-state.is-dirty {
+    color: #9a6208
+}
+
+.ft-user-editor-actions {
+    display: flex;
+    gap: 8px
+}
+
+.ft-user-editor-button {
+    display: inline-flex;
+    min-height: 37px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: .65625rem;
+    font-weight: 760;
+    text-decoration: none
+}
+
+.ft-user-editor-button.is-cancel {
+    border: 1px solid #ced9e7;
+    background: #fff;
+    color: #344057
+}
+
+.ft-user-editor-button.is-save {
+    border: 1px solid var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+.ft-user-editor-button.is-save:disabled {
+    cursor: default;
+    border-color: #d5dde8;
+    background: #e6ebf2;
+    color: #8794a7
+}
+
+@media(max-width:1050px) {
+    .ft-user-editor-profile-card {
+        position: static;
+        grid-template-columns: 98px minmax(0, 1fr)
+    }
+}
+
+@media(max-width:700px) {
+    .ft-user-editor-head {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-user-editor-fields {
+        grid-template-columns: 1fr
+    }
+
+    .ft-user-editor-section-body {
+        padding: 14px
+    }
+
+    .ft-user-editor-action-bar {
+        bottom: 7px
+    }
+
+    .ft-user-editor-save-state {
+        display: none
+    }
+
+    .ft-user-editor-actions {
+        width: 100%
+    }
+
+    .ft-user-editor-button {
+        flex: 1
+    }
+
+    .ft-user-editor-breadcrumb {
+        flex-wrap: wrap
+    }
+}
+
+@media(max-width:480px) {
+    .ft-user-editor-profile-card {
+        grid-template-columns: 80px minmax(0, 1fr);
+        padding: 14px
+    }
+
+    .ft-user-editor-avatar-wrap,
+    .ft-user-editor-avatar {
+        width: 74px !important;
+        height: 74px !important
+    }
+
+    .ft-user-editor-section-head {
+        padding: 14px
+    }
+
+    .ft-user-editor-head h1 {
+        font-size: 1.4375rem
+    }
+
+    .ft-user-editor-password-feedback {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .ft-user-editor * {
+        scroll-behavior: auto !important;
+        transition: none !important
+    }
+}
+
+.ft-user-edit-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none
+}
+
+/* Profile view/edit mode and drag/drop image refinements. */
+.ft-user-editor-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+    justify-content: flex-end
+}
+
+.ft-user-editor-edit-profile {
+    gap: 7px;
+    border: 1px solid var(--ft-theme-primary) !important
+}
+
+.ft-user-editor-edit-profile svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-user-editor-upload-zone {
+    transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease
+}
+
+.ft-user-editor-upload-zone.is-dragging {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-surface-subtle);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-user-editor-view-help {
+    margin-top: 15px;
+    padding: 9px 10px;
+    border: 1px solid #e4e9f0;
+    border-radius: 8px;
+    background: #fafbfd
+}
+
+@media(max-width:700px) {
+    .ft-user-editor-head-actions {
+        width: 100%;
+        justify-content: space-between
+    }
+
+    .ft-user-editor-edit-profile {
+        margin-left: auto
+    }
+}
+
+/* Shared multi-role selector (also used by Roles & Access). */
+.ft-multi-role-select {
+    position: relative;
+    width: 100%
+}
+
+.ft-multi-role-trigger {
+    display: flex;
+    width: 100%;
+    min-height: 42px;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 34px 6px 9px;
+    border: 1px solid #ced9e7;
+    border-radius: 9px;
+    background: #fff;
+    color: #172033;
+    text-align: left;
+    cursor: pointer;
+    position: relative
+}
+
+.ft-multi-role-trigger:focus {
+    outline: 0;
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 9%, transparent)
+}
+
+.ft-multi-role-trigger:disabled {
+    cursor: not-allowed;
+    background: #f7f9fc;
+    color: #64738a
+}
+
+.ft-multi-role-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-width: 0
+}
+
+.ft-multi-role-chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 180px;
+    padding: 4px 7px;
+    border-radius: 7px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-multi-role-placeholder {
+    color: #8491a4;
+    font-size: .6875rem
+}
+
+.ft-multi-role-caret {
+    position: absolute;
+    right: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #718096
+}
+
+.ft-multi-role-menu {
+    position: absolute;
+    z-index: 80;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    padding: 7px;
+    border: 1px solid #d8e1ed;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 14px 32px rgba(24, 42, 70, .16)
+}
+
+.ft-multi-role-search-wrap {
+    padding-bottom: 6px
+}
+
+.ft-multi-role-search-wrap input {
+    width: 100% !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 9px !important;
+    border: 1px solid #d5deea !important;
+    border-radius: 7px !important;
+    font-size: .65625rem !important
+}
+
+.ft-multi-role-options {
+    max-height: 220px;
+    overflow: auto
+}
+
+.ft-multi-role-option {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    padding: 7px 8px !important;
+    border-radius: 7px !important;
+    color: #2f3b50 !important;
+    font-size: .65625rem !important;
+    font-weight: 600 !important;
+    cursor: pointer
+}
+
+.ft-multi-role-option:hover {
+    background: var(--ft-theme-primary-soft)
+}
+
+.ft-multi-role-option input {
+    width: 15px !important;
+    height: 15px !important;
+    min-height: 15px !important;
+    margin: 0 !important;
+    accent-color: var(--ft-theme-primary)
+}
+
+.ft-multi-role-empty {
+    padding: 12px 8px;
+    color: #8190a4;
+    font-size: .625rem;
+    text-align: center
+}
+
+.ft-user-role-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    max-width: 320px
+}
+
+.ft-user-role-chips .tag {
+    white-space: nowrap
+}
+
+
+/* 2026-08-15 — User assignment refinements.
+   Department picker intentionally reuses the same searchable menu language as
+   the Order-detail assignee selector, while keeping all department data local. */
+.ft-user-editor-department-picker {
+    position: relative;
+    width: 100%
+}
+
+.ft-user-editor-department-trigger {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    padding: 0 12px;
+    border: 1px solid #ced9e7;
+    border-radius: 9px;
+    background: #fff;
+    color: #172033;
+    font-size: .75rem;
+    font-weight: 500
+}
+
+.ft-user-editor-department-trigger:focus {
+    outline: 0;
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 9%, transparent)
+}
+
+.ft-user-editor-department-picker.is-disabled .ft-user-editor-department-trigger {
+    cursor: not-allowed;
+    background: #f7f9fc;
+    color: #64738a
+}
+
+.ft-user-editor-department-menu {
+    top: calc(100% + 5px);
+    left: 0;
+    width: min(320px, 100%) !important;
+    min-width: min(260px, 100%) !important;
+    max-width: 100% !important
+}
+
+.ft-user-editor-department-menu .ft-remote-filter-option {
+    font-size: .6875rem
+}
+
+.ft-user-editor-department-menu .ft-remote-filter-message {
+    font-size: .59375rem
+}
+
+@media(max-width:700px) {
+    .ft-user-editor-department-menu {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important
+    }
+}
+
+.ft-user-role-list {
+    display: block;
+    max-width: 360px;
+    line-height: 1.45;
+    overflow-wrap: anywhere
+}
+
+.ft-user-role-list.muted {
+    color: var(--muted, #6f7e93)
+}

@@ -1,0 +1,3680 @@
+/** Application CSS segment 08: clients-documents-admin. Source-preserving split of the former monolith. */
+/* ========================================================================== */
+/* Client management reference + readable create forms      */
+/* ========================================================================== */
+.ft-clients-reference {
+    color: #0d1c34;
+    font-size: .75rem
+}
+
+.ft-clients-page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px
+}
+
+.ft-clients-page-head h1 {
+    font-size: 1.625rem;
+    line-height: 1.05;
+    letter-spacing: -.035em;
+    margin: 0 0 5px
+}
+
+.ft-clients-page-head p {
+    font-size: .8125rem;
+    color: #61738e;
+    margin: 0
+}
+
+.ft-clients-new {
+    height: 42px;
+    padding: 0 17px;
+    border: 1px solid var(--ft-theme-primary);
+    border-radius: 8px;
+    background: var(--ft-theme-primary);
+    color: #fff;
+    font-weight: 750;
+    box-shadow: 0 5px 13px color-mix(in srgb, var(--ft-theme-primary) 12%, transparent)
+}
+
+.ft-clients-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2.15fr) minmax(390px, .95fr);
+    gap: 16px;
+    align-items: start
+}
+
+.ft-clients-main {
+    min-width: 0
+}
+
+.ft-clients-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 13px
+}
+
+.ft-client-metric {
+    min-height: 78px;
+    border: 1px solid #dce5ef;
+    border-radius: 10px;
+    background: #fff;
+    padding: 13px 15px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    text-align: left;
+    box-shadow: 0 2px 7px rgba(18, 43, 75, .025)
+}
+
+.ft-client-metric.is-active {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 5%, transparent)
+}
+
+.ft-client-metric-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 1.3125rem;
+    font-weight: 800;
+    flex: 0 0 auto
+}
+
+.ft-client-metric-blue {
+    color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary-soft)
+}
+
+.ft-client-metric-green {
+    color: #12a55b;
+    background: #eaf9f0
+}
+
+.ft-client-metric-amber {
+    color: #f06422;
+    background: #fff0e6
+}
+
+.ft-client-metric-purple {
+    color: #8a35dd;
+    background: #f3eaff
+}
+
+.ft-client-metric small {
+    display: block;
+    color: #5e718d;
+    font-size: .625rem;
+    margin-bottom: 2px
+}
+
+.ft-client-metric b {
+    display: block;
+    font-size: 1.375rem;
+    line-height: 1.05;
+    letter-spacing: -.02em
+}
+
+.ft-client-filter-card {
+    display: grid;
+    grid-template-columns: minmax(260px, 1.6fr) repeat(4, minmax(105px, .64fr)) auto;
+    gap: 8px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #dce5ef;
+    border-radius: 10px;
+    background: #fff;
+    margin-bottom: 11px
+}
+
+.ft-client-filter-card select,
+.ft-client-filter-card button,
+.ft-client-filter-search {
+    height: 38px;
+    border: 1px solid #d8e2ed;
+    border-radius: 7px;
+    background: #fff;
+    font-size: .65625rem
+}
+
+.ft-client-filter-card select {
+    padding: 0 10px;
+    min-width: 0;
+    width: 100%
+}
+
+.ft-client-filter-card button {
+    border: 0;
+    color: var(--ft-theme-primary);
+    padding: 0 10px;
+    font-weight: 650
+}
+
+.ft-client-filter-search {
+    position: relative;
+    display: flex;
+    align-items: center
+}
+
+.ft-client-filter-search span {
+    position: absolute;
+    left: 11px;
+    color: #6e8199;
+    font-size: 1.125rem
+}
+
+.ft-client-filter-search input {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    outline: none;
+    padding: 0 11px 0 34px;
+    font-size: .65625rem
+}
+
+.ft-client-quick-row {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin-bottom: 13px
+}
+
+.ft-client-quick-row button {
+    height: 34px;
+    border: 1px solid #dce5ef;
+    background: #fff;
+    border-radius: 7px;
+    padding: 0 12px;
+    color: #41546e;
+    font-size: .65625rem;
+    font-weight: 700
+}
+
+.ft-client-quick-row button.active {
+    background: var(--ft-theme-primary);
+    color: #fff;
+    border-color: var(--ft-theme-primary)
+}
+
+.ft-client-quick-row span {
+    display: inline-grid;
+    place-items: center;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 4px;
+    margin-left: 4px;
+    border-radius: 10px;
+    background: #edf2f7;
+    color: #60728a;
+    font-size: .5625rem
+}
+
+.ft-client-quick-row button.active span {
+    background: #fff;
+    color: var(--ft-theme-primary)
+}
+
+.ft-client-list-card {
+    border: 1px solid #dce5ef;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 2px 7px rgba(18, 43, 75, .025)
+}
+
+.ft-client-table-scroll {
+    overflow: auto
+}
+
+.ft-client-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 970px
+}
+
+.ft-client-table th {
+    text-align: left;
+    padding: 11px 10px;
+    border-bottom: 1px solid #dce5ef;
+    background: #fff;
+    color: #41536e;
+    font-size: .5625rem;
+    font-weight: 750;
+    white-space: nowrap
+}
+
+.ft-client-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e2e9f0;
+    vertical-align: middle;
+    color: #15253f;
+    font-size: .65625rem
+}
+
+.ft-client-table tbody tr {
+    cursor: pointer
+}
+
+.ft-client-table tbody tr:hover,
+.ft-client-table tbody tr.selected {
+    background: var(--ft-theme-primary-soft)
+}
+
+.ft-client-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 145px
+}
+
+.ft-client-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    flex: 0 0 auto
+}
+
+.ft-client-identity b,
+.ft-client-identity small {
+    display: block
+}
+
+.ft-client-identity b {
+    font-size: .65625rem;
+    margin-bottom: 3px
+}
+
+.ft-client-identity small {
+    color: #60738e;
+    font-size: .5625rem
+}
+
+.ft-client-person {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap
+}
+
+.ft-client-person .avatar {
+    font-size: .5625rem
+}
+
+.ft-client-table td>small {
+    display: block;
+    font-size: .5625rem;
+    margin-top: 2px
+}
+
+.ft-text-red {
+    color: #e12c27 !important
+}
+
+.ft-text-green {
+    color: #18a558 !important
+}
+
+.ft-text-purple {
+    color: #7c3aed !important
+}
+
+.ft-mini-progress {
+    width: 72px;
+    height: 4px;
+    background: #e5eaf0;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 4px
+}
+
+.ft-mini-progress span {
+    display: block;
+    height: 100%;
+    background: var(--ft-theme-primary);
+    border-radius: 99px
+}
+
+.ft-client-health {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 5px;
+    padding: 4px 7px;
+    font-size: .5625rem;
+    font-weight: 700;
+    white-space: nowrap
+}
+
+.ft-client-health.green {
+    background: #eaf8ef;
+    color: #148049;
+    border: 1px solid #bde8cd
+}
+
+.ft-client-health.amber {
+    background: #fff4e5;
+    color: #b55e0b;
+    border: 1px solid #f4d39d
+}
+
+.ft-client-health.red {
+    background: #ffedeb;
+    color: #c33934;
+    border: 1px solid #f3c2bd
+}
+
+.ft-client-more {
+    border: 0;
+    background: transparent;
+    font-weight: 800;
+    font-size: 1.125rem;
+    line-height: 1
+}
+
+.ft-client-empty {
+    padding: 28px !important;
+    text-align: center !important;
+    color: #6c7d94 !important
+}
+
+.ft-client-pagination {
+    min-height: 55px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: #536781;
+    font-size: .625rem
+}
+
+.ft-client-pagination>div {
+    display: flex;
+    align-items: center;
+    gap: 9px
+}
+
+.ft-client-pagination select,
+.ft-client-pagination button {
+    height: 32px;
+    border: 1px solid #d7e1ec;
+    background: #fff;
+    border-radius: 7px;
+    padding: 0 12px;
+    font-size: .625rem
+}
+
+.ft-client-pagination button:disabled {
+    opacity: .45
+}
+
+.ft-client-detail-card {
+    position: sticky;
+    top: 82px;
+    border: 1px solid #dce5ef;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 3px 12px rgba(18, 43, 75, .035);
+    min-width: 0
+}
+
+.ft-client-detail-head {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr) auto 32px;
+    gap: 10px;
+    align-items: center;
+    padding: 16px
+}
+
+.ft-client-detail-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary-800);
+    font-size: 1.125rem;
+    font-weight: 800
+}
+
+.ft-client-detail-head h2 {
+    margin: 0 0 5px;
+    font-size: 1rem;
+    letter-spacing: -.015em
+}
+
+.ft-client-detail-head p {
+    margin: 0;
+    color: #6a7b91;
+    font-size: .625rem
+}
+
+.ft-client-detail-head .ft-client-health {
+    margin-left: 7px
+}
+
+.ft-open-client {
+    height: 33px;
+    padding: 0 11px;
+    border: 1px solid var(--ft-theme-primary-300);
+    border-radius: 6px;
+    color: var(--ft-theme-primary);
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    font-weight: 750;
+    font-size: .59375rem
+}
+
+.ft-client-detail-contact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 10px 16px 14px
+}
+
+.ft-client-detail-contact>div {
+    min-width: 0
+}
+
+.ft-client-detail-contact small {
+    display: block;
+    color: #627590;
+    font-size: .5625rem;
+    margin-bottom: 8px
+}
+
+.ft-client-detail-contact a {
+    display: block;
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-client-detail-contact span {
+    display: block;
+    color: #64758c;
+    font-size: .5625rem;
+    margin-top: 3px
+}
+
+.ft-client-detail-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin: 0 16px;
+    border: 1px solid #dce5ef;
+    border-radius: 8px;
+    overflow: hidden
+}
+
+.ft-client-detail-stats div {
+    padding: 11px 5px;
+    text-align: center;
+    border-right: 1px solid #dce5ef
+}
+
+.ft-client-detail-stats div:last-child {
+    border-right: 0
+}
+
+.ft-client-detail-stats b {
+    display: block;
+    font-size: 1.0625rem
+}
+
+.ft-client-detail-stats small {
+    display: block;
+    color: #60728b;
+    font-size: .53125rem;
+    margin-top: 4px
+}
+
+.ft-client-detail-section {
+    padding: 17px 16px 0
+}
+
+.ft-client-detail-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px
+}
+
+.ft-client-detail-section-head h3 {
+    font-size: .75rem;
+    margin: 0
+}
+
+.ft-client-detail-section-head a {
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    font-weight: 700;
+    text-decoration: none
+}
+
+.ft-client-mini-table {
+    width: 100%;
+    border-collapse: collapse
+}
+
+.ft-client-mini-table th {
+    text-align: left;
+    color: #536782;
+    font-size: .5rem;
+    padding: 8px 6px;
+    border-bottom: 1px solid #dce5ef;
+    white-space: nowrap
+}
+
+.ft-client-mini-table td {
+    font-size: .55rem;
+    padding: 10px 6px;
+    border-bottom: 1px solid #e2e9f0;
+    vertical-align: middle
+}
+
+.ft-client-mini-table a {
+    color: var(--ft-theme-primary);
+    font-weight: 650;
+    text-decoration: none
+}
+
+.ft-client-mini-table .ft-mini-progress {
+    width: 54px
+}
+
+.ft-health-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block
+}
+
+.ft-health-dot.green {
+    background: #19af66
+}
+
+.ft-health-dot.amber {
+    background: #f39a1c
+}
+
+.ft-health-dot.red {
+    background: #e93935
+}
+
+.ft-client-attention-section {
+    padding-top: 22px
+}
+
+.ft-view-client-work {
+    display: flex;
+    justify-content: center;
+    padding: 20px 16px;
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-weight: 750;
+    text-decoration: none
+}
+
+.ft-client-empty-detail {
+    padding: 60px 20px;
+    text-align: center;
+    color: #6b7c92
+}
+
+/* Keep the reference forms unchanged structurally, but restore readable sizes. */
+.ft-create-job-page {
+    font-size: .8125rem
+}
+
+.ft-create-shell {
+    max-width: 1180px
+}
+
+.ft-create-breadcrumb {
+    font-size: .75rem
+}
+
+.ft-create-title h1 {
+    font-size: 1.625rem
+}
+
+.ft-create-title p {
+    font-size: .8125rem;
+    margin: 6px 0 16px
+}
+
+.ft-create-section {
+    padding: 16px 18px;
+    margin-bottom: 12px
+}
+
+.ft-create-section-title {
+    margin-bottom: 14px
+}
+
+.ft-create-section-title>span {
+    width: 26px;
+    height: 26px;
+    font-size: .75rem
+}
+
+.ft-create-section-title h2 {
+    font-size: 1.0625rem
+}
+
+.ft-create-fields {
+    gap: 13px
+}
+
+.ft-create-field>b,
+.ft-product-row label>b {
+    font-size: .75rem
+}
+
+.ft-create-field input,
+.ft-create-field select,
+.ft-create-field textarea,
+.ft-product-row input,
+.ft-product-row select {
+    min-height: 44px;
+    font-size: .8125rem;
+    border-radius: 8px
+}
+
+.ft-create-field textarea {
+    min-height: 88px;
+    padding-top: 11px
+}
+
+.ft-create-field>small {
+    font-size: .625rem
+}
+
+.ft-locked-input {
+    height: 44px;
+    font-size: .8125rem
+}
+
+.ft-product-row {
+    padding: 12px 14px
+}
+
+.ft-product-delete {
+    height: 44px
+}
+
+.ft-product-row-footer button {
+    height: 34px;
+    font-size: .6875rem
+}
+
+.ft-product-row-footer span {
+    font-size: .6875rem
+}
+
+.ft-workflow-summary {
+    height: 35px;
+    font-size: .65625rem
+}
+
+.ft-create-note {
+    font-size: .65625rem
+}
+
+.ft-create-upload {
+    min-height: 68px
+}
+
+.ft-create-upload b {
+    font-size: .75rem
+}
+
+.ft-create-upload small {
+    font-size: .625rem
+}
+
+.ft-create-upload>a {
+    height: 38px;
+    font-size: .65625rem
+}
+
+.ft-create-upload-list span {
+    font-size: .65625rem
+}
+
+.ft-create-actions button,
+.ft-client-form-actions button {
+    height: 42px;
+    font-size: .71875rem
+}
+
+.ft-create-client-page {
+    font-size: .8125rem
+}
+
+.ft-client-create-top h1 {
+    font-size: 1.625rem
+}
+
+.ft-client-create-top p {
+    font-size: .8125rem
+}
+
+.ft-back-clients {
+    height: 40px;
+    font-size: .75rem
+}
+
+.ft-client-form-head {
+    padding: 18px 20px 16px
+}
+
+.ft-client-form-head h2 {
+    font-size: 1.4375rem
+}
+
+.ft-client-form-head p {
+    font-size: .8125rem
+}
+
+.ft-client-form-body {
+    padding: 18px 20px 20px;
+    gap: 17px
+}
+
+.ft-client-field>b {
+    font-size: .75rem
+}
+
+.ft-client-field input,
+.ft-client-field select,
+.ft-client-field textarea {
+    min-height: 42px;
+    font-size: .8125rem
+}
+
+.ft-client-field textarea {
+    min-height: 82px
+}
+
+.ft-client-field>small {
+    font-size: .65625rem
+}
+
+.ft-client-code-box {
+    height: 42px;
+    font-size: .875rem
+}
+
+.ft-client-form-actions {
+    padding: 14px 20px
+}
+
+
+
+@media(max-width:1350px) {
+    .ft-clients-layout {
+        grid-template-columns: minmax(0, 1fr) 360px
+    }
+
+    .ft-client-filter-card {
+        grid-template-columns: minmax(220px, 1.4fr) repeat(2, minmax(115px, 1fr));
+    }
+
+    .ft-client-filter-card select:nth-of-type(3),
+    .ft-client-filter-card select:nth-of-type(4),
+    .ft-client-filter-card>button {
+        grid-row: 2
+    }
+
+    .ft-client-filter-card>button {
+        justify-self: start
+    }
+
+    .ft-clients-metrics {
+        gap: 9px
+    }
+}
+
+@media(max-width:1080px) {
+    .ft-clients-layout {
+        grid-template-columns: 1fr
+    }
+
+    .ft-client-detail-card {
+        position: static
+    }
+
+    .ft-client-detail-card {
+        order: -1
+    }
+
+    .ft-client-detail-section {
+        overflow: auto
+    }
+
+    .ft-client-filter-card {
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+    }
+
+    .ft-client-filter-search {
+        grid-column: 1/-1
+    }
+
+    .ft-client-filter-card select:nth-of-type(3),
+    .ft-client-filter-card select:nth-of-type(4),
+    .ft-client-filter-card>button {
+        grid-row: auto
+    }
+
+    .ft-clients-metrics {
+        grid-template-columns: repeat(2, 1fr)
+    }
+}
+
+@media(max-width:700px) {
+    .ft-clients-page-head {
+        align-items: center
+    }
+
+    .ft-clients-page-head h1 {
+        font-size: 1.4375rem
+    }
+
+    .ft-clients-page-head p {
+        font-size: .6875rem
+    }
+
+    .ft-clients-new {
+        height: 38px;
+        padding: 0 11px;
+        font-size: .6875rem
+    }
+
+    .ft-clients-metrics {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-client-metric {
+        min-height: 66px;
+        padding: 10px
+    }
+
+    .ft-client-metric-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.0625rem
+    }
+
+    .ft-client-metric b {
+        font-size: 1.125rem
+    }
+
+    .ft-client-filter-card {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-client-filter-search {
+        grid-column: 1/-1
+    }
+
+    .ft-client-filter-card>button {
+        height: 38px
+    }
+
+    .ft-client-quick-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-client-quick-row button {
+        width: 100%
+    }
+
+    .ft-client-detail-head {
+        grid-template-columns: 46px minmax(0, 1fr) auto
+    }
+
+    .ft-client-detail-logo {
+        width: 43px;
+        height: 43px
+    }
+
+    .ft-client-detail-head>.ft-client-more {
+        display: none
+    }
+
+    .ft-open-client {
+        grid-column: 3
+    }
+
+    .ft-client-detail-contact {
+        grid-template-columns: 1fr
+    }
+
+    .ft-client-detail-stats {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-client-detail-stats div:nth-child(2) {
+        border-right: 0
+    }
+
+    .ft-client-detail-stats div:nth-child(-n+2) {
+        border-bottom: 1px solid #dce5ef
+    }
+
+    .ft-client-pagination {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-client-pagination>div {
+        width: 100%;
+        flex-wrap: wrap
+    }
+
+    .ft-create-title h1,
+    .ft-client-create-top h1 {
+        font-size: 1.4375rem
+    }
+
+    .ft-create-field input,
+    .ft-create-field select,
+    .ft-create-field textarea,
+    .ft-product-row input,
+    .ft-product-row select,
+    .ft-client-field input,
+    .ft-client-field select,
+    .ft-client-field textarea {
+        font-size: .875rem
+    }
+}
+
+
+/* Task details attachment area — match the compact reference layout. */
+.ft-task-upload-zone {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 64px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.ft-task-upload-drop {
+    min-width: 0;
+    min-height: 62px;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    cursor: pointer;
+}
+
+.ft-task-upload-drop input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none
+}
+
+.ft-task-upload-drop>div {
+    font-size: .75rem
+}
+
+.ft-task-upload-drop>div strong {
+    color: var(--ft-theme-primary)
+}
+
+.ft-task-upload-drop small {
+    font-size: .625rem
+}
+
+.ft-task-choose-document {
+    margin-right: 12px;
+    min-width: 185px;
+    height: 40px;
+    align-self: center
+}
+
+.ft-task-upload-readonly {
+    cursor: default
+}
+
+.ft-task-document-picker {
+    grid-template-columns: minmax(220px, 1fr) auto auto;
+    align-items: center;
+    padding: 10px;
+    margin-top: 8px;
+}
+
+.ft-task-document-picker .ft-card-row-head {
+    display: none
+}
+
+.ft-task-document-picker select {
+    height: 40px
+}
+
+.ft-task-document-picker .ft-new-job-btn,
+.ft-task-document-picker .ft-outline-btn {
+    height: 40px;
+    white-space: nowrap
+}
+
+.ft-task-completion-error {
+    margin: -8px 0 14px;
+    padding: 10px 12px;
+    border: 1px solid #f0b6b2;
+    border-radius: 8px;
+    background: #fff3f2;
+    color: #b42318;
+    font-weight: 650
+}
+
+@media(max-width:800px) {
+    .ft-task-upload-zone {
+        grid-template-columns: 1fr
+    }
+
+    .ft-task-choose-document {
+        width: calc(100% - 24px);
+        margin: 0 12px 12px
+    }
+
+    .ft-task-document-picker {
+        grid-template-columns: 1fr
+    }
+
+    .ft-task-document-picker .ft-new-job-btn,
+    .ft-task-document-picker .ft-outline-btn {
+        width: 100%
+    }
+}
+
+/* 2026-08-04: friendlier activity/history + visible Livewire upload progress */
+.ft-friendly-activity {
+    padding: 0;
+    overflow: hidden
+}
+
+.ft-friendly-activity .ft-activity-head {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #e4ebf3;
+    align-items: flex-end
+}
+
+.ft-friendly-activity .ft-activity-head h2 {
+    margin: 0;
+    font-size: .9375rem
+}
+
+.ft-friendly-activity .ft-activity-head p {
+    margin: 3px 0 0;
+    color: #687b93;
+    font-size: .625rem
+}
+
+.ft-activity-tabs {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    white-space: nowrap
+}
+
+.ft-activity-tabs button {
+    padding: 0 0 9px !important;
+    font-size: .625rem;
+    font-weight: 750
+}
+
+.ft-friendly-composer {
+    margin: 0 !important;
+    padding: 10px 16px !important;
+    background: var(--ft-theme-surface-subtle);
+    border-top: 0 !important;
+    border-bottom: 1px solid #e4ebf3
+}
+
+.ft-friendly-composer input {
+    height: 36px !important;
+    background: #fff;
+    font-size: .625rem !important
+}
+
+.ft-friendly-composer .ft-new-job-btn {
+    height: 36px !important;
+    font-size: .625rem !important
+}
+
+.ft-activity-feed {
+    padding: 4px 16px 10px
+}
+
+.ft-activity-entry {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+    padding: 11px 0;
+    border-bottom: 1px solid #edf1f5;
+    position: relative
+}
+
+.ft-activity-entry:last-child {
+    border-bottom: 0
+}
+
+.ft-activity-entry.is-focused-comment {
+    margin-inline: -8px;
+    padding-inline: 8px;
+    border-radius: 8px;
+    background: var(--ft-theme-primary-soft);
+    box-shadow: 0 0 0 1px var(--ft-theme-primary-100) inset;
+    scroll-margin-top: 110px
+}
+
+.ft-activity-entry-avatar {
+    position: relative;
+    width: 34px;
+    height: 34px
+}
+
+.ft-activity-entry-avatar>span {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--ft-theme-primary-soft);
+    border: 2px solid #fff;
+    font-size: .5rem;
+    line-height: 1
+}
+
+.ft-activity-entry.is-comment .ft-activity-entry-avatar>span {
+    background: var(--ft-theme-primary-soft)
+}
+
+.ft-activity-entry.is-history .ft-activity-entry-avatar>span {
+    background: #eef2f6
+}
+
+.ft-activity-entry-content {
+    min-width: 0
+}
+
+.ft-activity-entry-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px
+}
+
+.ft-activity-entry-head>div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0
+}
+
+.ft-activity-entry-head b {
+    font-size: .65625rem;
+    color: #10223b
+}
+
+.ft-activity-entry-head time {
+    font-size: .5625rem;
+    color: #6d8199;
+    white-space: nowrap
+}
+
+.ft-activity-entry p {
+    margin: 0;
+    color: #263d58;
+    font-size: .625rem;
+    line-height: 1.5;
+    word-break: break-word
+}
+
+.ft-activity-entry-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+    color: #71839a;
+    font-size: .53125rem
+}
+
+.ft-friendly-activity .ft-activity-kind {
+    font-size: .46875rem !important;
+    padding: 2px 6px !important
+}
+
+.ft-friendly-activity .ft-activity-kind.comment {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary) !important
+}
+
+.ft-friendly-activity .ft-activity-kind.history {
+    background: #eef2f6;
+    color: #566b84 !important
+}
+
+.ft-activity-card.compact.ft-friendly-activity .ft-activity-head {
+    padding: 11px 13px 8px
+}
+
+.ft-activity-card.compact.ft-friendly-activity .ft-friendly-composer {
+    padding: 8px 13px !important
+}
+
+.ft-activity-card.compact.ft-friendly-activity .ft-activity-feed {
+    padding: 3px 13px 8px
+}
+
+
+@media(max-width:800px) {
+    .ft-friendly-activity .ft-activity-head {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-activity-tabs {
+        width: 100%;
+        overflow: auto
+    }
+
+    .ft-activity-entry-head {
+        align-items: flex-start
+    }
+
+    .ft-activity-entry-head time {
+        white-space: normal;
+        text-align: right
+    }
+
+    .ft-friendly-composer {
+        grid-template-columns: 30px minmax(0, 1fr)
+    }
+
+    .ft-friendly-composer .ft-new-job-btn {
+        grid-column: 2;
+        width: 100%
+    }
+}
+
+/* 2026-08-04 detail header IDs + document upload usability */
+.ft-id-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap
+}
+
+.ft-copyable-id-link,
+.ft-detail-linked-number a,
+.ft-job-number-inline a {
+    color: var(--ft-theme-primary-800);
+    text-decoration: none;
+    font-weight: 700
+}
+
+.ft-copyable-id-link:hover,
+.ft-detail-linked-number a:hover,
+.ft-job-number-inline a:hover {
+    color: var(--ft-theme-primary);
+    text-decoration: underline
+}
+
+.ft-copy-id-btn {
+    width: 25px;
+    height: 25px;
+    border: 0;
+    background: transparent;
+    color: #4b6584;
+    border-radius: 6px;
+    display: inline-grid;
+    place-items: center;
+    padding: 0;
+    font-size: .9375rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: .15s
+}
+
+.ft-copy-id-btn:hover {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-copy-id-btn.copied {
+    background: #eaf8ef;
+    color: #087c34
+}
+
+.ft-copyable-id-wrap {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 3px
+}
+
+.ft-copyable-id-wrap .ft-copy-id-btn {
+    width: 22px;
+    height: 22px;
+    font-size: .8125rem
+}
+
+.ft-detail-linked-number {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 5px
+}
+
+.ft-editable-task-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    margin: 0 !important
+}
+
+.ft-editable-task-title .ft-pencil,
+.ft-editable-job-title .ft-pencil {
+    margin-left: 0 !important;
+    flex: 0 0 auto
+}
+
+.ft-editable-task-title input {
+    width: min(620px, 72vw);
+    height: 42px;
+    border: 1px solid var(--ft-theme-primary-300);
+    border-radius: 8px;
+    background: #fff;
+    color: #061731;
+    font: inherit;
+    font-weight: 800;
+    padding: 0 11px;
+    outline: 0
+}
+
+.ft-document-purpose-field {
+    display: block;
+    width: 100%;
+    margin-top: 13px;
+    clear: both
+}
+
+.ft-document-purpose-field>label {
+    display: block !important;
+    margin: 0 0 7px !important;
+    font-size: .6875rem !important;
+    font-weight: 800;
+    color: #142740
+}
+
+.ft-document-purpose-field .ft-document-purpose-select {
+    display: block !important;
+    float: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 44px !important;
+    margin: 0 !important;
+    border: 1px solid #cbd9e9 !important;
+    border-radius: 9px !important;
+    background: #fff;
+    padding: 0 12px !important;
+    font-size: .6875rem !important;
+    color: #132844
+}
+
+.ft-document-purpose-field .ft-document-match-note {
+    display: block !important;
+    margin: 6px 0 0 !important;
+    font-size: .59375rem !important;
+    color: #667a93;
+    clear: both
+}
+
+.ft-job-document-upload-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: stretch;
+    margin-top: 12px
+}
+
+.ft-job-document-drop {
+    min-height: 64px;
+    border: 1px dashed #8fa9c8;
+    border-radius: 9px;
+    background: var(--ft-theme-surface-subtle);
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 11px;
+    align-items: center;
+    padding: 10px 14px;
+    cursor: pointer;
+    margin: 0 !important
+}
+
+.ft-job-document-drop>input {
+    display: none !important
+}
+
+.ft-job-document-drop .ft-paperclip {
+    font-size: 1.125rem;
+    color: var(--ft-theme-primary-800)
+}
+
+.ft-job-document-drop strong {
+    font-size: .6875rem;
+    color: #132844
+}
+
+.ft-job-document-drop strong span {
+    color: var(--ft-theme-primary)
+}
+
+.ft-job-document-drop small {
+    display: block;
+    margin-top: 3px;
+    color: #657a94;
+    font-size: .59375rem;
+    font-weight: 500
+}
+
+.ft-job-document-drop.readonly {
+    cursor: default
+}
+
+.ft-choose-existing-doc {
+    height: auto !important;
+    min-height: 64px !important;
+    min-width: 190px !important;
+    padding: 0 18px !important;
+    align-self: stretch;
+    font-size: .6875rem !important
+}
+
+.ft-upload-panel .ft-document-link-action {
+    display: none !important
+}
+
+@media(max-width:760px) {
+    .ft-job-document-upload-row {
+        grid-template-columns: 1fr
+    }
+
+    .ft-choose-existing-doc {
+        min-width: 0 !important;
+        width: 100%;
+        min-height: 44px !important
+    }
+
+    .ft-editable-task-title input {
+        width: 100%;
+        max-width: 100%
+    }
+}
+
+/* Task detail property editor — prototype-style edit-on-pencil */
+.ft-friendly-task-properties {
+    overflow: visible !important;
+    position: relative;
+    z-index: 5
+}
+
+.ft-friendly-task-properties .ft-task-property {
+    position: relative;
+    overflow: visible !important;
+    min-width: 0;
+    transition: border-color .15s, box-shadow .15s, background .15s
+}
+
+.ft-friendly-task-properties .ft-task-property.is-editing {
+    z-index: 35;
+    border-color: var(--ft-theme-primary) !important;
+    box-shadow: inset 0 0 0 1px var(--ft-theme-primary);
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-task-property-display {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0
+}
+
+.ft-task-property-display .ft-property-value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-task-property-display>button {
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    margin-left: auto;
+    padding: 5px;
+    line-height: 1;
+    cursor: pointer
+}
+
+.ft-task-property-popover {
+    position: absolute;
+    left: -1px;
+    right: -1px;
+    top: calc(100% + 8px);
+    z-index: 60;
+    background: #fff;
+    border: 1px solid #cbd9e9;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 18px 38px rgba(15, 35, 65, .16)
+}
+
+.ft-task-property-popover:before {
+    content: "";
+    position: absolute;
+    left: 18px;
+    top: -6px;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-left: 1px solid #cbd9e9;
+    border-top: 1px solid #cbd9e9;
+    transform: rotate(45deg)
+}
+
+.ft-task-property-popover .ft-task-property-input {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0;
+    height: 46px !important;
+    border: 1px solid #d5dfeb !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    padding: 0 12px !important;
+    font-size: .875rem !important;
+    color: #13233d !important;
+    outline: none
+}
+
+.ft-task-property-popover .ft-task-property-input:focus {
+    border-color: var(--ft-theme-primary-300) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 9%, transparent) !important
+}
+
+.ft-description-card {
+    position: relative
+}
+
+.ft-description-card .ft-inline-description-editor {
+    margin-top: 10px;
+    background: var(--ft-theme-surface-subtle);
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 10px;
+    padding: 10px
+}
+
+.ft-description-card .ft-inline-description-editor textarea {
+    width: 100%;
+    border: 1px solid #d6e1ed;
+    border-radius: 9px;
+    padding: 10px 12px;
+    font: inherit;
+    resize: vertical;
+    min-height: 90px
+}
+
+.ft-description-card .ft-inline-description-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px
+}
+
+@media(max-width:900px) {
+    .ft-task-property-popover {
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        top: auto;
+        bottom: 18px;
+        z-index: 100;
+        padding: 14px
+    }
+
+    .ft-task-property-popover:before {
+        display: none
+    }
+}
+
+/* Client row actions + dedicated client view */
+.ft-client-action-cell {
+    position: relative;
+    overflow: visible !important
+}
+
+.ft-client-action-menu {
+    position: absolute;
+    right: 8px;
+    top: 38px;
+    width: 150px;
+    background: #fff;
+    border: 1px solid #dce5ef;
+    border-radius: 10px;
+    box-shadow: 0 14px 32px rgba(15, 35, 65, .16);
+    padding: 6px;
+    z-index: 70
+}
+
+.ft-client-action-menu button {
+    width: 100%;
+    border: 0;
+    background: #fff;
+    border-radius: 7px;
+    text-align: left;
+    padding: 9px 10px;
+    font-size: .75rem;
+    color: #1a2c45;
+    font-weight: 650
+}
+
+.ft-client-action-menu button:hover {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-client-action-menu button.danger {
+    color: #c7352c
+}
+
+.ft-client-action-menu button.danger:hover {
+    background: #fff1ef
+}
+
+.ft-client-view-page {
+    padding: 0 2px
+}
+
+.ft-client-view-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px
+}
+
+.ft-client-view-top small {
+    color: #63758e
+}
+
+.ft-client-view-top h1 {
+    margin: 2px 0 3px;
+    font-size: 1.625rem;
+    color: #0c1e36
+}
+
+.ft-client-view-back {
+    height: 40px;
+    border: 1px solid #d6e1ec;
+    background: #fff;
+    border-radius: 10px;
+    padding: 0 15px;
+    font-weight: 750
+}
+
+.ft-client-view-card {
+    background: #fff;
+    border: 1px solid #d9e3ef;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(20, 42, 75, .04)
+}
+
+.ft-client-view-hero {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px;
+    border-bottom: 1px solid #dfe7f0
+}
+
+.ft-client-view-hero .ft-client-detail-logo {
+    width: 48px;
+    height: 48px
+}
+
+.ft-client-view-hero small {
+    display: block;
+    color: #63758e
+}
+
+.ft-client-view-hero h2 {
+    margin: 2px 0;
+    font-size: 1.375rem
+}
+
+.ft-client-view-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 16px 18px
+}
+
+.ft-client-view-summary>div {
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    padding: 12px
+}
+
+.ft-client-view-summary small {
+    display: block;
+    color: #687b92;
+    margin-bottom: 6px
+}
+
+.ft-client-view-summary b {
+    font-size: .9375rem
+}
+
+.ft-client-view-section {
+    padding: 0 18px 18px
+}
+
+.ft-client-view-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 4px 0 10px
+}
+
+.ft-client-view-section-head h3 {
+    margin: 0;
+    font-size: 1.125rem
+}
+
+.ft-client-view-actions {
+    display: flex;
+    gap: 8px
+}
+
+.ft-client-delete-btn,
+.ft-client-edit-btn {
+    height: 38px;
+    border-radius: 9px;
+    padding: 0 14px;
+    font-weight: 750
+}
+
+.ft-client-delete-btn {
+    border: 1px solid #f0c3bd;
+    background: #fff2f0;
+    color: #c83c31
+}
+
+.ft-client-edit-btn {
+    border: 1px solid var(--ft-theme-primary-100);
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-client-contact-box {
+    border: 1px solid #dbe4ef;
+    border-radius: 11px;
+    padding: 14px;
+    line-height: 1.45
+}
+
+.ft-client-contact-box b {
+    display: block;
+    margin-bottom: 4px
+}
+
+.ft-client-jobs-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 18px 0 8px
+}
+
+.ft-client-jobs-head h3 {
+    margin: 0;
+    font-size: 1.125rem
+}
+
+.ft-client-jobs-list {
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    overflow: hidden
+}
+
+.ft-client-job-row {
+    display: grid;
+    grid-template-columns: 150px minmax(180px, 1fr) 170px 120px;
+    gap: 12px;
+    align-items: center;
+    padding: 11px 13px;
+    border-bottom: 1px solid #e4ebf2
+}
+
+.ft-client-job-row:last-child {
+    border-bottom: 0
+}
+
+.ft-client-job-row a {
+    color: var(--ft-theme-primary);
+    font-weight: 750;
+    text-decoration: none
+}
+
+.ft-client-job-row small {
+    color: #677a92
+}
+
+.ft-client-edit-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 18px 18px
+}
+
+.ft-client-edit-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: .75rem;
+    font-weight: 700
+}
+
+.ft-client-edit-form label.span-2 {
+    grid-column: 1/-1
+}
+
+.ft-client-edit-form input,
+.ft-client-edit-form select,
+.ft-client-edit-form textarea {
+    border: 1px solid #d7e1ec;
+    border-radius: 9px;
+    padding: 10px 11px;
+    font: inherit;
+    background: #fff
+}
+
+.ft-client-edit-form textarea {
+    min-height: 86px
+}
+
+.ft-client-edit-form-actions {
+    grid-column: 1/-1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 2px
+}
+
+@media(max-width:800px) {
+    .ft-client-view-summary {
+        grid-template-columns: 1fr
+    }
+
+    .ft-client-job-row {
+        grid-template-columns: 1fr
+    }
+
+    .ft-client-edit-form {
+        grid-template-columns: 1fr
+    }
+
+    .ft-client-edit-form label.span-2 {
+        grid-column: auto
+    }
+
+    .ft-client-view-top {
+        align-items: flex-start
+    }
+
+    .ft-client-view-actions {
+        flex-wrap: wrap
+    }
+}
+
+.ft-open-client {
+    background: #fff;
+    cursor: pointer
+}
+
+/* 2026-08-04: shell/header cleanup + direct Job filters + bulk actions */
+.ft-shell-topbar {
+    justify-content: flex-end
+}
+
+.ft-shell-topbar .mobile-menu {
+    margin-right: auto
+}
+
+.ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct {
+    grid-template-columns: minmax(280px, 2fr) repeat(8, minmax(112px, 1fr)) auto;
+    align-items: center;
+    overflow: visible;
+}
+
+.ft-job-bulk-bar {
+    min-height: 52px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    background: var(--ft-theme-surface-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: #243854;
+}
+
+.ft-job-bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap
+}
+
+.ft-danger-outline-btn {
+    height: 40px;
+    border: 1px solid #fecaca;
+    border-radius: 9px;
+    background: #fff5f5;
+    color: #c62828;
+    font-weight: 750;
+    padding: 0 14px;
+}
+
+.ft-checkbox-head {
+    font-size: .5625rem;
+    color: #6b7c92;
+    letter-spacing: .03em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    cursor: pointer
+}
+
+.ft-checkbox-head input:disabled {
+    cursor: not-allowed
+}
+
+.ft-job-table input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--ft-theme-primary);
+    cursor: pointer
+}
+
+@media(max-width:1500px) {
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct {
+        grid-template-columns: minmax(280px, 1.8fr) repeat(4, minmax(120px, 1fr));
+    }
+
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct .ft-clear-link {
+        min-height: 38px
+    }
+}
+
+@media(max-width:1050px) {
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct .ft-job-list-search {
+        grid-column: span 2
+    }
+}
+
+@media(max-width:720px) {
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 9px
+    }
+
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct .ft-job-list-search {
+        grid-column: 1/-1
+    }
+
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct .ft-clear-link {
+        width: 100%;
+        justify-content: center;
+        border: 1px solid #d8e2ee;
+        border-radius: 8px;
+        background: #fff
+    }
+
+    .ft-job-bulk-bar {
+        align-items: stretch;
+        flex-direction: column
+    }
+
+    .ft-job-bulk-actions>* {
+        flex: 1
+    }
+}
+
+@media(max-width:480px) {
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct {
+        grid-template-columns: 1fr
+    }
+
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct .ft-job-list-search {
+        grid-column: auto
+    }
+}
+
+/* Final task-detail icon sizing: the title edit control matches the rest of the UI. */
+.ft-editable-task-title .ft-pencil {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: var(--ft-theme-primary) !important;
+    font-size: .75rem !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    cursor: pointer !important;
+}
+
+.ft-editable-task-title .ft-pencil:hover {
+    background: var(--ft-theme-primary-soft) !important;
+    color: var(--ft-theme-primary) !important
+}
+
+
+/* Pagination for long activity feeds, notifications and Master Data (30 per page). */
+.ft-activity-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px 12px;
+    border-top: 1px solid #e7edf4;
+    color: #60738c;
+    font-size: .625rem;
+    background: var(--ft-theme-surface-subtle);
+}
+
+.ft-activity-pagination>div {
+    display: flex;
+    align-items: center;
+    gap: 9px
+}
+
+.ft-activity-pagination button {
+    height: 30px;
+    padding: 0 11px;
+    border: 1px solid #d8e2ee;
+    border-radius: 7px;
+    background: #fff;
+    color: #18304f;
+    font-weight: 700;
+    font-size: .625rem;
+}
+
+.ft-activity-pagination button:disabled {
+    opacity: .42;
+    cursor: not-allowed
+}
+
+.ft-notification-pagination,
+.ft-master-pagination {
+    margin: 12px 0 0
+}
+
+.ft-job-document-attachment-zone {
+    margin-top: 12px
+}
+
+.ft-taskpack-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-admin-danger,
+.ft-admin-danger-small {
+    border: 1px solid #efb5b1;
+    background: #fff7f6;
+    color: #c9322b;
+    border-radius: 8px;
+    font-weight: 750;
+}
+
+.ft-admin-danger {
+    height: 38px;
+    padding: 0 13px
+}
+
+.ft-admin-danger-small {
+    height: 32px;
+    padding: 0 10px;
+    font-size: .625rem
+}
+
+@media(max-width:700px) {
+    .ft-activity-pagination {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-activity-pagination>div {
+        width: 100%;
+        justify-content: space-between
+    }
+
+    .ft-taskpack-card-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end
+    }
+}
+
+
+/* =====================================================================
+   2026-08-04 final responsive hardening
+   - whole-field date picker on Create Job
+   - no horizontal quick-filter strip on Jobs
+   - Clients, Documents, Master Data and Roles & Access adapt to small screens
+   ===================================================================== */
+.ft-clickable-date-field {
+    cursor: pointer
+}
+
+.ft-clickable-date-field input[type="date"] {
+    cursor: pointer;
+    width: 100%
+}
+
+.ft-clickable-date-field input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer
+}
+
+/* Jobs quick filters always wrap into the available width instead of scrolling. */
+.ft-exact-jobs-list .ft-list-view-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px !important;
+    overflow: visible !important;
+    padding-bottom: 0 !important;
+}
+
+.ft-exact-jobs-list .ft-list-view-chip {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+}
+
+/* Master Data: categories wrap, table becomes cards on narrow devices. */
+@media(max-width:1100px) {
+    .master-layout {
+        grid-template-columns: 1fr !important
+    }
+
+    .master-categories {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+        overflow: visible !important
+    }
+
+    .master-categories button {
+        min-width: 0 !important;
+        margin: 0 !important
+    }
+
+    .config-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+}
+
+@media(max-width:760px) {
+    .master-categories {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .master-head {
+        flex-direction: column;
+        align-items: stretch
+    }
+
+    .master-head input {
+        max-width: none !important;
+        width: 100%
+    }
+
+    .master-table {
+        min-width: 0 !important;
+        display: block
+    }
+
+    .master-table thead {
+        display: none
+    }
+
+    .master-table tbody {
+        display: grid;
+        gap: 10px
+    }
+
+    .master-table tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff
+    }
+
+    .master-table td {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        border: 0 !important;
+        border-bottom: 1px solid var(--line) !important;
+        padding: 10px !important
+    }
+
+    .master-table td:before {
+        content: attr(data-label);
+        font-size: .5625rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--muted);
+        font-weight: 750
+    }
+
+    .master-table td:last-child {
+        grid-column: 1/-1;
+        border-bottom: 0 !important
+    }
+
+    .master-table .row-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%
+    }
+
+    .master-table .row-actions button {
+        width: 100%;
+        min-width: 0
+    }
+
+    .ft-master-pagination {
+        align-items: flex-start !important;
+        flex-direction: column
+    }
+
+    .ft-master-pagination .ft-page-actions {
+        width: 100%;
+        justify-content: space-between
+    }
+}
+
+@media(max-width:500px) {
+    .config-summary {
+        grid-template-columns: 1fr !important
+    }
+
+    .master-categories {
+        grid-template-columns: 1fr
+    }
+
+    .master-table tr {
+        grid-template-columns: 1fr
+    }
+
+    .master-table td:last-child {
+        grid-column: auto
+    }
+
+    .master-table .row-actions {
+        grid-template-columns: 1fr
+    }
+}
+
+/* Clients: no layout break on tablets/phones; rows become readable cards. */
+@media(max-width:1100px) {
+    .ft-clients-layout {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-client-detail-card {
+        position: static !important;
+        order: 0 !important;
+        width: 100%;
+        min-width: 0
+    }
+
+    .ft-client-filter-card {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+
+    .ft-client-filter-search {
+        grid-column: 1/-1 !important
+    }
+
+    .ft-clients-page-head {
+        gap: 10px;
+        flex-wrap: wrap
+    }
+}
+
+@media(max-width:760px) {
+    .ft-clients-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+
+    .ft-client-filter-card {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-client-filter-search {
+        grid-column: auto !important
+    }
+
+    .ft-client-quick-row {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px !important
+    }
+
+    .ft-client-quick-row button {
+        width: 100%;
+        min-width: 0
+    }
+
+    .ft-client-table-scroll {
+        overflow: visible !important
+    }
+
+    .ft-client-table {
+        min-width: 0 !important;
+        width: 100%;
+        display: block
+    }
+
+    .ft-client-table thead {
+        display: none
+    }
+
+    .ft-client-table tbody {
+        display: grid;
+        gap: 10px;
+        padding: 10px
+    }
+
+    .ft-client-table tbody tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border: 1px solid #dce5ef;
+        border-radius: 10px;
+        overflow: visible;
+        background: #fff;
+        cursor: default
+    }
+
+    .ft-client-table td {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        min-width: 0;
+        border: 0 !important;
+        border-bottom: 1px solid #e5ebf2 !important;
+        padding: 10px !important
+    }
+
+    .ft-client-table td:before {
+        content: attr(data-label);
+        font-size: .53125rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #73849a;
+        font-weight: 800
+    }
+
+    .ft-client-table td[data-label="Client"],
+    .ft-client-table td[data-label="Actions"] {
+        grid-column: 1/-1
+    }
+
+    .ft-client-table td[data-label="Actions"] {
+        border-bottom: 0 !important;
+        align-items: flex-end;
+        position: relative
+    }
+
+    .ft-client-action-menu {
+        right: 8px !important;
+        left: auto !important;
+        top: 38px !important;
+        z-index: 50
+    }
+
+    .ft-client-pagination {
+        align-items: flex-start !important;
+        flex-direction: column
+    }
+
+    .ft-client-pagination>div {
+        width: 100%;
+        justify-content: space-between;
+        gap: 6px;
+        flex-wrap: wrap
+    }
+
+    .ft-client-detail-head {
+        grid-template-columns: 46px minmax(0, 1fr) !important
+    }
+
+    .ft-open-client {
+        grid-column: 1/-1 !important;
+        width: 100%
+    }
+
+    .ft-client-detail-contact,
+    .ft-client-detail-stats {
+        grid-template-columns: 1fr 1fr !important
+    }
+
+    .ft-client-mini-table {
+        min-width: 620px
+    }
+}
+
+@media(max-width:500px) {
+
+    .ft-clients-metrics,
+    .ft-client-quick-row {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-client-table tbody tr {
+        grid-template-columns: 1fr
+    }
+
+    .ft-client-table td[data-label="Client"],
+    .ft-client-table td[data-label="Actions"] {
+        grid-column: auto
+    }
+
+    .ft-client-detail-contact,
+    .ft-client-detail-stats {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-client-detail-stats div {
+        border-right: 0 !important;
+        border-bottom: 1px solid #dce5ef !important
+    }
+
+    .ft-client-detail-stats div:last-child {
+        border-bottom: 0 !important
+    }
+}
+
+/* Documents: filters, metrics, groups and actual rows stay readable on all widths. */
+@media(max-width:1100px) {
+    .ft-doc-layout {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-doc-detail-panel {
+        position: static !important;
+        width: 100%;
+        min-width: 0
+    }
+
+    .ft-doc-filterbar {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important
+    }
+
+    .ft-doc-search {
+        grid-column: 1/-1 !important
+    }
+}
+
+@media(max-width:760px) {
+    .ft-doc-page-head {
+        flex-direction: column;
+        align-items: stretch
+    }
+
+    .ft-doc-page-head .primary {
+        width: 100%
+    }
+
+    .ft-doc-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+
+    .ft-doc-filterbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+
+    .ft-doc-search,
+    .ft-doc-clear {
+        grid-column: 1/-1 !important
+    }
+
+    .ft-doc-expand-row {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 8px
+    }
+
+    .ft-doc-expand-row>div:last-child {
+        display: grid;
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-doc-expand-row button {
+        width: 100%
+    }
+
+    .ft-doc-job-head {
+        grid-template-columns: 22px minmax(0, 1fr) !important;
+        gap: 6px !important
+    }
+
+    .ft-doc-job-meta {
+        grid-column: 2 !important;
+        justify-self: start !important;
+        white-space: normal;
+        line-height: 1.4
+    }
+
+    .ft-doc-table-scroll {
+        overflow: visible !important;
+        padding: 8px
+    }
+
+    .ft-doc-table {
+        min-width: 0 !important;
+        width: 100%;
+        display: block
+    }
+
+    .ft-doc-table thead {
+        display: none
+    }
+
+    .ft-doc-table tbody {
+        display: grid;
+        gap: 9px
+    }
+
+    .ft-doc-table tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border: 1px solid #dfe6ef;
+        border-radius: 9px;
+        overflow: hidden;
+        background: #fff
+    }
+
+    .ft-doc-table td {
+        display: flex !important;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        min-width: 0;
+        padding: 9px !important;
+        border: 0 !important;
+        border-bottom: 1px solid #edf1f5 !important;
+        background: #fff !important
+    }
+
+    .ft-doc-table td:before {
+        content: attr(data-label);
+        font-size: .5rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #74849a;
+        font-weight: 800
+    }
+
+    .ft-doc-table td[data-label="Document"],
+    .ft-doc-table td[data-label="Actions"] {
+        grid-column: 1/-1
+    }
+
+    .ft-doc-table td[data-label="Actions"] {
+        border-bottom: 0 !important
+    }
+
+    .ft-doc-row-actions {
+        width: 100%;
+        justify-content: flex-end
+    }
+
+    .ft-doc-file b {
+        max-width: 100% !important;
+        white-space: normal !important;
+        overflow: visible !important
+    }
+
+    .ft-doc-pagination {
+        align-items: flex-start !important;
+        flex-direction: column
+    }
+
+    .ft-doc-pagination>div {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap
+    }
+
+    .ft-doc-upload-modal .form-grid {
+        grid-template-columns: 1fr !important
+    }
+}
+
+@media(max-width:480px) {
+
+    .ft-doc-metrics,
+    .ft-doc-filterbar {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-doc-search,
+    .ft-doc-clear {
+        grid-column: auto !important
+    }
+
+    .ft-doc-expand-row>div:last-child {
+        grid-template-columns: 1fr
+    }
+
+    .ft-doc-table tr {
+        grid-template-columns: 1fr
+    }
+
+    .ft-doc-table td[data-label="Document"],
+    .ft-doc-table td[data-label="Actions"] {
+        grid-column: auto
+    }
+
+    .ft-doc-detail-title {
+        align-items: flex-start
+    }
+
+    .ft-doc-side-list>div {
+        grid-template-columns: 1fr !important;
+        gap: 3px !important
+    }
+}
+
+/* Roles & Access: tabs wrap into a grid and permission options become cards on mobile. */
+@media(max-width:900px) {
+    .ft-access-tabs {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        overflow: visible !important;
+        border: 1px solid #dbe4ef;
+        border-radius: 10px;
+        padding: 5px;
+        gap: 5px
+    }
+
+    .ft-access-tabs button {
+        white-space: normal !important;
+        border: 0 !important;
+        border-radius: 7px;
+        padding: 10px !important;
+        text-align: center
+    }
+
+    .ft-access-tabs button.active {
+        background: var(--ft-theme-primary-soft);
+        color: var(--ft-theme-primary)
+    }
+
+    .ft-role-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+
+    .ft-access-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+
+    .ft-access-grid-2 {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-matrix-toolbar {
+        grid-template-columns: 1fr !important
+    }
+}
+
+@media(max-width:700px) {
+    .ft-access-head {
+        flex-direction: column
+    }
+
+    .ft-access-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-access-actions button {
+        width: 100%
+    }
+
+    .ft-access-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+
+    .ft-role-grid {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-role-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-role-matrix-wrap {
+        overflow: visible !important;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important
+    }
+
+    .ft-role-matrix {
+        min-width: 0 !important;
+        width: 100%;
+        display: block
+    }
+
+    .ft-role-matrix thead {
+        display: none
+    }
+
+    .ft-role-matrix tbody {
+        display: grid;
+        gap: 10px
+    }
+
+    .ft-role-matrix tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border: 1px solid #dfe6ef;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff
+    }
+
+    .ft-role-matrix td {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-width: 0;
+        border: 0 !important;
+        border-bottom: 1px solid #edf1f5 !important;
+        padding: 10px !important;
+        text-align: right !important
+    }
+
+    .ft-role-matrix td:first-child {
+        grid-column: 1/-1;
+        position: static !important;
+        min-width: 0 !important;
+        background: #f8fafc !important;
+        text-align: left !important;
+        display: block !important
+    }
+
+    .ft-role-matrix td:not(:first-child):before {
+        content: attr(data-label);
+        font-size: .5625rem;
+        color: #65758c;
+        font-weight: 750;
+        text-align: left
+    }
+
+    .ft-role-matrix td:last-child {
+        grid-column: 1/-1;
+        border-bottom: 0 !important
+    }
+
+    .ft-scope-select {
+        width: 100%;
+        min-width: 0 !important
+    }
+
+    .ft-user-access-table {
+        min-width: 720px
+    }
+
+    .ft-audit-row {
+        grid-template-columns: 32px minmax(0, 1fr)
+    }
+
+    .ft-audit-row code {
+        grid-column: 2;
+        justify-self: start
+    }
+}
+
+@media(max-width:480px) {
+    .ft-access-tabs {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-access-metrics {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-access-actions {
+        grid-template-columns: 1fr
+    }
+
+    .ft-role-buttons {
+        grid-template-columns: 1fr
+    }
+
+    .ft-role-matrix tr {
+        grid-template-columns: 1fr
+    }
+
+    .ft-role-matrix td:first-child,
+    .ft-role-matrix td:last-child {
+        grid-column: auto
+    }
+}
+
+/* Jobs quick-filter grid breakpoints — final override after the legacy mobile overflow rule. */
+@media(max-width:1100px) {
+    .ft-exact-jobs-list .ft-list-view-tabs {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important
+    }
+}
+
+@media(max-width:700px) {
+    .ft-exact-jobs-list .ft-list-view-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+}
+
+@media(max-width:420px) {
+    .ft-exact-jobs-list .ft-list-view-tabs {
+        grid-template-columns: 1fr !important
+    }
+}
+
+
+/* 2026-08-04: compact responsive document/board group controls. */
+.ft-doc-filterbar {
+    display: grid !important;
+    grid-template-columns: minmax(260px, 1.8fr) repeat(6, minmax(120px, 1fr)) !important;
+    gap: 8px !important;
+    align-items: center;
+    overflow: visible !important
+}
+
+.ft-doc-filterbar>* {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box
+}
+
+.ft-doc-filterbar select,
+.ft-doc-filterbar input,
+.ft-doc-filterbar .ft-doc-clear {
+    height: 42px !important;
+    min-height: 42px !important;
+    border: 1px solid #d7e0eb !important;
+    background: #fff !important;
+    border-radius: 9px !important;
+    color: #273951 !important;
+    font-size: .6875rem !important
+}
+
+.ft-doc-filterbar .ft-doc-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 750;
+    cursor: pointer
+}
+
+.ft-doc-expand-row {
+    justify-content: flex-end !important;
+    margin: 6px 0 9px !important
+}
+
+.ft-group-toggle-actions,
+.ft-board-group-controls {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 7px;
+    flex: 0 0 auto
+}
+
+.ft-double-chevron-btn,
+.ft-board-group-controls .ft-filter-collapse {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 1px solid #d7e0eb !important;
+    border-radius: 9px !important;
+    background: #fff !important;
+    color: #17304f !important;
+    padding: 0 !important;
+    cursor: pointer
+}
+
+.ft-double-chevron-btn:hover,
+.ft-board-group-controls .ft-filter-collapse:hover {
+    border-color: var(--ft-theme-primary-300) !important;
+    background: var(--ft-theme-surface-subtle) !important;
+    color: var(--ft-theme-primary) !important
+}
+
+.ft-double-chevron-btn svg,
+.ft-board-group-controls .ft-filter-collapse svg {
+    width: 18px !important;
+    height: 18px !important;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-board-page .ft-board-quick-row {
+    padding-right: 0 !important
+}
+
+.ft-board-group-controls {
+    margin-left: auto
+}
+
+.ft-login-session-message {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background: #fff1f2;
+    color: #b42318
+}
+
+@media(max-width:1450px) {
+    .ft-doc-filterbar {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important
+    }
+
+    .ft-doc-filterbar .ft-doc-search {
+        grid-column: span 2 !important
+    }
+}
+
+@media(max-width:900px) {
+    .ft-doc-filterbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+
+    .ft-doc-filterbar .ft-doc-search {
+        grid-column: 1/-1 !important
+    }
+}
+
+@media(max-width:520px) {
+    .ft-doc-filterbar {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-doc-filterbar .ft-doc-search {
+        grid-column: auto !important
+    }
+
+    .ft-doc-expand-row {
+        align-items: center !important;
+        flex-direction: row !important
+    }
+
+    .ft-doc-expand-row>div:last-child {
+        display: inline-flex !important;
+        grid-template-columns: none !important;
+        width: auto !important
+    }
+
+    .ft-double-chevron-btn {
+        width: 40px !important;
+        height: 40px !important
+    }
+
+    .ft-board-group-controls {
+        width: auto !important;
+        flex: 0 0 auto !important
+    }
+}
+
+/* =====================================================================
+   Mobile / tablet hardening — Jobs, My Work and Operations Board
+   2026-08-05
+   The desktop board layout is unchanged. On small screens the board stops
+   behaving like a wide spreadsheet and becomes a vertical, touch-friendly UI.
+   ===================================================================== */
+.ft-mobile-lane-label,
+.ft-mobile-phase-head {
+    display: none
+}
+
+@media (max-width: 1024px) {
+
+    .ft-board-page,
+    .ft-jobs-list-page {
+        min-width: 0 !important;
+        width: 100% !important
+    }
+
+    .ft-board-page-head,
+    .ft-list-head {
+        gap: 12px !important;
+        flex-wrap: wrap !important
+    }
+
+    .ft-board-page-head>div:first-child,
+    .ft-list-head>div:first-child {
+        min-width: 0;
+        flex: 1 1 260px
+    }
+
+    .ft-board-head-actions,
+    .ft-list-actions {
+        flex: 0 0 auto
+    }
+
+    .ft-board-page .ft-board-reference-filter-grid,
+    .ft-board-page .ft-mywork-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+
+    .ft-board-page .ft-board-reference-filter-grid .ft-filter-search,
+    .ft-board-page .ft-mywork-filter-grid .ft-filter-search {
+        grid-column: 1/-1 !important
+    }
+
+    .ft-board-page .ft-board-quick-row {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px !important;
+        padding-right: 0 !important;
+        overflow: visible !important;
+    }
+
+    .ft-board-page .ft-quick-label {
+        grid-column: 1/-1 !important
+    }
+
+    .ft-board-page .ft-quick-chip {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        flex: none !important;
+        height: 40px !important;
+        padding: 0 8px !important;
+    }
+
+    .ft-board-group-controls {
+        grid-column: 1/-1;
+        margin-left: 0 !important;
+        justify-self: end;
+    }
+
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        overflow: visible !important;
+    }
+
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct .ft-job-list-search {
+        grid-column: 1/-1 !important
+    }
+}
+
+@media (max-width: 760px) {
+
+    /* Page headers */
+    .ft-board-page-head,
+    .ft-list-head {
+        align-items: stretch !important;
+        flex-direction: column !important
+    }
+
+    .ft-board-head-actions,
+    .ft-list-actions {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px !important
+    }
+
+    .ft-board-head-actions>*:only-child,
+    .ft-list-actions>*:only-child {
+        grid-column: 1/-1
+    }
+
+    .ft-board-head-actions .ft-new-job-btn,
+    .ft-list-actions .ft-new-job-btn,
+    .ft-list-actions .ft-outline-btn {
+        width: 100% !important;
+        min-width: 0 !important
+    }
+
+    /* Filters become a touch-friendly 2-column form. */
+    .ft-board-page .ft-board-reference-filter-grid,
+    .ft-board-page .ft-mywork-filter-grid,
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+
+    .ft-board-page .ft-board-reference-filter-grid .ft-filter-search,
+    .ft-board-page .ft-mywork-filter-grid .ft-filter-search,
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct .ft-job-list-search {
+        grid-column: 1/-1 !important
+    }
+
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct .ft-clear-link {
+        width: 100% !important;
+        min-height: 42px !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #d8e2ee !important;
+        border-radius: 8px !important;
+        background: #fff !important;
+    }
+
+    /* Quick filters never scroll sideways. */
+    .ft-board-page .ft-board-quick-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important
+    }
+
+    .ft-board-page .ft-quick-label,
+    .ft-board-group-controls {
+        grid-column: 1/-1 !important
+    }
+
+    /* On phones/tablets the synchronized desktop lane header is replaced by
+       an inline label inside each real lane. This removes board-wide horizontal
+       scrolling while preserving the Job grouping. */
+    .ft-board-page .ft-lane-sticky-header {
+        display: none !important
+    }
+
+    .ft-board-page .ft-board-horizontal-scroll,
+    .ft-board-page .ft-board-lanes-scroll,
+    .ft-board-page .ft-board-body-scroll {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* Task Board + My Work: one Job, then only its populated statuses. */
+    .ft-task-job-matrix {
+        width: 100% !important;
+        min-width: 0 !important;
+        border-top: 1px solid #d8e1ec !important;
+        border-radius: 11px !important;
+        overflow: visible !important;
+        background: transparent !important;
+    }
+
+    .ft-task-job-matrix-group {
+        width: 100% !important;
+        border: 1px solid #d8e1ec !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        margin-bottom: 12px !important;
+        box-shadow: 0 5px 16px rgba(20, 42, 72, .035);
+    }
+
+    .ft-task-job-row-head {
+        min-height: 58px !important;
+        padding: 10px 12px !important;
+        gap: 7px !important;
+        flex-wrap: wrap !important;
+    }
+
+    .ft-task-job-row-number {
+        font-size: .75rem !important
+    }
+
+    .ft-task-job-row-title {
+        font-size: .75rem !important;
+        max-width: 55vw !important;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+
+    .ft-task-job-client-pill {
+        max-width: 52vw !important;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+
+    .ft-task-job-row-total {
+        display: block !important;
+        margin-left: auto !important
+    }
+
+    .ft-task-job-row-grid {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .ft-task-job-status-cell {
+        display: none !important;
+        width: 100% !important;
+        min-height: 0 !important;
+        border: 0 !important;
+        border-top: 1px solid #e2e8f0 !important;
+        padding: 10px !important;
+        background: #fff !important;
+    }
+
+    .ft-task-job-status-cell.has-tasks {
+        display: block !important
+    }
+
+    .ft-mobile-lane-label {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin: -2px 0 9px;
+        padding: 7px 9px;
+        border-radius: 8px;
+        background: var(--ft-theme-primary-soft);
+        color: #243a57;
+        font-size: .625rem;
+        font-weight: 850;
+        text-transform: uppercase;
+        letter-spacing: .035em;
+    }
+
+    .ft-mobile-lane-label b {
+        display: inline-grid;
+        place-items: center;
+        min-width: 24px;
+        height: 22px;
+        border-radius: 10px;
+        background: #e2e9f2;
+        font-size: .625rem;
+    }
+
+    .ft-task-job-status-cell .ft-task-board-card {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 0 9px !important
+    }
+
+    /* Job Board: each workflow phase becomes a full-width vertical section. */
+    .ft-job-board-grid,
+    .ft-job-board-body-grid {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .ft-job-board-body-grid .ft-board-column-nohead {
+        width: 100% !important;
+        min-height: 0 !important;
+        margin: 0 0 12px !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        background: var(--ft-theme-surface-subtle) !important;
+    }
+
+    .ft-mobile-phase-head {
+        display: flex !important;
+        width: 100% !important;
+        min-height: 46px !important;
+        align-items: center;
+        gap: 8px;
+        border: 0;
+        border-bottom: 1px solid #d8e1ec;
+        background: #eef3f8;
+        color: #14243c;
+        padding: 0 12px;
+        font-weight: 850;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .ft-mobile-phase-head span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap
+    }
+
+    .ft-mobile-phase-head b {
+        display: inline-grid;
+        place-items: center;
+        min-width: 25px;
+        height: 23px;
+        padding: 0 6px;
+        border: 1px solid #d7e0eb;
+        border-radius: 9px;
+        background: #fff;
+        font-size: .625rem;
+    }
+
+    .ft-mobile-phase-head svg {
+        width: 17px;
+        height: 17px;
+        margin-left: auto;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        transition: .15s
+    }
+
+    .ft-mobile-phase-head svg.rotated {
+        transform: rotate(-90deg)
+    }
+
+    .ft-job-board-body-grid .ft-board-column-list {
+        min-height: 0 !important;
+        padding: 9px !important
+    }
+
+    .ft-job-board-body-grid .ft-job-card {
+        width: 100% !important;
+        max-width: none !important
+    }
+
+    /* Jobs list becomes cards instead of a 1460px table. */
+    .ft-job-table-card {
+        overflow: visible !important;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important
+    }
+
+    .ft-job-table-wrap {
+        overflow: visible !important
+    }
+
+    .ft-job-table {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important
+    }
+
+    .ft-job-table thead {
+        display: none !important
+    }
+
+    .ft-job-table tbody {
+        display: grid !important;
+        gap: 10px !important
+    }
+
+    .ft-job-table tbody tr {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border: 1px solid #dce5ef;
+        border-radius: 12px;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: 0 4px 14px rgba(20, 42, 72, .03);
+    }
+
+    .ft-job-table tbody td {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: center;
+        gap: 4px !important;
+        min-width: 0 !important;
+        border: 0 !important;
+        border-bottom: 1px solid #edf1f5 !important;
+        padding: 10px !important;
+        font-size: .6875rem !important;
+        background: #fff !important;
+    }
+
+    .ft-job-table tbody td:before {
+        content: attr(data-label);
+        font-size: .5rem;
+        line-height: 1;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: #74849a;
+        font-weight: 800;
+    }
+
+    .ft-job-table tbody td[data-label="Job / Order"],
+    .ft-job-table tbody td[data-label="Client / Brief"],
+    .ft-job-table tbody td[data-label="Next Action"] {
+        grid-column: 1/-1
+    }
+
+    .ft-job-table tbody td[data-label="Select"] {
+        position: absolute;
+        right: 14px;
+        margin-top: 4px;
+        width: auto !important;
+        border: 0 !important;
+        background: transparent !important;
+        z-index: 2
+    }
+
+    .ft-job-table tbody td[data-label="Select"]:before {
+        display: none
+    }
+
+    .ft-job-table tbody td[data-label="Actions"] {
+        border-bottom: 0 !important;
+        align-items: flex-end !important
+    }
+
+    .ft-job-table .ft-owner-chip {
+        min-width: 0 !important;
+        width: 100% !important;
+        padding-left: 0 !important
+    }
+
+    .ft-job-table .ft-date-chip {
+        max-width: 100% !important
+    }
+
+    .ft-job-table .ft-table-progress {
+        width: min(130px, 75%) !important
+    }
+
+    .ft-job-table .ft-table-sub {
+        max-width: 100% !important;
+        white-space: normal !important
+    }
+
+    .ft-list-pagination {
+        flex-direction: column !important;
+        align-items: stretch !important
+    }
+
+    .ft-list-pagination>div {
+        width: 100% !important;
+        justify-content: space-between !important;
+        flex-wrap: wrap !important
+    }
+
+    .ft-page-actions {
+        justify-content: space-between !important
+    }
+}
+
+@media (max-width: 480px) {
+
+    .ft-board-page,
+    .ft-jobs-list-page {
+        padding-left: 0 !important;
+        padding-right: 0 !important
+    }
+
+    .ft-board-page .ft-board-reference-filter-grid,
+    .ft-board-page .ft-mywork-filter-grid,
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-board-page .ft-board-reference-filter-grid .ft-filter-search,
+    .ft-board-page .ft-mywork-filter-grid .ft-filter-search,
+    .ft-exact-jobs-list .ft-job-filter-grid.ft-job-filter-grid-direct .ft-job-list-search {
+        grid-column: auto !important
+    }
+
+    .ft-board-page .ft-board-quick-row {
+        grid-template-columns: 1fr 1fr !important
+    }
+
+    .ft-board-page .ft-quick-label,
+    .ft-board-group-controls {
+        grid-column: 1/-1 !important
+    }
+
+    .ft-board-page .ft-quick-chip {
+        height: 39px !important;
+        font-size: .625rem !important
+    }
+
+    .ft-board-tabs {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        width: 100%
+    }
+
+    .ft-board-tabs button {
+        width: 100% !important;
+        text-align: center !important
+    }
+
+    .ft-workflow-filter {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-workflow-filter select {
+        width: 100% !important
+    }
+
+    .ft-task-job-row-title {
+        display: none !important
+    }
+
+    .ft-task-job-client-pill {
+        max-width: 58vw !important
+    }
+
+    .ft-task-job-row-total {
+        flex: 0 0 100%;
+        margin-left: 33px !important
+    }
+
+    .ft-job-table tbody tr {
+        grid-template-columns: 1fr !important
+    }
+
+    .ft-job-table tbody td[data-label="Job / Order"],
+    .ft-job-table tbody td[data-label="Client / Brief"],
+    .ft-job-table tbody td[data-label="Next Action"] {
+        grid-column: auto
+    }
+
+    .ft-job-table tbody td[data-label="Select"] {
+        right: 10px
+    }
+
+    .ft-exact-jobs-list .ft-list-view-tabs {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 7px !important
+    }
+
+    .ft-exact-jobs-list .ft-list-view-chip {
+        height: auto !important;
+        min-height: 40px !important;
+        padding: 7px 8px !important;
+        font-size: .625rem !important
+    }
+
+    .ft-job-bulk-actions {
+        display: grid !important;
+        grid-template-columns: 1fr !important
+    }
+}
+
+
+/* Activity comment composers: editor full width, Comment action below. */
+.ft-comment-composer.ft-friendly-composer {
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+    align-items: start !important;
+}
+
+.ft-comment-composer.ft-friendly-composer > .ft-rich-text,
+.ft-comment-composer.ft-friendly-composer > textarea,
+.ft-comment-composer.ft-friendly-composer > .ft-mention-input {
+    grid-column: 2;
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-comment-composer.ft-friendly-composer > .ft-new-job-btn {
+    grid-column: 2 !important;
+    justify-self: end;
+    width: auto !important;
+    min-width: 88px;
+    margin-top: 0 !important;
+}

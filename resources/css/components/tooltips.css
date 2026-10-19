@@ -1,0 +1,30 @@
+@layer ft-components {
+    .ft-tooltip[data-ft-ui-component="tooltip"] {
+        position: relative;
+        display: inline-flex;
+    }
+
+    .ft-tooltip__content {
+        position: absolute;
+        z-index: var(--ft-z-toast);
+        inset-inline-start: 50%;
+        inset-block-end: calc(100% + var(--ft-space-2));
+        max-width: var(--ft-content-width-sm);
+        padding: var(--ft-space-2) var(--ft-space-3);
+        border-radius: var(--ft-radius-md);
+        background: var(--ft-color-neutral-900);
+        color: var(--ft-text-inverse);
+        font-size: var(--ft-font-size-xs);
+        line-height: var(--ft-line-height-normal);
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-50%);
+        transition: opacity var(--ft-transition-fast);
+    }
+
+    .ft-tooltip[data-ft-ui-component="tooltip"]:hover .ft-tooltip__content,
+    .ft-tooltip[data-ft-ui-component="tooltip"]:focus-within .ft-tooltip__content {
+        opacity: 1;
+    }
+}

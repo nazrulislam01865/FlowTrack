@@ -1,0 +1,9 @@
+/** Composition-only entry. */
+@import './master-data/master-data-01.css';
+@import './master-data/master-data-02.css';
+@import './master-data/supplier-create.css';
+@import './master-data/supplier-list.css';
+@import './master-data/supplier-detail.css';
+
+@import './master-data/supplier-assignment.css';
+@import './master-data/product-form-typography.css';

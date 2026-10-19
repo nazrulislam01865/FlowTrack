@@ -1,0 +1,13 @@
+[program:flowtrack-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=/var/www/flowtrack/scripts/queue-worker.sh
+directory=/var/www/flowtrack
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/flowtrack-worker.log
+stopwaitsecs=120

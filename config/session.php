@@ -18,7 +18,7 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    'driver' => env('SESSION_DRIVER', env('FLOWTRACK_HORIZONTAL_SCALING', false) ? 'redis' : 'database'),
 
     /*
     |--------------------------------------------------------------------------
@@ -34,12 +34,6 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 30),
 
-    // FlowTrack idle duration. Verified user activity extends this window.
-    'flowtrack_idle_lifetime' => (int) env('FLOWTRACK_SESSION_MINUTES', 30),
-
-    // Backward-compatible alias for older deployments and cached configuration.
-    'flowtrack_absolute_lifetime' => (int) env('FLOWTRACK_SESSION_MINUTES', 30),
-
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
     /*
@@ -53,7 +47,7 @@ return [
     |
     */
 
-    'encrypt' => env('SESSION_ENCRYPT', env('APP_ENV') === 'production'),
+    'encrypt' => env('SESSION_ENCRYPT', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -79,7 +73,7 @@ return [
     |
     */
 
-    'connection' => env('SESSION_CONNECTION'),
+    'connection' => env('SESSION_CONNECTION', env('FLOWTRACK_HORIZONTAL_SCALING', false) ? 'session' : null),
 
     /*
     |--------------------------------------------------------------------------
@@ -135,7 +129,7 @@ return [
 
     'cookie' => env(
         'SESSION_COOKIE',
-        Str::slug((string) env('APP_NAME', 'laravel')).'-session',
+        Str::slug((string) env('APP_NAME', 'laravel')).'-session'
     ),
 
     /*
@@ -175,7 +169,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'),
+    'secure' => env('SESSION_SECURE_COOKIE'),
 
     /*
     |--------------------------------------------------------------------------

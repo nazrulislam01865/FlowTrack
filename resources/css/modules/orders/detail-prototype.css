@@ -1,0 +1,21 @@
+/** Composition-only entry. */
+@import './detail/detail-01.css';
+@import './detail/detail-02.css';
+@import './detail/order-hold.css';
+@import './detail/archived-artwork.css';
+@import './detail/artwork-cancellation.css';
+@import './detail/redo.css';
+@import './detail/cancellation.css';
+@import './detail/shipment-phase.css';
+@import './detail/shipment-multiple-layout.css';
+@import './detail/shipment-method-picker.css';
+@import './detail/shipment-modal.css';
+@import './detail/shipment-edit-mode.css';
+@import './detail/shipment-row-layout.css';
+@import './detail/shipment-floating-overlays.css';
+@import './detail/invoice-email.css';
+
+@import './detail/responsive-task-cards.css';
+
+/* Must remain last: deterministic task-grid placement guard. */
+@import './detail/permanent-task-grid.css';

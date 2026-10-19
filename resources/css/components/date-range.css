@@ -1,0 +1,55 @@
+@layer ft-components {
+    .ft-date-range[data-ft-ui-component="date-range"] {
+        display: grid;
+        min-width: 0;
+        gap: var(--ft-space-1);
+    }
+
+    .ft-date-range-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--ft-space-2);
+    }
+
+    .ft-date-range-field {
+        display: grid;
+        min-width: 0;
+        gap: var(--ft-space-1);
+        color: var(--ft-text-secondary);
+        font-size: var(--ft-font-size-xs);
+        font-weight: var(--ft-font-weight-medium);
+    }
+
+    .ft-date-range-field input {
+        width: 100%;
+        min-height: var(--ft-control-height-md);
+        padding-inline: var(--ft-control-padding-x);
+        border: var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-strong);
+        border-radius: var(--ft-radius-md);
+        outline: 0;
+        background: var(--ft-bg-surface);
+        color: var(--ft-text-primary);
+        font: inherit;
+    }
+
+    .ft-date-range-field input:focus-visible {
+        border-color: var(--ft-focus-border);
+        box-shadow: var(--ft-focus-ring);
+    }
+
+    .ft-date-range__clear {
+        justify-self: start;
+        border: 0;
+        background: transparent;
+        color: var(--ft-text-link);
+        font: inherit;
+        font-size: var(--ft-font-size-xs);
+        cursor: pointer;
+    }
+
+    @media (max-width: 36rem) {
+        .ft-date-range-fields {
+            grid-template-columns: 1fr;
+        }
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "legacy_job_service_hash": "db1ba9d42434beda3986b6497fc6e0cf12242ad1e4073d2b306113ba8c09f643",
+    "legacy_inquiry_service_hash": "e4c942b4257011377d1862073fa69a178953c1582342541fbc6f838c1b7ef025",
+    "legacy_dashboard_service_hash": "2c7cf00a4138b8cf8fd0d96cb205a92cd50391eff16f7322faac26cec281b64f",
+    "facade_max_lines": 40,
+    "required_order_services": [
+        "OrderReadService",
+        "OrderLifecycleService",
+        "OrderItemService",
+        "OrderWorkflowService"
+    ],
+    "required_inquiry_services": [
+        "InquiryReadService",
+        "InquiryLifecycleService",
+        "InquiryItemService",
+        "InquiryTaskService",
+        "InquiryWorkflowService",
+        "InquiryDocumentService",
+        "InquiryActivityService"
+    ],
+    "required_dashboard_services": [
+        "DashboardOverviewService",
+        "DashboardMentionService",
+        "DashboardAttentionService",
+        "DashboardReportingService"
+    ],
+    "required_dtos": [
+        "Orders/OrderCreateData.php",
+        "Inquiries/InquiryCreateData.php",
+        "Dashboard/DashboardFilterData.php"
+    ],
+    "required_dashboard_queries": [
+        "DashboardPrimaryQuery",
+        "DashboardSecondaryQuery",
+        "DashboardMentionsQuery"
+    ],
+    "approved_later_phase_updates": {
+        "2026-08-24-dashboard-shipping-metric": "LegacyDashboardService compatibility implementation updated only to restore the shipping KPI from the current/source workflow phase while keeping the Phase 8 facade and focused application boundaries unchanged."
+    }
+}

@@ -1,0 +1,91 @@
+/*
+ * FlowTrack Orders list: compact Client & Product column
+ * 2026-08-31
+ *
+ * Desktop/tablet table view only. The existing mobile card layout is left alone.
+ */
+@media (min-width: 701px) {
+    .ft-order-list-v5 .ft-job-table,
+    .ft-exact-jobs-list .ft-job-table {
+        width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+    /* ORDER */
+    .ft-order-list-v5 .ft-job-table th:nth-child(1),
+    .ft-order-list-v5 .ft-job-table td:nth-child(1),
+    .ft-exact-jobs-list .ft-job-table th:nth-child(1),
+    .ft-exact-jobs-list .ft-job-table td:nth-child(1) {
+        width: 185px !important;
+        min-width: 185px !important;
+        max-width: 185px !important;
+    }
+
+    /* CLIENT & PRODUCT - keep this column compact and predictable. */
+    .ft-order-list-v5 .ft-job-table th:nth-child(2),
+    .ft-order-list-v5 .ft-job-table td:nth-child(2),
+    .ft-exact-jobs-list .ft-job-table th:nth-child(2),
+    .ft-exact-jobs-list .ft-job-table td:nth-child(2) {
+        width: 400px !important;
+        min-width: 400px !important;
+        max-width: 400px !important;
+        overflow: hidden !important;
+    }
+
+    .ft-order-list-v5 .ft-job-table td:nth-child(2) > *,
+    .ft-exact-jobs-list .ft-job-table td:nth-child(2) > * {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* Long product summaries must not force the table wider. */
+    .ft-order-list-v5 .ft-job-table td:nth-child(2) .ft-table-sub,
+    .ft-exact-jobs-list .ft-job-table td:nth-child(2) .ft-table-sub {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    /* Keep client/product flex/grid wrappers shrinkable. */
+    .ft-order-list-v5 .ft-job-table td:nth-child(2) :is(div, span),
+    .ft-exact-jobs-list .ft-job-table td:nth-child(2) :is(div, span) {
+        min-width: 0;
+    }
+
+    /* Important status columns stay compact instead of being pushed away. */
+    .ft-order-list-v5 .ft-job-table th:nth-child(3),
+    .ft-order-list-v5 .ft-job-table td:nth-child(3),
+    .ft-exact-jobs-list .ft-job-table th:nth-child(3),
+    .ft-exact-jobs-list .ft-job-table td:nth-child(3) {
+        width: 135px !important;
+    }
+
+    .ft-order-list-v5 .ft-job-table th:nth-child(4),
+    .ft-order-list-v5 .ft-job-table td:nth-child(4),
+    .ft-exact-jobs-list .ft-job-table th:nth-child(4),
+    .ft-exact-jobs-list .ft-job-table td:nth-child(4) {
+        width: 125px !important;
+    }
+
+    .ft-order-list-v5 .ft-job-table th:nth-child(5),
+    .ft-order-list-v5 .ft-job-table td:nth-child(5),
+    .ft-exact-jobs-list .ft-job-table th:nth-child(5),
+    .ft-exact-jobs-list .ft-job-table td:nth-child(5) {
+        width: 175px !important;
+    }
+}
+
+/* On medium desktop widths, reduce only the Client & Product area a little more. */
+@media (min-width: 701px) and (max-width: 1250px) {
+    .ft-order-list-v5 .ft-job-table th:nth-child(2),
+    .ft-order-list-v5 .ft-job-table td:nth-child(2),
+    .ft-exact-jobs-list .ft-job-table th:nth-child(2),
+    .ft-exact-jobs-list .ft-job-table td:nth-child(2) {
+        width: 360px !important;
+        min-width: 360px !important;
+        max-width: 360px !important;
+    }
+}

@@ -1,0 +1,4678 @@
+/* CHANGE 2026-08-24:
+   Keep the Orders Livewire component on one stable DOM root without adding
+   any visual wrapper/layout changes. */
+.ft-orders-index-livewire-root {
+    display: contents
+}
+
+.ft-orders-prototype {
+    color-scheme: light;
+    --navy: #0d1b2b;
+    --navy-active: #22466f;
+    --blue: var(--ft-theme-primary);
+    --blue-soft: var(--ft-theme-o-soft);
+    --canvas: var(--ft-theme-orders-list-page-bg);
+    --surface: #fff;
+    --line: #dbe3ed;
+    --text: #172033;
+    --muted: #62728a;
+    --green: #147e5b;
+    --green-soft: #edf9f4;
+    --amber: #a56708;
+    --amber-soft: #fff6e5;
+    --red: #c43f3f;
+    --red-soft: #fff0f0;
+    --purple: #6f54cf;
+    --purple-soft: #f1edff;
+    width: 100%;
+    min-width: 0;
+    color: var(--text);
+    font-family: var(--ft-theme-font-family)
+}
+
+.ft-orders-prototype button,
+.ft-orders-prototype input,
+.ft-orders-prototype a {
+    font: inherit
+}
+
+.ft-orders-prototype button,
+.ft-orders-prototype a {
+    -webkit-tap-highlight-color: transparent
+}
+
+.ft-orders-prototype button {
+    cursor: pointer
+}
+
+.ft-orders-prototype a {
+    color: inherit
+}
+
+.ft-orders-prototype .ft-page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 15px
+}
+
+.ft-orders-prototype .ft-page-head h1 {
+    margin: 0 0 3px;
+    font-size: 1.4375rem;
+    line-height: 1.1;
+    letter-spacing: -.025em
+}
+
+.ft-orders-prototype .ft-page-head p {
+    margin: 0;
+    color: #60708b;
+    font-size: .6875rem
+}
+
+.ft-orders-prototype .ft-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px
+}
+
+.ft-orders-prototype .ft-button {
+    min-height: 36px;
+    padding: 0 13px;
+    border: 1px solid #d4deec;
+    border-radius: 9px;
+    background: #fff;
+    color: #233047;
+    font-size: .625rem;
+    font-weight: 750
+}
+
+.ft-orders-prototype .ft-button.primary {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: #fff;
+    box-shadow: 0 5px 13px color-mix(in srgb, var(--ft-theme-primary) 18%, transparent)
+}
+
+.ft-orders-prototype .ft-list-export-button {
+    display: inline-flex;
+    height: 36px;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 12px;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    box-sizing: border-box
+}
+
+.ft-orders-prototype .ft-button:hover {
+    border-color: var(--ft-theme-primary-300)
+}
+
+.ft-orders-prototype .ft-button.primary:hover {
+    background: var(--ft-theme-primary)
+}
+
+.ft-orders-prototype .ft-bulk-import-button {
+    display: inline-flex;
+    height: 34px;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 11px;
+    border-radius: 9px;
+    font-size: .5625rem;
+    font-weight: 650;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    box-sizing: border-box
+}
+
+.ft-orders-prototype .ft-import-batch-filter {
+    display: flex;
+    min-height: 35px;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--ft-theme-primary-100);
+    background: var(--ft-theme-o-import);
+    color: #40516b;
+    font-size: .59375rem
+}
+
+.ft-orders-prototype .ft-import-batch-filter-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 999px;
+    background: var(--ft-theme-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent)
+}
+
+.ft-orders-prototype .ft-import-batch-filter strong {
+    color: var(--ft-theme-primary);
+    font-weight: 800
+}
+
+.ft-orders-prototype .ft-import-batch-filter button {
+    margin-left: auto;
+    padding: 4px 7px;
+    border: 1px solid var(--ft-theme-primary-100);
+    border-radius: 7px;
+    background: #fff;
+    color: #31517f;
+    font-size: .53125rem;
+    font-weight: 750
+}
+
+.ft-orders-prototype .ft-import-batch-filter button:hover {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-o-import-hover)
+}
+
+.ft-orders-prototype .ft-list-shell {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--surface);
+    box-shadow: 0 1px 2px rgba(25, 45, 75, .02)
+}
+
+.ft-orders-prototype .ft-order-table-scroll {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: visible;
+    overscroll-behavior-inline: contain;
+    scrollbar-gutter: stable
+}
+
+.ft-orders-prototype .ft-order-table-scroll::-webkit-scrollbar {
+    height: 10px
+}
+
+.ft-orders-prototype .ft-order-table-scroll::-webkit-scrollbar-track {
+    background: #f3f6fa
+}
+
+.ft-orders-prototype .ft-order-table-scroll::-webkit-scrollbar-thumb {
+    border: 2px solid #f3f6fa;
+    border-radius: 999px;
+    background: #c6d2e2
+}
+
+.ft-orders-prototype .ft-search-bar {
+    display: grid;
+    grid-template-columns: minmax(320px, 1.55fr) repeat(3, minmax(150px, .72fr)) auto;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line)
+}
+
+.ft-orders-prototype .ft-search {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    align-self: center
+}
+
+.ft-orders-prototype .ft-search-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    color: #72829a;
+    font-size: .8125rem;
+    transform: translateY(-50%);
+    pointer-events: none
+}
+
+.ft-orders-prototype .ft-search input {
+    width: 100%;
+    height: 34px;
+    padding: 0 56px 0 33px;
+    border: 1px solid #cfdae9;
+    border-radius: 8px;
+    outline: 0;
+    background: #fff;
+    color: var(--text);
+    font-size: .65625rem;
+    line-height: 34px
+}
+
+.ft-orders-prototype .ft-search input:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent)
+}
+
+.ft-orders-prototype .ft-search-clear {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    display: none;
+    padding: 3px 5px;
+    border: 0;
+    background: transparent;
+    color: #5e6e85;
+    font-size: .53125rem;
+    transform: translateY(-50%)
+}
+
+.ft-orders-prototype .ft-search-clear.show {
+    display: block
+}
+
+.ft-orders-prototype .ft-order-list-filter {
+    min-width: 0;
+    margin: 0 !important;
+    gap: 0 !important;
+    align-self: center
+}
+
+.ft-orders-prototype .ft-order-list-filter>label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important
+}
+
+.ft-orders-prototype .ft-order-list-filter .ft-remote-filter-button {
+    width: 100%;
+    height: 34px;
+    min-height: 34px;
+    padding: 0 27px 0 10px;
+    border: 1px solid #cfdae9;
+    border-radius: 8px;
+    background: #fff;
+    color: #42526a;
+    font-size: .625rem;
+    font-weight: 650;
+    line-height: 1
+}
+
+.ft-orders-prototype .ft-order-list-filter .ft-remote-filter-button:hover,
+.ft-orders-prototype .ft-order-list-filter .ft-remote-filter-button[aria-expanded=true] {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent)
+}
+
+.ft-orders-prototype .ft-order-list-filter .ft-remote-filter-menu {
+    font-size: .625rem
+}
+
+.ft-orders-prototype .ft-order-clear-filters {
+    height: 34px;
+    min-height: 34px;
+    align-self: center;
+    padding: 0 12px;
+    border: 1px solid #cfdae9;
+    border-radius: 8px;
+    background: #fff;
+    color: #42526a;
+    font-size: .625rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap
+}
+
+.ft-orders-prototype .ft-order-clear-filters:hover {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle);
+    color: var(--ft-theme-primary)
+}
+
+.ft-orders-prototype .ft-order-clear-filters:disabled {
+    cursor: default;
+    opacity: .45
+}
+
+.ft-orders-prototype .ft-search-state {
+    grid-column: 1/-1;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    color: #64748b;
+    font-size: .5625rem;
+    white-space: nowrap
+}
+
+.ft-orders-prototype .ft-live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #20a36f
+}
+
+.ft-orders-prototype .ft-spinner {
+    width: 13px;
+    height: 13px;
+    border: 2px solid #dce5f2;
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: ft-orders-spin .6s linear infinite
+}
+
+.ft-orders-prototype .ft-job-head,
+.ft-orders-prototype .ft-job-row {
+    display: grid;
+    grid-template-columns: 150px 185px 155px 300px 185px 120px 125px 195px 110px 58px 38px;
+    column-gap: 10px;
+    align-items: center;
+    width: 100%;
+    min-width: 1750px
+}
+
+.ft-orders-prototype .ft-job-head {
+    min-height: 34px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--line);
+    background: #f8fafc;
+    color: #6c7a90;
+    font-size: .46875rem;
+    font-weight: 800;
+    letter-spacing: .035em;
+    text-transform: uppercase
+}
+
+.ft-orders-prototype .ft-job-list {
+    min-width: 0
+}
+
+.ft-orders-prototype .ft-job-row {
+    position: relative;
+    min-height: 74px;
+    padding: 9px 12px;
+    border-bottom: 1px solid #e5eaf1;
+    background: #fff;
+    content-visibility: auto;
+    contain-intrinsic-size: 74px
+}
+
+.ft-orders-prototype .ft-job-row:nth-child(odd) {
+    background: #F3F4F6
+}
+
+.ft-orders-prototype .ft-job-row:nth-child(even) {
+    background: #fff
+}
+
+.ft-orders-prototype .ft-orders-prototype .ft-job-row:nth-child(even):hover {
+    background: #f8fcfa
+}
+
+.ft-orders-prototype .ft-cell {
+    min-width: 0
+}
+
+.ft-orders-prototype .ft-cell::before {
+    display: none
+}
+
+.ft-orders-prototype .ft-id {
+    display: inline-block;
+    max-width: 100%;
+    overflow: visible;
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-weight: 800;
+    line-height: 1.3;
+    text-decoration: none;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.ft-orders-prototype .ft-id:hover {
+    text-decoration: underline
+}
+
+.ft-orders-prototype .ft-sub {
+    display: block;
+    max-width: 100%;
+    margin-top: 3px;
+    overflow: visible;
+    color: #77869b;
+    font-size: .5rem;
+    line-height: 1.35;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.ft-orders-prototype .ft-client {
+    display: block;
+    max-width: 100%;
+    overflow: visible;
+    color: #263248;
+    font-size: .5625rem;
+    font-weight: 750;
+    line-height: 1.3;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.ft-orders-prototype .ft-product {
+    display: block;
+    max-width: 100%;
+    margin-top: 3px;
+    overflow: visible;
+    color: #526078;
+    font-size: .5rem;
+    line-height: 1.35;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.ft-orders-prototype .ft-product-detail {
+    display: block;
+    max-width: 100%;
+    margin-top: 2px;
+    overflow: visible;
+    color: #77869b;
+    font-size: .46875rem;
+    line-height: 1.35;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.ft-orders-prototype .ft-created-name {
+    display: block;
+    overflow: visible;
+    color: #2d3950;
+    font-size: .5625rem;
+    font-weight: 750;
+    line-height: 1.3;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.ft-orders-prototype .ft-created-on {
+    display: block;
+    margin-top: 3px;
+    color: #758399;
+    font-size: .5rem
+}
+
+.ft-orders-prototype .ft-inquiry-link {
+    display: inline-block;
+    max-width: 100%;
+    overflow: visible;
+    color: var(--ft-theme-primary);
+    font-size: .53125rem;
+    font-weight: 750;
+    line-height: 1.3;
+    text-decoration: none;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.ft-orders-prototype .ft-inquiry-link:hover {
+    text-decoration: underline
+}
+
+.ft-orders-prototype .ft-standard-empty {
+    display: inline-block;
+    color: #8995a6;
+    font-size: .5rem;
+    font-style: italic
+}
+
+.ft-orders-prototype .ft-chips {
+    display: flex;
+    max-width: 100%;
+    flex-wrap: wrap;
+    gap: 4px
+}
+
+.ft-orders-prototype .ft-pill {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    padding: 3px 6px;
+    overflow: visible;
+    border-radius: 9px;
+    font-size: .46875rem;
+    font-weight: 750;
+    line-height: 1.25;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.ft-orders-prototype .ft-pill.blue {
+    background: var(--blue-soft);
+    color: var(--ft-theme-primary)
+}
+
+.ft-orders-prototype .ft-pill.green {
+    background: var(--green-soft);
+    color: var(--green)
+}
+
+.ft-orders-prototype .ft-pill.amber {
+    background: var(--amber-soft);
+    color: var(--amber)
+}
+
+.ft-orders-prototype .ft-pill.red {
+    background: var(--red-soft);
+    color: var(--red)
+}
+
+.ft-orders-prototype .ft-pill.purple {
+    background: var(--purple-soft);
+    color: var(--purple)
+}
+
+.ft-orders-prototype .ft-owner {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-orders-prototype .ft-owner-copy {
+    min-width: 0
+}
+
+.ft-orders-prototype .ft-owner-name {
+    display: block;
+    overflow: visible;
+    font-size: .5625rem;
+    font-weight: 750;
+    line-height: 1.3;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere
+}
+
+.ft-orders-prototype .ft-due {
+    display: block;
+    margin-top: 2px;
+    color: #67768c;
+    font-size: .5rem
+}
+
+.ft-orders-prototype .ft-due.overdue {
+    color: var(--red);
+    font-weight: 750
+}
+
+.ft-orders-prototype .ft-order-avatar {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    font-size: .5rem;
+    font-weight: 800
+}
+
+.ft-orders-prototype .ft-order-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+.ft-orders-prototype .ft-progress {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #59677d;
+    font-size: .5rem
+}
+
+.ft-orders-prototype .ft-progress-track {
+    width: min(70px, 70%);
+    height: 6px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #e8edf3
+}
+
+.ft-orders-prototype .ft-progress-fill {
+    display: block;
+    height: 100%;
+    border-radius: 5px;
+    background: var(--blue)
+}
+
+.ft-orders-prototype .ft-view {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 30px;
+    border: 1px solid #d0dbeb;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .5rem;
+    font-weight: 800;
+    text-decoration: none
+}
+
+.ft-orders-prototype .ft-view:hover {
+    background: var(--blue-soft)
+}
+
+.ft-orders-prototype .ft-row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end
+}
+
+.ft-orders-prototype .ft-row-action-trigger {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #5f6f85;
+    font-size: 1.125rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: background .15s ease, color .15s ease
+}
+
+.ft-orders-prototype .ft-row-action-trigger:hover,
+.ft-orders-prototype .ft-row-action-trigger[aria-expanded="true"] {
+    background: #f1f5fa;
+    color: #1e2c43;
+    box-shadow: none
+}
+
+.ft-orders-prototype .ft-row-action-menu[popover] {
+    position: fixed;
+    inset: auto;
+    width: 190px;
+    margin: 0;
+    padding: 5px;
+    border: 1px solid #d9e2ed;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 14px 34px rgba(30, 48, 73, .18);
+    z-index: 2147483000
+}
+
+.ft-orders-prototype .ft-row-action-menu[popover]::backdrop {
+    background: transparent
+}
+
+.ft-orders-prototype .ft-row-action-menu a,
+.ft-orders-prototype .ft-row-action-menu button {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #26364f;
+    font-size: .625rem;
+    font-weight: 750;
+    line-height: 1.25;
+    text-align: left;
+    text-decoration: none
+}
+
+.ft-orders-prototype .ft-row-action-menu a:hover,
+.ft-orders-prototype .ft-row-action-menu a:focus-visible,
+.ft-orders-prototype .ft-row-action-menu button:hover,
+.ft-orders-prototype .ft-row-action-menu button:focus-visible {
+    background: var(--ft-theme-primary-soft);
+    color: var(--ft-theme-primary);
+    outline: 0
+}
+
+.ft-orders-prototype .ft-row-action-menu .ft-row-action-danger {
+    margin-top: 4px;
+    border-top: 1px solid #e5eaf1;
+    border-radius: 0 0 7px 7px;
+    color: #bf3131
+}
+
+.ft-orders-prototype .ft-row-action-menu .ft-row-action-danger:hover,
+.ft-orders-prototype .ft-row-action-menu .ft-row-action-danger:focus-visible {
+    background: #fff0f0;
+    color: #bf3131
+}
+
+.ft-orders-prototype .ft-row-action-menu svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8
+}
+
+.ft-orders-prototype .ft-list-flash {
+    margin-bottom: 10px;
+    padding: 9px 12px;
+    border: 1px solid #bfe7d5;
+    border-radius: 9px;
+    background: #effaf5;
+    color: #147e5b;
+    font-size: .625rem;
+    font-weight: 700
+}
+
+.ft-orders-prototype .ft-empty {
+    padding: 42px 16px;
+    color: #65748b;
+    text-align: center;
+    font-size: .6875rem
+}
+
+.ft-orders-prototype .ft-empty strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #273349;
+    font-size: .8125rem
+}
+
+.ft-orders-prototype .ft-order-select-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0
+}
+
+.ft-orders-prototype .ft-order-select-wrap>span {
+    min-width: 0
+}
+
+.ft-orders-prototype .ft-order-select {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+    margin: 0;
+    border: 1px solid #b9c7da;
+    border-radius: 4px;
+    accent-color: var(--blue);
+    cursor: pointer
+}
+
+.ft-orders-prototype .ft-order-select:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--ft-theme-primary) 30%, transparent);
+    outline-offset: 2px
+}
+
+.ft-orders-prototype .ft-job-row.is-bulk-selected {
+    box-shadow: inset 3px 0 0 var(--blue)
+}
+
+.ft-orders-prototype .ft-order-bulk-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 9px 11px;
+    border-bottom: 1px solid var(--ft-theme-primary-100);
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-orders-prototype .ft-order-bulk-summary {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    gap: 8px
+}
+
+.ft-orders-prototype .ft-order-bulk-summary strong {
+    color: #173761;
+    font-size: .625rem;
+    font-weight: 800
+}
+
+.ft-orders-prototype .ft-order-bulk-summary span {
+    color: #718096;
+    font-size: .54375rem
+}
+
+.ft-orders-prototype .ft-order-bulk-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 7px
+}
+
+.ft-orders-prototype .ft-order-bulk-clear,
+.ft-orders-prototype .ft-order-bulk-delete {
+    display: inline-flex;
+    min-height: 31px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: .5625rem;
+    font-weight: 800;
+    line-height: 1
+}
+
+.ft-orders-prototype .ft-order-bulk-clear {
+    border: 1px solid #ccd8e8;
+    background: #fff;
+    color: #45566e
+}
+
+.ft-orders-prototype .ft-order-bulk-clear:hover {
+    border-color: #99afd0;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-orders-prototype .ft-order-bulk-delete {
+    border: 1px solid #d83d3d;
+    background: #d83d3d;
+    color: #fff
+}
+
+.ft-orders-prototype .ft-order-bulk-delete:hover {
+    background: #bd3030;
+    border-color: #bd3030
+}
+
+.ft-orders-prototype .ft-order-bulk-delete svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8
+}
+
+.ft-orders-prototype .ft-order-bulk-clear:disabled,
+.ft-orders-prototype .ft-order-bulk-delete:disabled {
+    cursor: wait;
+    opacity: .65
+}
+
+.ft-orders-prototype .ft-order-delete-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 260;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px
+}
+
+.ft-orders-prototype .ft-order-delete-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(15, 23, 42, .46);
+    backdrop-filter: blur(2px);
+    cursor: default
+}
+
+.ft-orders-prototype .ft-order-delete-card {
+    position: relative;
+    z-index: 1;
+    width: min(430px, 100%);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, .24);
+    animation: ft-order-delete-pop .16s ease-out
+}
+
+.ft-orders-prototype .ft-order-delete-body {
+    padding: 22px 22px 17px
+}
+
+.ft-orders-prototype .ft-order-delete-icon {
+    display: flex;
+    width: 46px;
+    height: 46px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    border-radius: 13px;
+    background: #fff0f0;
+    color: #d92d20
+}
+
+.ft-orders-prototype .ft-order-delete-icon svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-orders-prototype .ft-order-delete-title {
+    margin: 0;
+    color: #172033;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: -.015em
+}
+
+.ft-orders-prototype .ft-order-delete-copy {
+    margin: 7px 0 0;
+    color: #64748b;
+    font-size: .65625rem;
+    line-height: 1.55
+}
+
+.ft-orders-prototype .ft-order-delete-count {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 15px;
+    padding: 11px 12px;
+    border: 1px solid #f1c7c7;
+    border-radius: 10px;
+    background: #fff8f8;
+    color: #7f1d1d
+}
+
+.ft-orders-prototype .ft-order-delete-count strong {
+    font-size: .6875rem;
+    font-weight: 800
+}
+
+.ft-orders-prototype .ft-order-delete-count span {
+    font-size: .59375rem;
+    color: #9f3f3f
+}
+
+.ft-orders-prototype .ft-order-delete-warning {
+    margin: 12px 0 0;
+    color: #8a5260;
+    font-size: .59375rem;
+    line-height: 1.45
+}
+
+.ft-orders-prototype .ft-order-delete-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 22px 20px;
+    border-top: 1px solid #edf1f6;
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-orders-prototype .ft-order-delete-cancel,
+.ft-orders-prototype .ft-order-delete-confirm {
+    display: inline-flex;
+    min-height: 35px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 13px;
+    border-radius: 9px;
+    font-size: .625rem;
+    font-weight: 800
+}
+
+.ft-orders-prototype .ft-order-delete-cancel {
+    border: 1px solid #d4deeb;
+    background: #fff;
+    color: #334155
+}
+
+.ft-orders-prototype .ft-order-delete-cancel:hover {
+    border-color: #a9b8cc;
+    background: #f8fafc
+}
+
+.ft-orders-prototype .ft-order-delete-confirm {
+    gap: 6px;
+    border: 1px solid #d92d20;
+    background: #d92d20;
+    color: #fff;
+    box-shadow: 0 5px 12px rgba(217, 45, 32, .16)
+}
+
+.ft-orders-prototype .ft-order-delete-confirm:hover {
+    border-color: #b42318;
+    background: #b42318
+}
+
+.ft-orders-prototype .ft-order-delete-confirm:disabled,
+.ft-orders-prototype .ft-order-delete-cancel:disabled {
+    cursor: wait;
+    opacity: .65
+}
+
+.ft-orders-prototype .ft-order-delete-confirm svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9
+}
+
+.ft-orders-prototype .ft-order-delete-close {
+    position: absolute;
+    top: 13px;
+    right: 13px;
+    display: flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #64748b;
+    font-size: 1.125rem;
+    line-height: 1
+}
+
+.ft-orders-prototype .ft-order-delete-close:hover {
+    background: #f8fafc;
+    color: #334155
+}
+
+@keyframes ft-order-delete-pop {
+    from {
+        opacity: 0;
+        transform: translateY(5px) scale(.985)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+    }
+}
+
+.ft-orders-prototype .ft-list-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 55px;
+    padding: 9px 12px;
+    border-top: 1px solid var(--line);
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-orders-prototype .ft-result-count {
+    color: #66758c;
+    font-size: .5625rem
+}
+
+.ft-orders-prototype .ft-page-buttons {
+    display: flex;
+    align-items: center;
+    gap: 5px
+}
+
+.ft-orders-prototype .ft-page-button {
+    min-width: 76px;
+    min-height: 34px;
+    border: 1px solid #cfdbea;
+    border-radius: 9px;
+    background: #fff;
+    color: #23436e;
+    font-size: .5625rem;
+    font-weight: 750
+}
+
+.ft-orders-prototype .ft-page-button:hover {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--blue-soft)
+}
+
+.ft-orders-prototype .ft-page-button[disabled] {
+    cursor: default;
+    opacity: .45
+}
+
+.ft-orders-prototype .ft-page-number {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    border: 1px solid #cfdbea;
+    border-radius: 8px;
+    background: #fff;
+    color: #40506a;
+    font-size: .5625rem;
+    font-weight: 750
+}
+
+.ft-orders-prototype .ft-page-number.active {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: #fff
+}
+
+.ft-orders-prototype .ft-page-ellipsis {
+    color: #74839a;
+    font-size: .5625rem
+}
+
+.ft-orders-prototype .ft-load-skeleton {
+    display: none;
+    gap: 7px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--line)
+}
+
+.ft-orders-prototype .ft-skeleton-line {
+    height: 11px;
+    border-radius: 5px;
+    background: linear-gradient(90deg, #edf1f6 25%, #f8fafc 45%, #edf1f6 65%);
+    background-size: 240% 100%;
+    animation: ft-orders-shimmer 1s linear infinite
+}
+
+.ft-orders-prototype .ft-skeleton-line:nth-child(2) {
+    width: 82%
+}
+
+.ft-orders-prototype .ft-page-head h1 {
+    font-size: 1.5625rem
+}
+
+.ft-orders-prototype .ft-page-head p {
+    font-size: .75rem
+}
+
+.ft-orders-prototype .ft-button {
+    font-size: .71875rem
+}
+
+.ft-orders-prototype .ft-search input {
+    font-size: .6875rem
+}
+
+.ft-orders-prototype .ft-search-clear,
+.ft-orders-prototype .ft-search-state {
+    font-size: .625rem
+}
+
+.ft-orders-prototype .ft-job-head {
+    font-size: .5625rem
+}
+
+.ft-orders-prototype .ft-id {
+    font-size: .6875rem
+}
+
+.ft-orders-prototype .ft-client,
+.ft-orders-prototype .ft-created-name,
+.ft-orders-prototype .ft-owner-name {
+    font-size: .65625rem
+}
+
+.ft-orders-prototype .ft-sub,
+.ft-orders-prototype .ft-product,
+.ft-orders-prototype .ft-created-on {
+    font-size: .59375rem
+}
+
+.ft-orders-prototype .ft-product-detail {
+    font-size: .5625rem
+}
+
+.ft-orders-prototype .ft-inquiry-link {
+    font-size: .625rem
+}
+
+.ft-orders-prototype .ft-standard-empty {
+    font-size: .59375rem
+}
+
+.ft-orders-prototype .ft-pill {
+    font-size: .5625rem
+}
+
+.ft-orders-prototype .ft-due,
+.ft-orders-prototype .ft-progress {
+    font-size: .59375rem
+}
+
+.ft-orders-prototype .ft-order-avatar {
+    font-size: .59375rem
+}
+
+.ft-orders-prototype .ft-view {
+    font-size: .59375rem
+}
+
+.ft-orders-prototype .ft-result-count,
+.ft-orders-prototype .ft-page-button,
+.ft-orders-prototype .ft-page-number,
+.ft-orders-prototype .ft-page-ellipsis {
+    font-size: .625rem
+}
+
+@keyframes ft-orders-spin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+@keyframes ft-orders-shimmer {
+    to {
+        background-position: -240% 0
+    }
+}
+
+@keyframes ft-orders-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(5px)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0)
+    }
+}
+
+.ft-orders-prototype .ft-job-row {
+    animation: ft-orders-reveal .22s ease both
+}
+
+.ft-orders-prototype .ft-job-row:nth-child(2) {
+    animation-delay: .025s
+}
+
+.ft-orders-prototype .ft-job-row:nth-child(3) {
+    animation-delay: .05s
+}
+
+.ft-orders-prototype .ft-job-row:nth-child(4) {
+    animation-delay: .075s
+}
+
+.ft-orders-prototype .ft-job-row:nth-child(5) {
+    animation-delay: .1s
+}
+
+@media(max-width:1380px) {
+    .ft-orders-prototype .ft-order-table-scroll {
+        overflow-x: visible
+    }
+
+    .ft-orders-prototype .ft-job-head {
+        display: none
+    }
+
+    .ft-orders-prototype .ft-job-row {
+        width: 100%;
+        min-width: 0;
+        grid-template-columns: minmax(140px, 1fr) minmax(125px, .8fr) minmax(130px, .9fr) 42px 32px;
+        grid-template-areas: "identity created inquiry view actions" "brief brief owner progress progress" "stage health flag progress progress";
+        row-gap: 8px;
+        min-height: 128px
+    }
+
+    .ft-orders-prototype .ft-job-row .ft-cell::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 3px;
+        color: #8793a5;
+        font-size: .4375rem;
+        font-weight: 750;
+        letter-spacing: .04em;
+        text-transform: uppercase
+    }
+
+    .ft-orders-prototype .ft-identity {
+        grid-area: identity
+    }
+
+    .ft-orders-prototype .ft-created-cell {
+        grid-area: created
+    }
+
+    .ft-orders-prototype .ft-inquiry-cell {
+        grid-area: inquiry
+    }
+
+    .ft-orders-prototype .ft-brief {
+        grid-area: brief
+    }
+
+    .ft-orders-prototype .ft-stage-cell {
+        grid-area: stage
+    }
+
+    .ft-orders-prototype .ft-health-cell {
+        grid-area: health
+    }
+
+    .ft-orders-prototype .ft-flag-cell {
+        grid-area: flag
+    }
+
+    .ft-orders-prototype .ft-owner-cell {
+        grid-area: owner
+    }
+
+    .ft-orders-prototype .ft-progress-cell {
+        grid-area: progress
+    }
+
+    .ft-orders-prototype .ft-view {
+        grid-area: view
+    }
+
+    .ft-orders-prototype .ft-row-actions {
+        grid-area: actions
+    }
+
+    .ft-orders-prototype .ft-progress-cell {
+        justify-self: end;
+        width: 100%
+    }
+
+    .ft-orders-prototype .ft-progress-track {
+        flex: 1
+    }
+}
+
+@media(max-width:980px) {
+    .ft-orders-prototype .ft-search-bar {
+        grid-template-columns: minmax(240px, 1.4fr) repeat(2, minmax(150px, .8fr))
+    }
+
+    .ft-orders-prototype .ft-order-list-filter-assignee,
+    .ft-orders-prototype .ft-order-list-filter-owner {
+        grid-column: auto
+    }
+
+    .ft-orders-prototype .ft-search-state {
+        grid-column: 1/-1
+    }
+}
+
+@media(max-width:820px) {
+    .ft-orders-prototype .ft-page-head {
+        align-items: flex-start
+    }
+
+    .ft-orders-prototype .ft-page-head p {
+        max-width: 420px
+    }
+
+    .ft-orders-prototype .ft-search-bar {
+        grid-template-columns: 1fr 1fr;
+        align-items: stretch
+    }
+
+    .ft-orders-prototype .ft-search {
+        width: 100%;
+        grid-column: 1/-1
+    }
+
+    .ft-orders-prototype .ft-search-state {
+        width: 100%;
+        grid-column: 1/-1
+    }
+}
+
+@media(max-width:680px) {
+    .ft-orders-prototype .ft-page-head {
+        align-items: flex-start
+    }
+
+    .ft-orders-prototype .ft-page-head h1 {
+        font-size: 1.25rem
+    }
+
+    .ft-orders-prototype .ft-page-head p {
+        font-size: .625rem
+    }
+
+    .ft-orders-prototype .ft-button {
+        min-height: 34px;
+        padding-inline: 11px
+    }
+
+    .ft-orders-prototype .ft-job-row {
+        grid-template-columns: minmax(0, 1fr) minmax(105px, .7fr) 38px 32px;
+        grid-template-areas: "identity identity view actions" "created inquiry inquiry inquiry" "brief brief brief brief" "stage health health health" "flag flag flag flag" "owner progress progress progress";
+        padding: 11px;
+        row-gap: 9px;
+        min-height: 228px
+    }
+
+    .ft-orders-prototype .ft-view {
+        justify-self: end
+    }
+
+    .ft-orders-prototype .ft-progress-cell {
+        max-width: 145px
+    }
+
+    .ft-orders-prototype .ft-list-footer {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-orders-prototype .ft-page-buttons {
+        width: 100%
+    }
+
+    .ft-orders-prototype .ft-page-button {
+        flex: 1
+    }
+}
+
+@media(max-width:390px) {
+    .ft-orders-prototype .ft-page-head p {
+        display: none
+    }
+
+    .ft-orders-prototype .ft-search input {
+        padding-right: 54px
+    }
+}
+
+@media(max-width:820px) {
+    .ft-orders-prototype .ft-page-head {
+        margin-bottom: 13px
+    }
+
+    .ft-orders-prototype .ft-page-head h1 {
+        font-size: 1.375rem
+    }
+
+    .ft-orders-prototype .ft-page-head p {
+        font-size: .6875rem;
+        line-height: 1.35
+    }
+
+    .ft-orders-prototype .ft-list-shell {
+        border-radius: 12px
+    }
+
+    .ft-orders-prototype .ft-search-bar {
+        gap: 8px;
+        padding: 11px
+    }
+
+    .ft-orders-prototype .ft-search input {
+        height: 42px;
+        font-size: .71875rem
+    }
+
+    .ft-orders-prototype .ft-search-state {
+        gap: 6px;
+        font-size: .59375rem;
+        line-height: 1.3;
+        white-space: normal
+    }
+}
+
+@media(max-width:680px) {
+    .ft-orders-prototype .ft-page-head {
+        align-items: flex-start;
+        gap: 10px
+    }
+
+    .ft-orders-prototype .ft-page-head h1 {
+        font-size: 1.3125rem
+    }
+
+    .ft-orders-prototype .ft-page-head p {
+        display: block;
+        max-width: 245px;
+        font-size: .65625rem
+    }
+
+    .ft-orders-prototype .ft-actions {
+        padding-top: 1px
+    }
+
+    .ft-orders-prototype .ft-dashboard-action-match {
+        min-height: 36px !important;
+        padding: 0 12px !important;
+        font-size: .625rem !important
+    }
+
+    .ft-orders-prototype .ft-bulk-import-button,
+    .ft-orders-prototype .ft-list-export-button {
+        height: 36px;
+        min-height: 36px;
+        padding: 0 12px;
+        font-size: .625rem
+    }
+
+    .ft-orders-prototype .ft-job-row {
+        position: relative;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-areas:
+            "identity identity identity"
+            "created created inquiry"
+            "brief brief brief"
+            "stage health flag"
+            "owner owner owner"
+            "progress progress progress";
+        gap: 10px 9px;
+        min-height: 0;
+        padding: 12px;
+        padding-right: 12px;
+    }
+
+    .ft-orders-prototype .ft-job-row .ft-cell::before {
+        margin-bottom: 4px;
+        font-size: .4875rem;
+        line-height: 1.15
+    }
+
+    .ft-orders-prototype .ft-identity {
+        padding-right: 54px
+    }
+
+    .ft-orders-prototype .ft-id {
+        font-size: .78125rem;
+        line-height: 1.2
+    }
+
+    .ft-orders-prototype .ft-sub {
+        font-size: .625rem;
+        line-height: 1.3
+    }
+
+    .ft-orders-prototype .ft-created-name,
+    .ft-orders-prototype .ft-client,
+    .ft-orders-prototype .ft-owner-name {
+        font-size: .6875rem;
+        line-height: 1.3
+    }
+
+    .ft-orders-prototype .ft-created-on,
+    .ft-orders-prototype .ft-product,
+    .ft-orders-prototype .ft-product-detail,
+    .ft-orders-prototype .ft-due,
+    .ft-orders-prototype .ft-progress,
+    .ft-orders-prototype .ft-standard-empty {
+        font-size: .6125rem;
+        line-height: 1.35
+    }
+
+    .ft-orders-prototype .ft-product-detail {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2
+    }
+
+    .ft-orders-prototype .ft-pill {
+        max-width: 100%;
+        padding: 4px 7px;
+        font-size: .5625rem
+    }
+
+    .ft-orders-prototype .ft-stage-cell,
+    .ft-orders-prototype .ft-health-cell,
+    .ft-orders-prototype .ft-flag-cell {
+        align-self: start
+    }
+
+    .ft-orders-prototype .ft-owner {
+        gap: 8px
+    }
+
+    .ft-orders-prototype .ft-order-avatar {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+        font-size: .59375rem
+    }
+
+    .ft-orders-prototype .ft-progress-cell {
+        justify-self: stretch;
+        width: 100%;
+        max-width: none;
+        gap: 8px
+    }
+
+    .ft-orders-prototype .ft-progress-track {
+        width: auto;
+        max-width: none;
+        flex: 1;
+        height: 6px
+    }
+
+    .ft-orders-prototype .ft-view {
+        position: absolute;
+        top: 11px;
+        right: 11px;
+        width: 40px;
+        height: 32px;
+        font-size: .59375rem
+    }
+
+    .ft-orders-prototype .ft-list-footer {
+        gap: 10px;
+        padding: 10px 11px
+    }
+
+    .ft-orders-prototype .ft-result-count {
+        font-size: .59375rem
+    }
+
+    .ft-orders-prototype .ft-page-buttons {
+        gap: 5px
+    }
+
+    .ft-orders-prototype .ft-page-button {
+        min-width: 0;
+        min-height: 34px;
+        font-size: .59375rem
+    }
+
+    .ft-orders-prototype .ft-page-number {
+        width: 34px;
+        min-width: 34px;
+        height: 34px;
+        font-size: .59375rem
+    }
+}
+
+@media(max-width:760px) {
+    .ft-orders-prototype .ft-order-bulk-bar {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 8px
+    }
+
+    .ft-orders-prototype .ft-order-bulk-summary {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 2px
+    }
+
+    .ft-orders-prototype .ft-order-bulk-actions {
+        width: 100%
+    }
+
+    .ft-orders-prototype .ft-order-bulk-clear,
+    .ft-orders-prototype .ft-order-bulk-delete {
+        flex: 1;
+        min-height: 34px
+    }
+
+    .ft-orders-prototype .ft-order-delete-card {
+        border-radius: 14px
+    }
+
+    .ft-orders-prototype .ft-order-delete-body {
+        padding: 20px 18px 15px
+    }
+
+    .ft-orders-prototype .ft-order-delete-actions {
+        padding: 12px 18px 17px
+    }
+
+    .ft-orders-prototype .ft-order-delete-cancel,
+    .ft-orders-prototype .ft-order-delete-confirm {
+        flex: 1
+    }
+}
+
+@media(max-width:600px) {
+    .ft-orders-prototype .ft-search-bar {
+        grid-template-columns: 1fr
+    }
+
+    .ft-orders-prototype .ft-search,
+    .ft-orders-prototype .ft-order-list-filter,
+    .ft-orders-prototype .ft-search-state {
+        grid-column: 1/-1
+    }
+
+    .ft-orders-prototype .ft-list-footer {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 9px
+    }
+
+    .ft-orders-prototype .ft-result-count {
+        width: 100%;
+        line-height: 1.35
+    }
+
+    .ft-orders-prototype .ft-list-footer>nav.ft-page-buttons {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        width: 100%;
+        gap: 7px
+    }
+
+    .ft-orders-prototype .ft-list-footer>nav.ft-page-buttons>.ft-page-button {
+        width: 100%;
+        min-width: 0;
+        padding: 0 8px
+    }
+
+    .ft-orders-prototype .ft-list-footer>nav.ft-page-buttons>span.ft-page-buttons {
+        min-width: 0;
+        max-width: 100%;
+        justify-content: center;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: none
+    }
+
+    .ft-orders-prototype .ft-list-footer>nav.ft-page-buttons>span.ft-page-buttons::-webkit-scrollbar {
+        display: none
+    }
+}
+
+@media(max-width:430px) {
+    .ft-orders-prototype .ft-page-head {
+        gap: 8px
+    }
+
+    .ft-orders-prototype .ft-page-head h1 {
+        font-size: 1.25rem
+    }
+
+    .ft-orders-prototype .ft-page-head p {
+        max-width: 210px;
+        font-size: .625rem
+    }
+
+    .ft-orders-prototype .ft-dashboard-action-match {
+        min-height: 34px !important;
+        padding: 0 10px !important;
+        font-size: .59375rem !important
+    }
+
+    .ft-orders-prototype .ft-bulk-import-button,
+    .ft-orders-prototype .ft-list-export-button {
+        height: 34px;
+        min-height: 34px;
+        padding: 0 10px;
+        font-size: .59375rem
+    }
+
+    .ft-orders-prototype .ft-search input {
+        height: 38px;
+        padding-left: 34px;
+        padding-right: 50px;
+        font-size: .6875rem;
+        line-height: 38px
+    }
+
+    .ft-orders-prototype .ft-order-list-filter .ft-remote-filter-button,
+    .ft-orders-prototype .ft-order-clear-filters {
+        height: 38px;
+        min-height: 38px
+    }
+
+    .ft-orders-prototype .ft-search-icon {
+        left: 11px
+    }
+
+    .ft-orders-prototype .ft-search-state {
+        font-size: .5625rem
+    }
+
+    .ft-orders-prototype .ft-job-row {
+        gap: 9px 7px;
+        padding: 11px
+    }
+
+    .ft-orders-prototype .ft-job-row .ft-cell::before {
+        font-size: .4625rem
+    }
+
+    .ft-orders-prototype .ft-id {
+        font-size: .75rem
+    }
+
+    .ft-orders-prototype .ft-created-name,
+    .ft-orders-prototype .ft-client,
+    .ft-orders-prototype .ft-owner-name {
+        font-size: .65625rem
+    }
+
+    .ft-orders-prototype .ft-sub,
+    .ft-orders-prototype .ft-created-on,
+    .ft-orders-prototype .ft-product,
+    .ft-orders-prototype .ft-product-detail,
+    .ft-orders-prototype .ft-due,
+    .ft-orders-prototype .ft-progress,
+    .ft-orders-prototype .ft-standard-empty {
+        font-size: .58125rem
+    }
+
+    .ft-orders-prototype .ft-pill {
+        font-size: .53125rem;
+        padding: 4px 6px
+    }
+
+    .ft-orders-prototype .ft-view {
+        top: 10px;
+        right: 10px;
+        width: 38px;
+        height: 31px
+    }
+
+    .ft-orders-prototype .ft-list-footer {
+        align-items: stretch
+    }
+
+    .ft-orders-prototype .ft-result-count {
+        text-align: left
+    }
+
+    .ft-orders-prototype .ft-list-footer>nav.ft-page-buttons {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 5px
+    }
+
+    .ft-orders-prototype .ft-list-footer>nav.ft-page-buttons>.ft-page-button {
+        min-height: 36px;
+        font-size: .5625rem
+    }
+
+    .ft-orders-prototype .ft-page-number {
+        width: 32px;
+        min-width: 32px;
+        height: 36px
+    }
+}
+
+
+.ft-orders-prototype .ft-view-label-mobile,
+.ft-orders-prototype .ft-view-arrow {
+    display: none
+}
+
+@media(max-width:680px) {
+    .ft-orders-prototype .ft-order-table-scroll {
+        overflow: visible
+    }
+
+    .ft-orders-prototype .ft-job-list {
+        display: grid;
+        gap: 8px;
+        padding: 8px;
+        background: #f8fafc;
+    }
+
+    .ft-orders-prototype .ft-job-row,
+    .ft-orders-prototype .ft-job-row.ft-client-row-iid,
+    .ft-orders-prototype .ft-job-row.ft-client-row-nep {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-areas:
+            "identity identity identity identity identity identity"
+            "created created created inquiry inquiry inquiry"
+            "brief brief brief brief brief brief"
+            "stage stage health health flag flag"
+            "owner owner owner owner owner owner"
+            "progress progress progress progress progress progress"
+            "view view view view view view";
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        margin: 0;
+        padding: 12px;
+        gap: 10px 8px;
+        overflow: visible;
+        border: 1px solid #dce5ef;
+        border-radius: 14px;
+        box-shadow: none;
+        content-visibility: visible;
+        contain-intrinsic-size: auto;
+    }
+
+    .ft-orders-prototype .ft-job-row:last-child {
+        border-bottom: 1px solid #dce5ef
+    }
+
+    .ft-orders-prototype .ft-job-row .ft-cell {
+        min-width: 0
+    }
+
+    .ft-orders-prototype .ft-job-row .ft-cell::before {
+        margin: 0 0 4px;
+        color: #7d8ca2;
+        font-size: .4625rem;
+        font-weight: 800;
+        letter-spacing: .075em;
+        line-height: 1;
+    }
+
+    .ft-orders-prototype .ft-identity {
+        grid-area: identity;
+        padding-right: 42px
+    }
+
+    .ft-orders-prototype .ft-created-cell {
+        grid-area: created
+    }
+
+    .ft-orders-prototype .ft-inquiry-cell {
+        grid-area: inquiry
+    }
+
+    .ft-orders-prototype .ft-brief {
+        grid-area: brief;
+        padding: 9px 10px;
+        border: 1px solid rgba(207, 218, 233, .82);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, .66);
+    }
+
+    .ft-orders-prototype .ft-stage-cell {
+        grid-area: stage
+    }
+
+    .ft-orders-prototype .ft-health-cell {
+        grid-area: health
+    }
+
+    .ft-orders-prototype .ft-flag-cell {
+        grid-area: flag
+    }
+
+    .ft-orders-prototype .ft-owner-cell {
+        grid-area: owner;
+        padding-top: 9px;
+        border-top: 1px solid rgba(219, 227, 237, .92);
+    }
+
+    .ft-orders-prototype .ft-progress-cell {
+        grid-area: progress;
+        width: 100%;
+        max-width: none;
+        justify-self: stretch;
+        gap: 8px;
+        padding-top: 1px;
+    }
+
+    .ft-orders-prototype .ft-progress-track {
+        width: auto;
+        max-width: none;
+        flex: 1;
+        height: 5px
+    }
+
+    .ft-orders-prototype .ft-row-actions {
+        position: absolute;
+        grid-area: auto;
+        top: 10px;
+        right: 10px;
+        z-index: 4;
+        display: flex;
+        width: 32px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ft-orders-prototype .ft-row-actions::before {
+        display: none !important
+    }
+
+    .ft-orders-prototype .ft-row-action-trigger {
+        width: 32px;
+        height: 32px;
+        border: 1px solid #dbe3ed;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, .9);
+        color: #31445f;
+        font-size: 1rem;
+        box-shadow: none;
+    }
+
+    .ft-orders-prototype .ft-view {
+        position: static;
+        grid-area: view;
+        display: inline-flex;
+        width: auto;
+        height: auto;
+        min-height: 25px;
+        justify-self: end;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 5px 8px;
+        border: 1px solid var(--ft-theme-primary-100);
+        border-radius: 7px;
+        background: var(--ft-theme-surface-subtle);
+        color: var(--ft-theme-primary);
+        font-size: .53125rem;
+        font-weight: 650;
+        line-height: 1;
+        text-decoration: none;
+        box-shadow: none;
+    }
+
+    .ft-orders-prototype .ft-view:hover {
+        background: var(--ft-theme-o-view-hover);
+        border-color: var(--ft-theme-primary-100)
+    }
+
+    .ft-orders-prototype .ft-view:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--ft-theme-primary) 17%, transparent);
+        outline-offset: 2px
+    }
+
+    .ft-orders-prototype .ft-view-label-desktop {
+        display: none
+    }
+
+    .ft-orders-prototype .ft-view-label-mobile,
+    .ft-orders-prototype .ft-view-arrow {
+        display: inline
+    }
+
+    .ft-orders-prototype .ft-view-arrow {
+        font-size: .625rem;
+        font-weight: 600;
+        line-height: 1
+    }
+
+    .ft-orders-prototype .ft-id {
+        font-size: .78125rem;
+        font-weight: 800;
+        line-height: 1.18
+    }
+
+    .ft-orders-prototype .ft-sub {
+        margin-top: 2px;
+        font-size: .58125rem;
+        line-height: 1.25
+    }
+
+    .ft-orders-prototype .ft-created-name,
+    .ft-orders-prototype .ft-client,
+    .ft-orders-prototype .ft-owner-name {
+        font-size: .65625rem;
+        line-height: 1.25
+    }
+
+    .ft-orders-prototype .ft-created-on,
+    .ft-orders-prototype .ft-product,
+    .ft-orders-prototype .ft-product-detail,
+    .ft-orders-prototype .ft-due,
+    .ft-orders-prototype .ft-progress,
+    .ft-orders-prototype .ft-standard-empty {
+        font-size: .5625rem;
+        line-height: 1.3
+    }
+
+    .ft-orders-prototype .ft-product-detail {
+        margin-top: 2px
+    }
+
+    .ft-orders-prototype .ft-job-client-logo-line {
+        gap: 6px
+    }
+
+    .ft-orders-prototype .ft-pill {
+        max-width: 100%;
+        padding: 4px 6px;
+        border-radius: 8px;
+        font-size: .5125rem;
+        font-weight: 750;
+        line-height: 1.15
+    }
+
+    .ft-orders-prototype .ft-stage-cell,
+    .ft-orders-prototype .ft-health-cell,
+    .ft-orders-prototype .ft-flag-cell {
+        min-width: 0;
+        align-self: start
+    }
+
+    .ft-orders-prototype .ft-stage-cell .ft-pill,
+    .ft-orders-prototype .ft-health-cell .ft-pill,
+    .ft-orders-prototype .ft-flag-cell .ft-pill {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap
+    }
+
+    .ft-orders-prototype .ft-owner {
+        gap: 7px
+    }
+
+    .ft-orders-prototype .ft-order-avatar {
+        width: 28px;
+        height: 28px;
+        flex-basis: 28px;
+        font-size: .5625rem
+    }
+}
+
+@media(max-width:430px) {
+    .ft-orders-prototype .ft-job-list {
+        gap: 7px;
+        padding: 6px 4px
+    }
+
+    .ft-orders-prototype .ft-job-row,
+    .ft-orders-prototype .ft-job-row.ft-client-row-iid,
+    .ft-orders-prototype .ft-job-row.ft-client-row-nep {
+        padding: 11px 10px;
+        gap: 9px 7px;
+        border-radius: 13px
+    }
+
+    .ft-orders-prototype .ft-identity {
+        padding-right: 39px
+    }
+
+    .ft-orders-prototype .ft-row-actions {
+        top: 9px;
+        right: 9px;
+        width: 30px;
+        height: 30px
+    }
+
+    .ft-orders-prototype .ft-row-action-trigger {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        font-size: .9375rem
+    }
+
+    .ft-orders-prototype .ft-brief {
+        padding: 8px 9px
+    }
+
+    .ft-orders-prototype .ft-view {
+        min-height: 23px;
+        padding: 4px 7px;
+        font-size: .5rem
+    }
+
+    .ft-orders-prototype .ft-view-arrow {
+        font-size: .59375rem
+    }
+
+    .ft-orders-prototype .ft-id {
+        font-size: .75rem
+    }
+
+    .ft-orders-prototype .ft-created-name,
+    .ft-orders-prototype .ft-client,
+    .ft-orders-prototype .ft-owner-name {
+        font-size: .625rem
+    }
+
+    .ft-orders-prototype .ft-created-on,
+    .ft-orders-prototype .ft-product,
+    .ft-orders-prototype .ft-product-detail,
+    .ft-orders-prototype .ft-due,
+    .ft-orders-prototype .ft-progress,
+    .ft-orders-prototype .ft-standard-empty {
+        font-size: .54375rem
+    }
+
+    .ft-orders-prototype .ft-pill {
+        font-size: .49375rem;
+        padding: 3.5px 5.5px
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+    .ft-orders-prototype *,
+    .ft-orders-prototype *::before,
+    .ft-orders-prototype *::after {
+        scroll-behavior: auto !important;
+        animation: none !important;
+        transition: none !important
+    }
+}
+
+.ft-orders-prototype .ft-job-row.ft-client-row-iid,
+.ft-orders-prototype .ft-job-row.ft-client-row-iid:nth-child(odd),
+.ft-orders-prototype .ft-job-row.ft-client-row-iid:nth-child(even) {
+    background: #eef9f1
+}
+
+.ft-orders-prototype .ft-job-row.ft-client-row-nep,
+.ft-orders-prototype .ft-job-row.ft-client-row-nep:nth-child(odd),
+.ft-orders-prototype .ft-job-row.ft-client-row-nep:nth-child(even) {
+    background: var(--ft-theme-o-nep)
+}
+
+.ft-orders-prototype .ft-job-row.ft-client-row-iid:hover {
+    background: #e5f5ea
+}
+
+.ft-orders-prototype .ft-job-row.ft-client-row-nep:hover {
+    background: var(--ft-theme-o-nep-hover)
+}
+
+
+.ft-orders-prototype .ft-search-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+}
+
+.ft-orders-prototype .ft-search {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
+    align-self: auto;
+}
+
+.ft-orders-prototype .ft-search input {
+    height: 36px;
+    min-height: 36px;
+    line-height: 36px;
+    border-radius: 8px;
+}
+
+.ft-orders-prototype .ft-order-filter-controls {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+}
+
+.ft-orders-prototype .ft-order-filter-controls>.ft-order-list-filter {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0 !important;
+    align-self: center;
+}
+
+.ft-orders-prototype .ft-order-filter-controls>.ft-order-list-filter .ft-remote-filter-button {
+    width: 100%;
+    height: 36px;
+    min-height: 36px;
+    border-radius: 8px;
+}
+
+.ft-orders-prototype .ft-order-filter-controls>.ft-order-date-range {
+    grid-column: span 2;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    min-height: 36px;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: 0;
+}
+
+.ft-orders-prototype .ft-order-filter-controls>.ft-order-date-range.is-active {
+    background: transparent
+}
+
+.ft-orders-prototype .ft-order-date-range .ft-date-range-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.ft-orders-prototype .ft-order-date-range .ft-date-range-field {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: .625rem;
+    font-weight: 720;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.ft-orders-prototype .ft-order-date-range .ft-date-range-field>span {
+    margin: 0;
+    flex: 0 0 auto
+}
+
+.ft-orders-prototype .ft-order-date-range .ft-date-range-field input {
+    width: 100%;
+    min-width: 0;
+    height: 36px;
+    min-height: 36px;
+    padding: 0 8px;
+    border-radius: 8px;
+    font-size: .65625rem;
+    line-height: 36px;
+}
+
+.ft-orders-prototype .ft-order-filter-controls>.ft-order-clear-filters {
+    width: 100%;
+    height: 36px;
+    min-height: 36px;
+    align-self: center;
+    padding: 0 10px;
+    border: 1px solid #d8e1ec;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: .625rem;
+    font-weight: 650;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.ft-orders-prototype .ft-order-filter-controls>.ft-order-clear-filters:not(:disabled):hover {
+    border-color: #c4cfdd;
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.ft-orders-prototype .ft-order-filter-controls>.ft-order-clear-filters:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+    background: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+}
+
+@media(max-width:980px) {
+    .ft-orders-prototype .ft-order-filter-controls {
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+    }
+}
+
+@media(max-width:680px) {
+    .ft-orders-prototype .ft-search-bar {
+        gap: 8px;
+        padding: 11px
+    }
+
+    .ft-orders-prototype .ft-order-filter-controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .ft-orders-prototype .ft-order-filter-controls>.ft-order-date-range {
+        grid-column: span 2
+    }
+}
+
+@media(max-width:480px) {
+    .ft-orders-prototype .ft-order-filter-controls {
+        grid-template-columns: 1fr
+    }
+
+    .ft-orders-prototype .ft-order-filter-controls>.ft-order-date-range {
+        grid-column: span 1
+    }
+
+    .ft-orders-prototype .ft-order-date-range .ft-date-range-fields {
+        grid-template-columns: 1fr
+    }
+}
+
+.ft-orders-prototype .ft-job-head,
+.ft-orders-prototype .ft-job-row {
+    grid-template-columns: 150px 185px 155px 300px 185px 120px 125px 195px 110px 38px;
+    min-width: 1680px;
+}
+
+@media(max-width:1380px) {
+    .ft-orders-prototype .ft-job-row {
+        min-width: 0;
+        grid-template-columns: minmax(140px, 1fr) minmax(125px, .8fr) minmax(130px, .9fr) 32px;
+        grid-template-areas:
+            "identity created inquiry actions"
+            "brief brief owner progress"
+            "stage health flag progress";
+    }
+}
+
+@media(max-width:680px) {
+
+    .ft-orders-prototype .ft-job-row,
+    .ft-orders-prototype .ft-job-row.ft-client-row-iid,
+    .ft-orders-prototype .ft-job-row.ft-client-row-nep {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-areas:
+            "identity identity identity identity identity identity"
+            "created created created inquiry inquiry inquiry"
+            "brief brief brief brief brief brief"
+            "stage stage health health flag flag"
+            "owner owner owner owner owner owner"
+            "progress progress progress progress progress progress";
+    }
+}
+
+.ft-order-list-v5 {
+    --ftol-bg: #f3f6f9;
+    --ftol-card: #fff;
+    --ftol-line: #d9e3ec;
+    --ftol-text: #10213b;
+    --ftol-muted: #687990;
+    --ftol-teal: var(--ft-theme-primary);
+    --ftol-blue: var(--ft-theme-primary);
+    --ftol-green: #159a68;
+    --ftol-red: #dc4545;
+    --ftol-shadow: 0 3px 10px rgba(10, 35, 60, .03);
+    width: 100%;
+    max-width: 1460px;
+    margin: 0 auto;
+    color: var(--ftol-text);
+    font: .8125rem/1.45 var(--ft-theme-font-family);
+}
+
+.ft-order-list-v5 * {
+    box-sizing: border-box
+}
+
+.ft-order-list-v5 .list-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin: 2px 0 18px
+}
+
+.ft-order-list-v5 .list-head h1 {
+    font-size: 1.875rem;
+    line-height: 1.1;
+    letter-spacing: -.8px;
+    margin: 3px 0 7px;
+    font-weight: 900;
+    color: var(--ftol-text)
+}
+
+.ft-order-list-v5 .breadcrumbs {
+    color: #5f7390;
+    font-weight: 650;
+    margin-bottom: 7px
+}
+
+.ft-order-list-v5 .sub {
+    margin: 0;
+    color: var(--ftol-muted);
+    font-size: .8125rem
+}
+
+.ft-order-list-v5 .top-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap
+}
+
+.ft-order-list-v5 .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    border: 1px solid var(--ftol-line);
+    background: #fff;
+    color: var(--ftol-text);
+    border-radius: 8px;
+    padding: 9px 13px;
+    font: inherit;
+    font-weight: 750;
+    text-decoration: none;
+    cursor: pointer;
+    transition: .16s
+}
+
+.ft-order-list-v5 .btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(10, 35, 60, .1)
+}
+
+.ft-order-list-v5 .btn:disabled {
+    opacity: .43;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none
+}
+
+.ft-order-list-v5 .btn.primary {
+    background: var(--ftol-teal);
+    border-color: var(--ftol-teal);
+    color: #fff
+}
+
+.ft-order-list-v5 .btn.small {
+    min-height: 31px;
+    padding: 6px 10px;
+    font-size: .6875rem
+}
+
+.ft-order-list-v5 .ft-order-list-flash {
+    margin-bottom: 12px;
+    padding: 10px 13px;
+    border: 1px solid #b8ded7;
+    border-radius: 9px;
+    background: #eff8f6;
+    color: #245d55;
+    font-weight: 700
+}
+
+.ft-order-list-v5 .list-card {
+    background: #fff;
+    border: 1px solid var(--ftol-line);
+    border-radius: 12px;
+    box-shadow: var(--ftol-shadow);
+    margin-bottom: 14px;
+    overflow: hidden
+}
+
+.ft-order-list-v5 .list-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--ftol-line)
+}
+
+.ft-order-list-v5 .list-section-head h2 {
+    font-size: 1rem;
+    line-height: 1.2;
+    margin: 0;
+    font-weight: 850;
+    color: var(--ftol-text)
+}
+
+.ft-order-list-v5 .list-section-head p {
+    font-size: .625rem;
+    color: var(--ftol-muted);
+    margin: 2px 0 0
+}
+
+/* 2026-08-24: stage cards match the approved prototype image.
+   Keep every stage's own tint visible; selection adds emphasis instead of
+   replacing the other stage colors. The card height stays at the previous
+   compact order-list proportion. */
+.ft-order-list-v5 .list-stage-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 12px;
+    padding: 18px
+}
+
+.ft-order-list-v5 .list-stage-card {
+    appearance: none;
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    text-align: left;
+    border: 1px solid color-mix(in srgb, var(--stage) 28%, #d9e3ec 72%);
+    border-radius: 12px;
+    padding: 10px 11px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--stage) 7%, #fff 93%) 0%, color-mix(in srgb, var(--stage) 3%, #fff 97%) 100%);
+    color: var(--ftol-text);
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease, background .15s ease;
+    box-shadow: none;
+}
+
+.ft-order-list-v5 .list-stage-card:hover {
+    border-color: color-mix(in srgb, var(--stage) 48%, #d9e3ec 52%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--stage) 9%, #fff 91%) 0%, color-mix(in srgb, var(--stage) 4%, #fff 96%) 100%);
+    box-shadow: 0 7px 18px color-mix(in srgb, var(--stage) 10%, transparent);
+    transform: translateY(-1px);
+}
+
+.ft-order-list-v5 .list-stage-card.active {
+    border: 2px solid var(--stage);
+    padding: 9px 10px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--stage) 9%, #fff 91%) 0%, color-mix(in srgb, var(--stage) 4%, #fff 96%) 100%);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--stage) 18%, transparent), 0 9px 20px color-mix(in srgb, var(--stage) 13%, rgba(15, 23, 42, .08));
+    transform: translateY(-2px);
+}
+
+.ft-order-list-v5 .list-stage-card:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--stage) 24%, transparent);
+    outline-offset: 2px;
+}
+
+.ft-order-list-v5 .list-stage-card>span.list-stage-kicker {
+    display: block;
+    font-size: .625rem;
+    line-height: 1.2;
+    color: color-mix(in srgb, var(--stage) 82%, #334155 18%);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .015em;
+}
+
+.ft-order-list-v5 .list-stage-card>b {
+    display: block;
+    max-width: 100%;
+    font-size: .875rem;
+    line-height: 1.2;
+    margin: 4px 0 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--ftol-text);
+    font-weight: 900;
+}
+
+.ft-order-list-v5 .list-stage-count {
+    display: flex !important;
+    width: 100%;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 0;
+    font-size: .65625rem !important;
+    line-height: 1.2;
+    color: var(--ftol-muted) !important;
+    text-transform: none !important;
+    font-weight: 500 !important;
+}
+
+.ft-order-list-v5 .list-stage-count em {
+    font-style: normal;
+    font-weight: 500
+}
+
+.ft-order-list-v5 .list-stage-count strong {
+    flex: 0 0 auto;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: color-mix(in srgb, var(--stage) 82%, #10213b 18%);
+    font-weight: 900;
+}
+
+/* Keep the selected-state pill compact on the restored-height stage cards. */
+.ft-order-list-v5 .list-stage-selected-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 3px;
+    min-height: 21px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: var(--stage);
+    color: var(--stage-text) !important;
+    font-size: .5625rem !important;
+    line-height: 1 !important;
+    font-weight: 850 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    box-shadow: 0 3px 8px color-mix(in srgb, var(--stage) 20%, transparent);
+}
+
+.ft-order-list-v5 .list-stage-selected-badge i {
+    font-style: normal;
+    font-size: .625rem;
+    line-height: 1;
+    font-weight: 950
+}
+
+/* CHANGE 2026-08-24: restore the prototype toolbar proportions and keep both dates on one line. */
+.ft-order-list-v5 .filter-toolbar {
+    display: grid;
+    grid-template-columns: minmax(270px, 1.6fr) 160px 150px 150px minmax(270px, .95fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--ftol-line);
+    background: #fff
+}
+
+.ft-order-list-v5 .filter-toolbar input,
+.ft-order-list-v5 .filter-toolbar select,
+.ft-order-list-v5 .stage-inline-selects select {
+    min-width: 0;
+    height: 40px;
+    border: 1px solid #ccd8e4;
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: #fff;
+    color: #263950;
+    font: inherit;
+    outline: none
+}
+
+.ft-order-list-v5 .filter-toolbar input:focus,
+.ft-order-list-v5 .filter-toolbar select:focus,
+.ft-order-list-v5 .stage-inline-selects select:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent)
+}
+
+/* 2026-08-25: searchable Order list filters.
+   Client, owner, supplier and stage assignee/client filters now reuse the
+   shared Inquiry-style search-select instead of native <select> controls. */
+.ft-order-list-v5 .ft-order-v5-search-select,
+.ft-order-list-v5 .ft-order-v5-stage-search-select {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    margin: 0 !important;
+    gap: 0 !important;
+}
+
+.ft-order-list-v5 .ft-order-v5-search-select .ft-search-select__trigger,
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-search-select__trigger {
+    width: 100%;
+    height: 40px;
+    min-height: 40px;
+    padding: 0 30px 0 10px;
+    border: 1px solid #ccd8e4;
+    border-radius: 8px;
+    background: #fff;
+    color: #263950;
+    font: inherit;
+    font-size: .625rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: none;
+}
+
+.ft-order-list-v5 .ft-order-v5-search-select .ft-search-select__trigger:hover,
+.ft-order-list-v5 .ft-order-v5-search-select .ft-search-select__trigger[aria-expanded="true"],
+.ft-order-list-v5 .ft-order-v5-search-select .ft-search-select__trigger:focus-visible,
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-search-select__trigger:hover,
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-search-select__trigger[aria-expanded="true"],
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-search-select__trigger:focus-visible {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle, #f8fbfb);
+    color: var(--ft-theme-primary);
+    outline: 0;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+
+.ft-order-list-v5 .ft-order-v5-search-select .ft-filter-chevron,
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-filter-chevron {
+    margin-left: auto;
+    color: #66768c;
+}
+
+.ft-order-list-v5 .ft-order-v5-search-select .ft-search-select__menu,
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-search-select__menu {
+    font-size: .6875rem;
+}
+
+.ft-order-list-v5 .ft-order-v5-search-select .ft-search-select__search,
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-search-select__search {
+    height: 42px;
+    min-height: 42px;
+    border-radius: 10px;
+    font-size: .75rem;
+}
+
+.ft-order-list-v5 .ft-order-v5-search-select .ft-search-select__option,
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-search-select__option {
+    min-height: 38px;
+    font-size: .6875rem;
+}
+
+.ft-order-list-v5 .ft-order-v5-search-select .ft-search-select__option small,
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-search-select__option small,
+.ft-order-list-v5 .ft-order-v5-search-select .ft-remote-filter-message,
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-remote-filter-message {
+    font-size: .625rem;
+}
+
+.ft-order-list-v5 .search-box {
+    position: relative;
+    display: block
+}
+
+.ft-order-list-v5 .search-box>span {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8191a5;
+    pointer-events: none
+}
+
+.ft-order-list-v5 .search-box input {
+    width: 100%;
+    padding-left: 30px
+}
+
+.ft-order-list-v5 .filter-toolbar>.btn {
+    height: 40px;
+    min-height: 40px;
+    align-self: center
+}
+
+.ft-order-list-v5 .filter-toolbar>.ft-order-list-date-range {
+    display: block !important;
+    width: 100%;
+    min-width: 0;
+    align-self: center;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    gap: 0 !important
+}
+
+.ft-order-list-v5 .filter-toolbar>.ft-order-list-date-range.is-active {
+    background: transparent !important
+}
+
+.ft-order-list-v5 .filter-toolbar>.ft-order-list-date-range .ft-date-range-fields {
+    display: grid !important;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: center;
+    gap: 8px !important;
+    flex-wrap: nowrap !important
+}
+
+.ft-order-list-v5 .filter-toolbar>.ft-order-list-date-range .ft-date-range-field {
+    display: block !important;
+    min-width: 0 !important;
+    gap: 0 !important
+}
+
+.ft-order-list-v5 .filter-toolbar>.ft-order-list-date-range .ft-date-range-field>span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0
+}
+
+.ft-order-list-v5 .filter-toolbar>.ft-order-list-date-range input {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 8px 10px !important
+}
+
+/* CHANGE 2026-08-24: phase-wise checkbox filters match the supplied prototype. */
+.ft-order-list-v5 .stage-inline-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--ftol-line);
+    background: #fff
+}
+
+.ft-order-list-v5 .stage-inline-label {
+    font-size: .625rem;
+    font-weight: 900;
+    color: #52677f;
+    margin-right: 2px
+}
+
+.ft-order-list-v5 .stage-inline-quick {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap
+}
+
+.ft-order-list-v5 .stage-inline-chip {
+    --quick-color: var(--ft-theme-primary);
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid color-mix(in srgb, var(--quick-color) 30%, #d9e3ec);
+    background: #fff;
+    color: var(--quick-color);
+    border-radius: 8px;
+    font-size: .625rem;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: .15s
+}
+
+.ft-order-list-v5 .stage-inline-chip:hover {
+    border-color: color-mix(in srgb, var(--quick-color) 62%, #fff);
+    background: color-mix(in srgb, var(--quick-color) 6%, #fff)
+}
+
+.ft-order-list-v5 .stage-inline-chip.active {
+    border-color: color-mix(in srgb, var(--quick-color) 48%, #fff);
+    background: color-mix(in srgb, var(--quick-color) 8%, #fff);
+    color: var(--quick-color);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--quick-color) 8%, transparent)
+}
+
+.ft-order-list-v5 .stage-inline-check {
+    display: grid;
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--quick-color) 54%, #c8d4e0);
+    border-radius: 4px;
+    background: #fff;
+    color: transparent;
+    font-size: .625rem;
+    line-height: 1
+}
+
+.ft-order-list-v5 .stage-inline-chip.active .stage-inline-check {
+    border-color: var(--quick-color);
+    background: var(--quick-color);
+    color: #fff
+}
+
+.ft-order-list-v5 .stage-view-note {
+    font-size: .5625rem;
+    color: #6e8096;
+    padding-left: 2px;
+    white-space: nowrap
+}
+
+.ft-order-list-v5 .stage-inline-selects {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-left: auto
+}
+
+.ft-order-list-v5 .stage-inline-selects .ft-order-v5-stage-search-select {
+    width: 200px;
+    min-width: 180px;
+    flex: 0 1 220px;
+}
+
+.ft-order-list-v5 .stage-inline-selects select {
+    height: 40px;
+    min-width: 180px;
+    padding: 8px 10px;
+    font-size: .625rem;
+    border-radius: 8px
+}
+
+.ft-order-list-v5 .active-filter-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 14px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--ftol-line);
+    color: #667991;
+    font-size: .625rem;
+    font-weight: 750
+}
+
+.ft-order-list-v5 .import-filter-line {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--ft-theme-o-v5-import-line);
+    background: var(--ft-theme-o-v5-import);
+    color: #45657f;
+    font-size: .625rem
+}
+
+.ft-order-list-v5 .table-scroll {
+    position: relative;
+    overflow-x: auto;
+    transition: opacity .12s
+}
+
+.ft-order-list-v5 .table-scroll.is-loading {
+    opacity: .58;
+    pointer-events: none
+}
+
+.ft-order-list-v5 .orders-modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1050px;
+    table-layout: auto
+}
+
+.ft-order-list-v5 .orders-modern-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: #f5f8fb;
+    color: #667991;
+    font-size: .5625rem;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    font-weight: 850;
+    white-space: nowrap
+}
+
+.ft-order-list-v5 .orders-modern-table td {
+    padding: 13px 12px;
+    border-top: 1px solid #e7edf3;
+    vertical-align: middle;
+    color: #263950
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row {
+    cursor: pointer
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row>td {
+    background-color: #fff;
+    transition: background-color .12s ease
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row:hover>td {
+    background-color: var(--ft-theme-o-v5-hover)
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row.has-task-color>td {
+    background-color: var(--task-row-bg, #fff)
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row.has-task-color:hover>td {
+    background-color: var(--task-row-hover-bg, var(--ft-theme-o-v5-hover))
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row.has-task-color>td:first-child {
+    box-shadow: inset 4px 0 0 var(--task-row-color)
+}
+
+.ft-order-list-v5 .orders-modern-table b {
+    font-weight: 850;
+    color: #172a43
+}
+
+.ft-order-list-v5 .order-cell-id {
+    display: block;
+    font-weight: 900;
+    color: var(--ftol-blue);
+    text-decoration: none;
+    white-space: nowrap
+}
+
+.ft-order-list-v5 .order-cell-id:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px
+}
+
+.ft-order-list-v5 .order-cell-ref,
+.ft-order-list-v5 .stage-table-note {
+    display: block;
+    font-size: .5625rem;
+    color: var(--ftol-muted);
+    margin-top: 3px;
+    line-height: 1.35
+}
+
+.ft-order-list-v5 .client-product-cell {
+    display: flex;
+    width: 100%;
+    gap: 9px;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden
+}
+
+.ft-order-list-v5 .client-product-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: calc(100% - 43px);
+    overflow: hidden
+}
+
+.ft-order-list-v5 .client-product-copy b {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.ft-order-list-v5 .client-product-copy small {
+    display: block;
+    color: var(--ftol-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.ft-order-list-v5 .stage-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 5px 9px;
+    background: color-mix(in srgb, var(--stage) 10%, white);
+    color: var(--stage);
+    border: 1px solid color-mix(in srgb, var(--stage) 28%, white);
+    font-size: .625rem;
+    font-weight: 900;
+    white-space: nowrap
+}
+
+.ft-order-list-v5 .stage-chip:before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--stage)
+}
+
+.ft-order-list-v5 .row-status {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: .5625rem;
+    font-weight: 900;
+    background: #edf2f7;
+    color: #53677f;
+    white-space: nowrap
+}
+
+.ft-order-list-v5 .row-status.attn {
+    background: #fff0e1;
+    color: #a15d00
+}
+
+.ft-order-list-v5 .row-status.good {
+    background: #e6f6ed;
+    color: #16794b
+}
+
+.ft-order-list-v5 .owner-delivery {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 135px
+}
+
+.ft-order-list-v5 .owner-delivery>.avatar,
+.ft-order-list-v5 .mini-avatar {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #edf2f6;
+    color: #52657d;
+    font-size: .5625rem;
+    font-weight: 900;
+    overflow: hidden
+}
+
+.ft-order-list-v5 .owner-delivery>.avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit
+}
+
+.ft-order-list-v5 .owner-delivery small {
+    display: block;
+    color: var(--ftol-muted);
+    font-size: .5625rem;
+    margin-top: 1px;
+    white-space: nowrap
+}
+
+.ft-order-list-v5 .row-progress {
+    display: grid;
+    grid-template-columns: minmax(80px, 1fr) auto;
+    gap: 7px;
+    align-items: center;
+    min-width: 115px
+}
+
+.ft-order-list-v5 .row-progress-track {
+    height: 6px;
+    background: #e6edf4;
+    border-radius: 99px;
+    overflow: hidden
+}
+
+.ft-order-list-v5 .row-progress-track i {
+    display: block;
+    height: 100%;
+    background: var(--ftol-blue);
+    border-radius: inherit
+}
+
+.ft-order-list-v5 .stage-doc {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    min-width: 140px
+}
+
+.ft-order-list-v5 .stage-doc-icon {
+    width: 29px;
+    height: 29px;
+    flex: 0 0 29px;
+    border-radius: 7px;
+    background: #f1f5f9;
+    display: grid;
+    place-items: center;
+    font-size: .5625rem;
+    font-weight: 850;
+    color: #64748b
+}
+
+.ft-order-list-v5 .stage-action {
+    display: block;
+    color: var(--ft-theme-primary);
+    font-weight: 850;
+    text-decoration: none;
+    white-space: nowrap
+}
+
+/* CHANGE 2026-08-24: the Next Action is now a Livewire button, but must keep the exact visual treatment of the previous link. */
+.ft-order-list-v5 button.stage-action {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    font-weight: 850;
+    text-align: left;
+    cursor: pointer
+}
+
+.ft-order-list-v5 button.stage-action:disabled {
+    opacity: .58;
+    cursor: wait
+}
+
+.ft-order-list-v5 .stage-action:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px
+}
+
+.ft-order-list-v5 .stage-alert {
+    color: #ad5d00;
+    font-weight: 850
+}
+
+.ft-order-list-v5 .stage-ok {
+    color: #16794b;
+    font-weight: 850
+}
+
+.ft-order-list-v5 .money-cell {
+    font-variant-numeric: tabular-nums
+}
+
+.ft-order-list-v5 .cell-controls {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin-top: 5px
+}
+
+.ft-order-list-v5 .cell-link {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: var(--ftol-blue);
+    font: inherit;
+    font-size: .625rem;
+    font-weight: 850;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px
+}
+
+.ft-order-list-v5 .cell-link.download:before {
+    content: "↓ ";
+    font-weight: 900
+}
+
+.ft-order-list-v5 .cell-action {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--ft-theme-o-v5-action-line);
+    background: var(--ft-theme-o-v5-action);
+    color: var(--ft-theme-primary);
+    border-radius: 6px;
+    padding: 4px 7px;
+    font-size: .5625rem;
+    font-weight: 850;
+    text-decoration: none;
+    cursor: pointer
+}
+
+.ft-order-list-v5 .urgency-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: .5625rem;
+    font-weight: 900;
+    border: 1px solid transparent;
+    white-space: nowrap
+}
+
+.ft-order-list-v5 .urgency-badge:before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor
+}
+
+.ft-order-list-v5 .urgency-badge.normal {
+    background: var(--ft-theme-o-v5-normal);
+    color: #4a617c;
+    border-color: #d8e3ef
+}
+
+.ft-order-list-v5 .urgency-badge.urgent {
+    background: #fff3d9;
+    color: #945b00;
+    border-color: #f0d293
+}
+
+.ft-order-list-v5 .urgency-badge.super-urgent {
+    background: #ffe8e8;
+    color: #b42f2f;
+    border-color: #efb4b4
+}
+
+.ft-order-list-v5 .empty-list {
+    text-align: center !important;
+    padding: 38px !important;
+    color: var(--ftol-muted) !important
+}
+
+.ft-order-list-v5 .empty-list b {
+    display: block;
+    margin-bottom: 2px
+}
+
+.ft-order-list-v5 .list-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-top: 1px solid var(--ftol-line);
+    color: #6f8197;
+    font-size: .625rem
+}
+
+.ft-order-list-v5 .page-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px
+}
+
+.ft-order-list-v5 .page-controls .btn {
+    min-width: 31px;
+    padding: 6px 9px
+}
+
+@media(max-width:1240px) {
+    .ft-order-list-v5 .filter-toolbar {
+        grid-template-columns: 1fr 1fr 1fr
+    }
+
+    .ft-order-list-v5 .search-box {
+        grid-column: 1/-1
+    }
+
+    .ft-order-list-v5 .filter-toolbar>.ft-order-list-date-range {
+        grid-column: span 2
+    }
+
+    .ft-order-list-v5 .list-stage-strip {
+        grid-template-columns: repeat(4, minmax(0, 1fr))
+    }
+}
+
+@media(max-width:900px) {
+    .ft-order-list-v5 .stage-inline-selects {
+        margin-left: 0;
+        width: 100%
+    }
+
+    .ft-order-list-v5 .stage-inline-selects select {
+        flex: 1;
+        min-width: 150px
+    }
+
+
+    .ft-order-list-v5 .stage-inline-selects .ft-order-v5-stage-search-select {
+        width: auto;
+        min-width: 150px;
+        flex: 1 1 180px
+    }
+}
+
+@media(max-width:760px) {
+    .ft-order-list-v5 .list-head {
+        display: block
+    }
+
+    .ft-order-list-v5 .list-head .top-actions {
+        margin-top: 12px
+    }
+
+    .ft-order-list-v5 .list-stage-strip {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-order-list-v5 .filter-toolbar {
+        grid-template-columns: 1fr
+    }
+
+    .ft-order-list-v5 .search-box {
+        grid-column: auto
+    }
+
+    .ft-order-list-v5 .filter-toolbar>.ft-order-list-date-range {
+        grid-column: auto
+    }
+
+
+    .ft-order-list-v5 .filter-toolbar>.ft-order-v5-search-select {
+        width: 100%;
+        min-width: 0
+    }
+
+    .ft-order-list-v5 .active-filter-line,
+    .ft-order-list-v5 .list-pagination {
+        align-items: flex-start;
+        flex-direction: column
+    }
+}
+
+body:has(.ft-order-list-v5) .ft-shell-topbar {
+    justify-content: space-between
+}
+
+body:has(.ft-order-list-v5) .ft-shell-topbar .mobile-menu {
+    margin-right: 0
+}
+
+body:has(.ft-order-list-v5) .ft-shell-route-crumb {
+    color: #5f7390;
+    font-size: .75rem;
+    font-weight: 650
+}
+
+body:has(.ft-order-list-v5) .ft-shell-order-export {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 11px;
+    border: 1px solid #d9e3ec;
+    border-radius: 8px;
+    background: #fff;
+    color: #10213b;
+    font-size: .625rem;
+    font-weight: 800;
+    text-decoration: none
+}
+
+body:has(.ft-order-list-v5) .ft-shell-order-export:hover {
+    background: #f8fafc;
+    border-color: #c9d5e1
+}
+
+@media(max-width:620px) {
+
+    body:has(.ft-order-list-v5) .ft-shell-route-crumb,
+    body:has(.ft-order-list-v5) .ft-shell-order-export {
+        display: none
+    }
+}
+
+.ft-order-list-v5 .cell-action.danger {
+    border-color: #ecc0c0;
+    background: #fff3f3;
+    color: #a73838
+}
+
+/* 2026-08-24: New Order client-base row tone.
+   Untouched stage-1 Orders use the familiar client tint. Once any task has
+   completed, Blade removes this class and the task/stage row color takes over. */
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row.ft-client-row-iid>td {
+    background-color: #eef9f1
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row.ft-client-row-iid:hover>td {
+    background-color: #e5f5ea
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row.ft-client-row-nep>td {
+    background-color: var(--ft-theme-o-nep, #eef6ff)
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row.ft-client-row-nep:hover>td {
+    background-color: var(--ft-theme-o-nep-hover, #e4f0ff)
+}
+
+/* 2026-08-25: Order list searchable people filters.
+   Owner and stage assignee filters now use the complete active User list and
+   present people with avatars + department/role context, matching FlowTrack's
+   inquiry/task assignee picker instead of looking like a generic select. */
+.ft-order-list-v5 .ft-order-v5-owner-filter .ft-search-select__trigger,
+.ft-order-list-v5 .ft-order-v5-stage-assignee-filter .ft-search-select__trigger {
+    font-size: .6875rem;
+    font-weight: 760;
+}
+
+.ft-order-list-v5 .ft-search-select__selected-user {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+.ft-order-list-v5 .ft-search-select__avatar {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: inline-grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid #d7e5e2;
+    border-radius: 999px;
+    background: #eaf6f3;
+    color: var(--ft-theme-primary, #0f8f7c);
+    font-size: .6875rem;
+    font-weight: 850;
+    line-height: 1;
+}
+
+.ft-order-list-v5 .ft-search-select__avatar--trigger {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    font-size: .625rem;
+}
+
+.ft-order-list-v5 .ft-search-select__avatar img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.ft-order-list-v5 .ft-search-select__user-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.ft-order-list-v5 .ft-search-select__user-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ft-order-list-v5 .ft-search-select__user-copy strong {
+    overflow: hidden;
+    color: #1f3148;
+    font-size: .75rem;
+    font-weight: 780;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-list-v5 .ft-search-select__user-copy small {
+    overflow: hidden;
+    color: #708199;
+    font-size: .625rem !important;
+    font-weight: 620;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-list-v5 .ft-search-select__selected-mark {
+    color: var(--ft-theme-primary, #0f8f7c) !important;
+    font-size: .59375rem !important;
+    font-weight: 800;
+}
+
+.ft-order-list-v5 .ft-order-v5-owner-filter .ft-search-select__option,
+.ft-order-list-v5 .ft-order-v5-stage-assignee-filter .ft-search-select__option {
+    min-height: 48px;
+    padding: 7px 9px;
+}
+
+.ft-order-list-v5 .ft-order-v5-owner-filter .ft-search-select__menu,
+.ft-order-list-v5 .ft-order-v5-stage-assignee-filter .ft-search-select__menu,
+.ft-order-list-v5 .ft-order-v5-supplier-filter .ft-search-select__menu,
+.ft-order-list-v5 .ft-order-v5-stage-client-filter .ft-search-select__menu {
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: 0 16px 34px rgba(23, 42, 66, .16);
+}
+
+.ft-order-list-v5 .stage-inline-selects {
+    align-items: flex-end;
+    flex-wrap: nowrap;
+}
+
+.ft-order-list-v5 .stage-filter-field {
+    display: grid;
+    gap: 5px;
+    width: 220px;
+    min-width: 200px;
+}
+
+.ft-order-list-v5 .stage-filter-caption {
+    padding-left: 2px;
+    color: #667991;
+    font-size: .59375rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: .02em;
+}
+
+.ft-order-list-v5 .stage-filter-field .ft-order-v5-stage-search-select,
+.ft-order-list-v5 .stage-filter-field select {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+}
+
+.ft-order-list-v5 .stage-filter-field-user {
+    width: 240px;
+}
+
+.ft-order-list-v5 .stage-filter-field-user .ft-search-select__trigger {
+    padding-left: 9px;
+}
+
+@media(max-width:1100px) {
+    .ft-order-list-v5 .stage-inline-selects {
+        width: 100%;
+        margin-left: 0;
+        flex-wrap: wrap;
+    }
+
+    .ft-order-list-v5 .stage-filter-field,
+    .ft-order-list-v5 .stage-filter-field-user {
+        width: auto;
+        min-width: 180px;
+        flex: 1 1 220px;
+    }
+}
+
+@media(max-width:620px) {
+    .ft-order-list-v5 .stage-inline-selects {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-list-v5 .stage-filter-field,
+    .ft-order-list-v5 .stage-filter-field-user {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+/* CHANGE 2026-08-26: Orders list responsive hardening for tablet/small-laptop
+   widths where the desktop sidebar still occupies part of the viewport. */
+.ft-order-list-v5,
+.ft-order-list-v5 .list-head,
+.ft-order-list-v5 .list-card,
+.ft-order-list-v5 .filter-toolbar,
+.ft-order-list-v5 .stage-inline-controls,
+.ft-order-list-v5 .table-scroll {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.ft-order-list-v5 .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ft-order-list-v5 .filter-toolbar > *,
+.ft-order-list-v5 .stage-inline-controls > * {
+    min-width: 0;
+}
+
+.ft-order-list-v5 .ft-order-v5-search-select .ft-search-select__menu,
+.ft-order-list-v5 .ft-order-v5-stage-search-select .ft-search-select__menu {
+    max-width: calc(100vw - 24px);
+}
+
+@media (max-width:1180px) and (min-width:901px) {
+    .ft-order-list-v5 .list-head {
+        flex-wrap: wrap;
+    }
+
+    .ft-order-list-v5 .top-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .ft-order-list-v5 .filter-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ft-order-list-v5 .search-box {
+        grid-column: 1 / -1;
+    }
+
+    .ft-order-list-v5 .filter-toolbar > .ft-order-list-date-range {
+        grid-column: 1 / -1;
+    }
+
+    .ft-order-list-v5 .filter-toolbar > .btn {
+        width: 100%;
+    }
+
+    .ft-order-list-v5 .stage-inline-controls {
+        align-items: flex-start;
+    }
+
+    .ft-order-list-v5 .stage-inline-label,
+    .ft-order-list-v5 .stage-view-note {
+        flex: 0 0 100%;
+    }
+
+    .ft-order-list-v5 .stage-inline-quick {
+        width: 100%;
+    }
+
+    .ft-order-list-v5 .stage-inline-selects {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+@media (max-width:900px) {
+    .ft-order-list-v5 .filter-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ft-order-list-v5 .search-box,
+    .ft-order-list-v5 .filter-toolbar > .ft-order-list-date-range {
+        grid-column: 1 / -1;
+    }
+
+    .ft-order-list-v5 .filter-toolbar > .btn {
+        width: 100%;
+    }
+
+    .ft-order-list-v5 .stage-inline-label,
+    .ft-order-list-v5 .stage-view-note,
+    .ft-order-list-v5 .stage-inline-quick,
+    .ft-order-list-v5 .stage-inline-selects {
+        width: 100%;
+    }
+
+    .ft-order-list-v5 .stage-inline-selects {
+        margin-left: 0;
+    }
+}
+
+@media (max-width:760px) {
+    .ft-order-list-v5 .filter-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-list-v5 .search-box,
+    .ft-order-list-v5 .filter-toolbar > .ft-order-list-date-range {
+        grid-column: 1;
+    }
+
+    .ft-order-list-v5 .top-actions {
+        display: grid;
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ft-order-list-v5 .top-actions .btn {
+        width: 100%;
+        min-width: 0;
+        text-align: center;
+    }
+
+    .ft-order-list-v5 .stage-inline-quick {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ft-order-list-v5 .stage-inline-chip {
+        width: 100%;
+        min-width: 0;
+        justify-content: flex-start;
+        white-space: normal;
+    }
+
+    .ft-order-list-v5 .orders-modern-table {
+        min-width: 920px;
+    }
+}
+
+@media (max-width:520px) {
+    .ft-order-list-v5 .top-actions,
+    .ft-order-list-v5 .stage-inline-quick {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-list-v5 .filter-toolbar > .ft-order-list-date-range .ft-date-range-fields {
+        grid-template-columns: 1fr !important;
+    }
+
+    .ft-order-list-v5 .orders-modern-table {
+        min-width: 860px;
+    }
+}
+
+
+/* CHANGE 2026-08-26: container-friendly Order list filters + mobile card list.
+   The Orders page content area can be narrower than the viewport because of the
+   shell/sidebar. The older viewport-only breakpoints let the filter bar break
+   on tablets and small laptops. The rules below make the toolbar adapt to the
+   available content width and turn the table into stacked cards on small
+   screens for a more user-friendly mobile experience. */
+.ft-order-list-v5 .filter-toolbar {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    align-items: stretch;
+}
+
+.ft-order-list-v5 .filter-toolbar > .search-box {
+    grid-column: span 2;
+}
+
+.ft-order-list-v5 .filter-toolbar > .ft-order-list-date-range {
+    grid-column: span 2;
+}
+
+.ft-order-list-v5 .filter-toolbar > .btn {
+    min-width: 112px;
+}
+
+@media (min-width: 1200px) {
+    .ft-order-list-v5 .filter-toolbar {
+        grid-template-columns: minmax(240px, 1.75fr) repeat(3, minmax(150px, .95fr)) minmax(250px, 1.1fr) minmax(112px, auto);
+    }
+
+    .ft-order-list-v5 .filter-toolbar > .search-box,
+    .ft-order-list-v5 .filter-toolbar > .ft-order-list-date-range {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 980px) {
+    .ft-order-list-v5 .filter-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ft-order-list-v5 .filter-toolbar > .search-box,
+    .ft-order-list-v5 .filter-toolbar > .ft-order-list-date-range,
+    .ft-order-list-v5 .filter-toolbar > .btn {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 760px) {
+    .ft-order-list-v5 .filter-toolbar {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .ft-order-list-v5 .filter-toolbar > .search-box,
+    .ft-order-list-v5 .filter-toolbar > .ft-order-list-date-range,
+    .ft-order-list-v5 .filter-toolbar > .btn {
+        grid-column: 1;
+    }
+
+    .ft-order-list-v5 .filter-toolbar > .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 860px) {
+    .ft-order-list-v5 .active-filter-line {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .ft-order-list-v5 .table-scroll {
+        overflow-x: visible;
+    }
+
+    .ft-order-list-v5 .orders-modern-table {
+        min-width: 0 !important;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+        background: transparent;
+    }
+
+    .ft-order-list-v5 .orders-modern-table thead {
+        display: none;
+    }
+
+    .ft-order-list-v5 .orders-modern-table,
+    .ft-order-list-v5 .orders-modern-table tbody,
+    .ft-order-list-v5 .orders-modern-table tr,
+    .ft-order-list-v5 .orders-modern-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody {
+        padding: 12px;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row {
+        margin: 0 0 12px;
+        border: 1px solid #d9e3ec;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 10px 26px rgba(15, 31, 52, .06);
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td {
+        display: grid;
+        grid-template-columns: minmax(96px, 120px) minmax(0, 1fr);
+        align-items: start;
+        gap: 10px;
+        padding: 12px 14px;
+        border-top: 1px solid rgba(212, 223, 234, .9);
+        background-clip: padding-box;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td:first-child {
+        border-top: 0;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td::before {
+        content: attr(data-label);
+        display: block;
+        color: #6b8097;
+        font-size: .59375rem;
+        font-weight: 850;
+        line-height: 1.35;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td > * {
+        min-width: 0;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .client-product-cell,
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .owner-delivery,
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .row-progress {
+        width: 100%;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .cell-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .cell-link,
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .cell-action {
+        min-height: 34px;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .owner-delivery,
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .client-product-cell {
+        align-items: flex-start;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .row-progress {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .stage-chip,
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .urgency-badge,
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .row-status {
+        justify-self: start;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr:not(.order-row) td.empty-list {
+        display: block;
+        border-radius: 16px;
+        border: 1px dashed #d9e3ec;
+        background: #fff;
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 560px) {
+    .ft-order-list-v5 .orders-modern-table tbody {
+        padding: 10px;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td::before {
+        margin-bottom: 2px;
+    }
+
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .order-cell-ref,
+    .ft-order-list-v5 .orders-modern-table tbody tr.order-row > td .stage-table-note {
+        line-height: 1.45;
+    }
+}
+
+/* CHANGE 2026-08-26: definitive Orders filter responsiveness.
+   Use the actual Orders card width, not only viewport width. This matters when
+   the desktop sidebar reduces the content column on tablets/small laptops. */
+.ft-order-list-v5 .orders-table-card {
+    container-type: inline-size;
+    container-name: ft-orders-filter-card;
+}
+
+/* Safe default: never require every filter to remain on one row. */
+.ft-order-list-v5 .orders-table-card > .filter-toolbar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    align-items: stretch;
+    overflow: visible;
+}
+
+.ft-order-list-v5 .orders-table-card > .filter-toolbar > * {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: 100%;
+}
+
+.ft-order-list-v5 .orders-table-card > .filter-toolbar > .search-box {
+    grid-column: span 2;
+}
+
+.ft-order-list-v5 .orders-table-card > .filter-toolbar > .ft-order-list-date-range {
+    grid-column: span 2;
+    min-width: 0 !important;
+    overflow: hidden;
+}
+
+.ft-order-list-v5 .orders-table-card > .filter-toolbar > .ft-order-list-date-range .ft-date-range-fields {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 10px !important;
+}
+
+.ft-order-list-v5 .orders-table-card > .filter-toolbar > .ft-order-list-date-range .ft-date-range-field,
+.ft-order-list-v5 .orders-table-card > .filter-toolbar > .ft-order-list-date-range .ft-date-range-field input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+.ft-order-list-v5 .orders-table-card > .filter-toolbar > .btn {
+    min-width: 0 !important;
+    width: 100%;
+}
+
+/* Plenty of real content width: keep the compact one-row desktop toolbar. */
+@container ft-orders-filter-card (min-width: 1460px) {
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar {
+        grid-template-columns:
+            minmax(260px, 1.7fr)
+            minmax(160px, .9fr)
+            minmax(160px, .9fr)
+            minmax(160px, .9fr)
+            minmax(340px, 1.15fr)
+            minmax(110px, .55fr);
+    }
+
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar > .search-box,
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar > .ft-order-list-date-range {
+        grid-column: auto;
+    }
+}
+
+/* Small laptop / tablet content width. */
+@container ft-orders-filter-card (max-width: 1080px) {
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar > .search-box,
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar > .ft-order-list-date-range,
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar > .btn {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Phones / narrow split-screen windows. */
+@container ft-orders-filter-card (max-width: 620px) {
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar {
+        grid-template-columns: 1fr;
+        padding: 12px;
+    }
+
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar > .search-box,
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar > .ft-order-list-date-range,
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar > .btn {
+        grid-column: 1;
+    }
+
+    .ft-order-list-v5 .orders-table-card > .filter-toolbar > .ft-order-list-date-range .ft-date-range-fields {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Card-style Orders list whenever the Orders card itself is narrow. */
+@container ft-orders-filter-card (max-width: 820px) {
+    .ft-order-list-v5 .orders-table-card .active-filter-line {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .ft-order-list-v5 .orders-table-card .table-scroll {
+        overflow-x: visible;
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table {
+        min-width: 0 !important;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+        background: transparent;
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table thead {
+        display: none;
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table,
+    .ft-order-list-v5 .orders-table-card .orders-modern-table tbody,
+    .ft-order-list-v5 .orders-table-card .orders-modern-table tr,
+    .ft-order-list-v5 .orders-table-card .orders-modern-table td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table tbody {
+        padding: 12px;
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table tbody tr.order-row {
+        margin: 0 0 12px;
+        border: 1px solid #d9e3ec;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 8px 22px rgba(15, 31, 52, .06);
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table tbody tr.order-row > td {
+        display: grid;
+        grid-template-columns: minmax(100px, 120px) minmax(0, 1fr);
+        align-items: start;
+        gap: 10px;
+        padding: 12px 14px;
+        border-top: 1px solid rgba(212, 223, 234, .9);
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table tbody tr.order-row > td:first-child {
+        border-top: 0;
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table tbody tr.order-row > td::before {
+        content: attr(data-label);
+        color: #6b8097;
+        font-size: .59375rem;
+        font-weight: 850;
+        line-height: 1.35;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table tbody tr.order-row > td > * {
+        min-width: 0;
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table .client-product-cell,
+    .ft-order-list-v5 .orders-table-card .orders-modern-table .owner-delivery,
+    .ft-order-list-v5 .orders-table-card .orders-modern-table .row-progress {
+        width: 100%;
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table .cell-controls {
+        flex-wrap: wrap;
+    }
+}
+
+@container ft-orders-filter-card (max-width: 520px) {
+    .ft-order-list-v5 .orders-table-card .orders-modern-table tbody {
+        padding: 10px;
+    }
+
+    .ft-order-list-v5 .orders-table-card .orders-modern-table tbody tr.order-row > td {
+        grid-template-columns: 1fr;
+        gap: 7px;
+        padding: 11px 12px;
+    }
+}
+
+/* Order list toolbar: full-width search followed by one compact filter row.
+   Created Today and Completed are intentionally available from the summary cards,
+   so the toolbar keeps only the operational filters. */
+.ft-order-list-v5 .orders-table-card > .ft-order-filter-layout {
+    display: block;
+    padding: 12px 14px;
+    overflow: visible;
+    border-bottom: 1px solid var(--ftol-line);
+    background: #fff;
+}
+
+.ft-order-list-v5 .ft-order-filter-search-row {
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-order-list-v5 .ft-order-filter-search-row .search-box,
+.ft-order-list-v5 .ft-order-filter-search-row .search-box input {
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-order-list-v5 .ft-order-filter-search-row .search-box input {
+    height: 40px;
+    min-height: 40px;
+    padding: 0 12px 0 34px;
+    border: 1px solid #ccd8e4;
+    border-radius: 9px;
+    background: #fff;
+    color: #263950;
+    font-size: .6875rem;
+}
+
+.ft-order-list-v5 .ft-order-filter-controls-row,
+.ft-order-list-v5 .ft-order-filter-main-row {
+    display: grid;
+    grid-template-columns:
+        minmax(86px, .45fr)
+        minmax(115px, .6fr)
+        minmax(170px, .9fr)
+        minmax(190px, 1.15fr)
+        minmax(190px, 1.15fr)
+        minmax(360px, 1.75fr)
+        82px;
+    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+    margin-top: 8px;
+}
+
+.ft-order-list-v5 .ft-order-filter-controls-row > * {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: 100%;
+}
+
+.ft-order-list-v5 .ft-order-filter-chip,
+.ft-order-list-v5 .ft-order-filter-reset,
+.ft-order-list-v5 .ft-order-filter-controls-row .ft-order-native-filter,
+.ft-order-list-v5 .ft-order-filter-controls-row .ft-search-select__trigger {
+    height: 40px;
+    min-height: 40px;
+    border: 1px solid #ccd8e4;
+    border-radius: 8px;
+    background: #fff;
+    color: #42556e;
+    font: 750 .625rem/1 var(--ft-theme-font-family);
+}
+
+.ft-order-list-v5 .ft-order-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 12px;
+    white-space: nowrap;
+}
+
+.ft-order-list-v5 .ft-order-filter-chip:hover,
+.ft-order-list-v5 .ft-order-filter-chip.active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-primary-soft, #edf8f5);
+    color: var(--ft-theme-primary);
+}
+
+.ft-order-list-v5 .ft-order-hold-filter {
+    cursor: pointer;
+    user-select: none;
+}
+
+.ft-order-list-v5 .ft-order-hold-filter input {
+    width: 15px !important;
+    height: 15px;
+    min-width: 15px !important;
+    margin: 0;
+    accent-color: #f28c28;
+}
+
+.ft-order-list-v5 .ft-order-hold-filter.active {
+    border-color: #f0a65a;
+    background: #fff5e9;
+    color: #b75a00;
+}
+
+.ft-order-list-v5 .ft-order-filter-controls-row .ft-order-native-filter {
+    padding: 0 30px 0 11px;
+    outline: 0;
+}
+
+.ft-order-list-v5 .ft-order-filter-controls-row .ft-order-v5-search-select {
+    margin: 0 !important;
+}
+
+.ft-order-list-v5 .ft-order-filter-controls-row .ft-order-list-date-range {
+    display: block !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+}
+
+.ft-order-list-v5 .ft-order-filter-controls-row .ft-order-list-date-range .ft-date-range-fields {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+
+.ft-order-list-v5 .ft-order-filter-controls-row .ft-order-list-date-range .ft-date-range-field {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 7px !important;
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-order-list-v5 .ft-order-filter-controls-row .ft-order-list-date-range .ft-date-range-field > span {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    clip: auto !important;
+    color: #65758a;
+    font-size: .5625rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.ft-order-list-v5 .ft-order-filter-controls-row .ft-order-list-date-range input {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 9px !important;
+    border: 1px solid #ccd8e4 !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    color: #263950;
+    font-size: .625rem;
+}
+
+.ft-order-list-v5 .ft-order-filter-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: end;
+    gap: 4px;
+    width: 82px !important;
+    min-width: 82px !important;
+    max-width: 82px !important;
+    padding: 0 8px;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.ft-order-list-v5 .ft-order-filter-reset > .ft-filter-reset__icon {
+    font-size: .75rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.ft-order-list-v5 .ft-order-filter-reset > span:not(.ft-filter-reset__icon) {
+    font-size: .65625rem;
+    font-weight: 720;
+}
+
+.ft-order-list-v5 .ft-order-filter-reset:disabled {
+    cursor: default;
+    opacity: .42;
+}
+
+@media (max-width: 1500px) {
+    .ft-order-list-v5 .ft-order-filter-main-row {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .ft-order-list-v5 .ft-order-filter-main-row .ft-order-list-date-range {
+        grid-column: span 2;
+    }
+
+    .ft-order-list-v5 .ft-order-filter-main-row .ft-order-filter-reset {
+        justify-self: end;
+    }
+}
+
+@media (max-width: 1180px) {
+    .ft-order-list-v5 .ft-order-filter-main-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .ft-order-list-v5 .ft-order-filter-main-row .ft-order-list-date-range {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 980px) {
+    .ft-order-list-v5 .ft-order-filter-main-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ft-order-list-v5 .ft-order-filter-main-row .ft-order-list-date-range,
+    .ft-order-list-v5 .ft-order-filter-main-row .ft-order-filter-reset {
+        grid-column: 1 / -1;
+    }
+
+    .ft-order-list-v5 .ft-order-filter-main-row .ft-order-filter-reset {
+        justify-self: stretch;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+}
+
+@media (max-width: 620px) {
+    .ft-order-list-v5 .orders-table-card > .ft-order-filter-layout {
+        padding: 10px;
+    }
+
+    .ft-order-list-v5 .ft-order-filter-main-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-list-v5 .ft-order-filter-main-row .ft-order-list-date-range,
+    .ft-order-list-v5 .ft-order-filter-main-row .ft-order-filter-reset {
+        grid-column: 1;
+    }
+
+    .ft-order-list-v5 .ft-order-filter-main-row .ft-order-list-date-range .ft-date-range-fields {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+
+/* Order Health is intentionally not part of the product UI. Keep the list grid
+   aligned to the visible columns only, and defensively hide legacy health cells
+   if stale cached markup is ever hydrated during navigation. */
+.ft-orders-prototype .ft-health-cell { display: none !important; }
+.ft-orders-prototype .ft-job-head,
+.ft-orders-prototype .ft-job-row {
+    grid-template-columns: 150px 185px 155px 300px 185px 125px 195px 110px 38px;
+    min-width: 1620px;
+}
+@media (max-width: 1380px) {
+    .ft-orders-prototype .ft-job-row {
+        min-width: 0;
+        grid-template-columns: minmax(140px,1fr) minmax(125px,.8fr) minmax(130px,.9fr) 32px;
+        grid-template-areas:
+            "identity created inquiry actions"
+            "brief brief owner progress"
+            "stage flag flag progress";
+    }
+}
+@media (max-width: 680px) {
+    .ft-orders-prototype .ft-job-row,
+    .ft-orders-prototype .ft-job-row.ft-client-row-iid,
+.ft-orders-prototype .ft-job-row.ft-client-row-nep {
+        grid-template-columns: repeat(6,minmax(0,1fr));
+        grid-template-areas:
+            "identity identity identity identity identity identity"
+            "created created created inquiry inquiry inquiry"
+            "brief brief brief brief brief brief"
+            "stage stage flag flag flag flag"
+            "owner owner owner owner owner owner"
+            "progress progress progress progress progress progress";
+    }
+}
+
+/* CHANGE 2026-08-31: Keep Client & Product compact on the overview table.
+   The workflow-stage tables retain their own column sizing, while narrow
+   containers continue to use the existing card layout above. */
+@container ft-orders-filter-card (min-width: 821px) {
+    .ft-order-list-v5 .orders-modern-table--overview {
+        min-width: 1050px;
+        table-layout: fixed;
+    }
+
+    .ft-order-list-v5 .orders-modern-table--overview th:first-child,
+    .ft-order-list-v5 .orders-modern-table--overview td:first-child {
+        width: 175px;
+    }
+
+    .ft-order-list-v5 .orders-modern-table--overview .client-product-column {
+        width: 400px;
+        max-width: 400px;
+        overflow: hidden;
+    }
+}
+
+@container ft-orders-filter-card (min-width: 821px) and (max-width: 1180px) {
+    .ft-order-list-v5 .orders-modern-table--overview .client-product-column {
+        width: 350px;
+        max-width: 350px;
+    }
+}
+
+
+/* 2026-09-09: Order Hold list visibility */
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row.is-on-hold>td {
+    background-color: rgba(255, 106, 0, .10) !important;
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row.is-on-hold:hover>td {
+    background-color: rgba(255, 106, 0, .16) !important;
+}
+
+.ft-order-list-v5 .orders-modern-table tbody tr.order-row.is-on-hold>td:first-child {
+    box-shadow: inset 4px 0 0 #ff6a00 !important;
+}
+
+.ft-order-list-v5 .row-status.hold,
+.ft-order-list-v5 .order-hold-list-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid #ffb27d;
+    border-radius: 999px;
+    background: #fff4ec;
+    color: #d95600;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.ft-order-list-v5 .row-status.hold {
+    padding: 5px 9px;
+}
+
+.ft-order-list-v5 .order-hold-list-badge {
+    margin-top: 5px;
+    padding: 3px 7px;
+    width: max-content;
+    font-size: .5625rem;
+    line-height: 1;
+}

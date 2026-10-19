@@ -1,0 +1,19 @@
+# Install/enable on one designated scheduler node. A standby may be kept
+# disabled; scheduled tasks also use shared-cache locks where applicable.
+[Unit]
+Description=FlowTrack scheduler
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/FlowTracker
+ExecStart=/usr/bin/php artisan schedule:work
+Restart=always
+RestartSec=3
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

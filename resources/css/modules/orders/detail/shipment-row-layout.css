@@ -1,0 +1,404 @@
+/*
+ * Shipment-stage row-first UX.
+ * Task 5.1 stays read-only by default; each shipment owns its own Edit action.
+ */
+.ft-order-prototype-detail .ft-ms-plan-summary {
+    min-height: 42px;
+    margin-bottom: 10px;
+    padding: 7px 9px;
+    border: 1px solid #e1e8f0;
+    border-radius: 7px;
+    background: #fbfdfd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.ft-order-prototype-detail .ft-ms-plan-summary__copy {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.ft-order-prototype-detail .ft-ms-plan-summary__count,
+.ft-order-prototype-detail .ft-ms-plan-summary__mode {
+    display: inline-flex;
+    align-items: center;
+    min-height: 23px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-ms-plan-summary__count {
+    background: #e8f7f3;
+    color: #087f72;
+}
+
+.ft-order-prototype-detail .ft-ms-plan-summary__mode {
+    background: #f0f4f8;
+    color: #52657f;
+}
+
+.ft-order-prototype-detail .ft-ms-plan-summary__hint {
+    color: #718198;
+    font-size: 10px;
+}
+
+.ft-order-prototype-detail .ft-ms-plan-summary__add {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+/* The plan table deliberately groups address fields so long addresses do not
+ * force ten narrow columns or push Actions outside the task card. */
+.ft-order-prototype-detail .ft-ms-table--plan {
+    table-layout: fixed;
+}
+
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(1) { width: 9%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(2) { width: 9%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(3) { width: 37%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(4) { width: 18%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(5) { width: 17%; }
+.ft-order-prototype-detail .ft-ms-table--plan th:nth-child(6) { width: 10%; text-align: right; }
+
+.ft-order-prototype-detail .ft-ms-table--plan td:last-child {
+    text-align: right;
+}
+
+.ft-order-prototype-detail .ft-ms-delivery {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.ft-order-prototype-detail .ft-ms-delivery__recipient {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.ft-order-prototype-detail .ft-ms-delivery__recipient > svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+    color: #526b89;
+}
+
+.ft-order-prototype-detail .ft-ms-delivery__recipient > div {
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-delivery__recipient strong {
+    color: var(--ms-text);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-ms-delivery__recipient small {
+    color: #718198;
+    font-size: 9px;
+}
+
+.ft-order-prototype-detail .ft-ms-delivery address {
+    margin: 0;
+    color: #263955;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 650;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-ms-delivery__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 3px 8px;
+    color: #667892;
+    font-size: 9px;
+}
+
+.ft-order-prototype-detail .ft-ms-delivery__meta span + span::before {
+    content: '•';
+    margin-right: 8px;
+    color: #a0adbd;
+}
+
+.ft-order-prototype-detail .ft-ms-method-display {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-method-display > span:last-child {
+    min-width: 0;
+    display: grid;
+    gap: 1px;
+}
+
+.ft-order-prototype-detail .ft-ms-method-display strong,
+.ft-order-prototype-detail .ft-ms-method-display small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ft-order-prototype-detail .ft-ms-method-display strong {
+    color: var(--ms-text);
+    font-size: 10px;
+    font-weight: 800;
+    white-space: normal;
+}
+
+.ft-order-prototype-detail .ft-ms-method-display small {
+    color: #667892;
+    font-size: 9px;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-ms-missing-value {
+    color: #b46514;
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.ft-order-prototype-detail .ft-ms-package-reference {
+    display: block;
+    color: #42536c;
+    font-size: 10px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-ms-row-actions {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.ft-order-prototype-detail .ft-ms-row-edit {
+    min-width: 58px;
+    padding: 0 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-review-panel--compact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.ft-order-prototype-detail .ft-ms-review-panel--compact .ft-ms-review-panel__actions {
+    margin-top: 0;
+    flex: 0 0 auto;
+}
+
+/* Task 5.2 opens incomplete courier/tracking fields automatically when the
+ * task becomes active. Once saved, each value returns to a compact inline
+ * display with a pencil control, matching the task assignee interaction. */
+.ft-order-prototype-detail .ft-ms-table--tracking th:nth-child(1) { width: 14%; }
+.ft-order-prototype-detail .ft-ms-table--tracking th:nth-child(2) { width: 34%; }
+.ft-order-prototype-detail .ft-ms-table--tracking th:nth-child(3) { width: 52%; }
+
+.ft-order-prototype-detail .ft-ms-tracking-value {
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    color: var(--ms-text);
+    font-size: 10px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-ms-tracking-value .is-empty {
+    color: #8391a3;
+    font-weight: 600;
+}
+
+.ft-order-prototype-detail .ft-ms-inline-field {
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-courier-value,
+.ft-order-prototype-detail .ft-ms-tracking-value {
+    gap: 6px;
+}
+
+.ft-order-prototype-detail .ft-ms-cell-edit-button {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #238e84;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-cell-edit-button:hover {
+    background: #e9f6f3;
+}
+
+.ft-order-prototype-detail .ft-ms-cell-edit-button:focus-visible {
+    outline: 2px solid rgba(7, 141, 128, .18);
+    outline-offset: 2px;
+}
+
+.ft-order-prototype-detail .ft-ms-cell-edit-button svg {
+    width: 12px;
+    height: 12px;
+}
+
+.ft-order-prototype-detail .ft-ms-table--tracking tr.is-inline-saving {
+    opacity: .72;
+}
+
+/* Add/Edit Shipment uses a simple per-shipment address choice rather than the
+ * old global multiple-shipment controls. */
+.ft-order-prototype-detail .ft-ms-address-mode {
+    margin: 0 22px;
+    padding: 10px 12px;
+    border: 1px solid #dce5ef;
+    border-radius: 8px;
+    background: #fbfcfe;
+}
+
+.ft-order-prototype-detail .ft-ms-address-mode__label {
+    display: block;
+    margin-bottom: 7px;
+    color: #5c6d86;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.ft-order-prototype-detail .ft-ms-address-mode__options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-address-choice {
+    min-width: 0;
+    min-height: 52px;
+    padding: 8px 10px;
+    border: 1px solid #d5dfeb;
+    border-radius: 7px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-address-choice.is-selected {
+    border-color: #62bcb1;
+    background: #f0faf7;
+    box-shadow: 0 0 0 1px rgba(0, 139, 122, .05);
+}
+
+.ft-order-prototype-detail .ft-ms-address-choice input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    flex: 0 0 16px;
+    accent-color: var(--ms-green);
+}
+
+.ft-order-prototype-detail .ft-ms-address-choice > span {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.ft-order-prototype-detail .ft-ms-address-choice strong {
+    color: var(--ms-text);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-ms-address-choice small {
+    color: #718198;
+    font-size: 9px;
+    line-height: 1.3;
+}
+
+@media (max-width: 1100px) {
+    .ft-order-prototype-detail .ft-ms-table-wrap--plan,
+    .ft-order-prototype-detail .ft-ms-table-wrap--tracking {
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+    }
+
+    .ft-order-prototype-detail .ft-ms-table--plan { min-width: 900px; }
+    .ft-order-prototype-detail .ft-ms-table--tracking { min-width: 700px; }
+}
+
+@media (max-width: 700px) {
+    .ft-order-prototype-detail .ft-ms-plan-summary,
+    .ft-order-prototype-detail .ft-ms-review-panel--compact {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ft-order-prototype-detail .ft-ms-plan-summary__add,
+    .ft-order-prototype-detail .ft-ms-review-panel--compact .ft-ms-review-panel__actions,
+    .ft-order-prototype-detail .ft-ms-review-panel--compact .ft-ms-primary-btn {
+        width: 100%;
+    }
+
+    .ft-order-prototype-detail .ft-ms-address-mode__options {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Courier is operational tracking data, separate from the delivery method.
+ * Keep both the read state and per-row editor compact so multi-shipment rows
+ * remain easy to scan. */
+.ft-order-prototype-detail .ft-ms-courier-value {
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    color: var(--ms-text);
+    font-size: 10px;
+}
+
+.ft-order-prototype-detail .ft-ms-courier-value strong {
+    font-weight: 750;
+}
+
+.ft-order-prototype-detail .ft-ms-courier-select {
+    width: 100%;
+    min-height: 30px;
+    border: 1px solid #c9d6e5;
+    border-radius: 5px;
+    padding: 4px 28px 4px 8px;
+    background: #fff;
+    color: var(--ms-text);
+    font-size: 10px;
+}
+
+.ft-order-prototype-detail .ft-ms-courier-select:focus {
+    outline: none;
+    border-color: #0c968a;
+    box-shadow: 0 0 0 2px rgba(12, 150, 138, .09);
+}

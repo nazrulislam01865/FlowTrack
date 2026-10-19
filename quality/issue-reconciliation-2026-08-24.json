@@ -1,0 +1,30 @@
+{
+  "source": "Archive 3(20260824-073746).zip",
+  "input_test_result": {
+    "failed": 35,
+    "passed": 300,
+    "assertions": 2823
+  },
+  "production_fixes": [
+    "order_workflow_runtime_mirror_before_phase_insert",
+    "client_specific_order_workflow_precedence",
+    "dashboard_shipping_metric",
+    "orders_shared_date_range_exclusivity",
+    "order_owner_inline_save_state",
+    "admin_reviewed_get_reduction",
+    "phase15_ci_workflow"
+  ],
+  "validation": {
+    "php_lint": "pass_640_files",
+    "quality_phase15": "pass",
+    "flowtrack_css_present": false,
+    "legacy_css_directory_present": false,
+    "migration_css_directory_present": false
+  },
+  "environment_limitations": [
+    "vendor_directory_absent",
+    "node_modules_directory_absent",
+    "full_phpunit_not_executed_here",
+    "fresh_vite_build_not_executed_here"
+  ]
+}

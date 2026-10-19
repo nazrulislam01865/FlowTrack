@@ -1,0 +1,101 @@
+/* Shared shipment row actions, review footer, and location master-data controls. */
+.ft-order-prototype-detail .ft-ms-row-edit {
+    min-height: 28px;
+    border: 1px solid #b9ddd8;
+    border-radius: 5px;
+    background: #fff;
+    color: #087f72;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 7px;
+    font-size: 9px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-ms-row-edit:hover {
+    border-color: #6bbcb2;
+    background: #f0fbf8;
+}
+
+.ft-order-prototype-detail .ft-ms-row-edit:focus-visible {
+    outline: 2px solid rgba(0, 139, 122, .18);
+    outline-offset: 1px;
+}
+
+.ft-order-prototype-detail .ft-ms-row-edit svg {
+    width: 12px;
+    height: 12px;
+}
+
+.ft-order-prototype-detail .ft-ms-readonly-dash {
+    color: #8795a8;
+}
+
+.ft-order-prototype-detail .ft-ms-review-panel {
+    margin-top: 10px;
+    border: 1px solid #dce8e5;
+    border-radius: 7px;
+    background: #f8fcfb;
+    padding: 10px 12px;
+}
+
+.ft-order-prototype-detail .ft-ms-review-panel strong {
+    display: block;
+    color: var(--ms-text);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-ms-review-panel p {
+    margin: 3px 0 0;
+    color: #62748d;
+    font-size: 10px;
+    line-height: 1.45;
+}
+
+.ft-order-prototype-detail .ft-ms-review-panel__actions {
+    margin-top: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-ms-review-panel__actions svg {
+    width: 14px;
+    height: 14px;
+}
+
+.ft-order-prototype-detail .ft-ms-location-select {
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-ms-location-select > .ft-search-select__trigger {
+    min-height: 37px;
+    border-color: #cedae8;
+    border-radius: 6px;
+    background: #fff;
+    padding: 0 10px;
+    font-size: 11px;
+}
+
+.ft-order-prototype-detail .ft-ms-field-hint {
+    color: #8a5f13;
+    font-size: 8px;
+    line-height: 1.35;
+}
+
+@media (max-width: 600px) {
+    .ft-order-prototype-detail .ft-ms-review-panel__actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ft-order-prototype-detail .ft-ms-review-panel__actions > button {
+        width: 100%;
+    }
+}

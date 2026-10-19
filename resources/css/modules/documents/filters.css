@@ -1,0 +1,29 @@
+@layer ft-modules {
+    #document-archive-app .ft-da-search-select {
+        min-width: 0;
+    }
+
+    #document-archive-app .ft-da-search-select>.ft-search-select__trigger {
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
+        padding-inline: var(--ft-space-3) var(--ft-space-8);
+        border-radius: calc(var(--ft-radius-sm) - var(--ft-border-width-thin));
+        font-size: var(--ft-font-size-xs);
+        font-weight: var(--ft-font-weight-semibold);
+    }
+
+    #document-archive-app .ft-da-search-select>.ft-search-select__trigger:focus-visible,
+    #document-archive-app .ft-da-search-select>.ft-search-select__trigger[aria-expanded="true"] {
+        border-color: var(--ft-focus-border);
+        box-shadow: var(--ft-focus-ring);
+    }
+
+    #document-archive-app .ft-da-search-select .ft-search-select__menu {
+        min-width: var(--ft-content-width-sm);
+    }
+
+    #document-archive-app .ft-doc-upload-modal .ft-search-select {
+        width: 100%;
+    }
+}

@@ -1,0 +1,38 @@
+{
+    "schema": 1,
+    "phase": 1,
+    "flowtrack_css": {
+        "phase0_ceiling": {
+            "bytes": 598980,
+            "important": 1236,
+            "hex_colors": 2887
+        },
+        "phase1_current": {
+            "bytes": 598656,
+            "important": 1236,
+            "hex_colors": 2870,
+            "lines": 7354
+        }
+    },
+    "composition": {
+        "bytes": 610468,
+        "generated_chunks": {
+            "flowtrack-01.css": 152677,
+            "flowtrack-02.css": 152599,
+            "flowtrack-03.css": 152600,
+            "flowtrack-04.css": 152592
+        }
+    },
+    "validation": {
+        "legacy_payload_after_root_byte_identical": true,
+        "app_css_composition_only": true,
+        "legacy_debt_non_increasing": true,
+        "managed_foundation_raw_color_literals": 0,
+        "managed_foundation_important": 0
+    },
+    "environment_gates_pending": [
+        "full PHPUnit in dependency-complete Composer environment",
+        "approved authenticated visual baselines",
+        "production Vite build after npm dependencies are installed"
+    ]
+}

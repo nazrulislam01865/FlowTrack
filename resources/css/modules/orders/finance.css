@@ -1,0 +1,1973 @@
+.ft-order-finance {
+    --fin-blue: var(--ft-theme-primary);
+    --fin-ink: #172337;
+    --fin-muted: #6d788b;
+    --fin-line: #e1e6ed;
+    --fin-bg: #fff;
+    --fin-soft: #f7f9fc;
+    --fin-red: #d83a43;
+    --fin-red-soft: #fff3f3;
+    --fin-green: #179c68;
+    --fin-green-soft: #effaf5;
+    padding: 2px 0 24px;
+    color: var(--fin-ink)
+}
+
+.ft-order-finance * {
+    box-sizing: border-box
+}
+
+.ft-finance-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 5px 1px 15px
+}
+
+.ft-finance-title-row h2 {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.25;
+    font-weight: 800;
+    color: #152033
+}
+
+.ft-finance-title-row p {
+    margin: 4px 0 0;
+    color: #788396;
+    font-size: .6875rem
+}
+
+.ft-finance-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center
+}
+
+.ft-finance-btn {
+    height: 36px;
+    border-radius: 6px;
+    padding: 0 14px;
+    border: 1px solid #aeb8c7;
+    background: #fff;
+    color: #2c3b50;
+    font-size: .6875rem;
+    font-weight: 750;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .02)
+}
+
+.ft-finance-btn.primary {
+    border-color: var(--fin-blue);
+    background: var(--fin-blue);
+    color: #fff
+}
+
+.ft-finance-btn.primary:hover {
+    background: var(--ft-theme-primary)
+}
+
+.ft-finance-btn.secondary:hover {
+    border-color: #8493a8;
+    background: #fafbfd
+}
+
+.ft-finance-metrics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 14px
+}
+
+.ft-finance-metric {
+    min-height: 96px;
+    border: 1px solid var(--fin-line);
+    border-radius: 8px;
+    background: #fff;
+    padding: 15px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .02)
+}
+
+.ft-finance-metric>div>span {
+    display: block;
+    color: #353f50;
+    font-size: .625rem;
+    font-weight: 600
+}
+
+.ft-finance-metric strong {
+    display: block;
+    margin-top: 4px;
+    color: #101827;
+    font-size: 1.375rem;
+    line-height: 1;
+    font-weight: 820;
+    letter-spacing: -.4px
+}
+
+.ft-finance-metric small {
+    display: block;
+    margin-top: 8px;
+    color: var(--fin-green);
+    font-size: .5625rem
+}
+
+.ft-finance-metric.is-danger strong {
+    color: #d62531
+}
+
+.ft-finance-metric-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto
+}
+
+.ft-finance-metric-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-finance-metric-icon.blue {
+    color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary-soft)
+}
+
+.ft-finance-metric-icon.green {
+    color: #148d5f;
+    background: #eaf8f2
+}
+
+.ft-finance-metric-icon.red {
+    color: #d73943;
+    background: #fff0f0
+}
+
+.ft-finance-overdue {
+    min-height: 74px;
+    margin-bottom: 14px;
+    border: 1px solid #f2cbcf;
+    border-radius: 7px;
+    background: #fff6f6;
+    display: grid;
+    grid-template-columns: 46px 230px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px
+}
+
+.ft-overdue-icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    color: #d6303b
+}
+
+.ft-overdue-icon svg {
+    width: 35px;
+    height: 35px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-finance-overdue strong {
+    color: #d32632;
+    font-size: .6875rem
+}
+
+.ft-finance-overdue p {
+    margin: 4px 0 0;
+    color: #566276;
+    font-size: .625rem
+}
+
+.ft-overdue-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #455164;
+    font-size: .625rem
+}
+
+.ft-overdue-meta b {
+    font-weight: 700
+}
+
+.ft-overdue-meta i {
+    font-style: normal;
+    color: #9aa4b2
+}
+
+.ft-overdue-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.ft-overdue-actions button {
+    height: 33px;
+    border-radius: 6px;
+    padding: 0 14px;
+    font-size: .625rem;
+    font-weight: 750;
+    background: transparent
+}
+
+.ft-overdue-actions .reminder {
+    border: 1px solid #e69398;
+    color: #c8323b;
+    background: #fff
+}
+
+.ft-overdue-actions .update {
+    border: 0;
+    color: var(--ft-theme-primary)
+}
+
+.ft-finance-healthy {
+    min-height: 62px;
+    margin-bottom: 14px;
+    border: 1px solid #cce7d9;
+    border-radius: 7px;
+    background: #f4fbf7;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    color: #246b4d
+}
+
+.ft-finance-healthy>span {
+    font-size: 1.25rem
+}
+
+.ft-finance-healthy strong {
+    font-size: .6875rem
+}
+
+.ft-finance-healthy p {
+    margin: 3px 0 0;
+    font-size: .5625rem;
+    color: #5c7a6c
+}
+
+.ft-finance-healthy button {
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-weight: 750
+}
+
+.ft-finance-table-card,
+.ft-finance-collection-card {
+    border: 1px solid var(--fin-line);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .018);
+    overflow: hidden
+}
+
+.ft-finance-table-card {
+    margin-bottom: 14px
+}
+
+.ft-finance-table-card>h3,
+.ft-finance-collection-card>h3 {
+    margin: 0;
+    padding: 13px 15px 10px;
+    color: #202a3a;
+    font-size: .75rem;
+    font-weight: 800
+}
+
+.ft-finance-table-wrap {
+    overflow: auto
+}
+
+.ft-finance-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 840px
+}
+
+.ft-finance-table th {
+    height: 32px;
+    padding: 0 15px;
+    background: #fbfcfd;
+    border-top: 1px solid #ebeff4;
+    border-bottom: 1px solid #e4e9ef;
+    color: #657186;
+    font-size: .5625rem;
+    font-weight: 650;
+    text-align: left;
+    white-space: nowrap
+}
+
+.ft-finance-table td {
+    height: 44px;
+    padding: 8px 15px;
+    border-bottom: 1px solid #eceff3;
+    color: #283444;
+    font-size: .625rem;
+    vertical-align: middle;
+    white-space: nowrap
+}
+
+.ft-finance-table tr:last-child td {
+    border-bottom: 0
+}
+
+.ft-finance-link {
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-weight: 800
+}
+
+.ft-finance-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    height: 23px;
+    padding: 0 9px;
+    border-radius: 4px;
+    font-size: .5625rem;
+    font-weight: 750
+}
+
+.ft-finance-status.paid {
+    color: #177447;
+    background: #e9f7ef
+}
+
+.ft-finance-status.overdue {
+    color: #cb2835;
+    background: #fff0f1
+}
+
+.ft-finance-status.partial {
+    color: #a96a08;
+    background: #fff4df
+}
+
+.ft-finance-status.sent {
+    color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary-soft)
+}
+
+.ft-finance-status.draft,
+.ft-finance-status.cancelled {
+    color: #647083;
+    background: #eef1f5
+}
+
+.ft-finance-kebab {
+    border: 0;
+    background: transparent;
+    color: #1c2634;
+    font-size: .8125rem;
+    font-weight: 900;
+    letter-spacing: 1px
+}
+
+.ft-finance-empty {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: #7a8494
+}
+
+.ft-finance-empty strong {
+    color: #2d3848;
+    font-size: .6875rem
+}
+
+.ft-finance-empty span {
+    font-size: .5625rem
+}
+
+.ft-finance-empty button {
+    margin-top: 5px;
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    font-weight: 750;
+    font-size: .625rem
+}
+
+.ft-finance-empty.compact {
+    min-height: 80px
+}
+
+.ft-finance-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(330px, 1fr);
+    gap: 14px
+}
+
+.ft-finance-bottom-grid .ft-finance-table-card {
+    margin: 0
+}
+
+.ft-payment-history .ft-finance-table {
+    min-width: 700px
+}
+
+.ft-finance-collection-card {
+    padding-bottom: 10px
+}
+
+.ft-finance-collection-card dl {
+    margin: 0;
+    padding: 1px 15px 6px
+}
+
+.ft-finance-collection-card dl>div {
+    display: grid;
+    grid-template-columns: 125px 1fr;
+    gap: 10px;
+    margin: 12px 0;
+    font-size: .625rem
+}
+
+.ft-finance-collection-card dt {
+    color: #687487
+}
+
+.ft-finance-collection-card dd {
+    margin: 0;
+    color: #273342
+}
+
+.ft-finance-collection-card dd button {
+    border: 0;
+    background: transparent;
+    color: #597088;
+    font-size: .625rem
+}
+
+.ft-collection-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 15px 2px
+}
+
+.ft-collection-footer summary {
+    list-style: none;
+    cursor: pointer;
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    font-weight: 750
+}
+
+.ft-collection-footer summary::-webkit-details-marker {
+    display: none
+}
+
+.ft-collection-footer>button {
+    height: 32px;
+    border: 1px solid #abb5c3;
+    border-radius: 5px;
+    background: #fff;
+    padding: 0 13px;
+    color: #354154;
+    font-size: .625rem;
+    font-weight: 700
+}
+
+.ft-collection-history {
+    margin-top: 10px;
+    max-height: 160px;
+    overflow: auto;
+    border-top: 1px solid #edf0f4;
+    padding-top: 6px
+}
+
+.ft-collection-history>div {
+    display: grid;
+    gap: 2px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f2f5
+}
+
+.ft-collection-history b {
+    font-size: .5625rem
+}
+
+.ft-collection-history span,
+.ft-collection-history small {
+    font-size: .5rem;
+    color: #697589
+}
+
+.ft-finance-page-alert {
+    margin-bottom: 12px
+}
+
+.ft-finance-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+    background: rgba(23, 31, 43, .54);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    overflow: auto
+}
+
+.ft-finance-modal {
+    width: min(585px, calc(100vw - 28px));
+    max-height: calc(100vh - 30px);
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #d9dee7;
+    border-radius: 8px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, .24);
+    color: #172337
+}
+
+.ft-create-invoice-modal {
+    width: min(610px, calc(100vw - 28px))
+}
+
+.ft-finance-modal-head {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    background: #fff;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 20px 10px
+}
+
+.ft-finance-modal-head h2 {
+    margin: 0;
+    color: #101a29;
+    font-size: 1.125rem;
+    font-weight: 800;
+    letter-spacing: -.25px
+}
+
+.ft-finance-modal-head p {
+    margin: 4px 0 0;
+    color: #737e90;
+    font-size: .625rem
+}
+
+.ft-finance-modal-head>button {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    background: transparent;
+    color: #485568;
+    font-size: 1.5rem;
+    line-height: 1
+}
+
+.ft-finance-form-alert {
+    margin: 0 20px 10px;
+    padding: 8px 10px;
+    border: 1px solid #f0b7bc;
+    border-radius: 5px;
+    background: #fff3f4;
+    color: #b92e38;
+    font-size: .5625rem
+}
+
+.ft-invoice-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 11px 18px;
+    padding: 0 20px 14px
+}
+
+.ft-invoice-form-grid label,
+.ft-invoice-extra-fields label,
+.ft-finance-small-grid label {
+    display: grid;
+    gap: 5px;
+    min-width: 0
+}
+
+.ft-invoice-form-grid label>span,
+.ft-invoice-extra-fields label>span:first-child,
+.ft-finance-small-grid label>span {
+    color: #4a5568;
+    font-size: .5625rem;
+    font-weight: 650
+}
+
+.ft-invoice-form-grid label>span b,
+.ft-finance-small-grid label>span b {
+    color: #e1454c
+}
+
+.ft-invoice-form-grid input,
+.ft-invoice-form-grid select,
+.ft-invoice-extra-fields input,
+.ft-invoice-extra-fields textarea,
+.ft-finance-small-grid input,
+.ft-finance-small-grid select,
+.ft-finance-small-grid textarea {
+    width: 100%;
+    border: 1px solid #d8dee7;
+    border-radius: 4px;
+    background: #fff;
+    color: #253246;
+    font: inherit;
+    font-size: .625rem;
+    outline: none
+}
+
+.ft-invoice-form-grid input,
+.ft-invoice-form-grid select,
+.ft-invoice-extra-fields input,
+.ft-finance-small-grid input,
+.ft-finance-small-grid select {
+    height: 36px;
+    padding: 0 10px
+}
+
+.ft-invoice-extra-fields textarea,
+.ft-finance-small-grid textarea {
+    min-height: 64px;
+    padding: 9px 10px;
+    resize: vertical;
+    line-height: 1.45
+}
+
+.ft-invoice-form-grid input:focus,
+.ft-invoice-form-grid select:focus,
+.ft-invoice-extra-fields input:focus,
+.ft-invoice-extra-fields textarea:focus,
+.ft-finance-small-grid input:focus,
+.ft-finance-small-grid select:focus,
+.ft-finance-small-grid textarea:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent)
+}
+
+.ft-order-finance .error {
+    display: block;
+    color: #c9353f;
+    font-size: .5rem;
+    line-height: 1.25
+}
+
+.ft-invoice-items-box {
+    margin: 0 20px 14px;
+    border: 1px solid #e0e4ea;
+    border-radius: 4px;
+    overflow: hidden
+}
+
+.ft-invoice-items-box h3 {
+    margin: 0;
+    padding: 10px 13px;
+    color: #313b4b;
+    font-size: .6875rem
+}
+
+.ft-invoice-item-head,
+.ft-invoice-item-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2.25fr) .7fr .85fr .8fr 34px;
+    gap: 7px;
+    align-items: center
+}
+
+.ft-invoice-item-head {
+    height: 28px;
+    padding: 0 10px;
+    background: #fafbfc;
+    border-top: 1px solid #edf0f3;
+    border-bottom: 1px solid #edf0f3;
+    color: #697487;
+    font-size: .5rem
+}
+
+.ft-invoice-item-row {
+    min-height: 40px;
+    padding: 5px 10px;
+    border-bottom: 1px solid #edf0f3
+}
+
+.ft-invoice-item-row input {
+    width: 100%;
+    height: 30px;
+    border: 0;
+    background: transparent;
+    padding: 0 3px;
+    color: #273344;
+    font-size: .5625rem;
+    outline: none
+}
+
+.ft-invoice-item-row input:focus {
+    background: var(--ft-theme-surface-subtle);
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px var(--ft-theme-primary-300)
+}
+
+.ft-invoice-item-row strong {
+    font-size: .5625rem;
+    font-weight: 650
+}
+
+.ft-invoice-item-row>button {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    background: transparent;
+    color: #4b5869
+}
+
+.ft-invoice-item-row>button:disabled {
+    opacity: .25
+}
+
+.ft-invoice-item-row>button svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.money-input {
+    position: relative
+}
+
+.money-input>span {
+    position: absolute;
+    left: 3px;
+    top: 8px;
+    color: #788395;
+    font-size: .5rem;
+    pointer-events: none
+}
+
+.money-input input {
+    padding-left: 14px
+}
+
+.ft-add-invoice-line {
+    height: 32px;
+    margin-left: 10px;
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    font-size: .5625rem;
+    font-weight: 750
+}
+
+.ft-line-error {
+    padding: 5px 10px
+}
+
+.ft-invoice-lower-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(210px, .88fr);
+    gap: 18px;
+    padding: 0 20px 12px
+}
+
+.ft-invoice-extra-fields {
+    display: grid;
+    gap: 9px
+}
+
+.ft-invoice-upload {
+    position: relative;
+    min-height: 40px !important;
+    border: 1px dashed #ccd4de;
+    border-radius: 4px;
+    display: flex !important;
+    align-items: center;
+    gap: 8px !important;
+    padding: 0 9px;
+    cursor: pointer
+}
+
+.ft-invoice-upload input {
+    position: absolute !important;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer
+}
+
+.ft-paperclip {
+    width: 16px;
+    height: 16px;
+    color: #576679;
+    display: grid;
+    place-items: center
+}
+
+.ft-paperclip svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.ft-upload-copy {
+    font-size: .5625rem !important;
+    font-weight: 500 !important;
+    color: #4e5b6d !important
+}
+
+.ft-upload-browse {
+    margin-left: auto;
+    padding: 4px 9px;
+    border: 1px solid #cbd5e2;
+    border-radius: 3px;
+    background: #fff;
+    color: var(--ft-theme-primary) !important;
+    font-size: .5rem !important;
+    font-weight: 700 !important
+}
+
+.ft-upload-name {
+    display: block;
+    color: #59677a;
+    font-size: .5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-invoice-checkbox {
+    display: flex !important;
+    grid-template-columns: none !important;
+    align-items: center;
+    gap: 7px !important;
+    color: #3f4c60;
+    font-size: .5625rem
+}
+
+.ft-invoice-checkbox input {
+    width: 14px !important;
+    height: 14px !important;
+    margin: 0;
+    accent-color: var(--ft-theme-primary)
+}
+
+.ft-invoice-summary {
+    align-self: start;
+    border: 1px solid #edf0f3;
+    border-radius: 4px;
+    background: #fcfdfd;
+    padding: 8px 11px
+}
+
+.ft-invoice-summary>div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 31px;
+    color: #5e697a;
+    font-size: .5625rem;
+    border-bottom: 1px solid #eff2f5
+}
+
+.ft-invoice-summary>div:last-child {
+    border-bottom: 0
+}
+
+.ft-invoice-summary strong {
+    color: #303b4b;
+    font-size: .5625rem
+}
+
+.ft-invoice-summary .total {
+    font-weight: 750;
+    color: #2f3b4c
+}
+
+.ft-invoice-summary .amount {
+    min-height: 44px
+}
+
+.ft-invoice-summary .amount strong {
+    font-size: 1.125rem;
+    color: #192337;
+    letter-spacing: -.4px
+}
+
+.ft-finance-modal-foot {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    background: #fff;
+    border-top: 1px solid #e3e7ed;
+    min-height: 58px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px
+}
+
+.ft-finance-modal-foot>span {
+    color: #8791a0;
+    font-size: .5rem
+}
+
+.ft-finance-modal-foot>div {
+    display: flex;
+    gap: 10px
+}
+
+.ft-finance-modal-foot button {
+    height: 35px;
+    border-radius: 5px;
+    padding: 0 15px;
+    font-size: .5625rem;
+    font-weight: 700
+}
+
+.ft-finance-modal-foot .secondary {
+    border: 1px solid #aeb8c5;
+    background: #fff;
+    color: #39475a
+}
+
+.ft-finance-modal-foot .primary {
+    border: 1px solid var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+.ft-finance-modal-foot button:disabled {
+    opacity: .58;
+    cursor: wait
+}
+
+.ft-finance-small-modal {
+    width: min(520px, calc(100vw - 28px))
+}
+
+.ft-finance-small-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+    padding: 4px 20px 18px
+}
+
+.ft-finance-small-grid .wide {
+    grid-column: 1/-1
+}
+
+.ft-finance-small-grid textarea {
+    min-height: 80px
+}
+
+@media(max-width:1100px) {
+    .ft-finance-metrics {
+        grid-template-columns: repeat(3, 1fr)
+    }
+
+    .ft-finance-bottom-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-finance-overdue {
+        grid-template-columns: 42px 1fr auto
+    }
+
+    .ft-overdue-meta {
+        grid-column: 2
+    }
+
+    .ft-overdue-actions {
+        grid-column: 3;
+        grid-row: 1/3
+    }
+}
+
+@media(max-width:760px) {
+    .ft-finance-title-row {
+        flex-direction: column
+    }
+
+    .ft-finance-actions {
+        width: 100%
+    }
+
+    .ft-finance-actions .ft-finance-btn {
+        flex: 1
+    }
+
+    .ft-finance-metrics {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-finance-overdue {
+        grid-template-columns: 38px 1fr
+    }
+
+    .ft-overdue-meta,
+    .ft-overdue-actions {
+        grid-column: 1/-1
+    }
+
+    .ft-overdue-actions {
+        grid-row: auto;
+        justify-content: flex-end
+    }
+
+    .ft-invoice-form-grid,
+    .ft-invoice-lower-grid,
+    .ft-finance-small-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-finance-small-grid .wide {
+        grid-column: auto
+    }
+
+    .ft-invoice-item-head {
+        display: none
+    }
+
+    .ft-invoice-item-row {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .ft-invoice-item-row>div:first-child {
+        grid-column: 1/-1
+    }
+
+    .ft-invoice-item-row>strong {
+        align-self: center
+    }
+
+    .ft-finance-modal-foot {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-finance-modal-foot>div {
+        width: 100%
+    }
+
+    .ft-finance-modal-foot button {
+        flex: 1
+    }
+}
+
+@media(max-width:520px) {
+    .ft-finance-metrics {
+        grid-template-columns: 1fr
+    }
+
+    .ft-finance-collection-card dl>div {
+        grid-template-columns: 105px 1fr
+    }
+
+    .ft-finance-modal-backdrop {
+        padding: 0;
+        align-items: stretch
+    }
+
+    .ft-finance-modal,
+    .ft-create-invoice-modal,
+    .ft-finance-small-modal {
+        width: 100vw;
+        max-height: 100vh;
+        border-radius: 0;
+        border: 0
+    }
+
+    .ft-invoice-form-grid,
+    .ft-invoice-lower-grid,
+    .ft-finance-small-grid {
+        padding-left: 14px;
+        padding-right: 14px
+    }
+
+    .ft-invoice-items-box {
+        margin-left: 14px;
+        margin-right: 14px
+    }
+
+    .ft-finance-modal-head,
+    .ft-finance-modal-foot {
+        padding-left: 14px;
+        padding-right: 14px
+    }
+}
+
+.ft-finance-tab-action-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 18px;
+    border-bottom: 1px solid #dce5f0;
+    margin-bottom: 17px
+}
+
+.ft-finance-tab-action-row .ft-detail-tabs {
+    flex: 1;
+    min-width: 0;
+    border-bottom: 0;
+    margin-bottom: 0
+}
+
+.ft-finance-tab-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 0 8px
+}
+
+.ft-finance-tab-action-row .ft-finance-btn {
+    height: 36px
+}
+
+.ft-finance-tab-action-row+.ft-order-finance .ft-finance-title-row {
+    padding-top: 0
+}
+
+@media(max-width:760px) {
+    .ft-finance-tab-action-row {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 8px
+    }
+
+    .ft-finance-tab-action-row .ft-detail-tabs {
+        width: 100%;
+        border-bottom: 1px solid #dce5f0
+    }
+
+    .ft-finance-tab-actions {
+        justify-content: flex-end;
+        padding: 0 0 10px
+    }
+
+    .ft-finance-tab-actions .ft-finance-btn {
+        min-width: 130px
+    }
+}
+
+/* Invoice & Payments prototype fidelity pass */
+.ft-finance-tab-action-row {
+    --fin-blue: var(--ft-theme-primary);
+    --fin-line: #e1e6ed;
+}
+
+.ft-finance-tab-actions .ft-finance-btn.primary {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff;
+}
+
+.ft-finance-tab-actions .ft-finance-btn.primary:hover {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+}
+
+.ft-finance-tab-actions .ft-finance-btn.secondary {
+    border-color: #aeb8c7;
+    background: #fff;
+    color: #2c3b50;
+}
+
+.ft-finance-title-row {
+    padding: 4px 1px 14px;
+}
+
+.ft-finance-title-row h2 {
+    font-size: 1.0625rem;
+    letter-spacing: -.15px;
+}
+
+.ft-finance-title-row p {
+    margin-top: 3px;
+    font-size: .625rem;
+}
+
+.ft-finance-metrics {
+    gap: 12px;
+    margin-bottom: 13px;
+}
+
+.ft-finance-metric {
+    min-height: 102px;
+    padding: 14px 16px;
+}
+
+.ft-finance-metric strong {
+    margin-top: 4px;
+    font-size: 1.3125rem;
+}
+
+.ft-finance-metric-icon {
+    width: 43px;
+    height: 43px;
+}
+
+.ft-finance-table-card>h3,
+.ft-finance-collection-card>h3 {
+    padding: 12px 15px 10px;
+}
+
+.ft-finance-table th {
+    height: 31px;
+}
+
+.ft-finance-table td {
+    height: 43px;
+}
+
+.ft-finance-bottom-grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(330px, 1fr);
+    gap: 13px;
+}
+
+.ft-create-invoice-modal {
+    width: min(565px, calc(100vw - 28px));
+}
+
+.ft-finance-modal-head {
+    padding: 17px 20px 10px;
+}
+
+.ft-finance-modal-head h2 {
+    font-size: 1.0625rem;
+    line-height: 1.2;
+}
+
+.ft-finance-modal-head p {
+    margin-top: 3px;
+    font-size: .625rem;
+}
+
+.ft-finance-modal-head>button {
+    width: 25px;
+    height: 25px;
+    font-size: 1.375rem;
+}
+
+.ft-invoice-form-grid {
+    gap: 10px 18px;
+    padding: 0 20px 13px;
+}
+
+.ft-invoice-form-grid input,
+.ft-invoice-form-grid select,
+.ft-invoice-extra-fields input,
+.ft-finance-small-grid input,
+.ft-finance-small-grid select {
+    height: 35px;
+}
+
+.ft-invoice-items-box {
+    margin: 0 20px 13px;
+}
+
+.ft-invoice-items-box h3 {
+    padding: 9px 13px;
+}
+
+.ft-invoice-item-head,
+.ft-invoice-item-row {
+    grid-template-columns: minmax(0, 2.2fr) .72fr .85fr .8fr 30px;
+    gap: 7px;
+}
+
+.ft-invoice-item-head {
+    height: 27px;
+}
+
+.ft-invoice-item-row {
+    min-height: 39px;
+}
+
+.ft-invoice-item-row>button {
+    width: 25px;
+    height: 25px;
+}
+
+.ft-add-invoice-line {
+    height: 31px;
+}
+
+.ft-invoice-lower-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px;
+    padding: 0 20px 12px;
+}
+
+.ft-invoice-extra-fields {
+    gap: 8px;
+}
+
+.ft-invoice-extra-fields textarea {
+    min-height: 65px;
+}
+
+.ft-invoice-upload {
+    min-height: 39px !important;
+}
+
+.ft-invoice-summary {
+    padding: 8px 11px;
+}
+
+.ft-invoice-summary>div {
+    min-height: 30px;
+}
+
+.ft-invoice-summary .amount {
+    min-height: 45px;
+}
+
+.ft-invoice-summary .amount strong {
+    font-size: 1.125rem;
+}
+
+.ft-finance-modal-foot {
+    min-height: 61px;
+    padding: 10px 20px;
+}
+
+.ft-finance-modal-foot button {
+    height: 34px;
+    min-width: 105px;
+}
+
+@media(max-width:760px) {
+    .ft-invoice-lower-grid {
+        grid-template-columns: 1fr
+    }
+}
+
+@media(max-width:520px) {
+    .ft-create-invoice-modal {
+        width: 100vw
+    }
+}
+
+/* Record payment modal — reference layout */
+.ft-record-payment-modal {
+    width: min(528px, calc(100vw - 28px));
+    border-radius: 7px;
+    overflow: hidden;
+}
+
+.ft-record-payment-head {
+    padding: 17px 20px 12px;
+}
+
+.ft-record-payment-head h2 {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    letter-spacing: -.2px;
+}
+
+.ft-record-payment-head p {
+    color: #7a8493;
+    font-size: .5625rem;
+}
+
+.ft-record-payment-body {
+    padding: 12px 20px 0;
+}
+
+.ft-record-payment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 11px 16px;
+}
+
+.ft-record-payment-grid label,
+.ft-payment-note {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+}
+
+.ft-record-payment-grid label>span,
+.ft-payment-note>span {
+    color: #4b5565;
+    font-size: .5625rem;
+    font-weight: 650;
+}
+
+.ft-record-payment-grid label>span b {
+    color: #e13b43;
+}
+
+.ft-record-payment-grid input,
+.ft-record-payment-grid select,
+.ft-payment-note textarea {
+    width: 100%;
+    border: 1px solid #d8dee7;
+    border-radius: 4px;
+    background: #fff;
+    color: #273344;
+    outline: none;
+    font: inherit;
+    font-size: .625rem;
+}
+
+.ft-record-payment-grid input,
+.ft-record-payment-grid select {
+    height: 36px;
+    padding: 0 10px;
+}
+
+.ft-record-payment-grid input:focus,
+.ft-record-payment-grid select:focus,
+.ft-payment-note textarea:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent);
+}
+
+.ft-payment-money-input {
+    position: relative;
+}
+
+.ft-payment-money-input>span {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    color: #39475a !important;
+    font-size: .625rem !important;
+    pointer-events: none;
+}
+
+.ft-payment-money-input input {
+    padding-left: 20px;
+}
+
+.ft-payment-allocation {
+    margin-top: 14px;
+    border: 1px solid #e1e5ea;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ft-payment-allocation h3 {
+    margin: 0;
+    padding: 10px 11px 8px;
+    color: #303a49;
+    font-size: .625rem;
+    font-weight: 750;
+}
+
+.ft-payment-allocation-panel {
+    display: grid;
+    grid-template-columns: .85fr .95fr 1fr 1.35fr;
+    align-items: center;
+    min-height: 67px;
+    margin: 0 10px 10px;
+    padding: 10px 10px;
+    border-radius: 3px;
+    background: #f8f9fb;
+}
+
+.ft-payment-allocation-stat {
+    min-width: 0;
+    padding: 0 10px;
+    border-right: 1px solid #e2e6eb;
+}
+
+.ft-payment-allocation-stat:first-child {
+    padding-left: 0;
+}
+
+.ft-payment-allocation-stat span {
+    display: block;
+    color: #6c7685;
+    font-size: .5rem;
+    white-space: nowrap;
+}
+
+.ft-payment-allocation-stat strong {
+    display: block;
+    margin-top: 5px;
+    color: #273141;
+    font-size: .625rem;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.ft-payment-allocation-result {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 12px;
+    color: #7b8794;
+    font-size: .5rem;
+    font-weight: 650;
+    line-height: 1.25;
+}
+
+.ft-payment-allocation-result.is-paid {
+    color: #2f8a54;
+}
+
+.ft-payment-result-icon {
+    width: 14px;
+    height: 14px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    font-size: .5rem;
+    font-weight: 900;
+}
+
+.ft-payment-upload {
+    position: relative;
+    min-height: 40px;
+    margin-top: 14px;
+    border: 1px dashed #cbd3dd;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    cursor: pointer;
+}
+
+.ft-payment-upload input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.ft-payment-paperclip {
+    width: 16px;
+    height: 16px;
+    display: grid;
+    place-items: center;
+    color: #5b6879;
+}
+
+.ft-payment-paperclip svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ft-payment-upload-copy {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #485568;
+    font-size: .5625rem;
+}
+
+.ft-payment-browse {
+    margin-left: auto;
+    padding: 5px 10px;
+    border: 1px solid #d5dce5;
+    border-radius: 3px;
+    background: #fff;
+    color: var(--ft-theme-primary);
+    font-size: .5rem;
+    font-weight: 700;
+}
+
+.ft-payment-upload-error {
+    display: block;
+    margin-top: 4px;
+}
+
+.ft-payment-note {
+    margin-top: 13px;
+}
+
+.ft-payment-note textarea {
+    min-height: 65px;
+    padding: 9px 10px;
+    resize: vertical;
+    line-height: 1.45;
+}
+
+.ft-payment-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 10px 0 13px;
+    color: #505c6d;
+    font-size: .5625rem;
+    cursor: pointer;
+}
+
+.ft-payment-checkbox input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: var(--ft-theme-primary);
+}
+
+.ft-record-payment-foot {
+    min-height: 58px;
+    padding: 10px 20px;
+}
+
+.ft-record-payment-foot>span {
+    color: #8791a0;
+    font-size: .5rem;
+}
+
+.ft-record-payment-foot button {
+    min-width: 80px;
+    height: 34px;
+}
+
+.ft-record-payment-foot .primary {
+    min-width: 116px;
+}
+
+@media(max-width:760px) {
+    .ft-record-payment-grid {
+        grid-template-columns: 1fr
+    }
+
+    .ft-payment-allocation-panel {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px
+    }
+
+    .ft-payment-allocation-stat {
+        border-right: 0;
+        padding: 0
+    }
+
+    .ft-payment-allocation-result {
+        padding-left: 0
+    }
+}
+
+@media(max-width:520px) {
+    .ft-record-payment-modal {
+        width: 100vw
+    }
+
+    .ft-record-payment-body {
+        padding-left: 14px;
+        padding-right: 14px
+    }
+}
+
+/* Create invoice: keep line-item editors visibly editable, matching FlowTrack form controls. */
+.ft-create-invoice-modal .ft-invoice-item-row {
+    align-items: start;
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
+
+.ft-create-invoice-modal .ft-invoice-item-row>div {
+    min-width: 0;
+}
+
+.ft-create-invoice-modal .ft-invoice-item-row input {
+    display: block;
+    width: 100%;
+    height: 34px;
+    padding: 0 9px;
+    border: 1px solid #d8dee7;
+    border-radius: 5px;
+    background: #fff;
+    color: #253246;
+    font-size: .625rem;
+    line-height: 1;
+    outline: none;
+    box-shadow: none;
+}
+
+.ft-create-invoice-modal .ft-invoice-item-row input:hover {
+    border-color: #bdc8d6;
+}
+
+.ft-create-invoice-modal .ft-invoice-item-row input:focus {
+    border-color: var(--ft-theme-primary-300);
+    background: #fff;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent);
+}
+
+.ft-create-invoice-modal .ft-invoice-item-row .money-input {
+    position: relative;
+}
+
+.ft-create-invoice-modal .ft-invoice-item-row .money-input>span {
+    position: absolute;
+    z-index: 1;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #68758a;
+    font-size: .625rem;
+    pointer-events: none;
+}
+
+.ft-create-invoice-modal .ft-invoice-item-row .money-input input {
+    padding-left: 24px;
+}
+
+.ft-create-invoice-modal .ft-invoice-item-row>strong {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    color: #182338;
+    font-size: .625rem;
+    white-space: nowrap;
+}
+
+.ft-create-invoice-modal .ft-invoice-item-row>button {
+    align-self: center;
+}
+
+@media(max-width:700px) {
+    .ft-create-invoice-modal .ft-invoice-items-box {
+        overflow-x: auto;
+    }
+
+    .ft-create-invoice-modal .ft-invoice-item-head,
+    .ft-create-invoice-modal .ft-invoice-item-row {
+        min-width: 610px;
+    }
+}
+
+/* Finance upload preview */
+.ft-finance-uploading {
+    margin-top: 5px;
+    color: #64748b;
+    font-size: .5rem;
+    font-weight: 650;
+}
+
+.ft-finance-upload-preview {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) 28px;
+    align-items: center;
+    gap: 9px;
+    min-height: 56px;
+    margin-top: 6px;
+    padding: 7px 8px;
+    border: 1px solid #dfe5ed;
+    border-radius: 5px;
+    background: #f8fafc;
+}
+
+.ft-finance-upload-thumb {
+    width: 46px;
+    height: 42px;
+    border: 1px solid #dbe2eb;
+    border-radius: 4px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    color: #46627f;
+    font-size: .5rem;
+    font-weight: 800;
+}
+
+.ft-finance-upload-thumb.has-image {
+    background: #eef3f8
+}
+
+.ft-finance-upload-thumb img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.ft-finance-upload-meta {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.ft-finance-upload-meta strong {
+    color: #344256;
+    font-size: .5rem;
+    font-weight: 750;
+}
+
+.ft-finance-upload-meta>span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #26364a;
+    font-size: .5625rem;
+    font-weight: 650;
+}
+
+.ft-finance-upload-meta small {
+    color: #7a8798;
+    font-size: .4375rem;
+}
+
+.ft-finance-upload-remove {
+    width: 26px;
+    height: 26px;
+    border: 1px solid #d6dee8;
+    border-radius: 4px;
+    background: #fff;
+    color: #7a8795;
+    font-size: 1.0625rem;
+    line-height: 1;
+}
+
+.ft-finance-upload-remove:hover {
+    border-color: #efb7bc;
+    background: #fff6f7;
+    color: #c83c46;
+}
+
+@media(max-width:520px) {
+    .ft-finance-upload-preview {
+        grid-template-columns: 42px minmax(0, 1fr) 28px
+    }
+
+    .ft-finance-upload-thumb {
+        width: 42px;
+        height: 40px
+    }
+}
+
+/* Generated invoice PDF shown directly beneath its invoice row. */
+.ft-invoice-document-row td {
+    height: auto !important;
+    padding: 0 15px 10px !important;
+    border-bottom: 1px solid #e8edf3 !important;
+    background: var(--ft-theme-surface-subtle);
+}
+
+.ft-invoice-document {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 7px 9px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.ft-invoice-document-type {
+    width: 38px;
+    height: 34px;
+    flex: 0 0 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 5px;
+    background: #ef3340;
+    color: #fff;
+    font-size: .5rem;
+    font-weight: 850;
+    letter-spacing: .3px;
+}
+
+.ft-invoice-document-copy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.ft-invoice-document-copy strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #233044;
+    font-size: .5625rem;
+    font-weight: 760;
+}
+
+.ft-invoice-document-copy small {
+    color: #7a8799;
+    font-size: .5rem;
+    white-space: normal;
+}
+
+.ft-invoice-document-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 0 0 auto;
+}
+
+.ft-invoice-document-actions a {
+    color: var(--ft-theme-primary);
+    text-decoration: none;
+    font-size: .5625rem;
+    font-weight: 760;
+}
+
+.ft-invoice-document-actions a:hover {
+    text-decoration: underline
+}
+
+@media(max-width:620px) {
+    .ft-invoice-document {
+        align-items: flex-start;
+        flex-wrap: wrap
+    }
+
+    .ft-invoice-document-copy {
+        flex: 1 1 calc(100% - 52px)
+    }
+
+    .ft-invoice-document-actions {
+        width: 100%;
+        justify-content: flex-end;
+        margin-left: 49px
+    }
+}

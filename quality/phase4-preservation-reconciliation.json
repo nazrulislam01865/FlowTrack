@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "date": "2026-08-22",
+  "purpose": "Preserve completed Phase 0-4 refactoring after approved post-Phase-4 feature additions without changing business behavior.",
+  "original_baseline_rewritten": false,
+  "business_app_php_changed": false,
+  "runtime_blade_change": "Order Detail supplier selector changed from deprecated x-ui.remote-select wrapper to the underlying x-ui.search-select with the same property contract.",
+  "validation": {
+    "quality_phase4": "pass",
+    "php_lint_files": 416,
+    "php_lint": "pass",
+    "vite_config_node_syntax": "pass",
+    "css_splitter_node_syntax": "pass",
+    "css_import_targets": "pass",
+    "order_detail_css_relocation_sha256_identical": true,
+    "app_directory_diff": "none",
+    "phpunit": "not_run_vendor_missing",
+    "vite_production_build": "not_run_node_modules_missing",
+    "authenticated_visual_regression": "requires_dependency_complete_seeded_environment"
+  },
+  "frozen_future_phase_owners": {
+    "Jobs/Index.php": "Phase 5",
+    "Inquiries/Index.php": "Phase 6",
+    "MasterData/Index.php": "Phase 7",
+    "InquiryService.php": "Phase 8",
+    "JobService.php": "Phase 5/8",
+    "blade_php_blocks": "Phase 5-7",
+    "app_get_calls": "Phase 11"
+  }
+}

@@ -1,0 +1,219 @@
+.reminder-ui{--navy:#071a2c;--navy2:#112a40;--teal:#078777;--teal2:#0b726e;--txt:#243447;--muted:#748296;--border:#dee6ea;--bg:#f6f8fa;--light:#eff8f7;--amber:#f3a541;--red:#d94f55;--radius:9px}
+.reminder-ui *{box-sizing:border-box}
+.reminder-ui{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--txt)}
+.reminder-ui{margin:0;background:var(--bg);font-size:13px}
+.reminder-ui button, .reminder-ui input, .reminder-ui textarea, .reminder-ui select{font:inherit}
+.reminder-ui button{cursor:pointer}
+.reminder-ui a{color:var(--teal);text-decoration:none}
+.reminder-ui .content{padding:26px 26px 42px;max-width:1550px;margin:auto}
+.reminder-ui .crumb{font-size:11px;color:#8091a0;display:flex;gap:9px;align-items:center;margin:2px 0 16px}
+.reminder-ui .crumb strong{color:var(--teal);font-weight:700}
+.reminder-ui .head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:17px}
+.reminder-ui .head h1{font-size:27px;letter-spacing:-.8px;color:#1f3245;margin:0 0 7px;font-weight:770}
+.reminder-ui .head p{font-size:13px;color:#738396;margin:0;line-height:1.5}
+.reminder-ui .headActions{display:flex;gap:9px;align-items:center}
+.reminder-ui .btn{border:1px solid #d8e2e7;border-radius:6px;padding:10px 15px;background:#fff;color:#2c3f53;font-weight:700;font-size:12px;display:inline-flex;gap:8px;align-items:center;justify-content:center;white-space:nowrap}
+.reminder-ui .btn:hover{filter:brightness(.96)}
+.reminder-ui .btn.primary{border-color:#078579;background:var(--teal);color:white}
+.reminder-ui .btn.soft{background:#f1f8f7;color:#087b70;border-color:#baded8}
+.reminder-ui .btn.disabled{opacity:.55}
+.reminder-ui .banner{background:#eef9f5;border:1px solid #c6e7dd;border-radius:7px;padding:12px 14px;margin:0 0 17px;color:#336a5d;font-size:12px;display:flex;align-items:center;gap:11px}
+.reminder-ui .banner.orange{background:#fff7e8;border-color:#f5e2bd;color:#946b29}
+.reminder-ui .banner .circle{height:22px;width:22px;border-radius:100%;display:grid;place-items:center;background:#d4ede5;font-weight:800;flex:none}
+.reminder-ui .banner.orange .circle{background:#fce4ba}
+.reminder-ui .banner strong{font-weight:740}
+.reminder-ui .panel{background:white;border:1px solid var(--border);border-radius:8px;box-shadow:0 1px 2px rgba(20,46,61,.025)}
+.reminder-ui .panelpad{padding:17px}
+.reminder-ui .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.reminder-ui .field{background:#fff;border:1px solid #dce5e9;border-radius:6px;padding:10px 11px;min-height:37px;color:#45596b;outline:none;width:100%}
+.reminder-ui .field:focus{border-color:#0b9587;box-shadow:0 0 0 2px #0b95871c}
+.reminder-ui .field.search{width:360px;padding-left:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"%238597a5\" stroke-width=\"1.8\" viewBox=\"0 0 24 24\"%3E%3Ccircle cx=\"11\" cy=\"11\" r=\"7\"/%3E%3Cpath d=\"m16 16 5 5\"/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:11px center}
+.reminder-ui .thinlabel{display:block;color:#59697a;font-size:11px;font-weight:740;margin-bottom:7px}
+.reminder-ui .fieldGroup{min-width:165px}
+.reminder-ui .fieldGroup.grow{flex:1}
+.reminder-ui .pill{border:1px solid #dce9e7;border-radius:99px;padding:4px 10px;background:#eef8f5;color:#237564;font-size:11px;font-weight:740;white-space:nowrap}
+.reminder-ui .pill.yellow{background:#fff7dc;border-color:#f2e4b8;color:#9a721f}
+.reminder-ui .pill.blue{background:#edf5fe;border-color:#d7e6f6;color:#416785}
+.reminder-ui .pill.grey{background:#f2f4f5;border-color:#e6ebed;color:#677988}
+.reminder-ui .pill.red{background:#fff1f2;color:#bb5360;border-color:#f5d5d8}
+.reminder-ui .table{width:100%;border-collapse:collapse;table-layout:auto}
+.reminder-ui .table thead{background:#f8fafb;border-bottom:1px solid #e5ecef;text-align:left}
+.reminder-ui .table th{font-size:11px;padding:13px 13px;font-weight:760;color:#657688}
+.reminder-ui .table td{border-bottom:1px solid #eaf0f2;padding:14px 13px;vertical-align:middle;color:#536377}
+.reminder-ui .table tr:last-child td{border-bottom:0}
+.reminder-ui .table td b{color:#253a4c}
+.reminder-ui .table small{color:#8391a0;display:block;font-size:11px;margin-top:4px}
+.reminder-ui .table .rowSelected{background:#fbfefc}
+.reminder-ui .rowTitle{display:flex;gap:11px;align-items:center}
+.reminder-ui .rowIcon{height:37px;width:37px;background:#eaf5f3;border:1px solid #dcece9;border-radius:8px;display:grid;place-items:center;font-size:19px;color:#078777}
+.reminder-ui .actions{display:flex;gap:7px}
+.reminder-ui .actions .btn{padding:7px 11px}
+.reminder-ui .tablefoot{border-top:1px solid #e8eff1;padding:12px 14px;color:#7b8997;font-size:11px}
+.reminder-ui .summarymetrics{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:15px}
+.reminder-ui .metric{background:#fff;border:1px solid #e0e7eb;border-radius:7px;padding:16px}
+.reminder-ui .metric strong{font-size:24px;color:#203547;display:block;margin:6px 0}
+.reminder-ui .metric span{font-size:11px;color:#718496}
+.reminder-ui .twocol{display:grid;grid-template-columns:minmax(620px,1.65fr) minmax(310px,1fr);gap:15px}
+.reminder-ui .stack{display:grid;gap:12px}
+.reminder-ui .sectionTitle{font-size:15px;font-weight:780;color:#24394b;margin:0 0 5px}
+.reminder-ui .sectionCaption{font-size:11px;color:#80909c;margin:0 0 16px}
+.reminder-ui .sectionrow{display:grid;grid-template-columns:185px 1fr;gap:14px;padding:16px 18px;border-bottom:1px solid #e6ecef}
+.reminder-ui .sectionrow:last-child{border-bottom:0}
+.reminder-ui .sectionrow .description{font-size:11px;color:#8696a3;line-height:1.45;margin-top:5px}
+.reminder-ui .radioRow{display:flex;gap:9px}
+.reminder-ui .radioChoice{border:1px solid #dce6e9;border-radius:7px;padding:11px 12px;display:flex;gap:8px;align-items:flex-start;flex:1;color:#607388;min-height:60px}
+.reminder-ui .radioChoice.active{border-color:#6bbab0;background:#eff9f7}
+.reminder-ui .radioChoice strong{display:block;color:#283e50;margin-bottom:5px}
+.reminder-ui .radioChoice small{display:block;font-size:10px;color:#8291a0;line-height:1.4}
+.reminder-ui .radioChoice input{accent-color:var(--teal);margin-top:2px}
+.reminder-ui .checks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.reminder-ui .checkline{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#314458}
+.reminder-ui .checkline input{accent-color:var(--teal)}
+.reminder-ui .tip{font-size:11px;color:#82929f;margin-top:5px;line-height:1.5}
+.reminder-ui .settingslist{display:grid;gap:8px}
+.reminder-ui .toggleLine{display:flex;gap:10px;justify-content:space-between;align-items:center;border:1px solid #e7edef;background:#fafcfc;border-radius:5px;padding:10px 12px}
+.reminder-ui .toggleLine strong{font-size:12px}
+.reminder-ui .toggleLine small{display:block;color:#82929f;margin-top:4px;font-size:10.5px}
+.reminder-ui .switch{appearance:none;width:33px;height:19px;background:#cdd6d9;border-radius:20px;position:relative;cursor:pointer;flex:none}
+.reminder-ui .switch:before{content:"";position:absolute;left:3px;top:3px;background:white;width:13px;height:13px;border-radius:50%;box-shadow:0 1px 2px #0002}
+.reminder-ui .switch:checked{background:var(--teal)}
+.reminder-ui .switch:checked:before{left:17px}
+.reminder-ui .rulepanel{padding:17px}
+.reminder-ui .rulepanel h2{margin:0 0 5px;font-size:16px}
+.reminder-ui .summaryline{display:grid;grid-template-columns:117px 1fr;gap:8px;padding:12px 0;border-bottom:1px solid #e9eff1;font-size:11px}
+.reminder-ui .summaryline b{color:#273b4d}
+.reminder-ui .summaryline span{color:#637587}
+.reminder-ui .summaryline:last-child{border-bottom:0}
+.reminder-ui .flowline{display:flex;align-items:center;gap:8px;margin-top:15px}
+.reminder-ui .flowbox{padding:12px;background:#edf4f6;border:1px solid #dbe9e9;border-radius:7px;flex:1;font-size:11px;font-weight:730;text-align:center;color:#39576a}
+.reminder-ui .flowbox.done{background:#e6f7ed;border-color:#bfe6cf;color:#167c4e}
+.reminder-ui .footerActions{display:flex;justify-content:flex-end;align-items:center;gap:9px;margin-top:16px}
+.reminder-ui .editgrid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.reminder-ui .editgrid textarea{height:95px;resize:vertical}
+.reminder-ui .editrow{display:flex;gap:7px;align-items:center;margin:0 0 8px}
+.reminder-ui .tokens{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.reminder-ui .token{border-radius:4px;color:#1c8a7d;background:#edf7f4;padding:5px 8px;font-size:10px;font-weight:720;cursor:pointer;border:1px solid #d7eee8}
+.reminder-ui .blockrow{display:grid;grid-template-columns:20px minmax(150px,1fr) minmax(190px,1.5fr) 36px;gap:8px;align-items:center;border:1px solid #e4ecef;padding:9px;border-radius:5px;margin-bottom:6px;font-size:11px}
+.reminder-ui .blockrow b{font-size:12px}
+.reminder-ui .blockrow small{color:#8a97a3}
+.reminder-ui .blockrow .switch{justify-self:end}
+.reminder-ui .emailouter{padding:18px;background:#f2f5f6;border-radius:7px;border:1px solid #e6edef}
+.reminder-ui .email{background:white;max-width:550px;margin:auto;box-shadow:0 2px 15px #2c3d4c0d;border:1px solid #e0e7e8}
+.reminder-ui .emailHead{background:#0e2a37;color:white;padding:17px 22px;display:flex;align-items:center;justify-content:space-between}
+.reminder-ui .emailHead img{width:126px;max-height:35px;object-fit:contain;object-position:left center}
+.reminder-ui .emailHead .headRight{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#b9d1d8}
+.reminder-ui .emailBody{padding:25px 28px 23px}
+.reminder-ui .emailKicker{font-size:10px;color:#81939a;font-weight:850;letter-spacing:1.3px;text-transform:uppercase}
+.reminder-ui .emailBody h2{font-size:21px;line-height:1.2;margin:9px 0 15px;color:#1d3343}
+.reminder-ui .emailBody p{font-size:12px;line-height:1.65;color:#61717f;margin:0 0 14px}
+.reminder-ui .emailCard{background:#f8fafb;border:1px solid #e1e7eb;border-radius:6px;padding:12px 14px;margin:16px 0}
+.reminder-ui .emailCard .kv{display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:11px}
+.reminder-ui .emailCard .kv b{color:#243b4b;text-align:right}
+.reminder-ui .emailButton{padding:11px 17px;border-radius:5px;background:var(--teal);color:white;display:inline-block;font-weight:780;font-size:12px;text-align:center}
+.reminder-ui .emailFoot{border-top:1px solid #e4e9ed;padding-top:12px;margin-top:18px;color:#8a99a5;font-size:10px;line-height:1.6}
+.reminder-ui .emailBadge{display:block;border:1px solid #bde7d9;background:#ecfbf5;border-radius:5px;padding:10px 11px;color:#257756;font-size:11px;font-weight:700}
+.reminder-ui .statuslist{display:grid;gap:6px}
+.reminder-ui .statusrow{display:flex;justify-content:space-between;align-items:center;border:1px solid #e5edef;border-radius:6px;padding:10px 12px}
+.reminder-ui .statusrow small{color:#82929f}
+.reminder-ui .sample{background:#fff7e9;border:1px solid #f0e0c2;border-radius:7px;padding:10px 12px;color:#99753d;margin-bottom:15px;font-size:11px}
+.reminder-ui .view{display:none}
+.reminder-ui .view.active{display:block}
+.reminder-ui .footnote{margin-top:16px;font-size:11px;color:#8e9ba5}
+.reminder-ui .screenNav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.reminder-ui .screenNav button{background:white;border:1px solid #dce8ea;color:#586f78;padding:9px 12px;border-radius:6px;font-weight:690;font-size:11px}
+.reminder-ui .screenNav button.active{background:#e6f6f1;color:#047b70;border-color:#7dbdb3}
+@media (max-width:1160px){.reminder-ui .twocol{grid-template-columns:1fr}
+.reminder-ui .editgrid{grid-template-columns:1fr}
+.reminder-ui .sectionrow{grid-template-columns:150px 1fr}}
+@media (max-width:760px){.reminder-ui .content{padding:18px}
+.reminder-ui .head{flex-direction:column}
+.reminder-ui .sectionrow{display:block}
+.reminder-ui .sectionrow>div:first-child{margin-bottom:15px}
+.reminder-ui .radioRow{flex-direction:column}
+.reminder-ui .checks{grid-template-columns:1fr}
+.reminder-ui .summarymetrics{grid-template-columns:1fr}
+.reminder-ui .toolbar{display:block}
+.reminder-ui .field.search{width:100%;margin:0 0 8px}
+.reminder-ui .fieldGroup{margin-bottom:10px}}
+/* The existing central theme is the single source of colors, typography and buttons. */
+.reminder-ui { --teal:var(--ft-theme-primary); --teal2:var(--ft-theme-primary-hover); --txt:var(--ft-theme-text-primary); --muted:var(--ft-theme-text-muted); --border:var(--ft-theme-border); --bg:var(--ft-theme-page-bg); font-family:var(--ft-theme-font-family); font-size:13px; color:var(--txt); }
+.reminder-ui .btn.primary,.reminder-ui .emailButton {background:var(--ft-theme-primary);border-color:var(--ft-theme-primary);color:white}
+.reminder-ui .btn.primary:hover {background:var(--ft-theme-primary-hover)}
+.reminder-ui .content {max-width:1550px;padding:0;margin:0 auto}
+.reminder-ui .table {border-collapse:collapse}
+.reminder-ui .field {color:var(--ft-theme-text-primary);background-color:#fff}
+.reminder-ui .field:disabled {background:#f8fafb;opacity:.85;cursor:not-allowed}
+.reminder-ui .radioChoice:has(input:disabled) {opacity:.6;cursor:not-allowed}
+.reminder-ui .view{display:none}
+.reminder-ui .view.active{display:block}
+.reminder-ui .reminder-message {font-size:12px; color:var(--ft-theme-primary); margin:10px 0}
+.reminder-ui iframe.reminder-preview {width:100%;min-height:570px;border:0;background:#fff}
+.reminder-ui button:disabled{cursor:not-allowed;opacity:.55}
+@media(max-width:760px){.reminder-ui .twocol{display:block}.reminder-ui .stack{margin-bottom:12px}.reminder-ui .table{min-width:700px}.reminder-ui .panel:has(.table){overflow-x:auto}}
+/* Layout corrections for Reminder Setup, without altering the global FlowTrack UI. */
+.reminder-ui .panelpad.toolbar {
+    display:grid;
+    grid-template-columns:minmax(250px,2fr) minmax(175px,1fr) minmax(175px,1fr);
+    align-items:end;
+    gap:14px;
+    margin-bottom:0;
+}
+.reminder-ui .toolbar .fieldGroup {min-width:0;width:100%;}
+.reminder-ui .toolbar .fieldGroup .field {width:100%;height:40px;min-height:40px;}
+.reminder-ui .toolbar .thinlabel {margin-bottom:7px;min-height:16px;line-height:16px;}
+.reminder-ui .toolbar .field.search {width:100%;}
+.reminder-ui .panel:has(> .table) {overflow-x:auto;}
+.reminder-ui #view-list .table {min-width:800px;}
+.reminder-ui #view-history .table {min-width:800px;}
+.reminder-ui .actions {align-items:center;flex-wrap:wrap;}
+.reminder-ui .table td {vertical-align:middle;}
+.reminder-ui .emptyReminders {text-align:center;padding:28px 16px;color:var(--ft-theme-text-muted);}
+.reminder-ui .createReminderForm {margin-bottom:15px;}
+.reminder-ui .createReminderForm[hidden], .reminder-ui .delayRow[hidden] {display:none!important;}
+.reminder-ui .createGrid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:end;}
+.reminder-ui .createGrid > div {min-width:0;}
+.reminder-ui .createGrid .field {height:40px;}
+.reminder-ui .createActions {display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px;}
+.reminder-ui .createActions .btn {height:40px;min-width:112px;}
+.reminder-ui .delayRow {padding-top:10px;max-width:330px;}
+.reminder-ui .delayRow input {height:38px;}
+.reminder-ui .radioRow {min-width:0;}
+.reminder-ui .radioChoice {min-width:0;}
+.reminder-ui .sectionrow > div, .reminder-ui .editgrid > div {min-width:0;}
+.reminder-ui .field {max-width:100%;}
+.reminder-ui .statusrow {gap:12px;}
+.reminder-ui .statusrow span:last-child {overflow-wrap:anywhere;text-align:right;}
+.reminder-ui .screenNav {gap:7px;align-items:center;}
+.reminder-ui button:focus-visible, .reminder-ui .field:focus-visible {outline:2px solid var(--ft-theme-primary);outline-offset:2px;}
+@media(max-width:1100px){
+    .reminder-ui .panelpad.toolbar{grid-template-columns:minmax(220px,1.5fr) minmax(150px,1fr) minmax(150px,1fr);}
+}
+@media(max-width:800px){
+    .reminder-ui .panelpad.toolbar,.reminder-ui .createGrid{grid-template-columns:1fr;}
+    .reminder-ui .twocol{display:grid;grid-template-columns:minmax(0,1fr);}
+    .reminder-ui .editgrid{grid-template-columns:minmax(0,1fr);}
+    .reminder-ui .createActions{justify-content:stretch;}
+    .reminder-ui .createActions .btn{flex:1;min-width:0;}
+    .reminder-ui .sectionrow{grid-template-columns:1fr;}
+}
+
+.reminder-ui .blockrow[hidden]{display:none!important}
+.reminder-ui .createGrid .field:disabled{background:var(--bg);color:var(--muted)}
+
+/* Recipient rule choices use the existing reminder form controls and theme. */
+.reminder-ui #recipientUserRow { margin-top:13px; }
+.reminder-ui #recipientUserRow[hidden] { display:none!important; }
+.reminder-ui #recipientUserRow .thinlabel { margin-bottom:7px; }
+.reminder-ui .recipientDescription { display:flex; align-items:flex-start; gap:9px; margin-top:12px; font-size:12px; line-height:1.5; color:var(--ft-theme-text-muted); }
+.reminder-ui .recipientNoteIcon { flex:none; color:var(--ft-theme-primary); font-weight:700; }
+
+/* Supplier portal access notification settings (Reminder Setup list only). */
+
+.reminder-ui [data-portal-token][hidden],.reminder-ui [data-order-token][hidden]{display:none!important}
+
+.reminder-ui #testArtworkRow[hidden]{display:none!important}
+
+/* Stable first paint: all page-scoped styles load in the document head. */
+.reminder-ui .reminder-dynamic-metric { font-size:21px; line-height:1.25; overflow-wrap:anywhere; color:#243447; }
+.reminder-ui .metric { min-width:0; }
+.reminder-ui .summarymetrics .metric span:last-child { overflow-wrap:anywhere; }

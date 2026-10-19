@@ -1,0 +1,245 @@
+/**
+ * FlowTrack Design Tokens
+ * --------------------------------------------------------------------------
+ * Authoritative source for static visual values used by new shared UI.
+ *
+ * Rules:
+ * - New shared/component CSS consumes semantic --ft-* tokens, not raw values.
+ * - Runtime Master Data colors are not static tokens and remain data-driven.
+ * - Legacy aliases are intentionally kept here only as a migration bridge.
+ * - Do not place component selectors in this file.
+ */
+
+:root {
+    /* Brand / accent palette */
+    --ft-color-primary-50: var(--ft-theme-primary-soft);
+    --ft-color-primary-100: var(--ft-theme-primary-soft);
+    --ft-color-primary-200: var(--ft-theme-primary-100);
+    --ft-color-primary-300: var(--ft-theme-primary-300);
+    --ft-color-primary-400: var(--ft-theme-primary-500);
+    --ft-color-primary-500: var(--ft-theme-primary-500);
+    --ft-color-primary-600: var(--ft-theme-primary);
+    --ft-color-primary-700: var(--ft-theme-primary);
+    --ft-color-primary-800: var(--ft-theme-primary);
+    --ft-color-primary-900: var(--ft-theme-primary-800);
+    --ft-color-primary-950: #172554;
+
+    --ft-color-teal-50: #eefcf9;
+    --ft-color-teal-100: #d5f7f0;
+    --ft-color-teal-500: var(--ft-theme-primary-500);
+    --ft-color-teal-600: var(--ft-theme-primary);
+    --ft-color-teal-700: var(--ft-theme-primary-hover);
+
+    --ft-color-purple-50: #f2ecff;
+    --ft-color-purple-600: #7c3aed;
+    --ft-color-purple-700: #6d28d9;
+
+    /* Semantic feedback palette */
+    --ft-color-success-50: #eaf8ef;
+    --ft-color-success-600: #15803d;
+    --ft-color-success-700: #147e5b;
+
+    --ft-color-warning-50: #fff5df;
+    --ft-color-warning-600: #b45309;
+    --ft-color-warning-700: #9a6208;
+
+    --ft-color-danger-50: #fff0ef;
+    --ft-color-danger-600: #c2413a;
+    --ft-color-danger-700: #b93832;
+
+    /* Neutral palette */
+    --ft-color-neutral-0: #ffffff;
+    --ft-color-neutral-25: var(--ft-theme-surface-subtle);
+    --ft-color-neutral-50: #f8fafc;
+    --ft-color-neutral-75: #f4f7fb;
+    --ft-color-neutral-100: #eef2f6;
+    --ft-color-neutral-200: #e1e7ef;
+    --ft-color-neutral-300: #d2deeb;
+    --ft-color-neutral-400: #94a3b8;
+    --ft-color-neutral-500: #66758b;
+    --ft-color-neutral-600: #59677a;
+    --ft-color-neutral-700: #334155;
+    --ft-color-neutral-800: #172235;
+    --ft-color-neutral-900: #0f172a;
+    --ft-color-neutral-950: #0b1728;
+
+    /* Application semantic aliases */
+    --ft-color-brand-primary: var(--ft-color-primary-600);
+    --ft-color-brand-primary-hover: var(--ft-color-primary-700);
+    --ft-color-brand-primary-soft: var(--ft-theme-primary-soft);
+    --ft-color-brand-accent: var(--ft-color-teal-600);
+
+    --ft-bg-page: var(--ft-color-neutral-75);
+    --ft-bg-surface: var(--ft-color-neutral-0);
+    --ft-bg-surface-subtle: var(--ft-color-neutral-50);
+    --ft-bg-surface-hover: var(--ft-color-neutral-25);
+    --ft-bg-disabled: var(--ft-color-neutral-100);
+
+    --ft-text-primary: var(--ft-color-neutral-800);
+    --ft-text-secondary: var(--ft-color-neutral-500);
+    --ft-text-muted: var(--ft-color-neutral-500);
+    --ft-text-inverse: var(--ft-color-neutral-0);
+    --ft-text-link: var(--ft-color-primary-600);
+    --ft-text-link-hover: var(--ft-color-primary-700);
+    --ft-text-disabled: var(--ft-color-neutral-400);
+
+    --ft-border-default: var(--ft-color-neutral-200);
+    --ft-border-subtle: var(--ft-color-neutral-100);
+    --ft-border-strong: var(--ft-color-neutral-300);
+    --ft-border-focus: var(--ft-theme-primary-300);
+
+    /* Semantic component surfaces */
+    --ft-bg-info: var(--ft-color-primary-50);
+    --ft-bg-success: var(--ft-color-success-50);
+    --ft-bg-warning: var(--ft-color-warning-50);
+    --ft-bg-danger: var(--ft-color-danger-50);
+    --ft-bg-purple: var(--ft-color-purple-50);
+    --ft-text-info: var(--ft-color-primary-700);
+    --ft-text-success: var(--ft-color-success-700);
+    --ft-text-warning: var(--ft-color-warning-700);
+    --ft-text-danger: var(--ft-color-danger-700);
+    --ft-text-purple: var(--ft-color-purple-700);
+    --ft-border-info: var(--ft-color-primary-200);
+    --ft-border-success: #bbdec7;
+    --ft-border-warning: #efd39f;
+    --ft-border-danger: #efc5c2;
+    --ft-border-purple: #d8c8f7;
+    --ft-overlay-backdrop: rgb(15 23 42 / 0.48);
+
+    --ft-shell-nav-bg: var(--ft-color-neutral-950);
+    --ft-shell-nav-bg-active: #1c3b60;
+    --ft-shell-nav-bg-hover: #142942;
+    --ft-shell-nav-bg-secondary: #13263d;
+
+    /* Typography */
+    --ft-font-family-sans: var(--ft-theme-font-family);
+    --ft-font-family: var(--ft-font-family-sans);
+
+    --ft-font-size-xs: 0.75rem;
+    --ft-font-size-sm: 0.8125rem;
+    --ft-font-size-md: 0.875rem;
+    --ft-font-size-lg: 1rem;
+    --ft-font-size-xl: 1.125rem;
+    --ft-font-size-2xl: 1.25rem;
+    --ft-font-size-3xl: 1.5625rem;
+    --ft-font-size-4xl: 1.875rem;
+
+    --ft-font-weight-regular: 400;
+    --ft-font-weight-medium: 500;
+    --ft-font-weight-semibold: 600;
+    --ft-font-weight-strong: 650;
+    --ft-font-weight-bold: 700;
+    --ft-font-weight-extrabold: 750;
+
+    --ft-line-height-tight: 1.2;
+    --ft-line-height-snug: 1.35;
+    --ft-line-height-normal: 1.5;
+    --ft-line-height-relaxed: 1.7;
+
+    --ft-letter-spacing-tight: -0.025em;
+    --ft-letter-spacing-normal: 0;
+    --ft-letter-spacing-wide: 0.025em;
+
+    /* Spacing */
+    --ft-space-0: 0;
+    --ft-space-1: 0.25rem;
+    --ft-space-2: 0.5rem;
+    --ft-space-3: 0.75rem;
+    --ft-space-4: 1rem;
+    --ft-space-5: 1.25rem;
+    --ft-space-6: 1.5rem;
+    --ft-space-7: 1.75rem;
+    --ft-space-8: 2rem;
+    --ft-space-9: 2.25rem;
+    --ft-space-10: 2.5rem;
+    --ft-space-12: 3rem;
+    --ft-space-16: 4rem;
+
+    /* Borders / radius */
+    --ft-border-width-thin: 1px;
+    --ft-border-style-default: solid;
+
+    --ft-radius-xs: 4px;
+    --ft-radius-sm: 6px;
+    --ft-radius-md: 8px;
+    --ft-radius-lg: 10px;
+    --ft-radius-xl: 12px;
+    --ft-radius-2xl: 14px;
+    --ft-radius-pill: 999px;
+
+    /* Elevation */
+    --ft-shadow-xs: 0 1px 2px rgb(15 35 65 / 0.04);
+    --ft-shadow-sm: 0 2px 8px rgb(19 39 67 / 0.025);
+    --ft-shadow-md: 0 4px 18px rgb(24 48 82 / 0.035);
+    --ft-shadow-lg: 0 10px 35px rgb(15 35 65 / 0.08);
+    --ft-shadow-xl: 0 12px 32px rgb(15 35 65 / 0.12);
+
+    /* Motion */
+    --ft-duration-instant: 0ms;
+    --ft-duration-fast: 120ms;
+    --ft-duration-normal: 180ms;
+    --ft-duration-slow: 240ms;
+    --ft-ease-standard: ease;
+    --ft-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+    --ft-transition-fast: var(--ft-duration-fast) var(--ft-ease-standard);
+    --ft-transition-normal: var(--ft-duration-normal) var(--ft-ease-standard);
+
+    /* Focus / interaction */
+    --ft-focus-border: var(--ft-border-focus);
+    --ft-focus-ring: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+    --ft-focus-outline-width: 2px;
+    --ft-focus-outline-offset: 2px;
+    --ft-disabled-opacity: 0.6;
+
+    /* Layering */
+    --ft-z-base: 0;
+    --ft-z-raised: 10;
+    --ft-z-sticky: 20;
+    --ft-z-dropdown: 40;
+    --ft-z-overlay: 60;
+    --ft-z-modal: 80;
+    --ft-z-toast: 100;
+
+    /* Common control sizing */
+    --ft-control-height-xs: 1.75rem;
+    --ft-control-height-sm: 2rem;
+    --ft-control-height-md: 2.375rem;
+    --ft-control-height-lg: 2.75rem;
+    --ft-control-padding-x: 0.8125rem;
+    --ft-control-padding-y: 0.625rem;
+
+    /* Reusable component geometry */
+    --ft-icon-size-sm: 1rem;
+    --ft-icon-size-md: 1.25rem;
+    --ft-icon-size-lg: 1.5rem;
+    --ft-spinner-size-sm: 0.875rem;
+    --ft-spinner-size-md: 1.125rem;
+    --ft-content-width-sm: 30rem;
+    --ft-content-width-md: 42rem;
+    --ft-content-width-lg: 64rem;
+
+    /*
+     * Phase 1 legacy variable bridge.
+     * Existing selectors still consume these historical names. They are aliases
+     * only; new CSS must use the --ft-* names above.
+     */
+    --navy: var(--ft-shell-nav-bg);
+    --navy2: var(--ft-shell-nav-bg-secondary);
+    --bg: var(--ft-bg-page);
+    --card: var(--ft-bg-surface);
+    --text: var(--ft-text-primary);
+    --muted: var(--ft-text-secondary);
+    --line: var(--ft-border-default);
+    --blue: var(--ft-color-brand-primary);
+    --blue2: var(--ft-color-brand-primary-soft);
+    --green: var(--ft-color-success-600);
+    --green2: var(--ft-color-success-50);
+    --amber: var(--ft-color-warning-600);
+    --amber2: var(--ft-color-warning-50);
+    --red: var(--ft-color-danger-600);
+    --red2: var(--ft-color-danger-50);
+    --purple: var(--ft-color-purple-600);
+    --purple2: var(--ft-color-purple-50);
+    --shadow: var(--ft-shadow-lg);
+    --radius: var(--ft-radius-2xl);
+}

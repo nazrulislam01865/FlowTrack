@@ -1,0 +1,47 @@
+/* Client create/edit validation UX: keep errors local to their fields and move
+   the user directly to the first problem instead of showing a footer summary. */
+.ft-client-create-prototype .ft-proto-field:has(.validation-error) input:not([type="file"]),
+.ft-client-create-prototype .ft-proto-field:has(.validation-error) select,
+.ft-client-create-prototype .ft-proto-field:has(.validation-error) textarea,
+.ft-client-create-prototype .ft-proto-field:has(.validation-error) .ft-form-search-select .ft-remote-filter-button,
+.ft-client-create-prototype .ft-theme-field:has(.validation-error) .ft-form-search-select .ft-remote-filter-button {
+    border-color: #e5484d !important;
+    box-shadow: 0 0 0 2px rgba(229, 72, 77, .10) !important;
+    background: #fffdfd;
+}
+
+.ft-client-create-prototype .ft-client-logo-upload:has(.validation-error) {
+    border-color: #e5484d;
+    box-shadow: 0 0 0 2px rgba(229, 72, 77, .08);
+}
+
+.ft-client-create-prototype .ft-client-contacts-editor:has(> .ft-client-contacts-error) .ft-client-contact-editor-row:first-child {
+    border-color: #e5484d;
+    box-shadow: 0 0 0 2px rgba(229, 72, 77, .08);
+}
+
+.ft-client-create-prototype .ft-client-validation-focus-target {
+    scroll-margin-top: 96px;
+}
+
+.ft-client-create-prototype .ft-client-validation-focus-target.ft-proto-field input:not([type="file"]),
+.ft-client-create-prototype .ft-client-validation-focus-target.ft-proto-field select,
+.ft-client-create-prototype .ft-client-validation-focus-target.ft-proto-field textarea,
+.ft-client-create-prototype .ft-client-validation-focus-target.ft-proto-field .ft-form-search-select .ft-remote-filter-button,
+.ft-client-create-prototype .ft-client-validation-focus-target.ft-theme-field .ft-form-search-select .ft-remote-filter-button,
+.ft-client-create-prototype .ft-client-validation-focus-target .ft-client-logo-file {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, .13) !important;
+}
+
+.ft-client-create-prototype .ft-client-validation-focus-target:not(.ft-proto-field):not(.ft-theme-field) {
+    outline: 2px solid rgba(220, 38, 38, .55);
+    outline-offset: 3px;
+    border-radius: 9px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ft-client-create-prototype .ft-client-validation-focus-target {
+        scroll-behavior: auto;
+    }
+}

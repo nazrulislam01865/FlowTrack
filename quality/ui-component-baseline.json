@@ -1,0 +1,22 @@
+{
+    "schema": 1,
+    "source": "approved Phase 1 snapshot before Phase 2 component-library introduction",
+    "policy": "non_increasing_direct_component_markup",
+    "note": "Pages should consume official x-ui components instead of creating new root component class markup directly. The four ft-table occurrences are pre-existing Dashboard compatibility debt and may only decrease.",
+    "direct_root_class_occurrences": {
+        "ft-btn": 0,
+        "ft-badge": 0,
+        "ft-field": 0,
+        "ft-card": 0,
+        "ft-table": 4,
+        "ft-tabs": 0,
+        "ft-modal": 0,
+        "ft-tooltip": 0,
+        "ft-pagination": 0,
+        "ft-loading": 0,
+        "ft-empty-state": 0,
+        "ft-validation-message": 0,
+        "ft-page-header": 0,
+        "ft-section-header": 0
+    }
+}

@@ -1,0 +1,515 @@
+/* 2026-08-25: My Tasks uses the same visual language and structural rhythm as
+   the Orders list while preserving My Tasks' own visibility and inline-edit
+   logic. This file intentionally loads after the Orders route bundle. */
+#my-work-app.ft-my-task-v5 {
+    width: 100%;
+    max-width: 1460px;
+    margin: 0 auto;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-list-card {
+    margin-bottom: 14px;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-filter-toolbar {
+    grid-template-columns: minmax(300px, 1.8fr) minmax(145px, .8fr) minmax(145px, .8fr) minmax(155px, .85fr) minmax(155px, .85fr) auto;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-inquiry-toolbar {
+    grid-template-columns: minmax(320px, 1.8fr) minmax(145px, .7fr) minmax(180px, .8fr) minmax(170px, .8fr) auto;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-filter-display {
+    display: flex;
+    min-width: 0;
+    height: 40px;
+    align-items: center;
+    padding: 0 11px;
+    overflow: hidden;
+    border: 1px solid #ccd8e4;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #42556e;
+    font-size: .6875rem;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-completed-filter {
+    display: inline-flex;
+    min-width: 0;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 11px;
+    border: 1px solid #ccd8e4;
+    border-radius: 8px;
+    background: #fff;
+    color: #42556e;
+    cursor: pointer;
+    font-size: .6875rem;
+    font-weight: 750;
+    white-space: nowrap;
+    user-select: none;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-completed-filter:hover,
+#my-work-app.ft-my-task-v5 .ft-my-task-completed-filter.active {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-surface-subtle, #f8fbfb);
+    color: var(--ft-theme-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent);
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-completed-filter input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-filter-check {
+    display: grid;
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    place-items: center;
+    border: 1px solid #b9c8dc;
+    border-radius: 4px;
+    background: #fff;
+    color: transparent;
+    font-size: .625rem;
+    line-height: 1;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-completed-filter.active .ft-my-task-filter-check {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-quick-controls {
+    align-items: center;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-quick-right {
+    flex: 0 0 auto;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-table {
+    min-width: 1180px;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-table th:nth-child(1) { min-width: 240px; }
+#my-work-app.ft-my-task-v5 .ft-my-task-table th:nth-child(2) { min-width: 125px; }
+#my-work-app.ft-my-task-v5 .ft-my-task-table th:nth-child(3) { min-width: 190px; }
+#my-work-app.ft-my-task-v5 .ft-my-task-table th:nth-child(4) { min-width: 145px; }
+#my-work-app.ft-my-task-v5 .ft-my-task-table th:nth-child(5) { min-width: 150px; }
+#my-work-app.ft-my-task-v5 .ft-my-task-table th:nth-child(6) { min-width: 125px; }
+#my-work-app.ft-my-task-v5 .ft-my-task-table th:nth-child(7) { min-width: 105px; }
+#my-work-app.ft-my-task-v5 .ft-my-task-table th:nth-child(8) { min-width: 82px; }
+
+#my-work-app.ft-my-task-v5 .ft-my-task-order-summary-row > td {
+    padding: 9px 12px !important;
+    border-top: 1px solid #dce6ef !important;
+    background: #f8fbfb !important;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-order-group:first-of-type .ft-my-task-order-summary-row > td {
+    border-top: 0 !important;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-order-summary {
+    display: grid;
+    grid-template-columns: 30px minmax(210px, 1.05fr) minmax(650px, 3fr);
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-collapse {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #d3dfeb;
+    border-radius: 7px;
+    background: #fff;
+    color: #4f647c;
+    cursor: pointer;
+    font: 850 .875rem/1 var(--ft-theme-font-family);
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-collapse:hover {
+    border-color: var(--ft-theme-primary-300);
+    background: var(--ft-theme-primary-soft, #edf8f5);
+    color: var(--ft-theme-primary);
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-order-identity {
+    min-width: 0;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-order-identity .order-cell-ref {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-summary-meta {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(110px, 1fr));
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-summary-meta > span {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    color: #4f6177;
+    font-size: .65625rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-summary-meta > span > b {
+    color: #8290a2;
+    font-size: .53125rem;
+    font-weight: 850;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-summary-meta i {
+    font-style: normal;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-summary-progress .row-progress-track {
+    width: 54px;
+    flex: 0 0 54px;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-summary-progress strong {
+    color: #42556e;
+    font-size: .625rem;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-row {
+    position: relative;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-row.is-saving {
+    opacity: .62;
+    pointer-events: none;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-row.is-saving::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #dce5f2;
+    border-top-color: var(--ft-theme-primary);
+    border-radius: 50%;
+    animation: ft-orders-spin .6s linear infinite;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-title {
+    color: #172a43;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-assignee,
+#my-work-app.ft-my-task-v5 .ft-my-task-assignee-display {
+    min-width: 0;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-assignee-display {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-assignee-copy {
+    display: grid;
+    min-width: 0;
+    gap: 1px;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-assignee-copy b {
+    max-width: 125px;
+    overflow: hidden;
+    font-size: .6875rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-assignee-copy small {
+    color: #7b8a9e;
+    font-size: .5625rem;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-assignee-picker {
+    width: min(300px, 100%);
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-edit-button {
+    flex: 0 0 auto;
+    color: var(--ft-theme-primary);
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-due {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    gap: 5px;
+    color: #32465e;
+    font-size: .6875rem;
+    font-weight: 750;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-due.overdue,
+#my-work-app.ft-my-task-v5 .ft-my-task-overdue {
+    color: #c83f3f;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-due.today {
+    color: #a56708;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-due .ft-task-inline-input {
+    width: 132px;
+    min-height: 34px;
+    border: 1px solid #cbd8e5;
+    border-radius: 7px;
+    background: #fff;
+    color: #263950;
+    font-size: .6875rem;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-status {
+    width: 100%;
+    max-width: 150px;
+    min-height: 36px;
+    padding: 6px 27px 6px 9px;
+    border: 1px solid var(--ft-master-border, #cfdbe8);
+    border-radius: 8px;
+    background-color: var(--ft-master-bg, #fff);
+    color: var(--ft-master-text, #33465d);
+    font: 800 .625rem/1.2 var(--ft-theme-font-family);
+    outline: 0;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-status:focus {
+    border-color: var(--ft-theme-primary-300);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent);
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-flag {
+    display: inline-flex;
+    max-width: 120px;
+    min-height: 26px;
+    align-items: center;
+    padding: 4px 7px;
+    overflow: hidden;
+    border: 1px solid var(--ft-master-border, #d8e2eb);
+    border-radius: 999px;
+    background: var(--ft-master-bg, #f5f8fb);
+    color: var(--ft-master-text, #62728a);
+    font-size: .59375rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-open {
+    min-width: 58px;
+    justify-content: center;
+    text-decoration: none;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-empty {
+    padding: 42px 18px !important;
+    background: #fff !important;
+    color: #6b7c90;
+    text-align: center;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-empty strong,
+#my-work-app.ft-my-task-v5 .ft-my-task-empty span {
+    display: block;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-empty strong {
+    margin-bottom: 4px;
+    color: #21344c;
+    font-size: .875rem;
+}
+
+#my-work-app.ft-my-task-v5 .ft-my-task-empty span {
+    font-size: .6875rem;
+}
+
+@media (max-width: 1260px) {
+    #my-work-app.ft-my-task-v5 .ft-my-task-filter-toolbar {
+        grid-template-columns: minmax(280px, 1.5fr) repeat(2, minmax(145px, .75fr)) minmax(155px, .8fr);
+    }
+
+    #my-work-app.ft-my-task-v5 .ft-my-task-filter-toolbar .ft-my-task-completed-filter,
+    #my-work-app.ft-my-task-v5 .ft-my-task-filter-toolbar > .btn {
+        width: 100%;
+    }
+
+    #my-work-app.ft-my-task-v5 .ft-my-task-order-summary {
+        grid-template-columns: 30px minmax(190px, .9fr) minmax(620px, 2.5fr);
+    }
+}
+
+@media (max-width: 900px) {
+    #my-work-app.ft-my-task-v5 .list-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #my-work-app.ft-my-task-v5 .ft-my-task-filter-toolbar,
+    #my-work-app.ft-my-task-v5 .ft-my-task-inquiry-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    #my-work-app.ft-my-task-v5 .ft-my-task-filter-toolbar .search-box {
+        grid-column: 1 / -1;
+    }
+
+    #my-work-app.ft-my-task-v5 .ft-my-task-order-summary {
+        min-width: 1000px;
+    }
+
+    #my-work-app.ft-my-task-v5 .stage-inline-selects {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 620px) {
+    #my-work-app.ft-my-task-v5 .ft-my-task-filter-toolbar,
+    #my-work-app.ft-my-task-v5 .ft-my-task-inquiry-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    #my-work-app.ft-my-task-v5 .ft-my-task-filter-toolbar .search-box {
+        grid-column: auto;
+    }
+
+    #my-work-app.ft-my-task-v5 .top-actions {
+        width: 100%;
+    }
+
+    #my-work-app.ft-my-task-v5 .top-actions .btn {
+        flex: 1 1 0;
+    }
+}
+
+/* CHANGE 2026-08-27: My Tasks gets the same stage-selected quick-filter
+   interaction as Orders, but the chips are driven by Order Task Status master
+   data because My Tasks is a task execution queue. */
+#my-work-app .my-task-stage-status-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border: 1px solid #dbe3ed;
+    border-radius: 10px;
+    background: #fff;
+}
+
+#my-work-app .my-task-stage-status-label {
+    margin-right: 2px;
+    color: #52677f;
+    font-size: .625rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+#my-work-app .my-task-stage-status-chips {
+    display: flex;
+    min-width: 0;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#my-work-app .my-task-stage-status-chip {
+    --task-status-color: var(--ft-theme-primary);
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid color-mix(in srgb, var(--task-status-color) 30%, #d9e3ec);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--task-status-color);
+    cursor: pointer;
+    font: 800 .625rem/1 var(--ft-theme-font-family);
+    white-space: nowrap;
+}
+
+#my-work-app .my-task-stage-status-chip:hover,
+#my-work-app .my-task-stage-status-chip.active {
+    border-color: color-mix(in srgb, var(--task-status-color) 52%, #fff);
+    background: color-mix(in srgb, var(--task-status-color) 8%, #fff);
+}
+
+#my-work-app .my-task-stage-status-check {
+    display: grid;
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--task-status-color) 54%, #c8d4e0);
+    border-radius: 4px;
+    background: #fff;
+    color: transparent;
+    font-size: .625rem;
+    line-height: 1;
+}
+
+#my-work-app .my-task-stage-status-chip.active .my-task-stage-status-check {
+    border-color: var(--task-status-color);
+    background: var(--task-status-color);
+    color: #fff;
+}
+
+#my-work-app .my-task-stage-status-note {
+    margin-left: auto;
+    color: #6e8096;
+    font-size: .5625rem;
+    white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+    #my-work-app .my-task-stage-status-controls {
+        align-items: stretch;
+    }
+
+    #my-work-app .my-task-stage-status-label,
+    #my-work-app .my-task-stage-status-note {
+        width: 100%;
+    }
+
+    #my-work-app .my-task-stage-status-note {
+        margin-left: 0;
+    }
+}

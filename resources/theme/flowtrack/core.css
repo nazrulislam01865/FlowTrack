@@ -1,0 +1,4 @@
+/** Lightweight theme core for pages that do not need the authenticated shell. */
+@import './settings.css';
+@import './aliases.css';
+@import './system.css';

@@ -1,0 +1,1310 @@
+/**
+ * Order Details / Shipment phase prototype.
+ * Scoped to the prototype detail shell so no other workflow phase is affected.
+ */
+.ft-order-prototype-detail .ft-shipment-phase {
+    margin: 0 14px 14px;
+    border: 1px solid #dbe4ec;
+    border-radius: 11px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.ft-order-prototype-detail .ft-shipment-phase__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 14px 18px 0;
+    padding: 6px 10px;
+    border-radius: 7px;
+    background: #e8f8f5;
+    color: #087e73;
+    font-size: .6875rem;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-shipment-phase__status svg,
+.ft-order-prototype-detail .ft-shipment-task svg,
+.ft-order-prototype-detail .ft-shipment-modal-form svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: 0 0 auto;
+}
+
+.ft-order-prototype-detail .ft-shipment-phase__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 17px 24px 12px;
+}
+
+.ft-order-prototype-detail .ft-shipment-phase__head h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 1.2rem;
+    line-height: 1.2;
+    font-weight: 850;
+    letter-spacing: -.015em;
+}
+
+.ft-order-prototype-detail .ft-shipment-phase__head p {
+    margin: 4px 0 0;
+    color: #53677f;
+    font-size: .75rem;
+}
+
+.ft-order-prototype-detail .ft-shipment-progress {
+    display: grid;
+    gap: 8px;
+    justify-items: end;
+    min-width: 265px;
+}
+
+.ft-order-prototype-detail .ft-shipment-progress > strong {
+    color: #15334b;
+    font-size: .6875rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-shipment-progress__track {
+    display: flex;
+    align-items: center;
+    width: 250px;
+}
+
+.ft-order-prototype-detail .ft-shipment-progress__dot {
+    width: 15px;
+    height: 15px;
+    border: 2px solid #bdc9d5;
+    border-radius: 50%;
+    background: #f7f9fb;
+    flex: 0 0 auto;
+}
+
+.ft-order-prototype-detail .ft-shipment-progress__dot.is-current,
+.ft-order-prototype-detail .ft-shipment-progress__dot.is-done {
+    border-color: #087f74;
+    background: #087f74;
+    box-shadow: inset 0 0 0 4px #087f74;
+}
+
+.ft-order-prototype-detail .ft-shipment-progress__dot.is-current {
+    box-shadow: inset 0 0 0 4px #087f74, 0 0 0 1px rgba(8, 127, 116, .06);
+}
+
+.ft-order-prototype-detail .ft-shipment-progress__line {
+    height: 2px;
+    background: #bdc9d5;
+    flex: 1 1 auto;
+}
+
+.ft-order-prototype-detail .ft-shipment-progress__line.is-done {
+    background: #087f74;
+}
+
+.ft-order-prototype-detail .ft-shipment-phase__tasks {
+    display: grid;
+    gap: 8px;
+    padding: 0 10px 12px;
+}
+
+.ft-order-prototype-detail .ft-shipment-task {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    border: 1px solid #dbe4ec;
+    border-left: 4px solid #8296aa;
+    border-radius: 9px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(16, 33, 59, .02);
+}
+
+.ft-order-prototype-detail .ft-shipment-task--active {
+    border-left-color: #078d80;
+}
+
+.ft-order-prototype-detail .ft-shipment-task--done {
+    border-left-color: #3fa985;
+}
+
+.ft-order-prototype-detail .ft-shipment-task--locked {
+    background: #fbfcfd;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding-top: 18px;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__number {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #8497aa;
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-shipment-task--active .ft-shipment-task__number {
+    background: #078d80;
+}
+
+.ft-order-prototype-detail .ft-shipment-task--done .ft-shipment-task__number {
+    background: #e3f5ef;
+    color: #178b68;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__number svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.2;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__rail-line {
+    position: absolute;
+    top: 48px;
+    bottom: -29px;
+    left: 50%;
+    width: 1px;
+    background: #ced8e1;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__content {
+    min-width: 0;
+    padding: 17px 16px 16px 8px;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__top {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(330px, .9fr) auto;
+    gap: 28px;
+    align-items: start;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__copy {
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 3px;
+    color: #687d94;
+    font-size: .56rem;
+    font-weight: 800;
+    letter-spacing: .045em;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__eyebrow em {
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: #e6f7f2;
+    color: #087e73;
+    font-style: normal;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__copy h4 {
+    margin: 0;
+    color: #132740;
+    font-size: .91rem;
+    line-height: 1.3;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__copy p {
+    max-width: 630px;
+    margin: 3px 0 0;
+    color: #61758d;
+    font-size: .69rem;
+    line-height: 1.45;
+}
+
+.ft-order-prototype-detail .ft-shipment-task--locked .ft-shipment-task__copy h4,
+.ft-order-prototype-detail .ft-shipment-task--locked .ft-shipment-task__copy p,
+.ft-order-prototype-detail .ft-shipment-task--locked .ft-shipment-task__eyebrow {
+    color: #667b91;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__meta {
+    display: grid;
+    grid-template-columns: minmax(135px, 1fr) minmax(130px, 1fr);
+    gap: 26px;
+}
+
+.ft-order-prototype-detail .ft-shipment-meta-block {
+    display: grid;
+    gap: 6px;
+}
+
+.ft-order-prototype-detail .ft-shipment-meta-block > .ft-inline-save-state {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 0;
+    z-index: 2;
+    min-height: 0;
+    margin: 0;
+}
+
+.ft-order-prototype-detail .ft-shipment-meta-block > .ft-inline-save-state:not(.is-saving):not(.is-saved):not(.is-error) {
+    display: none;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-assignee,
+.ft-order-prototype-detail .ft-shipment-inline-due {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    gap: 8px;
+}
+
+.ft-order-prototype-detail button.ft-shipment-inline-assignee {
+    width: fit-content;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2a3d56;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-assignee .ft-inline-live-avatar {
+    width: 27px !important;
+    height: 27px !important;
+    flex: 0 0 27px !important;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #e7f5f2;
+    color: #087e73;
+    font-size: .65rem !important;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-assignee .ft-inline-live-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-assignee strong,
+.ft-order-prototype-detail .ft-shipment-inline-due strong {
+    min-width: 0;
+    overflow: hidden;
+    color: #2b3d56;
+    font-size: .73rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-assignee .ft-shipment-inline-edit-icon,
+.ft-order-prototype-detail .ft-shipment-inline-edit-button svg {
+    width: 12px;
+    height: 12px;
+    color: #238e84;
+    opacity: .76;
+}
+
+.ft-order-prototype-detail button.ft-shipment-inline-assignee:hover .ft-shipment-inline-edit-icon,
+.ft-order-prototype-detail button.ft-shipment-inline-assignee:focus-visible .ft-shipment-inline-edit-icon {
+    opacity: 1;
+}
+
+.ft-order-prototype-detail button.ft-shipment-inline-assignee:focus-visible,
+.ft-order-prototype-detail .ft-shipment-inline-edit-button:focus-visible {
+    outline: 2px solid rgba(7, 141, 128, .18);
+    outline-offset: 3px;
+    border-radius: 5px;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-assignee-picker {
+    width: 0;
+    height: 0;
+    overflow: visible;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-due {
+    max-width: 100%;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-due > svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    color: #657b91;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-edit-button {
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-edit-button:hover {
+    background: #e9f6f3;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-date-input {
+    width: min(145px, 100%);
+    height: 30px;
+    border: 1px solid #bfcdd9;
+    border-radius: 6px;
+    padding: 4px 7px;
+    background: #fff;
+    color: #2b3d56;
+    font-size: .68rem;
+    font-weight: 700;
+    outline: none;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-date-input:focus {
+    border-color: #3ca89f;
+    box-shadow: 0 0 0 2px rgba(7, 141, 128, .08);
+}
+
+.ft-order-prototype-detail .ft-shipment-meta-block > span,
+.ft-order-prototype-detail .ft-shipment-inline-work label > span {
+    color: #6c7e93;
+    font-size: .52rem;
+    font-weight: 850;
+    letter-spacing: .05em;
+}
+
+.ft-order-prototype-detail .ft-shipment-assignee {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #2a3d56;
+}
+
+.ft-order-prototype-detail .ft-shipment-assignee img,
+.ft-order-prototype-detail .ft-shipment-assignee b {
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.ft-order-prototype-detail .ft-shipment-assignee b {
+    display: grid;
+    place-items: center;
+    background: #e7f5f2;
+    color: #087e73;
+    font-size: .65rem;
+}
+
+.ft-order-prototype-detail .ft-shipment-assignee strong,
+.ft-order-prototype-detail .ft-shipment-due {
+    color: #2b3d56;
+    font-size: .73rem;
+    font-weight: 800;
+}
+
+.ft-order-prototype-detail .ft-shipment-due {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-shipment-due svg {
+    width: 14px;
+    height: 14px;
+    color: #657b91;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__state {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+    min-width: 138px;
+}
+
+.ft-order-prototype-detail .ft-shipment-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: .61rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-shipment-state svg {
+    width: 14px;
+    height: 14px;
+}
+
+.ft-order-prototype-detail .ft-shipment-state--action {
+    border: 1px solid #f1d3ad;
+    background: #fff4e5;
+    color: #c9770b;
+}
+
+.ft-order-prototype-detail .ft-shipment-state--locked {
+    background: #eef2f5;
+    color: #64768c;
+}
+
+.ft-order-prototype-detail .ft-shipment-state--done {
+    background: #e5f6f0;
+    color: #148663;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__chevron {
+    display: grid;
+    place-items: center;
+    width: 27px;
+    height: 27px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #354c65;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__chevron:hover {
+    background: #f1f5f8;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__chevron svg {
+    width: 17px;
+    height: 17px;
+    transition: transform .15s ease;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__chevron svg.is-open {
+    transform: rotate(180deg);
+}
+
+.ft-order-prototype-detail .ft-shipment-task__expanded {
+    display: grid;
+    grid-template-columns: minmax(330px, .82fr) minmax(450px, 1.4fr);
+    gap: 24px;
+    margin-top: 15px;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details,
+.ft-order-prototype-detail .ft-shipment-review-panel {
+    min-width: 0;
+    border: 1px solid #dbe4ec;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details {
+    padding: 14px 16px;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details header > strong {
+    color: #243a53;
+    font-size: .68rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details header button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 0;
+    background: transparent;
+    color: #40566d;
+    font-size: .63rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details header button svg {
+    width: 14px;
+    height: 14px;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details dl {
+    display: grid;
+    grid-template-columns: 1fr 1.18fr;
+    column-gap: 28px;
+    row-gap: 12px;
+    margin: 0;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details dl > div {
+    display: grid;
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 7px;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details dt,
+.ft-order-prototype-detail .ft-shipment-current-details dd {
+    margin: 0;
+    font-size: .63rem;
+    line-height: 1.45;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details dt {
+    color: #708096;
+    font-weight: 700;
+}
+
+.ft-order-prototype-detail .ft-shipment-current-details dd {
+    color: #2e4159;
+}
+
+.ft-order-prototype-detail .ft-shipment-review-panel {
+    display: grid;
+    align-content: center;
+    padding: 17px 22px;
+}
+
+.ft-order-prototype-detail .ft-shipment-review-panel h5 {
+    margin: 0;
+    color: #142840;
+    font-size: .82rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-shipment-review-panel > p {
+    margin: 4px 0 12px;
+    color: #60748b;
+    font-size: .68rem;
+}
+
+.ft-order-prototype-detail .ft-shipment-review-panel__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ft-order-prototype-detail .ft-shipment-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 37px;
+    padding: 8px 13px;
+    border: 1px solid #138f84;
+    border-radius: 7px;
+    background: #fff;
+    color: #0c847a;
+    font-size: .68rem;
+    font-weight: 850;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-shipment-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.ft-order-prototype-detail .ft-shipment-btn--primary {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: #fff;
+}
+
+.ft-order-prototype-detail .ft-shipment-btn--soft {
+    border-color: #dce4eb;
+    background: #f4f7f9;
+    color: #6c7d90;
+}
+
+.ft-order-prototype-detail .ft-shipment-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(11, 76, 84, .08);
+}
+
+.ft-order-prototype-detail .ft-shipment-btn:disabled {
+    opacity: .48;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.ft-order-prototype-detail .ft-shipment-review-panel > small {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    color: #667990;
+    font-size: .61rem;
+}
+
+.ft-order-prototype-detail .ft-shipment-review-panel > small svg {
+    width: 15px;
+    height: 15px;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-work {
+    display: grid;
+    grid-template-columns: minmax(150px, 190px) minmax(190px, 230px) auto;
+    gap: 10px;
+    align-items: end;
+    max-width: 670px;
+    margin: 10px 45px 0 auto;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-work label {
+    display: grid;
+    gap: 5px;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-work select,
+.ft-order-prototype-detail .ft-shipment-inline-work input {
+    width: 100%;
+    height: 37px;
+    border: 1px solid #d2dce5;
+    border-radius: 7px;
+    padding: 0 10px;
+    background: #fff;
+    color: #253b53;
+    font-size: .67rem;
+    outline: none;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-work select:disabled,
+.ft-order-prototype-detail .ft-shipment-inline-work input:disabled {
+    background: #f5f7f9;
+    color: #a1adba;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-work__buttons {
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-work__buttons .ft-shipment-btn--continue {
+    min-width: 160px;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-shipment-unlock-note {
+    grid-column: 1 / -1;
+    display: inline-flex;
+    align-items: flex-start;
+    min-width: 0;
+    max-width: 100%;
+    gap: 5px;
+    color: #7a8999;
+    font-size: .59rem;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.ft-order-prototype-detail .ft-shipment-unlock-note svg {
+    width: 14px;
+    height: 14px;
+}
+
+.ft-order-prototype-detail .ft-shipment-dispatch-work {
+    display: grid;
+    grid-template-columns: auto;
+    align-items: center;
+    justify-content: end;
+    justify-items: end;
+    gap: 7px;
+    min-width: 0;
+    max-width: 560px;
+    min-height: 34px;
+    margin: 7px 45px 0 auto;
+}
+
+.ft-order-prototype-detail .ft-shipment-dispatch-work > p {
+    margin: 0;
+    color: #4e6178;
+    font-size: .64rem;
+    line-height: 1.55;
+}
+
+.ft-order-prototype-detail .ft-shipment-dispatch-work .ft-shipment-unlock-note {
+    position: static;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+/* Shipment details modal --------------------------------------------------- */
+.ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-shipment-modal-form) {
+    width: min(760px, 100%);
+    border-radius: 13px;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-shipment-modal-form) .ft-order-task-document-modal-head {
+    padding: 18px 24px 12px;
+    border-bottom: 0;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-shipment-modal-form) .ft-order-task-document-modal-head h2 {
+    font-size: 1.24rem;
+    letter-spacing: -.02em;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-shipment-modal-form) .ft-order-task-document-modal-head p {
+    margin-top: 2px;
+    color: #53677f;
+    font-size: .68rem;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-shipment-modal-form) .ft-order-task-document-modal-head > button {
+    background: transparent;
+    color: #20354c;
+    font-size: 1.35rem;
+}
+
+.ft-order-prototype-detail .ft-order-workflow-action-modal--wide:has(.ft-shipment-modal-form) .ft-prototype-action-body {
+    padding: 0 24px 12px;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-form {
+    color: #20354c;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px 12px;
+    border: 1px solid #afe2da;
+    border-radius: 7px;
+    background: #effaf7;
+    color: #197f77;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-notice svg {
+    width: 17px;
+    height: 17px;
+    margin-top: 1px;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-notice p {
+    margin: 0;
+    color: #344d62;
+    font-size: .63rem;
+    line-height: 1.45;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-section {
+    padding-top: 13px;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-section + .ft-shipment-modal-section {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid #dfe6ec;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-section h3 {
+    margin: 0 0 9px;
+    color: #152840;
+    font-size: .77rem;
+    font-weight: 850;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-grid {
+    display: grid;
+    gap: 10px 14px;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-grid--two {
+    grid-template-columns: 1fr 1fr;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-grid--phone {
+    grid-template-columns: 1.35fr .52fr .82fr;
+    align-items: start;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-field {
+    display: grid;
+    align-content: start;
+    align-self: start;
+    gap: 5px;
+    margin-bottom: 10px;
+    min-width: 0;
+}
+
+/* Keep native fields and searchable master-data controls top-aligned even
+   when a sibling shows a validation message and makes the grid row taller. */
+.ft-order-prototype-detail .ft-shipment-modal-grid > .ft-shipment-modal-field {
+    align-content: start;
+    align-self: start;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-field > .validation-error {
+    min-height: 0;
+    margin: 1px 0 0;
+    line-height: 1.3;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-field > span {
+    color: #40556c;
+    font-size: .61rem;
+    font-weight: 750;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-field > span b {
+    color: #dc4343;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-field input,
+.ft-order-prototype-detail .ft-shipment-modal-field select,
+.ft-order-prototype-detail .ft-shipment-modal-field textarea {
+    width: 100%;
+    min-height: 36px;
+    border: 1px solid #cbd7e1;
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: #fff;
+    color: #20354c;
+    font-size: .66rem;
+    outline: none;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-field textarea {
+    min-height: 68px;
+    resize: vertical;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-search-select.ft-search-select {
+    width: 100%;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-search-select .ft-search-select__trigger {
+    width: 100%;
+    min-height: 36px;
+    height: 36px;
+    border: 1px solid #cbd7e1;
+    border-radius: 6px;
+    padding: 0 10px;
+    background: #fff;
+    color: #20354c;
+    font-size: .66rem;
+    font-weight: 500;
+    text-align: left;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-search-select .ft-search-select__trigger:hover:not(:disabled),
+.ft-order-prototype-detail .ft-shipment-modal-search-select .ft-search-select__trigger[aria-expanded="true"],
+.ft-order-prototype-detail .ft-shipment-modal-search-select .ft-search-select__trigger:focus-visible {
+    border-color: #3ca89f;
+    box-shadow: 0 0 0 2px rgba(7, 141, 128, .08);
+    outline: none;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-field input:focus,
+.ft-order-prototype-detail .ft-shipment-modal-field select:focus,
+.ft-order-prototype-detail .ft-shipment-modal-field textarea:focus {
+    border-color: #3ca89f;
+    box-shadow: 0 0 0 2px rgba(7, 141, 128, .08);
+}
+
+.ft-order-prototype-detail .ft-shipment-saved-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: -1px;
+    color: #16876e;
+    font-size: .61rem;
+    font-weight: 700;
+}
+
+.ft-order-prototype-detail .ft-shipment-saved-indicator svg {
+    width: 15px;
+    height: 15px;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-section__title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-section__title h3 {
+    margin: 0;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-section__title button {
+    border: 1px solid #1b9c91;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #fff;
+    color: #138a80;
+    font-size: .61rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.ft-order-prototype-detail .ft-shipment-update-contact-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 2px 0 10px;
+    color: #40546b;
+    font-size: .61rem;
+    line-height: 1.4;
+}
+
+.ft-order-prototype-detail .ft-shipment-update-contact-check input {
+    width: 15px;
+    height: 15px;
+    margin: 1px 0 0;
+    accent-color: var(--teal);
+}
+
+.ft-order-prototype-detail .ft-shipment-update-contact-check span {
+    display: grid;
+}
+
+.ft-order-prototype-detail .ft-shipment-update-contact-check small {
+    color: #738399;
+    font-size: .58rem;
+}
+
+.ft-order-prototype-detail .ft-shipment-contact-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 11px;
+    border: 1px solid #dbe4ec;
+    border-radius: 7px;
+    background: #fbfcfd;
+    color: #4c6078;
+    font-size: .61rem;
+}
+
+.ft-order-prototype-detail .ft-shipment-contact-summary svg {
+    width: 17px;
+    height: 17px;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-footer {
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 12px 24px 14px;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-footer .ft-shipment-modal-reset {
+    border-color: transparent;
+    padding-left: 0;
+    background: transparent;
+    color: #087f74;
+    font-size: .62rem;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-footer__actions {
+    display: grid;
+    justify-items: end;
+    gap: 5px;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-footer__actions > div {
+    display: flex;
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-shipment-modal-footer__actions small {
+    color: #667a91;
+    font-size: .57rem;
+}
+
+@media (max-width: 1180px) {
+    .ft-order-prototype-detail .ft-shipment-task__top {
+        grid-template-columns: minmax(300px, 1fr) minmax(270px, .8fr) auto;
+        gap: 16px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__expanded {
+        grid-template-columns: 1fr 1.25fr;
+        gap: 14px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-inline-work,
+    .ft-order-prototype-detail .ft-shipment-dispatch-work {
+        margin-right: 35px;
+    }
+}
+
+@media (max-width: 980px) {
+    .ft-order-prototype-detail .ft-shipment-phase__head {
+        align-items: flex-start;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-progress {
+        min-width: 210px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-progress__track {
+        width: 205px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__top {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__meta {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        max-width: 390px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__state {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__expanded {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-inline-work {
+        grid-template-columns: 1fr 1fr;
+        max-width: none;
+        margin: 14px 0 0;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-inline-work__buttons {
+        grid-column: 1 / -1;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-dispatch-work {
+        grid-template-columns: 1fr;
+        justify-content: stretch;
+        justify-items: end;
+        max-width: none;
+        margin: 14px 0 0;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-dispatch-work .ft-shipment-unlock-note {
+        width: 100%;
+        margin: 0;
+    }
+}
+
+@media (max-width: 720px) {
+    .ft-order-prototype-detail .ft-shipment-phase {
+        margin-inline: 8px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-phase__head {
+        display: grid;
+        gap: 14px;
+        padding: 15px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-progress {
+        width: 100%;
+        min-width: 0;
+        justify-items: start;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-progress__track {
+        width: min(100%, 300px);
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task {
+        grid-template-columns: 38px minmax(0, 1fr);
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__number {
+        width: 26px;
+        height: 26px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__content {
+        padding: 14px 10px 14px 4px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__copy {
+        flex: 1 1 calc(100% - 48px);
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__state {
+        min-width: 0;
+        margin-left: auto;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__meta {
+        width: 100%;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-dispatch-work {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-dispatch-work > p,
+    .ft-order-prototype-detail .ft-shipment-dispatch-work .ft-shipment-unlock-note {
+        grid-column: 1;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-current-details dl {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-review-panel__actions,
+    .ft-order-prototype-detail .ft-shipment-inline-work__buttons {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-inline-work {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-inline-work__buttons {
+        grid-column: 1;
+        display: grid;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-modal-grid--two,
+    .ft-order-prototype-detail .ft-shipment-modal-grid--phone {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-modal-footer {
+        display: grid;
+        gap: 10px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-modal-footer__actions,
+    .ft-order-prototype-detail .ft-shipment-modal-footer__actions > div {
+        width: 100%;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-modal-footer__actions > div {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Shipment task parity refinements: use the same compact status marker language
+ * as the other Order workflow stages and keep every shipment task open. */
+.ft-order-prototype-detail .ft-shipment-progress {
+    min-width: 0;
+    display: block;
+}
+
+.ft-order-prototype-detail .ft-shipment-progress > strong {
+    display: block;
+    color: #15334b;
+    font-size: .75rem;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.ft-order-prototype-detail .ft-shipment-progress > strong.is-complete {
+    color: #087f74;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__marker-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 18px;
+}
+
+.ft-order-prototype-detail .ft-shipment-task__marker {
+    width: 25px;
+    height: 25px;
+    border: 1px solid #cad5df;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    color: #8391a4;
+    font-size: .72rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.ft-order-prototype-detail .ft-shipment-task--done .ft-shipment-task__marker {
+    background: #e3f5ed;
+    border-color: #9ed8c2;
+    color: var(--green);
+}
+
+.ft-order-prototype-detail .ft-shipment-task--active .ft-shipment-task__marker {
+    background: var(--ft-theme-primary-soft);
+    border-color: var(--ft-theme-primary-300);
+    color: var(--teal);
+}
+
+.ft-order-prototype-detail .ft-shipment-inline-work__edit-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ft-order-prototype-detail .ft-shipment-unlock-note--editable {
+    color: #60758a;
+}
+
+@media (max-width: 720px) {
+    .ft-order-prototype-detail .ft-shipment-task__marker-wrap {
+        padding-top: 15px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-task__marker {
+        width: 25px;
+        height: 25px;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-inline-work__edit-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ft-order-prototype-detail .ft-shipment-inline-work__edit-actions .ft-shipment-btn {
+        width: 100%;
+    }
+}

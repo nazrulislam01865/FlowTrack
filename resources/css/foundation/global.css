@@ -1,0 +1,156 @@
+/**
+ * FlowTrack Global Foundation
+ * --------------------------------------------------------------------------
+ * Low-specificity application defaults only. Component appearance belongs in
+ * resources/css/components during Phase 2; page layout belongs in modules.
+ *
+ * This file intentionally loads before the legacy compatibility layer so the
+ * approved current UI remains visually stable during incremental migration.
+ */
+
+@layer ft-foundation {
+    :where(*, *::before, *::after) {
+        box-sizing: border-box;
+    }
+
+    html {
+        font-family: var(--ft-font-family);
+        -webkit-text-size-adjust: 100%;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        margin: 0;
+        background: var(--ft-bg-page);
+        color: var(--ft-text-primary);
+        font-family: var(--ft-font-family);
+        font-size: var(--ft-font-size-md);
+        line-height: var(--ft-line-height-normal);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    :where(button, input, select, textarea) {
+        color: inherit;
+        font: inherit;
+    }
+
+    :where(button, input, select, textarea, a, [role="button"], [tabindex]):focus-visible {
+        outline: var(--ft-focus-outline-width) solid var(--ft-color-brand-primary);
+        outline-offset: var(--ft-focus-outline-offset);
+    }
+
+    :where(button, input, select, textarea):disabled,
+    :where([aria-disabled="true"]) {
+        cursor: not-allowed;
+    }
+
+    .ft-type-page-title {
+        margin: 0;
+        color: var(--ft-text-primary);
+        font-size: var(--ft-font-size-3xl);
+        font-weight: var(--ft-font-weight-bold);
+        letter-spacing: var(--ft-letter-spacing-tight);
+        line-height: var(--ft-line-height-tight);
+    }
+
+    .ft-type-section-title {
+        margin: 0;
+        color: var(--ft-text-primary);
+        font-size: var(--ft-font-size-lg);
+        font-weight: var(--ft-font-weight-bold);
+        line-height: var(--ft-line-height-snug);
+    }
+
+    .ft-type-subsection-title {
+        margin: 0;
+        color: var(--ft-text-primary);
+        font-size: var(--ft-font-size-md);
+        font-weight: var(--ft-font-weight-bold);
+        line-height: var(--ft-line-height-snug);
+    }
+
+    .ft-type-body {
+        color: var(--ft-text-primary);
+        font-size: var(--ft-font-size-md);
+        line-height: var(--ft-line-height-normal);
+    }
+
+    .ft-type-label {
+        color: var(--ft-text-primary);
+        font-size: var(--ft-font-size-sm);
+        font-weight: var(--ft-font-weight-semibold);
+        line-height: var(--ft-line-height-snug);
+    }
+
+    .ft-type-caption,
+    .ft-type-helper {
+        color: var(--ft-text-secondary);
+        font-size: var(--ft-font-size-xs);
+        line-height: var(--ft-line-height-normal);
+    }
+
+    .ft-link {
+        color: var(--ft-text-link);
+        font-weight: var(--ft-font-weight-strong);
+        text-decoration: none;
+    }
+
+    .ft-link:hover {
+        color: var(--ft-text-link-hover);
+        text-decoration: underline;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @layer ft-foundation {
+        html {
+            scroll-behavior: auto;
+        }
+
+        :where(*, *::before, *::after) {
+            animation-duration: 0.01ms;
+            animation-iteration-count: 1;
+            scroll-behavior: auto;
+            transition-duration: 0.01ms;
+        }
+    }
+}
+
+/* Keep one intentional clear action in search fields. Browsers such as Chrome
+   and Safari inject their own cancel icon for input[type="search"], which
+   duplicates FlowTrack's explicit clear button. */
+@layer ft-foundation {
+    input[type="search"]::-webkit-search-cancel-button {
+        -webkit-appearance: none;
+        appearance: none;
+        display: none;
+    }
+
+    input[type="search"]::-ms-clear {
+        width: 0;
+        height: 0;
+        display: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Global image failure fallback
+   --------------------------------------------------------------------------
+   The browser's native broken-image glyph is intentionally never shown.
+   Generic images are swapped to the shared fallback icon by
+   public/js/flowtrack-image-fallback.js. Identity components can opt into a
+   sibling fallback (initials, etc.) without changing their existing layout.
+*/
+@layer ft-foundation {
+    :where(img.ft-image-fallback) {
+        object-fit: contain !important;
+        object-position: center !important;
+    }
+
+    :where(img[data-ft-image-fallback="sibling"][hidden]),
+    :where(img[data-ft-image-fallback="sibling"] + [hidden]),
+    :where(.ft-client-logo-fallback[hidden]) {
+        display: none !important;
+    }
+}

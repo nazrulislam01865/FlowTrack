@@ -8,7 +8,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | This file is for storing the credentials for third party services such
-    | as Resend, Postmark, AWS, and more. This file provides the de facto
+    | as Mailgun, Postmark, AWS and more. This file provides the de facto
     | location for this type of information, allowing packages to have
     | a conventional file to locate the various service credentials.
     |
@@ -28,22 +28,27 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-
-    'pusher' => [
-        'app_id' => env('PUSHER_APP_ID'),
-        'key' => env('PUSHER_APP_KEY'),
-        'secret' => env('PUSHER_APP_SECRET'),
-        'cluster' => env('PUSHER_APP_CLUSTER', 'ap2'),
-        'host' => env('PUSHER_HOST'),
-        'port' => (int) env('PUSHER_PORT', 443),
-        'scheme' => env('PUSHER_SCHEME', 'https'),
-    ],
-
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
+    ],
+
+
+    'realtime' => [
+        'enabled' => env('REVERB_ENABLED', true),
+        'queue' => env('REALTIME_QUEUE', 'realtime'),
+        'queue_connection' => env('REALTIME_QUEUE_CONNECTION', env('FLOWTRACK_HORIZONTAL_SCALING', false) ? 'redis' : env('QUEUE_CONNECTION', 'database')),
+        // Laravel publishes to the Reverb HTTP API through this internal address.
+        // In production this can stay on loopback even though browsers use WSS
+        // through the public REVERB_HOST / Nginx endpoint.
+        'api_host' => env('REVERB_API_HOST', '127.0.0.1'),
+        'api_port' => (int) env('REVERB_API_PORT', 8080),
+        'api_scheme' => env('REVERB_API_SCHEME', 'http'),
+        'connect_timeout' => (float) env('REALTIME_CONNECT_TIMEOUT', 2),
+        'timeout' => (float) env('REALTIME_TIMEOUT', 5),
+        'circuit_seconds' => (int) env('REALTIME_CIRCUIT_SECONDS', 60),
     ],
 
 ];

@@ -1,0 +1,39 @@
+{
+    "schema": 1,
+    "policy": "non_increasing_migration_debt",
+    "ceilings": {
+        "public_css_files": 0,
+        "direct_public_css_links": 0,
+        "authenticated_style_blocks": 0,
+        "blade_style_attributes": 111,
+        "test_public_css_references": 0
+    },
+    "migrated_css_debt": {
+        "resources/css/migration/components/summary-card.css": {
+            "bytes": 4501,
+            "important": 93,
+            "hex": 22
+        },
+        "resources/css/migration/components/date-range-filter.css": {
+            "bytes": 1564,
+            "important": 0,
+            "hex": 11
+        },
+        "resources/css/migration/components/export-period-modal.css": {
+            "bytes": 4361,
+            "important": 1,
+            "hex": 35
+        },
+        "resources/css/modules/orders/list.css": {
+            "bytes": 48639,
+            "important": 22,
+            "hex": 180
+        },
+        "resources/css/modules/work/all-tasks.css": {
+            "bytes": 19268,
+            "important": 2,
+            "hex": 99
+        }
+    },
+    "note": "Extracted legacy CSS keeps its initial debt ceiling so later batches can only reduce it. New module/component CSS should use tokens and avoid !important. Tests must read migrated compatibility CSS from resources/css/legacy/compatibility, never public/css."
+}

@@ -1,0 +1,19 @@
+@layer ft-components {
+    .ft-loading[data-ft-ui-component="loading"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--ft-space-2);
+        color: var(--ft-text-secondary);
+        font-size: var(--ft-font-size-sm);
+    }
+
+    .ft-loading__spinner {
+        width: var(--ft-spinner-size-md);
+        height: var(--ft-spinner-size-md);
+        flex: 0 0 auto;
+        border: var(--ft-border-width-thin) var(--ft-border-style-default) var(--ft-border-strong);
+        border-inline-end-color: var(--ft-color-brand-primary);
+        border-radius: var(--ft-radius-pill);
+        animation: ft-spin var(--ft-duration-slow) linear infinite;
+    }
+}

@@ -1,0 +1,846 @@
+/* Shared optimistic inline-edit states. Loaded directly so the feature does not
+   depend on a frontend rebuild during deployment. */
+.ft-inline-edit-shell {
+    position: relative;
+    min-width: 0
+}
+
+.ft-inline-edit-shell.is-inline-saving {
+    cursor: progress
+}
+
+.ft-inline-edit-shell.is-inline-saving .ft-inline-edit-button {
+    opacity: .45;
+    pointer-events: none
+}
+
+.ft-inline-edit-shell.is-inline-error {
+    border-color: #efb5b0 !important
+}
+
+.ft-inline-save-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 18px;
+    margin-left: 6px;
+    color: #708096;
+    font-size: .5625rem;
+    font-weight: 750;
+    white-space: nowrap;
+    vertical-align: middle
+}
+
+.ft-inline-save-state:before {
+    content: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .75
+}
+
+.ft-inline-save-state.is-saving:before,
+.ft-inline-save-state.is-saved:before,
+.ft-inline-save-state.is-error:before {
+    content: ""
+}
+
+.ft-inline-save-state.is-saving {
+    color: #a56508
+}
+
+.ft-inline-save-state.is-saving:before {
+    animation: ft-inline-pulse .8s ease-in-out infinite alternate
+}
+
+.ft-inline-save-state.is-saved {
+    color: #0d7a49
+}
+
+.ft-inline-save-state.is-error {
+    color: #c1342c
+}
+
+.ft-inline-save-state button {
+    border: 0;
+    background: transparent;
+    color: #c1342c;
+    font: inherit;
+    font-weight: 800;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer
+}
+
+.ft-inline-save-state.compact {
+    font-size: .5rem;
+    margin-left: 4px
+}
+
+.ft-inline-save-state.compact:before {
+    width: 5px;
+    height: 5px
+}
+
+.ft-inline-person-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0
+}
+
+.ft-inline-person-live>.avatar,
+.ft-inline-person-live>.ft-inline-generated-avatar {
+    flex: 0 0 auto
+}
+
+.ft-inline-generated-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-grid;
+    place-items: center;
+    background: var(--ft-theme-primary);
+    color: #fff;
+    font-size: .5625rem;
+    font-weight: 800
+}
+
+.ft-inline-toast-region {
+    position: fixed;
+    right: 24px;
+    top: 122px;
+    z-index: 181;
+    width: min(390px, calc(100vw - 32px));
+    display: grid;
+    gap: 8px;
+    pointer-events: none
+}
+
+.ft-inline-toast {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 12px;
+    border: 1px solid #e9aaa5;
+    border-radius: 10px;
+    background: #fff5f4;
+    box-shadow: 0 14px 34px rgba(15, 35, 65, .16);
+    color: #76231f;
+    pointer-events: auto
+}
+
+.ft-inline-toast-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0
+}
+
+.ft-inline-toast-copy strong {
+    font-size: .6875rem
+}
+
+.ft-inline-toast-copy span {
+    font-size: .625rem;
+    line-height: 1.35;
+    color: #8b4642
+}
+
+.ft-inline-toast-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto
+}
+
+.ft-inline-toast-actions button {
+    border: 0;
+    background: transparent;
+    color: var(--ft-theme-primary);
+    font-size: .625rem;
+    font-weight: 800;
+    padding: 5px;
+    cursor: pointer
+}
+
+.ft-inline-toast-actions .ft-inline-toast-close {
+    color: #7b5d5a;
+    font-size: 1.0625rem;
+    line-height: 1
+}
+
+@keyframes ft-inline-pulse {
+    to {
+        opacity: .3
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .ft-inline-save-state.is-saving:before {
+        animation: none
+    }
+}
+
+@media(max-width:760px) {
+    .ft-inline-toast-region {
+        right: 14px;
+        top: 112px;
+        width: calc(100vw - 28px)
+    }
+
+    .ft-inline-save-state {
+        font-size: .5rem
+    }
+}
+
+/* Job details planning card: person fields use the same one-control-at-a-time
+   inline-edit behavior as Priority and Hand Date. */
+.ft-planning-person-value {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-planning-person-value>span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-planning-inline-select {
+    width: min(210px, 100%);
+    min-width: 0;
+    height: 34px;
+    border: 1px solid var(--ft-theme-primary-300);
+    border-radius: 8px;
+    background: #fff;
+    color: #10233e;
+    padding: 0 30px 0 10px;
+    outline: 0;
+    font: inherit;
+    font-weight: 750;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ft-theme-primary) 8%, transparent);
+}
+
+.ft-planning-inline-select:focus {
+    border-color: var(--ft-theme-primary-500);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 12%, transparent)
+}
+
+/* Job overview description: the legacy editable-copy wrapper is flex-based,
+   which allowed the textarea editor to shrink to its content width. Keep this
+   one inline editor full-width while preserving the shared save/retry states. */
+.ft-overview-card .ft-editable-description {
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+.ft-overview-card .ft-editable-description .ft-inline-description-editor {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+}
+
+.ft-overview-card .ft-editable-description .ft-inline-description-editor textarea {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-height: 110px;
+    box-sizing: border-box;
+}
+
+/* Searchable inline user picker used by Job/Task assignee editing.
+   The closed control keeps the existing Job detail dimensions and typography;
+   only the option-loading mechanism changes to the shared remote dropdown. */
+.ft-inline-remote-user {
+    position: relative;
+    min-width: 0;
+    font: inherit
+}
+
+.ft-inline-remote-user-trigger {
+    box-sizing: border-box;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    text-align: left;
+    cursor: pointer
+}
+
+.ft-inline-remote-user-trigger>span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-inline-remote-user-trigger .ft-filter-chevron {
+    flex: 0 0 auto
+}
+
+.ft-inline-remote-user-compact {
+    width: 100%;
+    max-width: 190px
+}
+
+.ft-inline-remote-user-compact .ft-remote-filter-search,
+.ft-inline-remote-user-compact .ft-remote-filter-option {
+    font-size: .625rem
+}
+
+.ft-inline-remote-user-compact .ft-remote-filter-message {
+    font-size: .625rem
+}
+
+.ft-inline-remote-user-property {
+    width: 100%
+}
+
+.ft-inline-remote-user-property .ft-remote-filter-search,
+.ft-inline-remote-user-property .ft-remote-filter-option {
+    font-size: .875rem
+}
+
+.ft-inline-remote-user-property .ft-remote-filter-message {
+    font-size: .6875rem
+}
+
+.ft-inline-remote-user-menu {
+    z-index: 1250
+}
+
+.ft-task-property-popover .ft-inline-remote-user-menu {
+    left: 0;
+    right: auto
+}
+
+@media(max-width:800px) {
+    .ft-inline-remote-user-compact {
+        max-width: none
+    }
+}
+
+.ft-task-property-popover .ft-inline-remote-user .ft-inline-remote-user-trigger {
+    display: flex !important
+}
+
+/* Job Overview assignee dropdown must be able to escape the phase/task card.
+   The base Job detail card and phase table use overflow:hidden for rounded
+   table edges, which clipped the searchable assignee menu into the next
+   phase/section. Keep the table design unchanged but allow only this Job
+   overview container chain to paint the popover outside its bounds. */
+.ft-exact-job-detail .ft-overview-task-card,
+.ft-exact-job-detail .ft-overview-task-card .ft-phase-task-table {
+    overflow: visible !important;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-task-inline-assignee-picker,
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-remote-user {
+    position: relative;
+    z-index: 1240;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-remote-user-menu {
+    z-index: 1300 !important;
+}
+
+/* Job Details catalog inline editing uses the shared searchable remote menu.
+   Keep the closed/editing controls at the exact table typography and dimensions
+   already used by the native inline fields; only the option-loading technique changes. */
+.ft-inline-catalog-editor {
+    position: relative;
+    overflow: visible;
+    width: 100%
+}
+
+.ft-inline-catalog-picker {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    overflow: visible
+}
+
+.ft-inline-remote-catalog {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    font: inherit;
+    overflow: visible
+}
+
+.ft-inline-remote-catalog-trigger {
+    box-sizing: border-box;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-width: 135px;
+    max-width: 100%;
+    height: 32px;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600
+}
+
+.ft-inline-remote-catalog-trigger>span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.ft-inline-remote-catalog-trigger .ft-filter-chevron {
+    flex: 0 0 auto
+}
+
+.ft-inline-remote-catalog.is-disabled .ft-inline-remote-catalog-trigger {
+    cursor: not-allowed;
+    color: #708096
+}
+
+.ft-inline-remote-catalog-menu {
+    z-index: 1350 !important
+}
+
+.ft-inline-product-table,
+.ft-inline-product-table tbody,
+.ft-inline-product-table tr,
+.ft-inline-product-table td {
+    overflow: visible
+}
+
+.ft-inline-product-table .ft-inline-remote-catalog .ft-remote-filter-search,
+.ft-inline-product-table .ft-inline-remote-catalog .ft-remote-filter-option {
+    font-size: .6875rem
+}
+
+.ft-inline-product-table .ft-inline-remote-catalog .ft-remote-filter-message {
+    font-size: .625rem
+}
+
+.ft-inline-product-draft-row .ft-inline-cell-input {
+    border-color: var(--ft-theme-primary-300);
+    background: #fff
+}
+
+.ft-inline-product-quantity-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    min-width: 0;
+    width: 100%
+}
+
+.ft-inline-product-quantity-wrap>.ft-inline-field-editor {
+    flex: 0 1 110px;
+    min-width: 0;
+    margin-left: auto
+}
+
+.ft-inline-product-delete {
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: #7c8ca3;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer
+}
+
+.ft-inline-product-delete:hover,
+.ft-inline-product-delete:focus-visible {
+    border-color: #f2b8b8;
+    background: #fff6f6;
+    color: #b42318;
+    outline: 0
+}
+
+.ft-inline-product-delete:disabled {
+    opacity: .45;
+    cursor: not-allowed
+}
+
+.ft-inline-product-table th:last-child,
+.ft-inline-product-table td:last-child {
+    text-align: right
+}
+
+.ft-inline-product-table .ft-inline-cell-input.quantity {
+    text-align: right
+}
+
+.ft-readonly-product-value {
+    margin-left: auto;
+    text-align: right;
+    justify-content: flex-end
+}
+
+.ft-add-product-inline:disabled {
+    opacity: .55;
+    cursor: wait
+}
+
+
+
+/* 2026-08-08: keep Job Details task assignee avatar/fallback, name and edit icon
+   vertically centered in the Assignee column, including the Unassigned fallback. */
+.ft-exact-job-detail .ft-overview-task-card .ft-task-inline-editor {
+    align-items: center !important;
+    min-height: 28px;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-task-inline-display.ft-inline-person-live {
+    display: inline-flex;
+    align-items: center !important;
+    gap: 8px;
+    min-height: 24px;
+    line-height: 1.2;
+    overflow: visible;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-avatar-slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    line-height: 0;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-avatar-slot>.avatar,
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-generated-avatar {
+    flex: 0 0 24px;
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-inline-person-name {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    min-height: 24px;
+    line-height: 24px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ft-exact-job-detail .ft-overview-task-card .ft-task-inline-editor>.ft-inline-edit-button {
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    margin: 0;
+}
+
+/* Permission Matrix save UX: one calm save indicator per matrix instead of
+   repeating "Saved" text beside every checkbox. */
+.ft-matrix-role-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    min-width: 0
+}
+
+.ft-matrix-role-info>div:first-child {
+    min-width: 0
+}
+
+.ft-matrix-save-summary {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 150px;
+    min-height: 28px;
+    flex: 0 0 auto
+}
+
+.ft-matrix-save-summary>span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: .625rem;
+    font-weight: 750;
+    white-space: nowrap;
+    transition: opacity .15s ease, transform .15s ease
+}
+
+.ft-matrix-save-summary .is-saving {
+    color: #6b7280;
+    background: #f5f7fa;
+    border: 1px solid #e2e8f0
+}
+
+.ft-matrix-save-summary .is-saved {
+    color: #087443;
+    background: #edf9f3;
+    border: 1px solid #caead9
+}
+
+.ft-matrix-save-summary .is-error {
+    color: #b42318;
+    background: #fff2f1;
+    border: 1px solid #f0cbc7
+}
+
+.ft-matrix-save-summary .is-saved>b,
+.ft-matrix-save-summary .is-error>b {
+    display: grid;
+    place-items: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    font-size: .5625rem;
+    line-height: 1
+}
+
+.ft-matrix-save-summary .is-saved>b {
+    color: #fff;
+    background: #16965c
+}
+
+.ft-matrix-save-summary .is-error>b {
+    color: #fff;
+    background: #cf3d32
+}
+
+.ft-matrix-save-spinner,
+.ft-matrix-cell-spinner {
+    display: inline-block;
+    border-radius: 50%;
+    border: 2px solid #cfd8e5;
+    border-top-color: var(--ft-theme-primary);
+    animation: ft-matrix-save-spin .65s linear infinite
+}
+
+.ft-matrix-save-spinner {
+    width: 13px;
+    height: 13px
+}
+
+.ft-matrix-cell-spinner {
+    width: 10px;
+    height: 10px;
+    border-width: 1.5px
+}
+
+@keyframes ft-matrix-save-spin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+.ft-role-matrix td.ft-inline-edit-shell {
+    position: relative
+}
+
+.ft-matrix-cell-feedback {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    display: grid;
+    place-items: center;
+    transform: translateY(-50%);
+    pointer-events: none
+}
+
+.ft-matrix-scope-feedback {
+    display: inline-grid;
+    place-items: center;
+    width: 12px;
+    height: 12px;
+    margin-left: 5px;
+    vertical-align: middle
+}
+
+.ft-matrix-cell-error {
+    display: grid;
+    place-items: center;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    color: #fff;
+    background: #cf3d32;
+    font-size: .5rem;
+    line-height: 1
+}
+
+.ft-role-matrix td.is-inline-saving {
+    background: var(--ft-theme-surface-subtle)
+}
+
+.ft-role-matrix td.is-inline-error {
+    background: #fffafa;
+    box-shadow: inset 0 0 0 1px #f4d1ce
+}
+
+.ft-role-matrix .ft-perm-check:disabled {
+    cursor: wait;
+    opacity: .72
+}
+
+.ft-role-matrix .ft-scope-select:disabled {
+    cursor: wait;
+    opacity: .72
+}
+
+@media(max-width:700px) {
+    .ft-matrix-role-info {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .ft-matrix-save-summary {
+        justify-content: flex-start;
+        min-width: 0
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+    .ft-matrix-save-spinner,
+    .ft-matrix-cell-spinner {
+        animation: none
+    }
+}
+
+/* 2026-08-15 Order overview: inline urgency editor + owner alignment */
+.ft-exact-job-detail .ft-inline-urgency-row {
+    position: relative
+}
+
+.ft-exact-job-detail .ft-inline-urgency-row .ft-urgency-value,
+.ft-exact-job-detail .ft-planning-owner-row .ft-planning-value {
+    justify-content: flex-start !important;
+    text-align: left !important;
+}
+
+.ft-exact-job-detail .ft-planning-owner-row .ft-planning-person-value {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+}
+
+.ft-exact-job-detail .ft-planning-owner-row .ft-inline-edit-button {
+    flex: 0 0 auto;
+    margin-left: 2px
+}
+
+.ft-exact-job-detail .ft-planning-urgency-display {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-width: 0;
+}
+
+.ft-exact-job-detail .ft-inline-urgency-editor {
+    width: min(320px, 100%);
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid #cfdbea;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(18, 41, 72, .08);
+}
+
+.ft-exact-job-detail .ft-inline-urgency-select {
+    display: block;
+    width: 100%;
+    min-height: 34px;
+    padding: 6px 30px 6px 10px;
+    border: 1px solid #cfdbea;
+    border-radius: 7px;
+    background: #fff;
+    color: #263d5d;
+    font: inherit;
+    font-size: .625rem;
+    font-weight: 650;
+    line-height: 1.2;
+    cursor: pointer;
+    outline: none;
+}
+
+.ft-exact-job-detail .ft-inline-urgency-select:hover {
+    border-color: #b9cbe0
+}
+
+.ft-exact-job-detail .ft-inline-urgency-select:focus {
+    border-color: var(--ft-theme-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ft-theme-primary) 10%, transparent)
+}
+
+.ft-exact-job-detail .ft-inline-urgency-empty {
+    display: block;
+    margin-top: 6px
+}
+
+.ft-exact-job-detail .ft-inline-urgency-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 8px
+}
+
+.ft-exact-job-detail .ft-inline-urgency-actions button {
+    min-height: 27px;
+    padding: 0 9px;
+    border: 1px solid #d6e0ec;
+    border-radius: 6px;
+    background: #fff;
+    color: #31445f;
+    font-size: .59375rem;
+    font-weight: 700;
+}
+
+.ft-exact-job-detail .ft-inline-urgency-actions .ft-inline-urgency-save {
+    border-color: var(--ft-theme-primary);
+    background: var(--ft-theme-primary);
+    color: #fff
+}
+
+.ft-exact-job-detail .ft-inline-urgency-actions button:disabled {
+    opacity: .55;
+    cursor: default
+}
+
+@media(max-width:760px) {
+    .ft-exact-job-detail .ft-inline-urgency-editor {
+        width: 100%
+    }
+
+    .ft-exact-job-detail .ft-planning-owner-row .ft-planning-value {
+        width: 100%;
+        justify-content: flex-start !important
+    }
+}

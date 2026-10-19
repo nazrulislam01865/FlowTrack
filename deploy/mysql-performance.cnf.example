@@ -1,0 +1,11 @@
+# Example only for a self-managed MySQL/MariaDB server.
+# Managed database services should apply equivalent values through their
+# parameter group instead. Size max_connections from the output of:
+#   php artisan flowtrack:infrastructure:check
+
+[mysqld]
+max_connections = 200
+slow_query_log = ON
+long_query_time = 0.15
+log_queries_not_using_indexes = OFF
+# slow_query_log_file = /var/log/mysql/flowtrack-slow.log
