@@ -1,0 +1,136 @@
+
+name: FlowTrack Testing Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy code to testing server?"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flowtrack-testing
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: FlowTrack Server Deployment
+    runs-on: ubuntu-latest
+    environment: Deploy
+    timeout-minutes: 30
+
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.FLOWTRACK_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.FLOWTRACK_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_KEY"
+          test -n "$KNOWN_HOSTS"
+
+          install -d -m 700 ~/.ssh
+
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+
+      - name: Test SSH and Laravel
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            flowdeploy@168.144.132.9 \
+            'cd /var/www/flowtrack &&
+             whoami &&
+             git branch --show-current &&
+             php artisan --version'
+
+      - name: Deploy application
+        if: ${{ inputs.deploy == true }}
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            flowdeploy@168.144.132.9 \
+            "bash -se -- '$DEPLOY_SHA'" <<'REMOTE'
+          set -euo pipefail
+          umask 0027
+
+          cd /var/www/flowtrack
+          COMMIT="$1"
+
+          echo "Checking server..."
+
+          test -f .env
+          test -d .git
+          test -f composer.lock
+          test -f package-lock.json
+          test "$(git branch --show-current)" = "main"
+          test -r bootstrap/cache/config.php
+
+          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+            echo "ERROR: Server has modified tracked files."
+            exit 1
+          fi
+
+          echo "Fetching GitHub..."
+          git fetch origin main
+
+          if [ "$(git rev-parse origin/main)" != "$COMMIT" ]; then
+            echo "ERROR: GitHub main changed. Start a new deployment."
+            exit 1
+          fi
+
+          echo "Deploying commit: $COMMIT"
+          git merge --ff-only "$COMMIT"
+
+          echo "Installing PHP dependencies..."
+          composer install \
+            --no-dev \
+            --prefer-dist \
+            --no-interaction \
+            --optimize-autoloader
+
+          echo "Building frontend..."
+          npm ci --no-audit --no-fund
+          npm run build
+
+          echo "Optimizing Laravel..."
+          php artisan optimize
+
+          echo "Restarting queues..."
+          php artisan queue:restart
+
+          echo "Restarting Reverb..."
+          php artisan reverb:restart
+
+          echo "Verifying installation..."
+          php artisan --version
+          test -s public/build/manifest.json
+          test -r bootstrap/cache/config.php
+
+          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+            echo "ERROR: Deployment left modified tracked files."
+            exit 1
+          fi
+
+          echo "DEPLOYMENT SUCCESSFUL"
+          git rev-parse --short HEAD
+          REMOTE
