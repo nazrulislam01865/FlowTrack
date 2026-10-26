@@ -51,3 +51,6 @@ Thumbs.db
 
 # Runtime configuration directory
 /storage/framework/.config/
+
+# Temporary Blade render files
+/storage/framework/views/*.blade.php
