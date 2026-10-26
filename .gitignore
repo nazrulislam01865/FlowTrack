@@ -27,3 +27,27 @@ Homestead.yaml
 Thumbs.db
 /build/
 /zipfiles
+
+
+
+# Laravel generated cache files
+/bootstrap/cache/*.php
+/storage/framework/views/*.php
+/storage/framework/.config/
+
+# Server-managed verification files
+/public/.well-known/
+
+# Local environment variants
+.env.*
+!.env.example
+
+# Laravel generated cache files
+/bootstrap/cache/*.php
+/storage/framework/views/*.php
+
+# Preserve Blade templates until reviewed
+!/storage/framework/views/*.blade.php
+
+# Runtime configuration directory
+/storage/framework/.config/
