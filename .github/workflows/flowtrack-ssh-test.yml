@@ -1,0 +1,44 @@
+
+name: FlowTrack SSH Connection Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-ssh:
+    name: Test FlowTrack Server Connection
+    runs-on: ubuntu-latest
+    environment: Deploy
+    timeout-minutes: 5
+
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.FLOWTRACK_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.FLOWTRACK_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_KEY"
+          test -n "$KNOWN_HOSTS"
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Test Server
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            flowdeploy@168.144.132.9 \
+            'whoami && hostname && cd /var/www/flowtrack && git branch --show-current && php artisan --version && echo "SSH TEST SUCCESSFUL"'
