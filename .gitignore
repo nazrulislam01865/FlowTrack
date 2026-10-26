@@ -54,3 +54,5 @@ Thumbs.db
 
 # Temporary Blade render files
 /storage/framework/views/*.blade.php
+
+/storage/framework/views/*.blade.php
