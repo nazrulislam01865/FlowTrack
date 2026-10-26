@@ -1,6 +1,7 @@
 
 name: FlowTrack Testing Deployment
 
+
 on:
   workflow_dispatch:
     inputs:
@@ -9,6 +10,11 @@ on:
         required: true
         type: boolean
         default: false
+
+  push:
+    branches:
+      - main
+
 
 permissions:
   contents: read
@@ -61,7 +67,8 @@ jobs:
              php artisan --version'
 
       - name: Deploy application
-        if: ${{ inputs.deploy == true }}
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy == true) }}
+
         env:
           DEPLOY_SHA: ${{ github.sha }}
         shell: bash
