@@ -1,6 +1,6 @@
 # Supplier Artwork Confirmation Reminder — FlowTracker
 
-The five screens under **Administration → Reminder Setup** use the provided FlowTrack UI concept without a second sidebar/theme. Only the existing `ART_INTERNAL_REVIEW` → `confirm` workflow action is supported by this release.
+The five screens under **Administration → Reminder Setup** use the provided STEP PROMO UI concept without a second sidebar/theme. Only the existing `ART_INTERNAL_REVIEW` → `confirm` workflow action is supported by this release.
 
 ## What is implemented
 

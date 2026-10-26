@@ -13,7 +13,7 @@ final class SupplierOrderProjection
 {
     // Bump when the supplier-visible projection semantics change. Legacy outbox
     // rows are reconciled once; normal writes still deliver event-first.
-    public const FORMAT_VERSION = 4;
+    public const FORMAT_VERSION = 5;
 
     private const TASKS = [
         2 => [
@@ -38,7 +38,7 @@ final class SupplierOrderProjection
 
     public function build(int $orderId, int $supplierId, string $eventId): array
     {
-        $order = FlowJob::withTrashed()->with('phase:id,name,short_name,sequence')->findOrFail($orderId);
+        $order = FlowJob::withTrashed()->with('phase:id,name,short_name,sequence')->withExists('activeHold')->findOrFail($orderId);
         $items = DB::table('flow_job_items as i')
             ->join('master_records as p', 'p.id', '=', 'i.catalog_product_id')
             ->join('master_records as s', 's.id', '=', 'i.supplier_id')
@@ -193,6 +193,11 @@ final class SupplierOrderProjection
             'title' => mb_substr(trim((string) $order->title) ?: ('Order '.$order->displayOrderNumber()), 0, 255),
             'source_id' => (int) $orderId, 'revision' => $revision,
             'created_at' => $order->created_at?->toIso8601String(),
+            'stage_sequence' => $sequence,
+            'stage_name' => $resolved['name'],
+            'stage_color' => $resolved['color'],
+            'progress' => max(0, min(100, (int) ($order->progress ?? 0))),
+            'on_hold' => (bool) $order->active_hold_exists,
             'delivery_date' => $order->supplier_delivery_date?->toDateString()
                 ?? $order->estimated_delivery_date?->toDateString(),
             // Explicit buyer-controlled supplier ship date; never substitute the

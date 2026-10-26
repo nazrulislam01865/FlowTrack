@@ -33,8 +33,6 @@ class Index extends Component
 
     public $logoUpload = null;
     public $faviconUpload = null;
-    public string $brandingName = '';
-    public array $systemFooter = [];
     public string $footerCopyright = '';
     public array $footerLinks = [];
 
@@ -301,35 +299,9 @@ class Index extends Component
 
     private function loadSupplierFooter(): void
     {
-        $branding = app(BrandingService::class)->current();
-        $this->brandingName = (string) $branding['name'];
-        $this->systemFooter = $branding['system_footer'];
-        $footer = $branding['supplier_portal_footer'];
+        $footer = app(BrandingService::class)->current()['supplier_portal_footer'];
         $this->footerCopyright = $footer['copyright'];
         $this->footerLinks = $footer['links'];
-    }
-
-    public function saveBrandingName(): void
-    {
-        $this->validate(['brandingName' => ['required', 'string', 'max:255']]);
-        app(BrandingService::class)->saveName($this->brandingName, auth()->user());
-        session()->flash('success', 'System name updated.');
-        $this->redirectRoute('administration', ['tab' => 'branding']);
-    }
-
-    public function saveSystemFooter(): void
-    {
-        $this->validate([
-            'systemFooter' => ['required', 'array:enabled,copyright,owner,website_url,suffix'],
-            'systemFooter.enabled' => ['required', 'boolean'],
-            'systemFooter.copyright' => ['required', 'string', 'max:80'],
-            'systemFooter.owner' => ['required', 'string', 'max:120'],
-            'systemFooter.website_url' => ['nullable', 'string', 'max:2048', 'url:http,https'],
-            'systemFooter.suffix' => ['nullable', 'string', 'max:120'],
-        ]);
-        app(BrandingService::class)->saveSystemFooter($this->systemFooter, auth()->user());
-        session()->flash('success', 'Application footer updated.');
-        $this->redirectRoute('administration', ['tab' => 'branding']);
     }
 
     public function saveSupplierFooter(): void

@@ -1,4 +1,4 @@
-/* Reusable Management Dashboard visual system from the approved FlowTrack prototype.
+/* Reusable Management Dashboard visual system from the approved StepPromo prototype.
    Wrap any future page/section in <x-ui.management-theme> to inherit these tokens/components. */
 .ft-management-dashboard-page {
     background: var(--ft-theme-dashboard-page-bg)

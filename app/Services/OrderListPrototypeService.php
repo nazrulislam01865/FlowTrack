@@ -908,6 +908,7 @@ class OrderListPrototypeService
             // Order Details page without navigating away first.
             'order_id' => (int) $job->id,
             'next_task_id' => (int) ($nextTask?->id ?? 0),
+            'next_action_key' => (string) ($next['key'] ?? ''),
             'order' => $job->displayOrderNumber(),
             'reference' => trim((string) ($job->order_number ?: '—')),
             'created' => $job->created_at ? UserLocalTime::format($job->created_at, 'Y-m-d') : '—',

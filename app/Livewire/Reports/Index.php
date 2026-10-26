@@ -105,7 +105,7 @@ class Index extends Component
     public function exportVisible()
     {
         $rows = app(InquiryIntelligenceReportQuery::class)->exportRows(auth()->user(), $this->filters());
-        $filename = 'FlowTrack-inquiry-intelligence-'.now()->format('Ymd-His').'.csv';
+        $filename = 'StepPromo-inquiry-intelligence-'.now()->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($rows): void {
             $out = fopen('php://output', 'w');

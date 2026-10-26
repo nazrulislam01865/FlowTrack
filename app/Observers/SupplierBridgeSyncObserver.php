@@ -66,7 +66,7 @@ final class SupplierBridgeSyncObserver implements ShouldHandleEventsAfterCommit
             return;
         }
         if ($record instanceof FlowJob && ($force || $record->wasChanged([
-            'status', 'title', 'supplier_instruction', 'currency', 'deleted_at',
+            'status', 'progress', 'title', 'supplier_instruction', 'currency', 'deleted_at',
             'completed_at', 'workflow_phase_id', 'supplier_delivery_date', 'estimated_delivery_date',
         ]))) $this->queueOrder((int) $record->id);
     }

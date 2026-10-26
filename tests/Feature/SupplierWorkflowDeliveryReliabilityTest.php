@@ -37,6 +37,16 @@ final class SupplierWorkflowDeliveryReliabilityTest extends TestCase
         $this->assertStringContainsString("->whereNull('next_attempt_at')->update([", $sender);
     }
 
+
+    public function test_supplier_list_uses_canonical_flowtracker_stage_progress_hold_and_ship_date(): void
+    {
+        $source = file_get_contents(app_path('Services/SupplierBridge/SupplierOrderProjection.php'));
+        $this->assertStringContainsString("'stage_sequence' => ".'$sequence', $source);
+        $this->assertStringContainsString("'progress' => max(0, min(100, (int) (".'$order'."->progress ?? 0)))", $source);
+        $this->assertStringContainsString("'on_hold' => (bool) ".'$order'."->active_hold_exists", $source);
+        $this->assertStringContainsString("'supplier_ship_date' => ".'$order'."->supplier_delivery_date?->toDateString()", $source);
+    }
+
     public function test_changes_during_signed_delivery_are_not_overwritten(): void
     {
         $observer = file_get_contents(app_path('Observers/SupplierBridgeSyncObserver.php'));

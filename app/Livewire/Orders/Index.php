@@ -426,6 +426,23 @@ class Index extends Component
         );
     }
 
+    /** Complete the selected email handoff from the Order list without opening a modal. */
+    public function completeListWorkflowHandoffWithoutEmail(int $orderId, int $taskId): void
+    {
+        $task = $this->editableListWorkflowTask($orderId, $taskId, [
+            'job.phase', 'setupTemplate',
+        ]);
+        $actions = app(OrderWorkflowActionService::class);
+        $key = $actions->automationKey($task);
+        abort_unless(in_array($key, ['NEW_SEND_PO_ARTWORK', 'ART_SEND_ORDER_TEAM'], true), 422);
+
+        $actions->perform($task, auth()->user(), 'without_email');
+        $this->forgetOrderWorkflowEmailFallbackMarker($task);
+        session()->flash('success', $key === 'NEW_SEND_PO_ARTWORK'
+            ? 'Purchase Order handoff completed without email.'
+            : 'Artwork handoff completed without email.');
+    }
+
     /**
      * CHANGE 2026-08-24:
      * Execute the phase-list Next Action in place. The descriptor, sequence
@@ -711,9 +728,21 @@ class Index extends Component
             $this->forgetOrderWorkflowEmailFallbackMarker($task);
         }
 
+        $handoffWithoutRecipient = match ($key) {
+            'NEW_SEND_PO_ARTWORK' => blank($this->orderWorkflowActionPayload['to_email'] ?? null)
+                && blank($this->orderWorkflowActionPayload['to_user_id'] ?? null)
+                && blank($this->orderWorkflowActionPayload['external_to_email'] ?? null),
+            'ART_SEND_ORDER_TEAM' => blank($this->orderWorkflowActionPayload['to_emails'] ?? null)
+                && blank($this->orderWorkflowActionPayload['to_email'] ?? null),
+            default => false,
+        };
         $successMessage = match ($key) {
-            'NEW_SEND_PO_ARTWORK' => 'Purchase Order emailed to the Artwork Team.',
-            'ART_SEND_ORDER_TEAM' => 'Artwork emailed to the Order Team.',
+            'NEW_SEND_PO_ARTWORK' => $handoffWithoutRecipient
+                ? 'Purchase Order handoff completed without email.'
+                : 'Purchase Order emailed to the Artwork Team.',
+            'ART_SEND_ORDER_TEAM' => $handoffWithoutRecipient
+                ? 'Artwork handoff completed without email.'
+                : 'Artwork emailed to the Order Team.',
             default => 'Order workflow updated.',
         };
 

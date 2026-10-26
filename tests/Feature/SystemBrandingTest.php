@@ -24,7 +24,7 @@ class SystemBrandingTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test(Index::class)
-            ->call('setTab', 'branding')
+            ->set('tab', 'branding')
             ->set('logoUpload', $logo)
             ->call('saveLogo')
             ->assertHasNoErrors();
@@ -47,7 +47,7 @@ class SystemBrandingTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test(Index::class)
-            ->call('setTab', 'branding')
+            ->set('tab', 'branding')
             ->set('faviconUpload', $favicon)
             ->call('saveFavicon')
             ->assertHasNoErrors();
@@ -82,7 +82,7 @@ class SystemBrandingTest extends TestCase
         $admin = User::factory()->create(['is_super_admin' => true, 'is_active' => true]);
 
         Livewire::actingAs($admin)->test(Index::class)
-            ->call('setTab', 'branding')
+            ->set('tab', 'branding')
             ->set('footerCopyright', '© 2026 My Company')
             ->set('footerLinks.privacy.url', 'https://example.com/privacy')
             ->set('footerLinks.terms.enabled', false)
@@ -100,7 +100,7 @@ class SystemBrandingTest extends TestCase
     {
         $admin = User::factory()->create(['is_super_admin' => true, 'is_active' => true]);
         Livewire::actingAs($admin)->test(Index::class)
-            ->call('setTab', 'branding')
+            ->set('tab', 'branding')
             ->set('footerLinks.privacy.url', 'javascript:alert(1)')
             ->call('saveSupplierFooter')
             ->assertHasErrors(['footerLinks.privacy.url']);
@@ -112,73 +112,6 @@ class SystemBrandingTest extends TestCase
             'copyright' => 'Tampered',
             'links' => \App\Support\SupplierPortalFooter::defaults()['links'],
         ], $staff);
-    }
-
-    public function test_admin_can_manage_main_footer_and_brand_name_without_changing_supplier_footer(): void
-    {
-        $admin = User::factory()->create(['is_super_admin' => true, 'is_active' => true]);
-        $originalSupplierFooter = app(BrandingService::class)->current()['supplier_portal_footer'];
-
-        Livewire::actingAs($admin)->test(Index::class)
-            ->call('setTab', 'branding')
-            ->set('systemFooter.owner', 'Itqan Consulting')
-            ->set('systemFooter.website_url', 'https://itqanconsulting.com')
-            ->set('systemFooter.copyright', '© 2026')
-            ->call('saveSystemFooter')
-            ->assertHasNoErrors();
-
-        Livewire::actingAs($admin)->test(Index::class)
-            ->call('setTab', 'branding')
-            ->set('brandingName', 'Acme Workflows')
-            ->call('saveBrandingName')
-            ->assertHasNoErrors();
-
-        $branding = app(BrandingService::class)->current();
-        $this->assertSame('Acme Workflows', $branding['name']);
-        $this->assertSame('Itqan Consulting', $branding['system_footer']['owner']);
-        $this->assertSame('https://itqanconsulting.com', $branding['system_footer']['website_url']);
-        $this->assertSame($originalSupplierFooter, $branding['supplier_portal_footer']);
-        auth()->logout();
-        $this->get(route('login'))->assertOk()->assertSee('Acme Workflows')->assertSee('Itqan Consulting');
-    }
-
-    public function test_main_footer_rejects_unsafe_link_and_staff_changes(): void
-    {
-        $admin = User::factory()->create(['is_super_admin' => true, 'is_active' => true]);
-        Livewire::actingAs($admin)->test(Index::class)
-            ->call('setTab', 'branding')
-            ->set('systemFooter.website_url', 'javascript:alert(1)')
-            ->call('saveSystemFooter')
-            ->assertHasErrors(['systemFooter.website_url']);
-
-        $staff = User::factory()->create(['is_super_admin' => false, 'is_active' => true]);
-        $this->actingAs($staff);
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        app(BrandingService::class)->saveSystemFooter(\App\Support\SystemFooter::defaults(), $staff);
-    }
-
-    public function test_regular_admin_role_can_update_application_footer(): void
-    {
-        $role = \App\Models\Role::query()->where('slug', 'admin')->firstOrFail();
-        $admin = User::factory()->create(['is_super_admin' => false, 'is_active' => true, 'role_id' => $role->id]);
-        Livewire::actingAs($admin)->test(Index::class)
-            ->call('setTab', 'branding')
-            ->set('systemFooter.owner', 'Itqan Consulting')
-            ->call('saveSystemFooter')
-            ->assertHasNoErrors();
-        $this->assertSame('Itqan Consulting', app(BrandingService::class)->current()['system_footer']['owner']);
-    }
-
-    public function test_main_footer_can_be_disabled_from_branding(): void
-    {
-        $admin = User::factory()->create(['is_super_admin' => true, 'is_active' => true]);
-        Livewire::actingAs($admin)->test(Index::class)
-            ->call('setTab', 'branding')
-            ->set('systemFooter.enabled', false)
-            ->call('saveSystemFooter')
-            ->assertHasNoErrors();
-        auth()->logout();
-        $this->get(route('login'))->assertOk()->assertDontSee('aria-label="Copyright information"', false);
     }
 
     private function tinyPng(): string

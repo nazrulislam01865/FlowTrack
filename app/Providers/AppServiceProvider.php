@@ -168,7 +168,7 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
-        View::composer(['layouts.app', 'auth.login', 'tracking.layout'], function ($view): void {
+        View::composer(['layouts.app', 'auth.login'], function ($view): void {
             $view->with('branding', app(BrandingService::class)->current());
         });
 

@@ -13,8 +13,8 @@
         <meta name="flowtrack-display-timezone" content="{{ app(\App\Services\WorkspaceSettingsService::class)->displayTimezone() }}">
         <meta name="flowtrack-rich-text-upload-url" content="{{ route('rich-text-images.store') }}">
     @endauth
-    <title>{{ ($title ?? null) ? $title.' — ' : '' }}{{ $branding['name'] ?? 'FlowTrack' }}</title>
-    <link rel="icon" href="{{ $branding['favicon_url'] ?? asset('images/flowtrack-favicon.svg') }}">
+    <title>{{ ($title ?? null) ? $title.' — ' : '' }}STEP PROMO</title>
+    <link rel="icon" href="{{ $branding['favicon_url'] ?? asset('images/step-promo/step-promo-icon.webp') }}">
     <script
         src="{{ asset('js/flowtrack-image-fallback.js') }}?v={{ \App\Support\FrontendBuildVersion::current() }}"
         data-fallback-src="{{ asset('images/flowtrack-image-fallback.svg') }}"
@@ -46,7 +46,6 @@
     @endif
     @vite('resources/css/application/after-dashboard.css')
     @vite('resources/css/application/shared-components.css')
-    <link rel="stylesheet" href="{{ asset('css/flowtrack-system-branding.css') }}?v=20261019">
 
     {{--
         Order details can be opened through Livewire navigation from Dashboard,
@@ -123,7 +122,6 @@
             @if(session('success') && !request()->routeIs('task-pack.setup','master-data','financial-master-data','profile','inquiries.*','company.setup'))<div class="flash">{{ session('success') }}</div>@endif
             @yield('content')
         </div>
-        <x-system-footer :branding="$branding" />
     </main>
     @include('layouts.partials.mobile-bottom')
 </div>

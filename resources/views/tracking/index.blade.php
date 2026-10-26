@@ -1,6 +1,6 @@
 @extends('tracking.layout')
 
-@section('title', 'Order tracking — '.($branding['name'] ?? 'FlowTrack'))
+@section('title', 'Order tracking — STEP PROMO')
 
 @section('content')
 <main class="ft-tracking-shell">

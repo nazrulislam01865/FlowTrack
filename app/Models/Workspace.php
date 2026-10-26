@@ -17,7 +17,6 @@ class Workspace extends Model
         'is_active',
         'company_profile',
         'supplier_portal_footer',
-        'system_footer',
     ];
 
     protected function casts(): array
@@ -26,7 +25,6 @@ class Workspace extends Model
             'is_active' => 'boolean',
             'company_profile' => 'array',
             'supplier_portal_footer' => 'array',
-            'system_footer' => 'array',
         ];
     }
 

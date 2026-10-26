@@ -330,6 +330,9 @@
                 @else
                     <button type="button" class="btn small primary" wire:click="openOrderWorkflowAction({{ $task->id }})" wire:loading.attr="disabled" wire:target="openOrderWorkflowAction({{ $task->id }})">{{ $workflowActionLabel }}</button>
                 @endif
+                @if(in_array($automationKey, ['NEW_SEND_PO_ARTWORK', 'ART_SEND_ORDER_TEAM'], true))
+                    <button type="button" class="btn small" wire:click="completeOrderWorkflowHandoffWithoutEmail({{ $task->id }})" wire:loading.attr="disabled" wire:target="completeOrderWorkflowHandoffWithoutEmail({{ $task->id }})">Complete without email</button>
+                @endif
             @endif
         @elseif($mode === 'done')
             @if($automationKey === 'NEW_UPLOAD_PO' && $canEditTask && ($canUploadDocument || $canLinkDocument))

@@ -33,7 +33,7 @@
                 <div class="ft-company-grid">
                     <div class="field">
                         <label>Legal company name *</label>
-                        <input wire:model="legalName" maxlength="180" placeholder="e.g. Your Company Ltd.">
+                        <input wire:model="legalName" maxlength="180" placeholder="e.g. Step Promo Co., Ltd.">
                         @error('legalName')<div class="validation-error">{{ $message }}</div>@enderror
                     </div>
                     <div class="field">

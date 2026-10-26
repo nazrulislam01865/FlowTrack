@@ -1,6 +1,6 @@
 @extends('tracking.layout')
 
-@section('title', 'Select Your Order — '.($branding['name'] ?? 'FlowTrack'))
+@section('title', 'Select Your Order — STEP PROMO')
 
 @section('content')
 <div class="ft-lookup-layout" style="max-width:760px;margin:0 auto;display:block;">

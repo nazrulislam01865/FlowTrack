@@ -2112,8 +2112,7 @@ body:has(.ft-client-preview-backdrop) {
     border: 1px solid var(--border-color, #cbd5e1); border-radius: 8px;
     padding: 10px 12px; background: var(--surface, #fff); color: inherit;
 }
-.ft-system-footer-editor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .ft-supplier-footer-links { display: grid; gap: 12px; }
 .ft-supplier-footer-link-row { display: grid; grid-template-columns: minmax(120px, .65fr) minmax(140px, 1fr) minmax(220px, 2fr); align-items: center; gap: 12px; }
 .ft-supplier-footer-check { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
-@media (max-width: 780px) { .ft-supplier-footer-link-row, .ft-system-footer-editor-grid { grid-template-columns: minmax(0, 1fr); align-items: stretch; } }
+@media (max-width: 780px) { .ft-supplier-footer-link-row { grid-template-columns: minmax(0, 1fr); align-items: stretch; } }

@@ -154,9 +154,7 @@ final class OrderWorkflowEmailService
                 ? 'To / CC email fields — Artwork Team users are suggested when matched'
                 : 'To email field — matching active system users are suggested as you type',
             'empty_recipient_message' => $recipientRows->isEmpty()
-                ? ($key === self::PURCHASE_ORDER_HANDOFF
-                    ? 'Enter a valid email address in To. Artwork Team users are suggested as you type.'
-                    : 'Enter one or more valid email addresses in To. Active system users are suggested as you type.')
+                ? 'Enter a To recipient to send the email, or choose Complete without email on the task.'
                 : '',
             'business_unit' => $key === self::ARTWORK_HANDOFF ? $this->orderBusinessUnit($job) : null,
             'customer_comment' => $customerComment,
@@ -232,18 +230,24 @@ final class OrderWorkflowEmailService
             ? $this->artworkPreparationTask($job)
             : null;
 
-        if (! $this->emailControl->orderEnabled()) {
-            $trackingId = 'disabled-'.Str::uuid();
+        $emailServiceEnabled = $this->emailControl->orderEnabled();
+        // These two handoffs can be completed without an email recipient.
+        // If a recipient is supplied and email is enabled, retain normal delivery.
+        if (! $emailServiceEnabled || $toEmails->isEmpty()) {
+            $trackingId = ($emailServiceEnabled ? 'no-recipient-' : 'disabled-').Str::uuid();
             $attachmentLabel = $key === self::PURCHASE_ORDER_HANDOFF ? 'Purchase Order' : 'Artwork';
+            $skipReason = ! $emailServiceEnabled
+                ? 'the Order email service is disabled by an administrator'
+                : 'no email recipient was provided';
 
             $job->activities()->create([
                 'user_id' => $actor->id,
                 'event' => 'job.workflow_email_skipped',
-                'description' => $attachmentLabel.' email handoff was skipped because the Order email service is disabled by an administrator.',
+                'description' => $attachmentLabel.' email handoff was skipped because '.$skipReason.'.',
                 'meta' => [
                     'task_id' => (int) $handoffTask->id,
                     'tracking_id' => $trackingId,
-                    'email_service_disabled' => true,
+                    'email_service_disabled' => ! $emailServiceEnabled,
                     'module' => ModuleEmailControlService::ORDER,
                     'intended_to' => $toEmails->all(),
                     'intended_cc' => $ccEmails->all(),
@@ -260,7 +264,7 @@ final class OrderWorkflowEmailService
                 'flow_job_id' => (int) $job->id,
                 'task_id' => (int) $handoffTask->id,
                 'handoff_key' => $key,
-                'reason' => 'order_email_service_disabled',
+                'reason' => $emailServiceEnabled ? 'no_email_recipient' : 'order_email_service_disabled',
             ]);
 
             if ($assignmentRecipient && $artworkPreparationTask) {
@@ -268,16 +272,6 @@ final class OrderWorkflowEmailService
             }
 
             return $trackingId;
-        }
-
-        if ($toEmails->isEmpty()) {
-            $message = $key === self::ARTWORK_HANDOFF
-                ? $this->missingOrderTeamRecipientMessage($job)
-                : $this->missingArtworkTeamRecipientMessage();
-
-            throw ValidationException::withMessages([
-                'orderWorkflowActionEmail' => $message,
-            ]);
         }
 
         $documents = $this->sourceDocuments($job, $key);
@@ -593,7 +587,7 @@ final class OrderWorkflowEmailService
             }
         }
 
-        if ($required && ($toEmail === '' || filter_var($toEmail, FILTER_VALIDATE_EMAIL) === false)) {
+        if ($required && $toEmail !== '' && filter_var($toEmail, FILTER_VALIDATE_EMAIL) === false) {
             throw ValidationException::withMessages([
                 'orderWorkflowActionPayload.to_email' => 'Enter a valid email address in To.',
             ]);
@@ -705,12 +699,6 @@ final class OrderWorkflowEmailService
             ->filter()
             ->unique()
             ->values();
-
-        if ($required && $toEmails->isEmpty()) {
-            throw ValidationException::withMessages([
-                'orderWorkflowActionPayload.to_emails' => 'Enter at least one email address in To.',
-            ]);
-        }
 
         $invalidTo = $toEmails->first(fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL) === false);
         if ($required && $invalidTo) {

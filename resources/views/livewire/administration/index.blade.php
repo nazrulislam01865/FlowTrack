@@ -2,7 +2,7 @@
     <div class="ft-access-head">
         <div>
             <h1>{{ $tab === 'branding' ? 'System Branding' : ($tab === 'settings' ? 'System Settings' : 'Access Roles & Permissions') }}</h1>
-            <p>{{ $tab === 'branding' ? 'Manage the system name, logo, favicon, application footer and supplier portal footer.' : ($tab === 'settings' ? 'Configure workspace-wide operational settings used throughout FlowTrack.' : 'Control who can view, create, edit, assign, delete, link, export or manage every FlowTrack module.') }}</p>
+            <p>{{ $tab === 'branding' ? 'Manage the logo, favicon and supplier portal footer from FlowTracker.' : ($tab === 'settings' ? 'Configure workspace-wide operational settings used throughout FlowTrack.' : 'Control who can view, create, edit, assign, delete, link, export or manage every FlowTrack module.') }}</p>
         </div>
         @if(!in_array($tab, ['branding','settings'], true))
             <div class="ft-access-actions"><button class="ghost" wire:click="setTab('audit')">Audit Log</button><button class="primary" wire:click="openRole">＋ New Role</button></div>

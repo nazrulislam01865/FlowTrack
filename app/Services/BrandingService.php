@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Support\SupplierPortalFooter;
-use App\Support\SystemFooter;
 use App\Models\Workspace;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -19,11 +18,11 @@ class BrandingService
 
         return Cache::remember($this->cacheKey(), now()->addHour(), function () use ($configuredWorkspaceId) {
             $workspace = Workspace::query()
-                ->select(['id', 'name', 'logo_path', 'favicon_path', 'supplier_portal_footer', 'system_footer'])
+                ->select(['id', 'name', 'logo_path', 'favicon_path', 'supplier_portal_footer'])
                 ->whereKey($configuredWorkspaceId)
                 ->first()
                 ?? Workspace::query()
-                    ->select(['id', 'name', 'logo_path', 'favicon_path', 'supplier_portal_footer', 'system_footer'])
+                    ->select(['id', 'name', 'logo_path', 'favicon_path', 'supplier_portal_footer'])
                     ->where('is_active', true)
                     ->orderBy('id')
                     ->first();
@@ -36,31 +35,8 @@ class BrandingService
                 'logo_url' => $this->assetUrl((int) ($workspace?->id ?: $configuredWorkspaceId), 'logo', $workspace?->logo_path),
                 'favicon_url' => $this->assetUrl((int) ($workspace?->id ?: $configuredWorkspaceId), 'favicon', $workspace?->favicon_path),
                 'supplier_portal_footer' => SupplierPortalFooter::normalize($workspace?->supplier_portal_footer),
-                'system_footer' => SystemFooter::normalize($workspace?->system_footer),
             ];
         });
-    }
-
-    /** The workspace name is the single source of truth for labels and browser titles. */
-    public function saveName(string $name, ?User $actor = null): void
-    {
-        $this->assertCanManage($actor ?: auth()->user());
-        $workspace = $this->workspace();
-        $name = trim($name);
-        if ($workspace->name === $name) return;
-        $workspace->update(['name' => $name]);
-        $this->forget();
-    }
-
-    /** Public and in-app footer. Kept independent from the supplier portal footer. */
-    public function saveSystemFooter(array $footer, ?User $actor = null): void
-    {
-        $this->assertCanManage($actor ?: auth()->user());
-        $workspace = $this->workspace();
-        $normalized = SystemFooter::normalize($footer);
-        if (SystemFooter::normalize($workspace->system_footer) === $normalized) return;
-        $workspace->update(['system_footer' => $normalized]);
-        $this->forget();
     }
 
     /** Dedicated admin write; observer sends an independent signed brand update to suppliers. */

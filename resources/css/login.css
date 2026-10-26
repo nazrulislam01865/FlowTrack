@@ -56,7 +56,7 @@ button {
     justify-content: space-between;
     padding: 77px 68px 58px;
     background-color: #021625;
-    background-image: radial-gradient(circle at 20% 20%, rgba(15, 141, 126, .38), transparent 50%), linear-gradient(135deg, #072b3e 0%, #081c31 100%);
+    background-image: url('/images/step-promo/login-screen-background.webp');
     background-position: center center;
     background-size: cover;
     color: #fff;
@@ -67,17 +67,12 @@ button {
     z-index: 1;
 }
 
-.ft-login-hero-logo {
+.step-promo-logo {
     display: block;
     width: 380px;
     max-width: 52%;
     height: auto;
 }
-
-.ft-login-hero-name { font-size: clamp(1.8rem, 2.2vw, 2.7rem); font-weight: 750; letter-spacing: -.025em; }
-.ft-login-brand-mark { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; color: #fff; border-radius: 10px; background: var(--brand); font-size: 14px; font-weight: 750; }
-body { min-height: 100vh; display: flex; flex-direction: column; }
-body > .login { flex: 1 0 auto; }
 
 .login-message {
     margin-top: 78px;
@@ -400,6 +395,3 @@ img.ft-image-fallback {
     max-width: 300px;
     line-height: 1.4;
 }
-
-body.ft-has-footer .login.screen { min-height: calc(100vh - 49px); }
-@media(max-width:900px) { body.ft-has-footer .login-form-wrap { min-height: calc(100vh - 49px); } }

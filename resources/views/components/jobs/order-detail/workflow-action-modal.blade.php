@@ -149,7 +149,7 @@
     $emailServiceEnabled = (bool) (($variant === 'invoice_send' ? $invoiceEmailPreview : $emailHandoffPreview)['email_service_enabled'] ?? true);
     if (! $emailServiceEnabled && in_array($variant, ['purchase_order_email', 'artwork_email'], true)) {
         $title = $variant === 'artwork_email' ? 'Complete Artwork Handoff' : 'Complete Purchase Order Handoff';
-        $copy = 'Email sending is currently disabled. Choose the intended recipients, then complete the handoff and send the file manually.';
+        $copy = 'Email sending is currently disabled. Use Complete without email on the task to finish without sending.';
     } elseif (! $emailServiceEnabled && $variant === 'invoice_send') {
         $title = 'Complete Send Invoice';
         $copy = 'Email sending is currently disabled. Confirm the intended recipient and complete the task now; the invoice can be resent from the completed task later.';
@@ -232,7 +232,7 @@
      Native selects/date pickers and embedded PDF viewers can finish a pointer
      interaction outside the dialog; backdrop-click dismissal made those normal
      interactions close the invoice modal unexpectedly. --}}
-<div class="ft-order-task-document-modal-backdrop" wire:key="order-workflow-action-modal-{{ $task->id }}-{{ $step }}" @if($emailPreviewPending) wire:init="loadOrderWorkflowActionEmailPreview" @endif>
+<div class="ft-order-task-document-modal-backdrop {{ in_array($variant, ['purchase_order_email', 'artwork_email'], true) ? 'ft-order-task-document-modal-backdrop--handoff' : '' }}" wire:key="order-workflow-action-modal-{{ $task->id }}-{{ $step }}" @if($emailPreviewPending) wire:init="loadOrderWorkflowActionEmailPreview" @endif>
     <section
         class="ft-order-task-document-modal ft-order-workflow-action-modal {{ $isArtworkPreviewModal ? 'ft-order-workflow-action-modal--artwork-preview' : ($modalWide ? 'ft-order-workflow-action-modal--wide' : '') }} {{ $usesStableFinanceValidation ? 'ft-order-workflow-action-modal--stable-finance-validation' : '' }} {{ ($isArtworkRevisionRequest || $isArtworkCancellationRequest) ? 'ft-order-workflow-action-modal--artwork-revision-request' : '' }} {{ $isArtworkCancellationRequest ? 'ft-order-workflow-action-modal--artwork-cancellation-request' : '' }}"
         data-ft-feedback-scope="form"
@@ -694,7 +694,7 @@
                     :loading="$emailPreviewPending"
                     :preview="$emailHandoffPreview"
                     :defaultSubject="'Purchase Order ready — '.$orderNumber"
-                    emptyRecipientText="Enter an email address in To to see the final email details."
+                    emptyRecipientText="Enter a To recipient to send the email, or close this popup and choose Complete without email on the task."
                 />
                 @error('orderWorkflowActionEmail')<p class="validation-error">{{ $message }}</p>@enderror
             @elseif($variant === 'artwork_review' || $variant === 'artwork_email' || $variant === 'client_erp')
@@ -879,7 +879,7 @@
                         :loading="$emailPreviewPending"
                         :preview="$emailHandoffPreview"
                         :defaultSubject="'Artwork ready — '.$orderNumber"
-                        emptyRecipientText="Enter one or more email addresses in To."
+                        emptyRecipientText="Enter a To recipient to send the email, or close this popup and choose Complete without email on the task."
                     />
                     @error('orderWorkflowActionEmail')<p class="validation-error">{{ $message }}</p>@enderror
                 @elseif($variant === 'client_erp')
@@ -1202,16 +1202,15 @@
                 @elseif($step === 'issue')
                     <button type="button" class="danger" wire:click="submitOrderWorkflowAction('issue')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">Report Issue</button>
                 @elseif($emailFallback && $emailServiceEnabled && in_array($variant, ['purchase_order_email', 'artwork_email'], true))
-                    <button type="button" class="secondary" wire:click="submitOrderWorkflowAction('confirm')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">Try email again</button>
-                    <button type="button" class="primary" wire:click="completeOrderWorkflowEmailTaskAfterFailure" wire:loading.attr="disabled" wire:target="completeOrderWorkflowEmailTaskAfterFailure">Complete task</button>
+                    <button type="button" class="primary" wire:click="submitOrderWorkflowAction('confirm')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">Send</button>
                 @else
                     @foreach($choices as $decision => $label)
                         @continue($decision === 'cancel_artwork' && $latestArtworkDocuments->count() <= 1)
                         @php
-                            $actionLabel = ! $emailServiceEnabled && in_array($variant, ['purchase_order_email', 'artwork_email', 'invoice_send'], true)
-                                ? 'Complete without email'
-                                : $label;
-                            $actionDisabled = $variant === 'invoice_send' && empty($workflowInvoice);
+                            $isHandoffEmail = in_array($variant, ['purchase_order_email', 'artwork_email'], true);
+                            $actionLabel = $isHandoffEmail ? 'Send' : $label;
+                            $actionDisabled = ($variant === 'invoice_send' && empty($workflowInvoice))
+                                || ($isHandoffEmail && ! $emailServiceEnabled);
                         @endphp
                         <button type="button" class="{{ in_array($decision, ['revise','cancel_artwork','issue'], true) ? 'danger' : 'primary' }}" wire:click="submitOrderWorkflowAction('{{ $decision }}')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction" @disabled($actionDisabled)>{{ $actionLabel }}</button>
                     @endforeach

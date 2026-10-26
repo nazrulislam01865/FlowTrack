@@ -31,7 +31,7 @@ final class SupplierArtworkReminderController extends Controller
             'reminderEvents' => $eventOptions,
             'reminderRecipientTypes' => OrderReminderRecipients::TYPES,
             'reminderRecipientUsers' => $recipients->userOptions($context->workspaceId()),
-            'companyName' => $profile['trading_name'] ?: ($profile['legal_name'] ?: app(\App\Services\BrandingService::class)->current()['name']),
+            'companyName' => $profile['trading_name'] ?: ($profile['legal_name'] ?: 'STEP PROMO'),
             'orderEmailEnabled' => $orderEmailEnabled,
         ]);
     }

@@ -3,30 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $branding['name'] ?? 'FlowTrack' }}</title>
-    <link rel="icon" href="{{ $branding['favicon_url'] ?? asset('images/flowtrack-favicon.svg') }}">
+    <title>STEP PROMO</title>
+    <link rel="icon" href="{{ $branding['favicon_url'] ?? asset('images/step-promo/step-promo-icon.webp') }}">
     <script
         src="{{ asset('js/flowtrack-image-fallback.js') }}?v={{ \App\Support\FrontendBuildVersion::current() }}"
         data-fallback-src="{{ asset('images/flowtrack-image-fallback.svg') }}"
     ></script>
     @vite(['resources/css/login.css', 'resources/theme/flowtrack/core.css'])
-    <link rel="stylesheet" href="{{ asset('css/flowtrack-system-branding.css') }}?v=20261019">
 </head>
-<body class="{{ ($branding['system_footer']['enabled'] ?? true) ? 'ft-has-footer' : '' }}">
+<body>
 <div class="login screen">
-    <section class="login-visual" aria-label="{{ $branding['name'] ?? 'FlowTrack' }}">
+    <section class="login-visual" aria-label="Step Promo">
         <div class="login-visual-content">
-            @if($branding['logo_url'] ?? null)
-                <img class="ft-login-hero-logo" src="{{ $branding['logo_url'] }}" alt="{{ $branding['name'] ?? 'FlowTrack' }}">
-            @else
-                <div class="ft-login-hero-name">{{ $branding['name'] ?? 'FlowTrack' }}</div>
-            @endif
+            <img
+                class="step-promo-logo"
+                src="{{ asset('images/step-promo/step-promo-logo.webp') }}"
+                alt="STEP PROMO — Your Promo Partner"
+            >
 
             <div class="login-message">
-                <h1>Every order,<br>clearly on track.</h1>
+                <h1>Your promo journey,<br>perfectly in step.</h1>
                 <p>Manage every quote, proof, sample, production<br class="desktop-break"> milestone and delivery from one clear workspace.</p>
 
-                <div class="flow-preview" aria-label="Order workflow stages">
+                <div class="flow-preview" aria-label="Promotional workflow stages">
                     <div>01 · Quote</div>
                     <div>02 · Artwork</div>
                     <div>03 · Production</div>
@@ -57,12 +56,8 @@
             @endif
 
             <div class="login-form-brand">
-                @if($branding['logo_url'] ?? null)
-                    <img src="{{ $branding['logo_url'] }}" alt="" aria-hidden="true">
-                @else
-                    <span class="ft-login-brand-mark" aria-hidden="true">FT</span>
-                @endif
-                <span>{{ $branding['name'] ?? 'FlowTrack' }}</span>
+                <img src="{{ asset('images/step-promo/step-promo-icon.webp') }}" alt="" aria-hidden="true">
+                <span>STEP PROMO</span>
             </div>
 
             <h2>Welcome back</h2>
@@ -143,7 +138,6 @@
         </form>
     </section>
 </div>
-<x-system-footer :branding="$branding" />
 
 <script>
     const togglePassword = document.getElementById('togglePassword');

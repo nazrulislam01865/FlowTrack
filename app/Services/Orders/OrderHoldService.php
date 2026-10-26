@@ -100,6 +100,7 @@ final class OrderHoldService
         // a derived read-model update only; the OrderHold row above remains the
         // authoritative source and all existing task guards stay unchanged.
         app(OrderWorkflowSummaryService::class)->updateHoldState((int) $job->id, true);
+        app(\App\Services\SupplierBridge\QueueChangedOrder::class)->mark((int) $job->id);
         $this->forgetOperationalCaches($actor);
 
         return $hold;
@@ -153,6 +154,7 @@ final class OrderHoldService
         }, 3);
 
         app(OrderWorkflowSummaryService::class)->updateHoldState((int) $job->id, false);
+        app(\App\Services\SupplierBridge\QueueChangedOrder::class)->mark((int) $job->id);
         $this->forgetOperationalCaches($actor);
 
         return $hold;

@@ -245,7 +245,7 @@
         if(!root)return;
         const data=record()?read():bootstrap.defaults, visible=data.sections||{};
         const isArtwork=(data.event_key||artworkKey)===artworkKey;
-        const company=esc(root.dataset.brandName||'FlowTrack');
+        const company=esc(root.dataset.brandName||'STEP PROMO');
         const logo=root.dataset.brandLogo?'<img src="'+esc(root.dataset.brandLogo)+'" alt="'+company+'" loading="lazy">':company;
         const row=(label,value)=>'<div class="kv"><span>'+label+'</span><b>'+esc(value)+'</b></div>';
         const portal=isPortal(data);
@@ -258,7 +258,7 @@
           ${(visible.artwork&&isArtwork)?'<p style="margin-top:12px">Confirmed artwork is available through the authorized order tracking process.</p>':''}
           ${visible.action?'<p style="margin-top:14px"><span class="emailButton">'+esc(data.cta)+'</span></p>':''}
           ${portal?'<p>Dashboard link: '+esc(sample.dashboard_link)+'</p>':''}
-          ${visible.support?'<div class="emailFoot">Need help? Contact your '+(portal?'FlowTracker':'order' )+' team.</div>':''}</div></div>`;
+          ${visible.support?'<div class="emailFoot">Need help? Contact your '+(portal?'FlowTracker':'STEP PROMO order')+' team.</div>':''}</div></div>`;
         const editor=$('#editorEmail');if(editor)editor.innerHTML=html;
         const preview=$('#previewEmail');if(preview&&preview.querySelector('iframe')===null)preview.innerHTML=html;
     };

@@ -591,6 +591,29 @@
     backdrop-filter: blur(1px)
 }
 
+/* Keep the long Purchase Order / Artwork email handoff previews isolated.
+   Backdrop blur repaints the underlying Order page as the dialog scrolls;
+   scroll chaining can otherwise move the page behind the dialog. */
+html:has(.ft-order-task-document-modal-backdrop--handoff),
+body:has(.ft-order-task-document-modal-backdrop--handoff) {
+    overflow: hidden;
+}
+
+html:has(.ft-order-task-document-modal-backdrop--handoff) {
+    scrollbar-gutter: stable;
+}
+
+.ft-order-task-document-modal-backdrop--handoff {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    overscroll-behavior: none;
+}
+
+.ft-order-task-document-modal-backdrop--handoff > .ft-order-workflow-action-modal,
+.ft-order-task-document-modal-backdrop--handoff > .ft-order-workflow-action-modal > .ft-order-task-document-modal-body {
+    overscroll-behavior-y: contain;
+}
+
 .ft-order-task-document-modal {
     width: min(610px, calc(100vw - 32px));
     max-height: calc(100vh - 40px);

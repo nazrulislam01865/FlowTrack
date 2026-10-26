@@ -1,6 +1,6 @@
 # FlowTracker supplier reminder dynamic update (2026-10-08)
 
-Scope: Only the artwork-confirmation supplier reminder module, including the existing five-screen FlowTrack design. No other workflow events have been enabled.
+Scope: Only the artwork-confirmation supplier reminder module, including the existing five-screen STEP PROMO design. No other workflow events have been enabled.
 
 - Create Reminder creates a saved draft. Administrators can configure several drafts, but only one published reminder is active for ART_INTERNAL_REVIEW -> confirm at a time. Publishing a different reminder deactivates the previously active one; Pause stops automated sending independently of the global Order Email Service.
 - The five screens now load workspace-scoped saved templates and delivery records, with functional search/status/stage filters, editable reminder names, immediate or delayed queue timing, content visibility, live previews, test email sending, and publication statuses. Mandatory safety checks and the exact event/recipient remain fixed.

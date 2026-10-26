@@ -147,7 +147,7 @@
         class="ft-remote-filter-menu ft-search-select__menu{{ $showAvatar ? ' ft-search-select__menu--people' : '' }}"
         data-ft-search-select-context="{{ $context }}"
         x-cloak
-        x-bind:style="open ? menuStyle + ';display:flex!important;' : 'display:none!important;'"
+        x-bind:style="open ? menuStyle + ';display:flex!important;' + @js($context === 'category-creator' ? ';z-index:1201!important;' : '') : 'display:none!important;'"
         x-on:click.outside="close()"
         x-on:keydown.arrow-down.prevent="moveOption(1)"
         x-on:keydown.arrow-up.prevent="moveOption(-1)"

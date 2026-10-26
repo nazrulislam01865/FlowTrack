@@ -133,6 +133,30 @@ trait ManagesOrderWorkflow
         $this->showOrderWorkflowActionModal = true;
     }
 
+    /** Complete one of the two email handoff tasks directly, without opening a modal. */
+    public function completeOrderWorkflowHandoffWithoutEmail(int $taskId): void
+    {
+        abort_unless($this->selectedJobId && $this->detailTab === 'overview', 422);
+        $task = app(TaskService::class)->visibleQuery(auth()->user())
+            ->with(['job.phase', 'setupTemplate'])
+            ->where('flow_job_id', $this->selectedJobId)
+            ->findOrFail($taskId);
+        abort_unless(app(AccessControlService::class)->canEditTask(auth()->user(), $task), 403);
+
+        $actions = app(\App\Services\OrderWorkflowActionService::class);
+        $key = $actions->automationKey($task);
+        abort_unless(in_array($key, ['NEW_SEND_PO_ARTWORK', 'ART_SEND_ORDER_TEAM'], true), 422);
+        if ($this->ignoreCompletedWorkflowReplay($task)) return;
+
+        $actions->perform($task, auth()->user(), 'without_email');
+        $this->forgetOrderWorkflowEmailFallbackMarker($task);
+        $this->dispatchTaskAssigneeSync($task->id);
+        $this->syncOverviewWorkflowSelectionToCurrentPhase();
+        session()->flash('success', $key === 'NEW_SEND_PO_ARTWORK'
+            ? 'Purchase Order handoff completed without email.'
+            : 'Artwork handoff completed without email.');
+    }
+
     public function closeOrderWorkflowAction(): void
     {
         $this->showOrderWorkflowActionModal = false;
@@ -823,13 +847,25 @@ trait ManagesOrderWorkflow
             )))
             : '';
 
+        $handoffWithoutRecipient = match ($key) {
+            'NEW_SEND_PO_ARTWORK' => blank($this->orderWorkflowActionPayload['to_email'] ?? null)
+                && blank($this->orderWorkflowActionPayload['to_user_id'] ?? null)
+                && blank($this->orderWorkflowActionPayload['external_to_email'] ?? null),
+            'ART_SEND_ORDER_TEAM' => blank($this->orderWorkflowActionPayload['to_emails'] ?? null)
+                && blank($this->orderWorkflowActionPayload['to_email'] ?? null),
+            default => false,
+        };
         $successMessage = $key === 'ART_INTERNAL_REVIEW' && $decision === 'cancel_artwork'
             ? 'Selected artwork cancelled. Any selected products were removed from the active Order.'
             : ($key === 'ART_INTERNAL_REVIEW' && $decision === 'confirm'
                 ? 'Artwork confirmed. The tracking QR and confirmed artwork PDF were generated.'
                 : match ($key) {
-                'NEW_SEND_PO_ARTWORK' => 'Purchase Order emailed to the Artwork Team.',
-                'ART_SEND_ORDER_TEAM' => 'Artwork emailed to the Order Team.',
+                'NEW_SEND_PO_ARTWORK' => $handoffWithoutRecipient
+                    ? 'Purchase Order handoff completed without email.'
+                    : 'Purchase Order emailed to the Artwork Team.',
+                'ART_SEND_ORDER_TEAM' => $handoffWithoutRecipient
+                    ? 'Artwork handoff completed without email.'
+                    : 'Artwork emailed to the Order Team.',
                 'BILL_PREPARE' => 'Invoice generated and ready to send.',
                 'BILL_SEND' => match ($invoiceDeliveryStatus) {
                     'failed' => 'Send Invoice task completed, but email delivery failed. Use Resend on the completed task to try again.',

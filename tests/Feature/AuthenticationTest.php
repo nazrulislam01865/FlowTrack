@@ -14,10 +14,10 @@ class AuthenticationTest extends TestCase
     {
         $this->get(route('login'))
             ->assertOk()
-            ->assertSee('<title>FlowTrack</title>', false)
-            ->assertSee('Every order,')
-            ->assertSee('Itqan Consulting')
-            ->assertDontSee('STEP PROMO')
+            ->assertSee('<title>STEP PROMO</title>', false)
+            ->assertSee('/images/step-promo/step-promo-logo.webp', false)
+            ->assertSee('/images/step-promo/step-promo-icon.webp', false)
+            ->assertSee('Your promo journey,')
             ->assertSee('Welcome back')
             ->assertSee('Sign in');
     }

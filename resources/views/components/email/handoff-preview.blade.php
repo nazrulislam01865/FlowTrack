@@ -20,6 +20,8 @@
     }
     $delivery = trim((string) ($preview['delivery'] ?? '')) ?: 'Configured email service';
     $emailServiceEnabled = (bool) ($preview['email_service_enabled'] ?? true);
+    $isOrderHandoff = in_array((string) ($preview['key'] ?? ''), ['NEW_SEND_PO_ARTWORK', 'ART_SEND_ORDER_TEAM'], true);
+    $noHandoffRecipient = $isOrderHandoff && $recipients->isEmpty();
     $recipientSource = trim((string) ($preview['recipient_source'] ?? ''));
     $previewEmptyRecipientText = trim((string) ($preview['empty_recipient_message'] ?? ''));
     if ($previewEmptyRecipientText !== '') {
@@ -32,8 +34,8 @@
     <header class="ft-order-email-preview-head">
         <div>
             <small>EMAIL PREVIEW</small>
-            <strong>{{ $emailServiceEnabled ? 'Exact email that will be sent' : 'Email delivery is currently disabled' }}</strong>
-            <span>{{ $emailServiceEnabled ? 'Recipients, subject, attachment and message body are generated from this Order.' : 'Recipients are recorded for a manual handoff. Confirming will continue the workflow without sending email.' }}</span>
+            <strong>{{ ! $emailServiceEnabled ? 'Email delivery is currently disabled' : ($noHandoffRecipient ? 'Enter a recipient to send' : 'Exact email that will be sent') }}</strong>
+            <span>{{ ! $emailServiceEnabled ? ($isOrderHandoff ? 'Email sending is disabled. Close this popup and choose Complete without email on the task.' : 'Recipients are recorded for a manual handoff. Confirming will continue the workflow without sending email.') : ($noHandoffRecipient ? 'Enter a To recipient to send, or close this popup and choose Complete without email on the task.' : 'Recipients, subject, attachment and message body are generated from this Order.') }}</span>
         </div>
         <em>{{ $delivery }}</em>
     </header>

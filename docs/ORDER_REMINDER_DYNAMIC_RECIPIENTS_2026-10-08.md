@@ -1,6 +1,6 @@
 # FlowTracker order reminder: dynamic recipients
 
-Updated from Archive 3(4).zip. The Reminder Setup screen retains its existing FlowTrack layout, theme variables and form controls.
+Updated from Archive 3(4).zip. The Reminder Setup screen retains its existing Step Promo layout, theme variables and form controls.
 
 ## Recipient selection
 

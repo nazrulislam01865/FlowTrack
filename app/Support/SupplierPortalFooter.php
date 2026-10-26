@@ -8,7 +8,7 @@ final class SupplierPortalFooter
     public static function defaults(): array
     {
         return [
-            'copyright' => '© '.date('Y').' Itqan Consulting. All rights reserved.',
+            'copyright' => '© '.date('Y').' FlowTrack',
             'links' => [
                 'privacy' => ['enabled' => true, 'label' => 'Privacy', 'url' => ''],
                 'terms' => ['enabled' => true, 'label' => 'Terms', 'url' => ''],

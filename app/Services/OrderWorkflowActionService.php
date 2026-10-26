@@ -942,9 +942,32 @@ class OrderWorkflowActionService
             }
 
             if (in_array($key, ['NEW_SEND_PO_ARTWORK', 'ART_SEND_ORDER_TEAM'], true)) {
-                abort_unless($decision === 'confirm', 422, 'Confirm the email handoff before sending.');
+                abort_unless(in_array($decision, ['confirm', 'without_email'], true), 422, 'Choose Send or Complete without email.');
 
-                app(\App\Services\Orders\OrderWorkflowEmailService::class)->send($locked, $actor, $payload);
+                if ($decision === 'without_email') {
+                    // Explicit direct action: never use recipient data from the modal.
+                    // The existing email service records the skipped handoff and
+                    // its standard workflow completion still advances the stage.
+                    app(\App\Services\Orders\OrderWorkflowEmailService::class)->send($locked, $actor, []);
+                } else {
+                    $recipient = $key === 'NEW_SEND_PO_ARTWORK'
+                        ? trim((string) (($payload['to_email'] ?? '') ?: ($payload['external_to_email'] ?? '')))
+                        : trim((string) (($payload['to_emails'] ?? '') ?: ($payload['to_email'] ?? '')));
+                    if ($recipient === '' && $key === 'NEW_SEND_PO_ARTWORK' && ! empty($payload['to_user_id'])) {
+                        $recipient = (string) $payload['to_user_id']; // Older open modal selection.
+                    }
+                    if ($recipient === '') {
+                        throw ValidationException::withMessages([
+                            'orderWorkflowActionEmail' => 'Enter a To recipient to send the email, or use Complete without email on the task.',
+                        ]);
+                    }
+                    if (! app(\App\Services\Email\ModuleEmailControlService::class)->orderEnabled()) {
+                        throw ValidationException::withMessages([
+                            'orderWorkflowActionEmail' => 'Order email is disabled. Use Complete without email on the task.',
+                        ]);
+                    }
+                    app(\App\Services\Orders\OrderWorkflowEmailService::class)->send($locked, $actor, $payload);
+                }
 
                 return $this->complete($locked, $actor);
             }

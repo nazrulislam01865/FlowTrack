@@ -150,7 +150,7 @@
 .reminder-ui iframe.reminder-preview {width:100%;min-height:570px;border:0;background:#fff}
 .reminder-ui button:disabled{cursor:not-allowed;opacity:.55}
 @media(max-width:760px){.reminder-ui .twocol{display:block}.reminder-ui .stack{margin-bottom:12px}.reminder-ui .table{min-width:700px}.reminder-ui .panel:has(.table){overflow-x:auto}}
-/* Layout corrections for Reminder Setup, without altering the global FlowTrack UI. */
+/* Layout corrections for Reminder Setup, without altering the global STEP PROMO UI. */
 .reminder-ui .panelpad.toolbar {
     display:grid;
     grid-template-columns:minmax(250px,2fr) minmax(175px,1fr) minmax(175px,1fr);

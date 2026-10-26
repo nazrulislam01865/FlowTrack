@@ -267,7 +267,7 @@ final class SupplierArtworkReminderService
         $artworkEvent = ($config['event_key'] ?? self::ARTWORK_EVENT) === self::ARTWORK_EVENT;
         $profile = app(CompanyProfileService::class)->current();
         $brand = app(BrandingService::class)->current();
-        $company = (string) ($profile['trading_name'] ?: $profile['legal_name'] ?: $brand['name'] ?: 'FlowTrack');
+        $company = (string) ($profile['trading_name'] ?: $profile['legal_name'] ?: $brand['name'] ?: 'STEP PROMO');
         $logo = (string) ($brand['logo_url'] ?? '');
         $logoHtml = $logo !== '' ? '<img src="'.e($logo).'" alt="'.e($company).'" style="max-width:150px;max-height:44px">' : '<strong>'.e($company).'</strong>';
         $row = static fn (string $label, string $value) => '<tr><td style="padding:6px;color:#708092">'.e($label).'</td><td style="padding:6px;text-align:right"><strong>'.e($value).'</strong></td></tr>';

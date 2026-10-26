@@ -403,5 +403,5 @@
         </div>
     </section>
 
-    <footer class="ii-pagefoot"><span>{{ $branding['name'] ?? 'FlowTrack' }} · Inquiry Intelligence</span><span>Management analytics · {{ $report['period']['label'] }}</span></footer>
+    <footer class="ii-pagefoot"><span>StepPromo · Inquiry Intelligence</span><span>Management analytics · {{ $report['period']['label'] }}</span></footer>
 </div>

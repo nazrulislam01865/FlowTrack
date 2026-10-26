@@ -9,7 +9,7 @@
     data-history-url="{{ route('supplier-reminder.history') }}"
     data-portal-login-url="{{ config('supplier_bridge.login_url') ?: 'https://supplier.example.com/login' }}"
     data-brand-name="{{ $companyName }}"
-    data-brand-logo="{{ $branding['logo_url'] ?? asset('images/flowtrack-favicon.svg') }}">
+    data-brand-logo="{{ $branding['logo_url'] ?? asset('images/step-promo/step-promo-logo.webp') }}">
 <script type="application/json" id="reminderBootstrap">{!! json_encode(['templates' => $reminderTemplates, 'defaults' => $defaultConfig, 'orderEmailEnabled' => $orderEmailEnabled, 'events' => $reminderEvents, 'recipientTypes' => $reminderRecipientTypes, 'recipientUsers' => $reminderRecipientUsers], JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) !!}</script>
 <div class="content"><div class="crumb">⌂ <span>›</span> Administration <span>›</span> <strong>Reminder Setup</strong> <span id="crumbRest"></span></div>
 <div class="screenNav"><button data-nav="list" class="active" onclick="go('list')">1 · Reminders</button><button data-nav="rule" onclick="go('rule')">2 · Trigger &amp; Recipients</button><button data-nav="editor" onclick="go('editor')">3 · Email Content</button><button data-nav="preview" onclick="go('preview')">4 · Preview &amp; Test</button><button data-nav="history" onclick="go('history')">5 · Delivery History</button></div>
