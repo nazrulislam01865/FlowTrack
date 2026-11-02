@@ -603,6 +603,30 @@ html:has(.ft-order-task-document-modal-backdrop--handoff) {
     scrollbar-gutter: stable;
 }
 
+/* The app sidebar is normally sticky. Locking document scroll for the artwork/PO
+   handoff can move that sticky element out of view when the Order page was
+   already scrolled. Keep the existing desktop shell visible behind the
+   backdrop while the handoff is open; the sidebar remains non-interactive. */
+@media (min-width: 901px) {
+    body:has(.ft-order-task-document-modal-backdrop--handoff) .sidebar.ft-sidebar-template {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: var(--ft-theme-sidebar-width);
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100vh;
+        max-height: 100dvh;
+        z-index: 60;
+    }
+
+    body:has(.ft-order-task-document-modal-backdrop--handoff) .app > .main {
+        grid-column: 2;
+        min-width: 0;
+    }
+}
+
 .ft-order-task-document-modal-backdrop--handoff {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;

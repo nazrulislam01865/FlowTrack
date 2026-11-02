@@ -1,0 +1,61 @@
+.ft-address-book-page { color: var(--ft-color-text, #15283f); width: 100%; min-width: 0; }
+.ft-address-book-page *, .ft-address-book-page *::before, .ft-address-book-page *::after { box-sizing: border-box; }
+.ft-address-book-page__layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 16px; margin-top: 16px; }
+.ft-address-book-page__layout--editing { grid-template-columns: minmax(0, 1fr) minmax(340px, 410px); }
+.ft-address-book-page__card { min-width: 0; border: 1px solid var(--ft-color-border, #dae4ed); background: var(--ft-color-surface, #fff); border-radius: 10px; padding: 20px; }
+.ft-address-book-page__editor { position: sticky; top: 16px; }
+.ft-address-book-page__toolbar, .ft-address-book-page__section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.ft-address-book-page h2 { margin: 0; font: inherit; font-size: 1rem; font-weight: 700; }
+.ft-address-book-page__toolbar p, .ft-address-book-page__section-head p { color: var(--ft-color-text-muted, #6e7f93); margin: 5px 0 0; font-size: .82rem; line-height: 1.5; }
+.ft-address-book-page__search { flex: 0 1 300px; min-width: 190px; }
+.ft-address-book-page__fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.ft-address-book-page__field-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ft-address-book-page__actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+.ft-address-book-page__table-wrap { overflow-x: auto; }
+.ft-address-book-page__table { width: 100%; border-collapse: collapse; text-align: left; font-size: .83rem; }
+.ft-address-book-page__table thead { background: var(--ft-color-surface-muted, #f5f8fb); }
+.ft-address-book-page__table th, .ft-address-book-page__table td { padding: 12px 14px; border-bottom: 1px solid var(--ft-color-border, #e4eaf0); vertical-align: middle; }
+.ft-address-book-page__table th { font-weight: 700; white-space: nowrap; }
+.ft-address-book-page__table td strong { display: block; font-weight: 650; }
+.ft-address-book-page__email { color: var(--ft-color-text-muted, #60758d); display: block; margin-top: 4px; overflow-wrap: anywhere; }
+.ft-address-book-page__type { display: inline-block; padding: 4px 9px; border-radius: 6px; background: var(--ft-color-surface-muted, #f5f8fb); white-space: nowrap; }
+.ft-address-book-page__right { text-align: right; }
+.ft-address-book-page__table tr.is-selected td { background: rgba(0, 125, 112, .06); }
+.ft-address-book-page__address-row td { padding-top: 0; color: var(--ft-color-text-muted, #64748b); font-size: .77rem; overflow-wrap: anywhere; }
+.ft-address-book-page__address-row td span { font-weight: 700; margin-right: 8px; }
+.ft-address-book-page__pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; font-size: .78rem; color: var(--ft-color-text-muted, #65758b); }
+.ft-address-book-page__pagination > div { display: flex; gap: 8px; }
+.ft-address-book-page__empty { padding: 40px 16px; text-align: center; color: var(--ft-color-text-muted, #667a8c); }
+.ft-address-book-page__empty strong { color: var(--ft-color-text, #15283f); display: block; }
+.ft-address-book-page__empty p { margin: 7px 0 0; }
+.ft-address-book-page__notice { border: 1px solid #b5dbd3; border-radius: 8px; padding: 12px 14px; background: #f0faf7; color: #175b53; font-size: .83rem; }
+@media (max-width: 1100px) { .ft-address-book-page__layout--editing { grid-template-columns: minmax(0, 1fr); } .ft-address-book-page__editor { grid-row: 1; position: static; } }
+@media (max-width: 650px) { .ft-address-book-page__toolbar { flex-direction: column; align-items: stretch; } .ft-address-book-page__search { flex: auto; min-width: 0; } .ft-address-book-page__card { padding: 14px; } .ft-address-book-page__field-pair { grid-template-columns: minmax(0, 1fr); } .ft-address-book-page__table th, .ft-address-book-page__table td { padding: 10px; } }
+
+/* Scoped action polish; retain the central button component and theme tokens. */
+.ft-address-book-page .ft-btn[data-ft-ui-component="button"] {
+    min-height: 36px;
+    padding-inline: 14px;
+    font-family: var(--ft-font-family);
+    font-size: var(--ft-font-size-xs);
+    font-weight: var(--ft-font-weight-semibold);
+}
+.ft-address-book-page .ft-btn--primary[data-ft-ui-component="button"],
+.ft-address-book-page .ft-btn--primary[data-ft-ui-component="button"] > span {
+    color: var(--ft-text-inverse, #fff);
+}
+.ft-address-book-page .ft-btn--primary[data-ft-ui-component="button"]:hover:not(:disabled) {
+    color: var(--ft-text-inverse, #fff);
+}
+.ft-address-book-page .ft-address-book-page__edit-action.ft-btn {
+    min-width: 66px;
+    border-color: var(--ft-border-strong, #c7d4e1);
+}
+.ft-address-book-page .ft-address-book-page__edit-action.ft-btn:focus-visible,
+.ft-address-book-page .ft-btn:focus-visible {
+    outline: 2px solid var(--ft-color-brand-primary);
+    outline-offset: 2px;
+}
+.ft-address-book-page .ft-address-book-page__primary-action.ft-btn { gap: 7px; }
+.ft-address-book-page .ft-address-book-page__actions .ft-btn { min-height: 38px; }
+.ft-address-book-page .ft-btn:disabled { cursor: not-allowed; opacity: .55; }

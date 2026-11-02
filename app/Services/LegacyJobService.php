@@ -2833,11 +2833,10 @@ class LegacyJobService
             $workflowPhaseIds = $lockedJob->workflow?->phases?->pluck('id')->map(fn ($id) => (int) $id) ?? collect();
             abort_unless($workflowPhaseIds->contains($phaseId), 422, 'The selected phase does not belong to this Order workflow.');
 
-            $nextNumber = max(301, (int) Task::withTrashed()->max('id') + 301);
-            do {
-                $taskNumber = 'TSK-'.str_pad((string) $nextNumber, 5, '0', STR_PAD_LEFT);
-                $nextNumber++;
-            } while (Task::withTrashed()->where('task_number', $taskNumber)->exists());
+            // Reserve under the same transaction as task creation. The sequence
+            // starts beyond every historical task number, including soft deletes,
+            // and the row lock prevents two Orders from choosing the same number.
+            $taskNumber = app(TaskNumberSequenceService::class)->reserve(1)[0];
 
             $isDraft = $lockedJob->status === 'Draft';
             $orderTaskRules = app(OrderTaskFlagService::class);
@@ -3117,6 +3116,12 @@ class LegacyJobService
 
             $blockers = JobDetailPresenter::blockers($job);
             if ($blockers->isNotEmpty()) {
+                // An automatic advance is a best-effort side effect of task
+                // completion, not a request to override other required tasks.
+                // Fresh evidence can differ from the earlier lightweight
+                // precheck. Keep the PO/task completion and stay in Artwork;
+                // explicit manual phase advances still report the blocker.
+                if ($automatic) return $job;
                 $firstBlocker = $blockers->first();
                 abort(422, data_get($firstBlocker, 'description')
                     ?: data_get($firstBlocker, 'label')
@@ -3279,7 +3284,22 @@ class LegacyJobService
                 ->get(['id', 'department_id', 'name', 'profile_image_path'])
                 ->unique('department_id')
                 ->keyBy('department_id');
-        $nextTaskNumber = max(301, (int) Task::withTrashed()->max('id') + 301);
+        // A single indexed lookup finds templates without a runtime task. Only
+        // those missing tasks reserve numbers, avoiding sequence writes during
+        // normal Order reads and keeping batch reconciliation efficient.
+        $templateIds = $templates->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $existingTemplateIds = $templateIds
+            ? Task::query()
+                ->where('flow_job_id', $job->id)
+                ->where('workflow_phase_id', $phase->id)
+                ->whereIn('task_pack_task_id', $templateIds)
+                ->pluck('task_pack_task_id')
+                ->map(fn ($id) => (int) $id)
+                ->all()
+            : [];
+        $missingTemplateIds = array_values(array_diff($templateIds, $existingTemplateIds));
+        $reservedNumbers = app(TaskNumberSequenceService::class)->reserve(count($missingTemplateIds));
+        $numbersByTemplate = array_combine($missingTemplateIds, $reservedNumbers) ?: [];
 
         foreach ($templates as $template) {
             $assignee = $template->defaultAssignee;
@@ -3308,7 +3328,7 @@ class LegacyJobService
                 'workflow_phase_id' => $phase->id,
                 'task_pack_task_id' => $template->id,
             ], [
-                'task_number' => 'TSK-'.str_pad((string) $nextTaskNumber++, 5, '0', STR_PAD_LEFT),
+                'task_number' => $numbersByTemplate[(int) $template->id] ?? null,
                 'assignee_id' => $assigneeId,
                 'setup_assignee_id' => $assigneeId,
                 'document_category_id' => $template->document_category_id,

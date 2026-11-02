@@ -107,6 +107,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Document::class, DocumentPolicy::class);
         Gate::policy(Client::class, ClientPolicy::class);
 
+        // Durable Remote Area index revisions are written only when the
+        // compiled matcher is explicitly enabled. No ordinary read is changed.
+        MasterRecord::observe(\App\Observers\RemoteAreaLookupVersionObserver::class);
+
         foreach (WorkspaceDataObserver::observedModels() as $modelClass) {
             $modelClass::observe(WorkspaceDataObserver::class);
         }

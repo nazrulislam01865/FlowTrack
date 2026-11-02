@@ -716,9 +716,16 @@ class MasterDataService
             && DB::table('master_records')->where('type', 'order_task_flag')->whereNull('deleted_at')->where('metadata->order_flag_id', $record->id)->exists()) {
             throw ValidationException::withMessages(['record' => 'This Order Flag is mapped to an Order Task Flag. Remove that mapping before deactivating it.']);
         }
-        $record->update(['status' => $record->status === 'active' ? 'inactive' : 'active']);
-        $this->mirrorLegacy($record);
-        $this->forgetActiveCache($record->type);
+        $apply = function () use ($record): void {
+            $record->update(['status' => $record->status === 'active' ? 'inactive' : 'active']);
+            $this->mirrorLegacy($record);
+            $this->forgetActiveCache($record->type);
+        };
+        if ($record->type === 'remote_area') {
+            DB::transaction($apply);
+        } else {
+            $apply();
+        }
 
         if (in_array($record->type, ['order_task_status', 'order_task_flag', 'order_flag'], true)
             && Schema::hasTable('tasks')
@@ -811,10 +818,19 @@ class MasterDataService
         }
 
         $legacyGroup = self::LEGACY_GROUPS[$record->type] ?? Str::plural($record->type);
-        if (Schema::hasTable('master_values')) MasterValue::where('group_key', $legacyGroup)->where('code', $record->code)->delete();
         $type = $record->type;
-        $record->delete();
-        $this->forgetActiveCache($type);
+        $applyDelete = function () use ($record, $type, $legacyGroup): void {
+            if (Schema::hasTable('master_values')) {
+                MasterValue::where('group_key', $legacyGroup)->where('code', $record->code)->delete();
+            }
+            $record->delete();
+            $this->forgetActiveCache($type);
+        };
+        if ($type === 'remote_area') {
+            DB::transaction($applyDelete);
+        } else {
+            $applyDelete();
+        }
     }
 
     public function syncLegacy(): void
@@ -968,6 +984,17 @@ class MasterDataService
     }
 
     public function remoteAreaForPostalCode(?string $postalCode): ?MasterRecord
+    {
+        if (config('remote_area_lookup.enabled')) {
+            $result = app(\App\Services\RemoteAreas\RemoteAreaLookupService::class)
+                ->lookup($this->workspaceId(), $postalCode);
+            if ($result['ready']) return $result['record'];
+        }
+
+        return $this->remoteAreaForPostalCodeLegacy($postalCode);
+    }
+
+    private function remoteAreaForPostalCodeLegacy(?string $postalCode): ?MasterRecord
     {
         $matchKey = $this->postalCodeMatchKey((string) $postalCode);
         if ($matchKey === '') return null;

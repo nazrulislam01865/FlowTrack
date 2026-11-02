@@ -18,7 +18,16 @@ class RemoteAreaOrderIntegrationSourceTest extends TestCase
         $planning = file_get_contents(resource_path('views/components/jobs/order-detail/planning.blade.php'));
         $shipping = file_get_contents(resource_path('views/components/jobs/order-detail/shipping.blade.php'));
 
-        $this->assertStringContainsString('$remoteArea = $masterData->remoteAreaForPostalCode($job->shipping_postal_code);', $viewService);
+        // Phase 1 may instrument the same server-side lookup through a
+        // measurement callback. Both forms preserve the view contract.
+        $directLookup = str_contains($viewService, '$remoteArea = $masterData->remoteAreaForPostalCode($job->shipping_postal_code);');
+        $instrumentedLookup = str_contains($viewService, '$remoteArea = OrderBaselineRecorder::measure(')
+            && str_contains($viewService, 'fn () => $masterData->remoteAreaForPostalCode($job->shipping_postal_code)');
+
+        $this->assertTrue(
+            $directLookup || $instrumentedLookup,
+            'OrderDetailViewService must resolve the Remote Area before passing it to Blade.'
+        );
         $this->assertStringContainsString("'remoteArea' => \$remoteArea ? [", $viewService);
         $this->assertStringContainsString("'postal_code' => \$masterData->normalizePostalCode((string) \$job->shipping_postal_code)", $viewService);
         $this->assertStringContainsString('@if($remoteArea)', $planning);

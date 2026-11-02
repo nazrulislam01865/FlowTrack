@@ -31,8 +31,10 @@
         // Livewire update endpoints may be /livewire/update or a versioned
         // /livewire-<hash>/update; record both without collecting URL content.
         if (entry.entryType === 'resource' && /\/livewire(?:-[a-z0-9]+)?\/update(?:[?#]|$)/i.test(entry.name)) {
-          events.push({kind: 'livewire_network', start_ms: Math.round(entry.startTime), duration_ms: Math.round(entry.duration * 100) / 100,
-            encoded_body_bytes: entry.encodedBodySize || null, decoded_body_bytes: entry.decodedBodySize || null});
+          if (events.length < 200) {
+            events.push({kind: 'livewire_network', start_ms: Math.round(entry.startTime), duration_ms: Math.round(entry.duration * 100) / 100,
+              encoded_body_bytes: entry.encodedBodySize || null, decoded_body_bytes: entry.decodedBodySize || null});
+          }
         }
       }
     });
@@ -43,7 +45,17 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', trackSections, {once: true});
   else trackSections();
-  const mutationObserver = new MutationObserver(trackSections);
+  // Collapse frequent Livewire DOM mutations to one scan per animation frame;
+  // avoid the diagnostic collector creating its own browser performance issue.
+  let sectionScanPending = false;
+  const mutationObserver = new MutationObserver(() => {
+    if (sectionScanPending) return;
+    sectionScanPending = true;
+    requestAnimationFrame(() => {
+      sectionScanPending = false;
+      trackSections();
+    });
+  });
   mutationObserver.observe(document.documentElement, {childList: true, subtree: true});
 
   window.__flowOrderBaseline = {

@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\BrandingService;
 use App\Services\CompanyProfileService;
 use App\Services\DocumentService;
+use App\Services\RichTextService;
 use App\Services\Email\EmailService;
 use App\Services\Email\ModuleEmailControlService;
 use App\Services\SecureDocumentStorage;
@@ -19,6 +20,7 @@ use App\Services\SetupContext;
 use App\Services\TaskService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -304,8 +306,19 @@ final class OrderWorkflowEmailService
         $team = $externalTo['name'] ?? $this->teamLabel($key);
         $subject = $this->subject($job, $key);
         $replyTo = filter_var((string) $actor->email, FILTER_VALIDATE_EMAIL) ? [(string) $actor->email] : [];
-        $viewData = $this->viewData($job, $key, $document, $documents, $actor, $brand, $customerComment);
+        $viewData = $this->viewData($job, $key, $document, $documents, $actor, $brand, $customerComment, true);
         $viewData['team'] = $team;
+        // The existing artwork files remain the original attachments. Only the
+        // artwork handoff receives the Order overview's pasted images and the
+        // version-matched, already-generated QR tracking PDF.
+        if ($key === self::ARTWORK_HANDOFF) {
+            $attachments = array_merge($attachments, $viewData['overviewAttachments']);
+            if (mb_strtolower((string) config('flowtrack_email.transport', 'laravel')) === 'e2a' && count($attachments) > 10) {
+                throw ValidationException::withMessages([
+                    'orderWorkflowActionEmail' => 'The artwork, Order overview images and QR tracking PDF contain more than 10 email attachments. Reduce the number of files before sending.',
+                ]);
+            }
+        }
 
         $message = new EmailMessage(
             to: $toEmails->all(),
@@ -1022,8 +1035,12 @@ final class OrderWorkflowEmailService
 
     /** @return array<string,mixed> */
     /** @param Collection<int,Document> $documents */
-    private function viewData(FlowJob $job, string $key, Document $document, Collection $documents, User $actor, array $brand, string $customerComment = ''): array
+    private function viewData(FlowJob $job, string $key, Document $document, Collection $documents, User $actor, array $brand, string $customerComment = '', bool $requireAttachments = false): array
     {
+        $overview = $key === self::ARTWORK_HANDOFF
+            ? $this->artworkOverviewForEmail($job, $documents, $requireAttachments)
+            : ['html' => '', 'images' => [], 'tracking_pdf' => null, 'attachments' => []];
+
         return [
             'brand' => $brand,
             'job' => $job,
@@ -1035,7 +1052,101 @@ final class OrderWorkflowEmailService
             'orderNumber' => $job->displayOrderNumber(),
             'productSummary' => $this->productSummary($job),
             'customerComment' => $key === self::ARTWORK_HANDOFF ? $customerComment : '',
+            'overviewHtml' => $overview['html'],
+            'overviewImages' => $overview['images'],
+            'trackingPdf' => $overview['tracking_pdf'],
+            'overviewAttachments' => $overview['attachments'],
         ];
+    }
+
+    /**
+     * Snapshot the exact Order overview narrative. Pasted images use private
+     * authenticated URLs in the UI and cannot be displayed by an email client.
+     * Replace those image tags with expiring signed URLs so images can appear
+     * inline in the email; also attach the originals for clients that block
+     * remote images. Only the specifically signed image is exposed, temporarily.
+     * A single additional document query fetches the QR PDF for this artwork
+     * version; no task/document queries are added to other handoffs.
+     *
+     * @param Collection<int,Document> $artwork
+     * @return array{html:string,images:list<string>,tracking_pdf:?Document,attachments:array}
+     */
+    private function artworkOverviewForEmail(FlowJob $job, Collection $artwork, bool $requireAttachments): array
+    {
+        $richText = app(RichTextService::class);
+        $description = trim((string) ($job->description ?? ''));
+        $html = $richText->safeHtml($description);
+        if ($html === null) {
+            $html = nl2br(e($description));
+        }
+
+        $images = [];
+        $imageAttachments = [];
+        $seen = [];
+        $html = preg_replace_callback('/<img\b[^>]*\bsrc="([^"]+)"[^>]*>/i',
+            function (array $match) use (&$images, &$imageAttachments, &$seen, $requireAttachments): string {
+                $path = (string) (parse_url(html_entity_decode($match[1], ENT_QUOTES | ENT_HTML5, 'UTF-8'), PHP_URL_PATH) ?: '');
+                if (preg_match('#(?:^|/)rich-text-images/([A-Za-z0-9-]+\.(?:png|jpe?g|webp|gif))$#i', $path, $file) !== 1) {
+                    return '';
+                }
+                $filename = $file[1];
+                if (! isset($seen[$filename])) {
+                    $seen[$filename] = true;
+                    $images[] = $filename;
+                    if ($requireAttachments) {
+                        $located = $this->storage->locate('rich-text-images/'.$filename);
+                        if (! $located) {
+                            throw ValidationException::withMessages([
+                                'orderWorkflowActionEmail' => 'An image in the Order overview is missing ('.$filename.'). Restore or remove it before sending.',
+                            ]);
+                        }
+                        $mime = match (strtolower(pathinfo($filename, PATHINFO_EXTENSION))) {
+                            'jpg', 'jpeg' => 'image/jpeg',
+                            'png' => 'image/png',
+                            'gif' => 'image/gif',
+                            'webp' => 'image/webp',
+                            default => 'application/octet-stream',
+                        };
+                        $imageAttachments[] = EmailMessage::storageAttachment(
+                            $located['disk'], $located['path'], 'overview-'.$filename, $mime,
+                        );
+                    }
+                }
+                // The signed URL lets recipients see the image inline without
+                // a FlowTrack login. The original is also attached as a fallback
+                // for clients that block remote images or after the link expires.
+                $imageUrl = URL::temporarySignedRoute(
+                    'artwork-handoff.overview-image', now()->addDays(14), ['filename' => $filename],
+                );
+                return '<img src="'.e($imageUrl).'" alt="Order overview image" style="display:block;max-width:100%;height:auto;margin:10px 0;border-radius:6px">';
+            }, $html) ?? $html;
+
+        $version = max(1, (int) $artwork->max('version'));
+        $trackingPdf = Document::query()
+            ->where('flow_job_id', $job->id)
+            ->where('category', Document::CATEGORY_ARTWORK_TRACKING_PDF)
+            ->where('version', $version)
+            ->latest('id')
+            ->first(['id', 'name', 'path', 'mime_type', 'version']);
+
+        if ($requireAttachments && ! $trackingPdf && (bool) config('flowtrack.order_tracking_enabled', false)) {
+            throw ValidationException::withMessages([
+                'orderWorkflowActionEmail' => 'The confirmed artwork QR tracking PDF for this version is missing. Generate or repair the PDF before sending the handoff.',
+            ]);
+        }
+        if ($requireAttachments && $trackingPdf) {
+            $located = $this->storage->locate((string) $trackingPdf->path);
+            if (! $located) {
+                throw ValidationException::withMessages([
+                    'orderWorkflowActionEmail' => 'The confirmed artwork QR tracking PDF cannot be found in storage. Restore or regenerate it before sending.',
+                ]);
+            }
+            $imageAttachments[] = EmailMessage::storageAttachment(
+                $located['disk'], $located['path'], (string) $trackingPdf->name, 'application/pdf',
+            );
+        }
+
+        return ['html' => $html, 'images' => $images, 'tracking_pdf' => $trackingPdf, 'attachments' => $imageAttachments];
     }
 
     private function senderAddress(): string

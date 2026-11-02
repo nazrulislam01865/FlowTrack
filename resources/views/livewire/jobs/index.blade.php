@@ -1,4 +1,5 @@
 <div>
+    <x-jobs.order-detail.artwork-address-book-notice :status="$artworkAddressBookNotice" />
     @if($showCreate)
         <x-jobs.create
             :client-filter-options="$clientFilterOptions"

@@ -5640,3 +5640,94 @@
     cursor: wait;
     opacity: .72;
 }
+
+/* Artwork recipients: familiar email picker with a labelled add action. */
+.ft-order-prototype-detail .ft-artwork-recipient-row {
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    gap: 10px;
+    min-height: 52px;
+}
+.ft-order-prototype-detail .ft-artwork-recipient-row--first {
+    grid-template-columns: 42px minmax(0, 1fr);
+}
+.ft-order-prototype-detail .ft-artwork-recipient-row + .ft-artwork-recipient-row {
+    border-top: 1px solid var(--ft-border-subtle, #edf1f5);
+}
+.ft-order-prototype-detail .ft-artwork-recipient-remove.ft-btn {
+    color: var(--ft-text-muted, #65758b);
+    padding: 0 10px;
+    min-height: 32px;
+    border-radius: var(--ft-radius-md, 7px);
+}
+.ft-order-prototype-detail .ft-artwork-recipient-remove.ft-btn:hover {
+    color: var(--ft-text-danger, #b42318);
+    background: var(--ft-bg-danger, #fff2f0);
+}
+.ft-order-prototype-detail .ft-artwork-recipient-tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 2px 0 10px 52px;
+}
+.ft-order-prototype-detail .ft-artwork-recipient-add.ft-btn {
+    min-height: 34px;
+    padding: 0 12px;
+    color: var(--ft-text-link, #087f70);
+    border-color: var(--ft-border-strong, #c8d9d5);
+    font-size: var(--ft-font-size-xs, .75rem);
+}
+.ft-order-prototype-detail .ft-artwork-recipient-add__icon {
+    font-size: 1.1em;
+    font-weight: 750;
+    line-height: 1;
+}
+.ft-order-prototype-detail .ft-artwork-recipient-tools > span {
+    font-size: var(--ft-font-size-xs, .75rem);
+    color: var(--ft-text-muted, #65758b);
+}
+.ft-order-prototype-detail .ft-artwork-recipient-suggestions {
+    z-index: 110;
+    width: min(410px, 100%);
+}
+.ft-order-prototype-detail .ft-artwork-recipient-row:focus-within {
+    position: relative;
+    z-index: 110;
+}
+@media (max-width: 640px) {
+    .ft-order-prototype-detail .ft-artwork-recipient-row { grid-template-columns: 34px minmax(0, 1fr) auto; gap: 5px; }
+    .ft-order-prototype-detail .ft-artwork-recipient-row--first { grid-template-columns: 34px minmax(0, 1fr); }
+    .ft-order-prototype-detail .ft-artwork-recipient-tools { margin-left: 39px; flex-wrap: wrap; }
+    .ft-order-prototype-detail .ft-artwork-recipient-remove.ft-btn { padding: 0 4px; }
+}
+
+/* Keep the artwork email footer compact, readable and consistent with theme buttons. */
+.ft-order-prototype-detail .ft-artwork-email-actions {
+    align-items: center;
+    gap: 10px;
+}
+.ft-order-prototype-detail .ft-artwork-email-actions .ft-btn[data-ft-ui-component="button"] {
+    min-width: 116px;
+    min-height: 38px;
+    font-family: var(--ft-font-family);
+    font-size: var(--ft-font-size-sm);
+    font-weight: var(--ft-font-weight-semibold);
+    padding: 0 18px;
+}
+/* Explicitly retain the central primary theme inside workflow modal footers.
+   The modal's generic `footer button` rule otherwise paints this button white. */
+.ft-artwork-email-actions button.ft-btn--primary[data-ft-ui-component="button"] {
+    min-width: 150px;
+    background: var(--ft-color-brand-primary, #008478);
+    border-color: var(--ft-color-brand-primary, #008478);
+    color: var(--ft-text-inverse, #fff);
+}
+.ft-artwork-email-actions button.ft-btn--primary[data-ft-ui-component="button"] > span {
+    color: inherit;
+}
+.ft-artwork-email-actions button.ft-btn--primary[data-ft-ui-component="button"]:hover:not(:disabled) {
+    background: var(--ft-color-brand-primary-hover, #066d64);
+    border-color: var(--ft-color-brand-primary-hover, #066d64);
+}
+@media (max-width: 420px) {
+    .ft-order-prototype-detail .ft-artwork-email-actions .ft-btn { flex: 1 1 0; min-width: 0; }
+}

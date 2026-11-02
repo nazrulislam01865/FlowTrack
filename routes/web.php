@@ -48,6 +48,14 @@ use App\Services\JobService;
 use Illuminate\Support\Facades\Route;
 
 
+// Time-limited read-only display for Order overview images included in an
+// emailed artwork handoff. This route has no session dependency; a valid
+// expiring signature is required, and the original file remains private.
+Route::get('/artwork-handoff/overview-images/{filename}', \App\Http\Controllers\ArtworkOverviewEmailImageController::class)
+    ->middleware(['signed', 'throttle:60,1'])
+    ->where('filename', '[A-Za-z0-9-]+\.(?:png|jpe?g|webp|gif)')
+    ->name('artwork-handoff.overview-image');
+
 // Binary product assets are restricted to the signed, supplier-scoped bridge.
 Route::get('/api/supplier-bridge/product-image/{supplier}/{product}', \App\Http\Controllers\SupplierBridge\SupplierProductImage::class)
     ->whereNumber('supplier')->whereNumber('product')->middleware('throttle:120,1');
@@ -212,6 +220,7 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('token')
         ->name('orders.artwork-uploads.destroy');
 
+    Route::get('/address-book', fn () => view('pages.artwork-address-book', ['title' => 'Address Book']))->name('artwork-address-book.index');
     Route::get('/orders', JobsController::class)->middleware('permission:jobs.view')->name('jobs.index');
     Route::get('/jobs', function (\Illuminate\Http\Request $request) {
         return redirect()->route('jobs.index', $request->query());

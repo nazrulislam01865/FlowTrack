@@ -1,6 +1,7 @@
 /** Composition-only entry. */
 @import './detail/detail-01.css';
 @import './detail/detail-02.css';
+@import './detail/supplier-purchase-order.css';
 @import './detail/order-hold.css';
 @import './detail/archived-artwork.css';
 @import './detail/artwork-cancellation.css';

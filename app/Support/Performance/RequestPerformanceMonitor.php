@@ -13,6 +13,8 @@ class RequestPerformanceMonitor
 {
     public function __construct(private readonly OperationsMetrics $operationsMetrics) {}
     private float $startedAt = 0.0;
+    private ?float $baselineCpuStartedMs = null;
+    private ?string $baselineRequestId = null;
     private int $queryCount = 0;
     private float $queryTimeMs = 0.0;
     private int $cacheHits = 0;
@@ -33,9 +35,13 @@ class RequestPerformanceMonitor
     {
         $this->reset();
         $this->orderBaselineContext = OrderBaselineRecorder::httpContext($request);
+        $this->baselineRequestId = $this->orderBaselineContext !== null
+            ? bin2hex(random_bytes(8)) : null;
         $this->sampled = $this->shouldSample() || $this->orderBaselineContext !== null;
         $this->activeRequest = true;
         $this->startedAt = microtime(true);
+        $this->baselineCpuStartedMs = $this->orderBaselineContext !== null
+            ? OrderBaselineRecorder::processCpuMs() : null;
     }
 
     public function recordQuery(QueryExecuted $query): void
@@ -74,6 +80,26 @@ class RequestPerformanceMonitor
         }
 
         $this->slowQueries[] = $row;
+    }
+
+    /**
+     * Snapshot only for enabled, active Order Details HTTP diagnostics.
+     * No SQL text, bindings, or query listeners are added by span timing.
+     *
+     * @return array{count:int,time_ms:float}|null
+     */
+    public function baselineRequestId(): ?string
+    {
+        return $this->baselineRequestId;
+    }
+
+    public function baselineQueryTotals(): ?array
+    {
+        if (! $this->activeRequest || $this->orderBaselineContext === null) {
+            return null;
+        }
+
+        return ['count' => $this->queryCount, 'time_ms' => $this->queryTimeMs];
     }
 
     public function recordCacheHit(): void
@@ -199,8 +225,11 @@ class RequestPerformanceMonitor
             usort($shapes, static fn (array $a, array $b): int => $b['time_ms'] <=> $a['time_ms']);
             $shapes = array_slice($shapes, 0, max(1, min(50, (int) config('order_baseline.max_query_shapes', 15))));
             OrderBaselineRecorder::record('http_request', array_merge($this->orderBaselineContext, [
+                'request_kind' => $this->orderBaselineContext['kind'],
+                'request_id' => $this->baselineRequestId,
                 'status' => $response->getStatusCode(),
                 'duration_ms' => round($durationMs, 2),
+                'php_cpu_ms' => $this->baselineCpuElapsedMs(),
                 'db_query_count' => $this->queryCount,
                 'db_time_ms' => round($this->queryTimeMs, 2),
                 'non_db_ms' => round(max(0.0, $durationMs - $this->queryTimeMs), 2),
@@ -229,9 +258,12 @@ class RequestPerformanceMonitor
 
         if ($this->orderBaselineContext !== null) {
             OrderBaselineRecorder::record('http_request', array_merge($this->orderBaselineContext, [
+                'request_kind' => $this->orderBaselineContext['kind'],
+                'request_id' => $this->baselineRequestId,
                 'status' => 500,
                 'exception' => $exception::class,
                 'duration_ms' => round($durationMs, 2),
+                'php_cpu_ms' => $this->baselineCpuElapsedMs(),
                 'db_query_count' => $this->queryCount,
                 'db_time_ms' => round($this->queryTimeMs, 2),
                 'peak_php_memory_mb' => round(memory_get_peak_usage(true) / 1048576, 2),
@@ -240,6 +272,14 @@ class RequestPerformanceMonitor
         Log::warning('FlowTrack failed request performance', $payload);
         $this->operationsMetrics->recordRequest($payload, true);
         $this->activeRequest = false;
+    }
+
+    private function baselineCpuElapsedMs(): ?float
+    {
+        $current = $this->baselineCpuStartedMs !== null
+            ? OrderBaselineRecorder::processCpuMs() : null;
+        return $current !== null && $this->baselineCpuStartedMs !== null
+            ? round(max(0.0, $current - $this->baselineCpuStartedMs), 2) : null;
     }
 
     private function payload(Request $request, int $status, float $durationMs): array
@@ -342,6 +382,8 @@ class RequestPerformanceMonitor
     private function reset(): void
     {
         $this->queryCount = 0;
+        $this->baselineCpuStartedMs = null;
+        $this->baselineRequestId = null;
         $this->queryTimeMs = 0.0;
         $this->cacheHits = 0;
         $this->cacheMisses = 0;

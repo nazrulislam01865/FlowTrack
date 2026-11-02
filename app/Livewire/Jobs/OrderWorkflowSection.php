@@ -4,6 +4,7 @@ namespace App\Livewire\Jobs;
 
 use App\Actions\Orders\AutoAdvanceOrder;
 use App\Livewire\Concerns\HandlesInlineEdits;
+use App\Livewire\Concerns\ManagesSupplierPurchaseOrders;
 use App\Livewire\Jobs\Concerns\ManagesDetailProgressiveLoading;
 use App\Livewire\Jobs\Concerns\ManagesOrderDocuments;
 use App\Livewire\Jobs\Concerns\ManagesOrderShipments;
@@ -22,6 +23,7 @@ use App\Services\LocationMasterDataService;
 use App\Services\MentionService;
 use App\Services\OrderArtworkEvidenceService;
 use App\Services\OrderDetailViewService;
+use App\Support\Performance\OrderBaselineRecorder;
 use App\Services\OrderWorkflowBindingService;
 use App\Support\BoardLaneResolver;
 use Livewire\Attributes\On;
@@ -40,6 +42,7 @@ final class OrderWorkflowSection extends Component
 {
     use HandlesInlineEdits;
     use ManagesOrderWorkflow;
+    use ManagesSupplierPurchaseOrders;
     use ManagesOrderShipments;
     use ManagesOrderTaskResources;
     use ManagesOrderTasks;
@@ -160,13 +163,16 @@ final class OrderWorkflowSection extends Component
         // Preserve historical self-healing, but keep it outside the critical
         // initial document request. The workflow is repaired before any task
         // action is exposed to the user.
-        $workflowWasSynced = app(OrderWorkflowBindingService::class)->syncSingleActiveOrder($this->orderId);
+        $workflowWasSynced = OrderBaselineRecorder::measure('workflow_sync',
+            fn () => app(OrderWorkflowBindingService::class)->syncSingleActiveOrder($this->orderId), $this->orderId);
         if (! $workflowWasSynced) {
-            app(OrderArtworkEvidenceService::class)->repair($this->orderId);
+            OrderBaselineRecorder::measure('artwork_repair',
+                fn () => app(OrderArtworkEvidenceService::class)->repair($this->orderId), $this->orderId);
         }
 
         $runtimeJob = FlowJob::query()->findOrFail($this->orderId);
-        $this->preparedWorkflowJob = app(AutoAdvanceOrder::class)->handle($runtimeJob, auth()->user());
+        $this->preparedWorkflowJob = OrderBaselineRecorder::measure('workflow_auto_advance',
+            fn () => app(AutoAdvanceOrder::class)->handle($runtimeJob, auth()->user()), $this->orderId);
 
         // AutoAdvanceOrder returns the already-authorized/readied Order used to
         // make the phase decision. Reuse its phase value instead of issuing a
@@ -244,7 +250,8 @@ final class OrderWorkflowSection extends Component
             $job = $query->base($user, $this->orderId);
         }
         $this->preparedWorkflowJob = null;
-        $query->loadOverviewWorkflow($job, $user);
+        OrderBaselineRecorder::measure('workflow_load_relations',
+            fn () => $query->loadOverviewWorkflow($job, $user), $this->orderId);
 
         $currentPhaseId = (int) ($job->workflow_phase_id ?: 0);
         $selectedPhase = $job->workflow?->phases?->firstWhere('id', (int) ($this->overviewPhaseId ?: 0));
@@ -259,7 +266,8 @@ final class OrderWorkflowSection extends Component
         $shipmentMethods = $master->active('shipment_method');
         $couriers = $master->active('courier');
 
-        $context = app(OrderDetailViewService::class)->build($job, $user, $shipmentUrgencies, $couriers);
+        $context = OrderBaselineRecorder::measure('workflow_detail_context',
+            fn () => app(OrderDetailViewService::class)->build($job, $user, $shipmentUrgencies, $couriers), $this->orderId);
         // Supplier assignment is now inherited from Task Pack Setup; no row-level selector/query.
         $job->tasks->loadMissing('supplierAssignment');
         $context['shipmentMethods'] = $shipmentMethods;

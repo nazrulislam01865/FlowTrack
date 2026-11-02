@@ -74,6 +74,74 @@ final class OrderBaselineRecorderTest extends TestCase
         $this->assertNull(OrderBaselineRecorder::httpContext($request));
     }
 
+    public function test_parent_create_mode_is_not_misreported_as_an_order_details_update(): void
+    {
+        config()->set('order_baseline.enabled', true);
+        $request = Request::create('/livewire/update', 'POST', [
+            'components' => [[
+                'snapshot' => json_encode(['memo' => ['name' => 'jobs.index'], 'data' => ['selectedJobId' => null]]),
+                'calls' => [['method' => 'saveNewOrder']],
+            ]],
+        ]);
+        $this->assertNull(OrderBaselineRecorder::httpContext($request));
+    }
+
+    public function test_process_cpu_time_is_optional_and_nonnegative(): void
+    {
+        $cpu = OrderBaselineRecorder::processCpuMs();
+        $this->assertTrue($cpu === null || $cpu >= 0);
+    }
+
+    public function test_disabled_spans_preserve_callback_result_without_writing_events(): void
+    {
+        config()->set('order_baseline.enabled', false);
+        $invocations = 0;
+        $result = OrderBaselineRecorder::measure('remote_area_match',
+            function () use (&$invocations): string {
+                $invocations++;
+                return 'expected-result';
+            }, 123);
+        $this->assertSame('expected-result', $result);
+        $this->assertSame(1, $invocations);
+    }
+
+    public function test_enabled_recorder_preserves_kind_and_captures_scoped_service_spans(): void
+    {
+        config()->set('order_baseline.enabled', true);
+        config()->set('order_baseline.run_id', 'phase1_test');
+        $originalStorage = storage_path();
+        $originalRequest = app('request');
+        $temporaryStorage = sys_get_temp_dir().'/flowtrack-order-baseline-'.bin2hex(random_bytes(8));
+        mkdir($temporaryStorage.'/logs', 0700, true);
+        app()->useStoragePath($temporaryStorage);
+        app()->instance('request', Request::create('/orders?open=123', 'GET'));
+        try {
+            OrderBaselineRecorder::record('http_request', [
+                'kind' => 'initial_get',
+                'request_kind' => 'initial_get',
+                'order_id' => 123,
+            ]);
+            $this->assertSame('ok', OrderBaselineRecorder::measure('remote_area_match', fn () => 'ok', 123));
+            $lines = file($temporaryStorage.'/logs/order-details-baseline.jsonl', FILE_IGNORE_NEW_LINES);
+            $this->assertCount(2, $lines);
+            $http = json_decode($lines[0], true, 512, JSON_THROW_ON_ERROR);
+            $span = json_decode($lines[1], true, 512, JSON_THROW_ON_ERROR);
+            $this->assertSame('http_request', $http['kind']);
+            $this->assertSame('initial_get', $http['request_kind']);
+            $this->assertSame('service_span', $span['kind']);
+            $this->assertSame('remote_area_match', $span['span']);
+            $this->assertSame(123, $span['order_id']);
+            $this->assertTrue($span['success']);
+            $this->assertGreaterThanOrEqual(0, $span['duration_ms']);
+        } finally {
+            app()->instance('request', $originalRequest);
+            app()->useStoragePath($originalStorage);
+            @unlink($temporaryStorage.'/logs/order-details-baseline.jsonl');
+            @rmdir($temporaryStorage.'/logs');
+            @rmdir($temporaryStorage);
+        }
+    }
+
     public function test_other_livewire_components_are_not_profiled(): void
     {
         config()->set('order_baseline.enabled', true);

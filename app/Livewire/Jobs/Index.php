@@ -46,6 +46,7 @@ class Index extends Component
     use ManagesOrderFinance;
     use ManagesOrderInquiryLink;
     use ManagesOrderWorkflow;
+    use \App\Livewire\Concerns\ManagesSupplierPurchaseOrders;
     use ManagesOrderShipments;
     use ManagesOrderDetail;
     use ManagesOrderProducts;

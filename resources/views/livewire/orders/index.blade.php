@@ -1,4 +1,5 @@
 <div class="ft-orders-index-livewire-root">
+    <x-jobs.order-detail.artwork-address-book-notice :status="$artworkAddressBookNotice" />
     <x-orders.prototype-list
         :jobs="$jobs"
         :rows="$orderRows"
@@ -51,6 +52,8 @@
                     :config="$listActionWorkflowModal"
                     :step="$orderWorkflowActionStep"
                     :payload="$orderWorkflowActionPayload"
+                    :artwork-recipient-emails="$artworkRecipientEmails"
+                    :artwork-saved-recipient-suggestions="$artworkSavedRecipientSuggestions"
                     :modal-preview="$orderWorkflowActionModalPreview"
                     :attachment="$orderWorkflowActionAttachment"
                     :revision-comments="$orderWorkflowActionRevisionComments"

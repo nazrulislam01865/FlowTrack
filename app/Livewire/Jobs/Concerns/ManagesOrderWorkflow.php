@@ -25,6 +25,9 @@ use Throwable;
  */
 trait ManagesOrderWorkflow
 {
+    use \App\Livewire\Concerns\ManagesArtworkHandoffRecipients;
+    public string $artworkAddressBookNotice = '';
+
     public function toggleJobPhase(int $phaseId): void
     {
         if (in_array($phaseId, $this->expandedPhaseIds, true)) {
@@ -53,6 +56,7 @@ trait ManagesOrderWorkflow
 
     public function openOrderWorkflowAction(int $taskId): void
     {
+        $this->artworkAddressBookNotice = '';
         abort_unless($this->selectedJobId && $this->detailTab === 'overview', 422);
         $task = app(TaskService::class)->visibleQuery(auth()->user())
             ->with(['job.client', 'job.items', 'job.phase', 'setupTemplate', 'documents', 'links'])
@@ -118,8 +122,10 @@ trait ManagesOrderWorkflow
         $this->orderWorkflowActionRevisionAttachments = [];
         $this->orderWorkflowActionStep = 'main';
         $this->orderWorkflowActionPayload = $workflowActions->initialPayload($task, $task->job);
+        $this->initializeArtworkRecipients();
         $this->orderWorkflowActionModalPreview = app(\App\Services\Orders\OrderWorkflowActionModalPreviewService::class)
             ->snapshot($task, $this->orderWorkflowActionPayload, false);
+        if ($key === 'ART_CREATE_SUPPLIER_PO') $this->prepareSupplierPoModal($task);
         $this->resetOrderWorkflowEmailFallbackState();
 
         if (in_array($descriptor['key'] ?? null, ['NEW_SEND_PO_ARTWORK', 'ART_SEND_ORDER_TEAM'], true)) {
@@ -167,6 +173,7 @@ trait ManagesOrderWorkflow
         $this->orderWorkflowActionRevisionAttachments = [];
         $this->orderWorkflowActionStep = 'main';
         $this->orderWorkflowActionPayload = [];
+        $this->resetArtworkRecipients();
         $this->orderWorkflowActionModalPreview = [];
         $this->resetOrderWorkflowEmailFallbackState();
         $this->resetValidation(['orderWorkflowActionComment', 'orderWorkflowActionAttachment', 'orderWorkflowActionRevisionComments', 'orderWorkflowActionRevisionAttachments', 'orderWorkflowActionPayload', 'orderWorkflowActionEmail']);
@@ -682,6 +689,10 @@ trait ManagesOrderWorkflow
             $decision = $decision === 'sample_yes' ? 'sample' : 'confirm';
         }
 
+        if ($key === 'ART_SEND_ORDER_TEAM' && $decision === 'confirm') {
+            $this->validateArtworkRecipientFields();
+        }
+
         if (in_array($key, ['NEW_SEND_PO_ARTWORK', 'ART_SEND_ORDER_TEAM'], true)) {
             // A fresh click retries delivery from attempt one again, so clear
             // the older manual-fallback marker before starting the new cycle.
@@ -855,6 +866,22 @@ trait ManagesOrderWorkflow
                 && blank($this->orderWorkflowActionPayload['to_email'] ?? null),
             default => false,
         };
+        // Only a completed, successful artwork Send records recipients. A missing
+        // address book table must not cause a second email send or undo delivery.
+        if ($key === 'ART_SEND_ORDER_TEAM' && $decision === 'confirm' && ! $handoffWithoutRecipient) {
+            try {
+                $savedExternalCount = app(\App\Services\Orders\ArtworkHandoffContactCapture::class)->capture(
+                    (string) (($this->orderWorkflowActionPayload['to_emails'] ?? '') ?: ($this->orderWorkflowActionPayload['to_email'] ?? '')),
+                    (int) auth()->id(),
+                );
+                $this->artworkAddressBookNotice = $savedExternalCount > 0 ? 'saved' : 'internal';
+                session()->flash('artwork_address_book_notice', $this->artworkAddressBookNotice);
+            } catch (\Throwable $exception) {
+                report($exception);
+                $this->artworkAddressBookNotice = 'failed';
+                session()->flash('artwork_address_book_notice', 'failed');
+            }
+        }
         $successMessage = $key === 'ART_INTERNAL_REVIEW' && $decision === 'cancel_artwork'
             ? 'Selected artwork cancelled. Any selected products were removed from the active Order.'
             : ($key === 'ART_INTERNAL_REVIEW' && $decision === 'confirm'
@@ -888,7 +915,11 @@ trait ManagesOrderWorkflow
 
         $this->closeOrderWorkflowAction();
         $this->syncOverviewWorkflowSelectionToCurrentPhase();
-        session()->flash('success', $successMessage);
+        // The sender-only address-book toast replaces the generic success flash
+        // for this action, avoiding two overlapping confirmations.
+        if ($key !== 'ART_SEND_ORDER_TEAM' || $this->artworkAddressBookNotice === '') {
+            session()->flash('success', $successMessage);
+        }
     }
 
     public function removeOrderWorkflowActionAttachment(): void

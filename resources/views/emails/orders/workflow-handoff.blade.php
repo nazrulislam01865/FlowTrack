@@ -34,11 +34,33 @@
         </tr>
     </table>
 
+    @if($handoffType === 'artwork')
+        <div style="margin:0 0 16px;padding:15px 16px;background:#fff;border:1px solid #dce5ee;border-radius:9px">
+            <div style="margin-bottom:9px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#007d70">Order overview</div>
+            <div style="font-size:13px;line-height:1.6;color:#44566f;overflow-wrap:anywhere">
+                @if(filled($overviewHtml ?? ''))
+                    {!! $overviewHtml !!}
+                @else
+                    No order overview was provided.
+                @endif
+            </div>
+        </div>
+    @endif
+
     <div style="padding:14px 16px;border:1px solid #dce5ee;border-radius:9px;background:#fff">
         <div style="font-size:10px;color:#718097;text-transform:uppercase;letter-spacing:.05em">{{ $handoffType === 'invoice' ? 'Attached invoice' : 'Attached file'.($documents->count() === 1 ? '' : 's') }}</div>
         @foreach($documents as $attachedDocument)
             <div style="margin-top:4px;font-size:13px;font-weight:700;color:#152238">{{ $attachedDocument->name }}</div>
         @endforeach
+        @if($handoffType === 'artwork')
+            @foreach(($overviewImages ?? []) as $overviewImage)
+                <div style="margin-top:5px;font-size:12px;color:#44566f">Order overview image: {{ $overviewImage }}</div>
+            @endforeach
+            @if($trackingPdf ?? null)
+                <div style="margin-top:8px;font-size:13px;font-weight:700;color:#152238">{{ $trackingPdf->name }}</div>
+                <div style="font-size:11px;color:#718097">Confirmed artwork PDF with tracking QR code</div>
+            @endif
+        @endif
         @if($handoffType === 'invoice' || (int) ($document->version ?? 0) > 0)
             <div style="margin-top:2px;font-size:11px;color:#718097">{{ $handoffType === 'invoice' ? 'PDF · Invoice total '.$invoice->currency.' '.number_format((float) $invoice->total, 2) : 'Artwork version '.$document->version }}</div>
         @endif

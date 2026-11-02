@@ -359,3 +359,12 @@ Schedule::command('flowtrack:sync-supplier-rfqs')->everyMinute()->withoutOverlap
 
 // Low-frequency safety reconciliation also catches changes performed by external imports.
 \Illuminate\Support\Facades\Schedule::command('flowtrack:sync-supplier-catalog')->dailyAt('02:30')->withoutOverlapping();
+
+// Phase 2: recover missed Remote Area index rebuilds outside web requests.
+// Disabled by default with the matcher feature flag.
+if ((bool) config('remote_area_lookup.enabled', false)) {
+    Schedule::command('flowtrack:remote-area-index-maintain')
+        ->everyFiveMinutes()
+        ->withoutOverlapping()
+        ->onOneServer();
+}

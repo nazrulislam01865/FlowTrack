@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\FlowJob;
 use App\Models\User;
+use App\Support\Performance\OrderBaselineRecorder;
 use App\Support\JobDetailPresenter;
 use App\Support\OrderDetailPresenter;
 use App\Support\CreateOrderShippingMethodPresenter;
@@ -49,7 +50,8 @@ class OrderDetailViewService
         );
         $shippingOptions = CreateOrderShippingMethodPresenter::orderShippingOptions($shipmentMethodOptions, $shipmentUrgencyOptions);
         $masterData = app(MasterDataService::class);
-        $remoteArea = $masterData->remoteAreaForPostalCode($job->shipping_postal_code);
+        $remoteArea = OrderBaselineRecorder::measure('remote_area_match',
+            fn () => $masterData->remoteAreaForPostalCode($job->shipping_postal_code), (int) $job->id);
 
         return [
             'team' => $this->summaryTeam($job),
@@ -142,7 +144,8 @@ class OrderDetailViewService
         // remains query-free, and MasterDataService serves lookups from one cached
         // active collection instead of querying once per rendered field.
         $masterData = app(MasterDataService::class);
-        $remoteArea = $masterData->remoteAreaForPostalCode($job->shipping_postal_code);
+        $remoteArea = OrderBaselineRecorder::measure('remote_area_match',
+            fn () => $masterData->remoteAreaForPostalCode($job->shipping_postal_code), (int) $job->id);
         $workflowActions = app(OrderWorkflowActionService::class);
         $documentTaskIds = $job->relationLoaded('documents')
             ? $job->documents->pluck('task_id')->filter()->map(fn ($id) => (int) $id)->flip()

@@ -1,4 +1,5 @@
 <div wire:key="order-workflow-workspace-{{ $orderId }}">
+    <x-jobs.order-detail.artwork-address-book-notice :status="$artworkAddressBookNotice" />
     @if(! $ready)
         <x-ui.progressive-section-loader
             section="workflow"
@@ -46,6 +47,8 @@
                     :config="$workflowActionModal"
                     :step="$orderWorkflowActionStep"
                     :payload="$orderWorkflowActionPayload"
+                    :artwork-recipient-emails="$artworkRecipientEmails"
+                    :artwork-saved-recipient-suggestions="$artworkSavedRecipientSuggestions"
                     :modal-preview="$orderWorkflowActionModalPreview"
                     :attachment="$orderWorkflowActionAttachment"
                     :revision-comments="$orderWorkflowActionRevisionComments"

@@ -120,6 +120,7 @@
         <x-ui.async-feedback />
         <div class="content {{ request()->routeIs('dashboard', 'team-performance.report') ? 'ft-dashboard-content-shell' : '' }} {{ request()->routeIs('reports') ? 'ft-inquiry-intelligence-content-shell' : '' }}">
             @if(session('success') && !request()->routeIs('task-pack.setup','master-data','financial-master-data','profile','inquiries.*','company.setup'))<div class="flash">{{ session('success') }}</div>@endif
+            <x-jobs.order-detail.artwork-address-book-notice :status="session('artwork_address_book_notice', '')" />
             @yield('content')
         </div>
     </main>

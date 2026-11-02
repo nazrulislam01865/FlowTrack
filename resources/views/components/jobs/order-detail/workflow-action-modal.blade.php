@@ -1,4 +1,4 @@
-@props(['job', 'task', 'config' => [], 'step' => 'main', 'payload' => [], 'modalPreview' => [], 'attachment' => null, 'revisionComments' => [], 'revisionAttachments' => [], 'mentionUsers' => collect(), 'emailFallback' => false, 'emailFallbackMessage' => '', 'emailFallbackAttempts' => 0])
+@props(['job', 'task', 'config' => [], 'step' => 'main', 'payload' => [], 'artworkRecipientEmails' => [0 => ''], 'artworkSavedRecipientSuggestions' => [], 'modalPreview' => [], 'attachment' => null, 'revisionComments' => [], 'revisionAttachments' => [], 'mentionUsers' => collect(), 'emailFallback' => false, 'emailFallbackMessage' => '', 'emailFallbackAttempts' => 0])
 @php
     $variant = (string) ($config['variant'] ?? 'confirm');
     $title = (string) ($config['title'] ?? 'Task action');
@@ -73,6 +73,42 @@
     // the template keeps one simple, balanced control structure during Livewire
     // renders and no directive source can leak into the modal markup.
     $workflowRemoteAreaCharge = max(0, (float) ($payload['remote_area_charge'] ?? 0));
+    // Reuse the active-workspace recipients already included in the email
+    // preview. Filtering here is in-memory; no queries or extra API requests.
+    $artworkRecipientSuggestions = [];
+    if ($variant === 'artwork_email') {
+        $artworkDirectory = collect($emailHandoffPreview['recipient_options'] ?? []);
+        $selectedArtworkEmails = collect($artworkRecipientEmails)
+            ->map(fn ($email) => mb_strtolower(trim((string) $email)))
+            ->filter()->all();
+        foreach ($artworkRecipientEmails as $fieldKey => $fieldValue) {
+            $query = mb_strtolower(trim((string) $fieldValue));
+            $artworkRecipientSuggestions[$fieldKey] = mb_strlen($query) < 2 || filter_var($query, FILTER_VALIDATE_EMAIL)
+                ? []
+                : $artworkDirectory->filter(function ($option) use ($query, $selectedArtworkEmails) {
+                    $email = mb_strtolower(trim((string) ($option['email'] ?? '')));
+                    return $email !== '' && ! in_array($email, $selectedArtworkEmails, true)
+                        && (str_contains(mb_strtolower((string) ($option['name'] ?? '')), $query)
+                            || str_contains($email, $query));
+                })->take(6)->values()->all();
+        }
+    }
+    $artworkSavedSuggestions = [];
+    if ($variant === 'artwork_email') {
+        $internalEmails = collect($emailHandoffPreview['recipient_options'] ?? [])
+            ->pluck('email')->map(fn ($email) => mb_strtolower(trim((string) $email)))->all();
+        foreach ($artworkRecipientEmails as $fieldKey => $fieldValue) {
+            $query = mb_strtolower(trim((string) $fieldValue));
+            $artworkSavedSuggestions[$fieldKey] = $query === '' || filter_var($query, FILTER_VALIDATE_EMAIL)
+                ? []
+                : collect($artworkSavedRecipientSuggestions[$fieldKey] ?? [])
+                    ->reject(function ($option) use ($selectedArtworkEmails, $internalEmails) {
+                        $email = mb_strtolower(trim((string) ($option['email'] ?? '')));
+                        return $email === '' || in_array($email, $selectedArtworkEmails, true)
+                            || in_array($email, $internalEmails, true);
+                    })->take(6)->values()->all();
+        }
+    }
     $invoiceRecipientOptions = collect();
     $invoiceToEmail = '';
     $invoiceMatchedToUser = null;
@@ -206,7 +242,14 @@
     // or horizontally shift the popup after submit.
     $usesStableFinanceValidation = $step === 'main'
         && in_array($variant, ['invoice_prepare', 'payment'], true);
-    $modalWide = in_array($variant, ['courier_label', 'shipment_info', 'invoice_send'], true);
+    $supplierPoGenerated = $variant === 'supplier_po' && !empty($modalPreview['supplier_po']['rows']);
+    if ($variant === 'supplier_po') {
+        $title = $supplierPoGenerated ? 'Send Purchase Order' : 'Create Purchase Order';
+        $copy = $supplierPoGenerated
+            ? 'Review the PDF and email it to the supplier or other recipients.'
+            : 'Select single or split to generate the supplier Purchase Order PDFs.';
+    }
+    $modalWide = in_array($variant, ['courier_label', 'shipment_info', 'invoice_send'], true) || $supplierPoGenerated;
     // Every artwork revision dialog uses the same compact prototype shell.
     // The copy/labels still vary by task, but layout and controls stay consistent.
     $isArtworkRevisionRequest = $step === 'revision';
@@ -529,6 +572,8 @@
                 <label class="ft-prototype-field"><span>Description</span><textarea wire:model="orderWorkflowActionComment" rows="5" placeholder="Describe the issue and corrective action required..."></textarea>@error('orderWorkflowActionComment')<p class="validation-error">{{ $message }}</p>@enderror</label>
                 <div class="ft-prototype-file-placeholder"><strong>Screenshot / photo</strong><span>Supporting images/documents can be added to the task after the issue is recorded.</span></div>
                 <div class="ft-prototype-email-preview"><b>Email preview</b><span>The issue notification will be recorded for {{ $supplierName }} with this Order and task.</span></div>
+            @elseif($variant === 'supplier_po')
+                <x-jobs.order-detail.supplier-purchase-order-panel :task="$task" :payload="$payload" :preview="$modalPreview['supplier_po'] ?? []" />
             @elseif($variant === 'purchase_order_email')
                 @php
                     $recipientOptions = collect($emailHandoffPreview['recipient_options'] ?? []);
@@ -786,75 +831,80 @@
                 </div>
 
                 @if($variant === 'artwork_email')
-                    @php
-                        $artworkRecipientOptions = collect($emailHandoffPreview['recipient_options'] ?? []);
-                        $artworkToEmails = trim((string) ($payload['to_emails'] ?? ''));
-                        if ($artworkToEmails === '') {
-                            $artworkToEmails = trim((string) ($payload['to_email'] ?? ''));
-                        }
-
-                        $artworkToParts = collect(preg_split('/[,;]+/', $artworkToEmails) ?: [])
-                            ->map(fn($value) => trim((string) $value));
-                        $artworkToQuery = mb_strtolower((string) ($artworkToParts->last() ?? ''));
-                        $artworkToPrefix = $artworkToParts
-                            ->slice(0, max(0, $artworkToParts->count() - 1))
-                            ->filter()
-                            ->values();
-                        $artworkToExactMatch = $artworkRecipientOptions->contains(
-                            fn($option) => mb_strtolower(trim((string) ($option['email'] ?? ''))) === $artworkToQuery
-                        );
-                        $artworkToSuggestions = $artworkToQuery === '' || $artworkToExactMatch
-                            ? collect()
-                            : $artworkRecipientOptions
-                                ->filter(function($option) use ($artworkToQuery) {
-                                    return str_contains(mb_strtolower((string) ($option['name'] ?? '')), $artworkToQuery)
-                                        || str_contains(mb_strtolower((string) ($option['email'] ?? '')), $artworkToQuery);
-                                })
-                                ->reject(function($option) use ($artworkToPrefix) {
-                                    $email = mb_strtolower(trim((string) ($option['email'] ?? '')));
-                                    return $artworkToPrefix->contains(fn($value) => mb_strtolower((string) $value) === $email);
-                                })
-                                ->take(6)
-                                ->values();
-                    @endphp
-
                     <section class="ft-po-mail-recipients ft-artwork-mail-recipients" aria-label="Artwork email recipients">
-                        <div class="ft-po-mail-row ft-po-mail-row--single">
-                            <label for="artwork-to-emails-{{ $task->id }}">To</label>
-                            <div class="ft-po-mail-row__control ft-po-mail-recipient-control">
-                                <input
-                                    id="artwork-to-emails-{{ $task->id }}"
-                                    type="text"
-                                    wire:model.live.debounce.300ms="orderWorkflowActionPayload.to_emails"
-                                    placeholder="Enter email or search users"
-                                    autocomplete="off"
-                                    spellcheck="false"
-                                >
-
-                                @if($artworkToSuggestions->isNotEmpty())
-                                    <div class="ft-po-mail-suggestions" role="listbox" aria-label="System user suggestions">
-                                        @foreach($artworkToSuggestions as $option)
-                                            @php
-                                                $nextArtworkToEmails = $artworkToPrefix
-                                                    ->concat([(string) $option['email']])
-                                                    ->unique(fn($email) => mb_strtolower(trim((string) $email)))
-                                                    ->implode(', ');
-                                            @endphp
-                                            <button
-                                                type="button"
-                                                wire:key="artwork-to-suggestion-{{ $task->id }}-{{ (int) $option['id'] }}"
-                                                wire:click="$set('orderWorkflowActionPayload.to_emails', @js($nextArtworkToEmails))"
-                                                class="ft-po-mail-suggestion"
-                                            >
-                                                <span class="ft-po-mail-suggestion__avatar">{{ mb_strtoupper(mb_substr((string) ($option['name'] ?? $option['email']), 0, 1)) }}</span>
-                                                <span><b>{{ $option['name'] }}</b><small>{{ $option['email'] }}</small></span>
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                @endif
+                        @foreach($artworkRecipientEmails as $recipientKey => $recipientEmail)
+                            <div class="ft-po-mail-row ft-artwork-recipient-row {{ $loop->first ? 'ft-artwork-recipient-row--first' : '' }}" wire:key="artwork-to-{{ $task->id }}-{{ $recipientKey }}">
+                                <label for="artwork-to-{{ $task->id }}-{{ $recipientKey }}">{{ $loop->first ? 'To' : 'To '.$loop->iteration }}</label>
+                                <div class="ft-po-mail-row__control ft-po-mail-recipient-control">
+                                    <input
+                                        id="artwork-to-{{ $task->id }}-{{ $recipientKey }}"
+                                        type="text"
+                                        inputmode="email"
+                                        maxlength="254"
+                                        wire:model.live.debounce.300ms="artworkRecipientEmails.{{ $recipientKey }}"
+                                        wire:blur="refreshArtworkRecipientEmailPreview"
+                                        placeholder="Search users, saved contacts, or enter an email address"
+                                        autocomplete="off"
+                                        autocapitalize="off"
+                                        spellcheck="false"
+                                        aria-autocomplete="list"
+                                        @if(! empty($artworkRecipientSuggestions[$recipientKey]) || ! empty($artworkSavedSuggestions[$recipientKey])) aria-controls="artwork-suggestions-{{ $task->id }}-{{ $recipientKey }}" @endif
+                                    >
+                                    @if(! empty($artworkRecipientSuggestions[$recipientKey]) || ! empty($artworkSavedSuggestions[$recipientKey]))
+                                        <div class="ft-po-mail-suggestions ft-artwork-recipient-suggestions" id="artwork-suggestions-{{ $task->id }}-{{ $recipientKey }}" role="listbox" aria-label="Matching FlowTracker users and saved contacts">
+                                            @foreach($artworkRecipientSuggestions[$recipientKey] as $option)
+                                                <button
+                                                    type="button"
+                                                    role="option"
+                                                    aria-selected="false"
+                                                    wire:key="artwork-suggestion-{{ $task->id }}-{{ $recipientKey }}-{{ (int) $option['id'] }}"
+                                                    wire:click="selectArtworkRecipient({{ (int) $recipientKey }}, {{ (int) $option['id'] }})"
+                                                    x-on:mousedown.prevent
+                                                    class="ft-po-mail-suggestion"
+                                                >
+                                                    <span class="ft-po-mail-suggestion__avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr((string) ($option['name'] ?? $option['email']), 0, 1)) }}</span>
+                                                    <span><b>{{ $option['name'] }}</b><small>Internal user · {{ $option['email'] }}</small></span>
+                                                </button>
+                                            @endforeach
+                                            @foreach($artworkSavedSuggestions[$recipientKey] ?? [] as $contact)
+                                                <button
+                                                    type="button"
+                                                    role="option"
+                                                    aria-selected="false"
+                                                    wire:key="artwork-saved-{{ $task->id }}-{{ $recipientKey }}-{{ (int) $contact['id'] }}"
+                                                    wire:click="selectSavedArtworkRecipient({{ (int) $recipientKey }}, {{ (int) $contact['id'] }})"
+                                                    x-on:mousedown.prevent
+                                                    class="ft-po-mail-suggestion"
+                                                >
+                                                    <span class="ft-po-mail-suggestion__avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr((string) ($contact['name'] ?: $contact['email']), 0, 1)) }}</span>
+                                                    <span><b>{{ $contact['name'] ?: $contact['email'] }}</b><small>Address Book · {{ $contact['email'] }}</small></span>
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                                @unless($loop->first)
+                                    <x-ui.button
+                                        variant="tertiary"
+                                        size="sm"
+                                        class="ft-artwork-recipient-remove"
+                                        wire:click="removeArtworkRecipient({{ $recipientKey }})"
+                                        aria-label="Remove recipient {{ $loop->iteration }}"
+                                    >Remove</x-ui.button>
+                                @endunless
                             </div>
+                        @endforeach
+                        <div class="ft-artwork-recipient-tools">
+                            <x-ui.button
+                                variant="secondary"
+                                size="sm"
+                                class="ft-artwork-recipient-add"
+                                wire:click="addArtworkRecipient"
+                                :disabled="count($artworkRecipientEmails) >= 10"
+                            ><span aria-hidden="true" class="ft-artwork-recipient-add__icon">+</span> Add recipient</x-ui.button>
+                            <span>{{ count($artworkRecipientEmails) }} of 10 recipients</span>
                         </div>
-                        @error('orderWorkflowActionPayload.to_emails')<p class="validation-error ft-po-mail-validation">{{ $message }}</p>@enderror
+                        @error('orderWorkflowActionPayload.to_emails')<p class="validation-error ft-po-mail-validation" role="alert">{{ $message }}</p>@enderror
                     </section>
 
                     @if($artworkHandoffCommentHistory->isNotEmpty())
@@ -1175,7 +1225,7 @@
             // Once one of those choices opens a nested revision/issue dialog, the
             // normal footer must return so the user can actually submit it.
             $usesInlineWorkflowActions = $step === 'main'
-                && in_array($variant, ['client_decision','qc_check'], true);
+                && in_array($variant, ['client_decision','qc_check', 'supplier_po'], true);
             $usesShipmentFooter = $step === 'main' && $variant === 'shipment_info';
             $editingCompletedShipmentInformation = $usesShipmentFooter
                 && \App\Support\OrderDetailPresenter::isCompletedTask($task);
@@ -1193,7 +1243,11 @@
             </footer>
         @endif
         @unless($usesInlineWorkflowActions || $usesShipmentFooter || $step === 'sample')
-            <footer class="ft-order-task-document-modal-actions ft-order-workflow-action-buttons">
+            <footer class="ft-order-task-document-modal-actions ft-order-workflow-action-buttons {{ $variant === 'artwork_email' && $step === 'main' ? 'ft-artwork-email-actions' : '' }}">
+                @if($variant === 'artwork_email' && $step === 'main')
+                    <x-ui.button variant="secondary" size="sm" wire:click="closeOrderWorkflowAction" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">Cancel</x-ui.button>
+                    <x-ui.button variant="primary" size="sm" wire:click="submitOrderWorkflowAction('confirm')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction" :disabled="!$emailServiceEnabled" aria-label="Send artwork handoff email">Send artwork</x-ui.button>
+                @else
                 <button type="button" class="secondary" wire:click="closeOrderWorkflowAction" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">Cancel</button>
                 @if($step === 'revision')
                     <button type="button" class="danger ft-artwork-revision-submit" wire:click="submitOrderWorkflowAction('revise')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction,orderWorkflowActionRevisionAttachments">{{ $automationKey === 'ART_INTERNAL_REVIEW' ? 'Submit Revision' : 'Activate Revision Task' }}</button>
@@ -1214,6 +1268,7 @@
                         @endphp
                         <button type="button" class="{{ in_array($decision, ['revise','cancel_artwork','issue'], true) ? 'danger' : 'primary' }}" wire:click="submitOrderWorkflowAction('{{ $decision }}')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction" @disabled($actionDisabled)>{{ $actionLabel }}</button>
                     @endforeach
+                @endif
                 @endif
             </footer>
         @endunless

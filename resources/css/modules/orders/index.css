@@ -1,3 +1,29 @@
 /** Orders route bundle. */
 @import './list.css';
 @import './detail-prototype.css';
+@import './address-book.css';
+
+.ft-address-book-handoff-notice {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 11000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(520px, calc(100vw - 32px));
+    padding: 14px;
+    border: 1px solid #b5dbd3;
+    border-radius: 10px;
+    background: #f0faf7;
+    box-shadow: 0 12px 36px rgba(17, 47, 59, .14);
+    color: #175b53;
+    font: inherit;
+    font-size: .83rem;
+    line-height: 1.45;
+}
+.ft-address-book-handoff-notice > span { flex: 1; }
+.ft-address-book-handoff-notice .ft-btn { flex-shrink: 0; }
+@media (max-width: 600px) {
+    .ft-address-book-handoff-notice { right: 12px; bottom: 12px; flex-wrap: wrap; }
+}

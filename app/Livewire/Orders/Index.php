@@ -32,6 +32,8 @@ use Livewire\WithPagination;
 class Index extends Component
 {
     use RefreshesFromWorkspace;
+    use \App\Livewire\Concerns\ManagesArtworkHandoffRecipients;
+    use \App\Livewire\Concerns\ManagesSupplierPurchaseOrders;
     use WithFileUploads;
     use WithPagination;
 
@@ -78,6 +80,7 @@ class Index extends Component
     public array $orderWorkflowActionPayload = [];
     /** Expensive workflow modal email/invoice preview snapshot; prepared outside Blade. */
     public array $orderWorkflowActionModalPreview = [];
+    public string $artworkAddressBookNotice = '';
     public bool $orderWorkflowEmailFallback = false;
     public string $orderWorkflowEmailFallbackMessage = '';
     public int $orderWorkflowEmailFallbackAttempts = 0;
@@ -451,6 +454,7 @@ class Index extends Component
      */
     public function openListWorkflowAction(int $orderId, int $taskId): void
     {
+        $this->artworkAddressBookNotice = '';
         $task = $this->editableListWorkflowTask($orderId, $taskId, [
             'job.client',
             'job.items',
@@ -490,8 +494,10 @@ class Index extends Component
         $this->orderWorkflowActionRevisionAttachments = [];
         $this->orderWorkflowActionStep = 'main';
         $this->orderWorkflowActionPayload = $workflowActions->initialPayload($task, $task->job);
+        $this->initializeArtworkRecipients();
         $this->orderWorkflowActionModalPreview = app(\App\Services\Orders\OrderWorkflowActionModalPreviewService::class)
             ->snapshot($task, $this->orderWorkflowActionPayload, false);
+        if ($workflowActions->automationKey($task) === 'ART_CREATE_SUPPLIER_PO') $this->prepareSupplierPoModal($task);
         $this->resetOrderWorkflowEmailFallbackState();
 
         if (in_array($descriptor['key'] ?? null, ['NEW_SEND_PO_ARTWORK', 'ART_SEND_ORDER_TEAM'], true)) {
@@ -515,6 +521,7 @@ class Index extends Component
         $this->orderWorkflowActionRevisionAttachments = [];
         $this->orderWorkflowActionStep = 'main';
         $this->orderWorkflowActionPayload = [];
+        $this->resetArtworkRecipients();
         $this->orderWorkflowActionModalPreview = [];
         $this->listActionOrderId = null;
         $this->resetOrderWorkflowEmailFallbackState();
@@ -606,6 +613,10 @@ class Index extends Component
             }
 
             $decision = $decision === 'sample_yes' ? 'sample' : 'confirm';
+        }
+
+        if ($key === 'ART_SEND_ORDER_TEAM' && $decision === 'confirm') {
+            $this->validateArtworkRecipientFields();
         }
 
         if (in_array($key, ['NEW_SEND_PO_ARTWORK', 'ART_SEND_ORDER_TEAM'], true)) {
@@ -736,6 +747,22 @@ class Index extends Component
                 && blank($this->orderWorkflowActionPayload['to_email'] ?? null),
             default => false,
         };
+        // Only a completed, successful artwork Send records recipients. A missing
+        // address book table must not cause a second email send or undo delivery.
+        if ($key === 'ART_SEND_ORDER_TEAM' && $decision === 'confirm' && ! $handoffWithoutRecipient) {
+            try {
+                $savedExternalCount = app(\App\Services\Orders\ArtworkHandoffContactCapture::class)->capture(
+                    (string) (($this->orderWorkflowActionPayload['to_emails'] ?? '') ?: ($this->orderWorkflowActionPayload['to_email'] ?? '')),
+                    (int) auth()->id(),
+                );
+                $this->artworkAddressBookNotice = $savedExternalCount > 0 ? 'saved' : 'internal';
+                session()->flash('artwork_address_book_notice', $this->artworkAddressBookNotice);
+            } catch (\Throwable $exception) {
+                report($exception);
+                $this->artworkAddressBookNotice = 'failed';
+                session()->flash('artwork_address_book_notice', 'failed');
+            }
+        }
         $successMessage = match ($key) {
             'NEW_SEND_PO_ARTWORK' => $handoffWithoutRecipient
                 ? 'Purchase Order handoff completed without email.'
@@ -757,7 +784,11 @@ class Index extends Component
         }
 
         $this->closeOrderWorkflowAction();
-        session()->flash('success', $successMessage);
+        // The sender-only address-book toast replaces the generic success flash
+        // for this action, avoiding two overlapping confirmations.
+        if ($key !== 'ART_SEND_ORDER_TEAM' || $this->artworkAddressBookNotice === '') {
+            session()->flash('success', $successMessage);
+        }
     }
 
     public function completeOrderWorkflowEmailTaskAfterFailure(): void

@@ -798,6 +798,7 @@ class DocumentService
 
     public function delete(Document $document, ?User $actor = null, string $permissionModule = 'documents'): void
     {
+        abort_if(in_array($document->category, ['Supplier Purchase Order', 'Archived Supplier Purchase Order'], true), 422, 'Generated supplier purchase orders are permanent workflow records.');
         $this->assertDocumentOrderNotHeld($document);
         if ($actor) {
             abort_unless(app(AccessControlService::class)->can($actor, $permissionModule, 'delete'), 403);
