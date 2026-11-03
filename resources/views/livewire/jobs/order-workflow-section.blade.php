@@ -1,4 +1,4 @@
-<div wire:key="order-workflow-workspace-{{ $orderId }}">
+<div wire:key="order-workflow-workspace-{{ $orderId }}" data-flowtrack-order-section="workflow" data-flowtrack-section-ready="{{ $ready ? '1' : '0' }}">
     <x-jobs.order-detail.artwork-address-book-notice :status="$artworkAddressBookNotice" />
     @if(! $ready)
         <x-ui.progressive-section-loader

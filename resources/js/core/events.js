@@ -11,6 +11,7 @@ export const REALTIME_EVENTS = Object.freeze({
 export const LIVEWIRE_EVENTS = Object.freeze({
     WORKSPACE_REFRESH: 'flowtrack-refresh',
     NOTIFICATION: 'flowtrack-notification',
+    ORDER_CHANGED: 'flowtrack-order-changed',
     UNREAD_CLEARED: 'flowtrack-unread-cleared',
     UNREAD_COUNT: 'flowtrack-unread-count',
 });

@@ -32,13 +32,15 @@ class OrderWorkflowBatchSyncPerformanceTest extends TestCase
     }
     public function test_order_open_does_not_repeat_artwork_repair_after_successful_workflow_sync(): void
     {
-        $detail = file_get_contents(app_path('Livewire/Jobs/Concerns/ManagesOrderDetail.php'));
+        // Reconciliation moved from the parent Order shell to the lazy
+        // Workflow child. Test the current location, not the legacy parent.
+        $detail = file_get_contents(app_path('Livewire/Jobs/OrderWorkflowSection.php'));
 
         $this->assertStringContainsString(
-            '$workflowWasSynced = app(\\App\\Services\\OrderWorkflowBindingService::class)->syncSingleActiveOrder($id);',
+            'fn () => app(OrderWorkflowBindingService::class)->syncSingleActiveOrder($this->orderId)',
             $detail,
         );
-        $this->assertStringContainsString('if (!$workflowWasSynced) {', $detail);
+        $this->assertStringContainsString('if (! $workflowWasSynced) {', $detail);
     }
 
     public function test_phase_selection_uses_summary_loader_not_full_overview_loader(): void
@@ -49,7 +51,7 @@ class OrderWorkflowBatchSyncPerformanceTest extends TestCase
         $method = substr($navigation, $start, $end - $start);
 
         $this->assertStringContainsString('loadOverviewSummary($job, $user)', $method);
-        $this->assertStringNotContainsString("loadTab($job, $user, 'overview')", $method);
+        $this->assertStringNotContainsString("loadTab(\$job, \$user, 'overview')", $method);
     }
 
 }

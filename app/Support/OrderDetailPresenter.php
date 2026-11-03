@@ -128,8 +128,22 @@ final class OrderDetailPresenter
     {
         if (self::isSkippedTask($task)) return false;
         if ($task->completed_at || (int) $task->progress > 0) return true;
-        if ($task->relationLoaded('documents') && $task->documents->isNotEmpty()) return true;
-        if ($task->relationLoaded('links') && $task->links->isNotEmpty()) return true;
+        // The Phase 5 summary's SQL EXISTS aliases have exactly the same
+        // presence semantics as the original eager-loaded collections. Never
+        // trigger a lazy relationship query here: the regular Workflow view
+        // still supplies loaded relations, while the summary supplies aliases.
+        if ($task->relationLoaded('documents')) {
+            if ($task->documents->isNotEmpty()) return true;
+        } elseif (array_key_exists('documents_exists', $task->getAttributes())
+            && (bool) $task->getAttribute('documents_exists')) {
+            return true;
+        }
+        if ($task->relationLoaded('links')) {
+            if ($task->links->isNotEmpty()) return true;
+        } elseif (array_key_exists('links_exists', $task->getAttributes())
+            && (bool) $task->getAttribute('links_exists')) {
+            return true;
+        }
 
         $status = strtolower(trim((string) $task->status));
         return ! in_array($status, ['', 'not start', 'not started', 'not ready', 'locked'], true);

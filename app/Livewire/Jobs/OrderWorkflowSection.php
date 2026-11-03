@@ -207,6 +207,16 @@ final class OrderWorkflowSection extends Component
     public function viewTask(int $id): void { $this->redirectRoute('jobs.index', ['task' => $id], navigate: true); }
     public function editTask(int $id): void { $this->redirectRoute('jobs.index', ['task' => $id], navigate: true); }
 
+    #[On('flowtrack-order-changed')]
+    public function refreshTargetedOrder(int $orderId): void
+    {
+        // The client-side order ID is only a refresh hint. Each render keeps
+        // its existing server-side VisibleOrderQuery/access-control scope.
+        if ($orderId !== $this->orderId || ! $this->ready) {
+            $this->skipRender();
+        }
+    }
+
     #[On('flowtrack-notification')]
     #[On('flowtrack-refresh')]
     public function refreshRealtime(?string $reason = null): void

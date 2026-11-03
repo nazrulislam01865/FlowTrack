@@ -3285,18 +3285,61 @@ class LegacyJobService
                 ->unique('department_id')
                 ->keyBy('department_id');
         // A single indexed lookup finds templates without a runtime task. Only
-        // those missing tasks reserve numbers, avoiding sequence writes during
-        // normal Order reads and keeping batch reconciliation efficient.
+        // missing tasks reserve numbers, protecting global task numbering.
         $templateIds = $templates->pluck('id')->map(fn ($id) => (int) $id)->all();
-        $existingTemplateIds = $templateIds
-            ? Task::query()
+        $batchMode = (bool) config('flowtrack.workflow_maintenance_batch_enabled', false);
+        $existingTasksByTemplate = collect();
+        $commentedTaskIds = [];
+        $memberIds = [];
+        $creationComment = 'Task created from the configured phase Task Pack.';
+
+        if ($batchMode && $templateIds) {
+            // One bounded read replaces the task-by-task SELECTs in the
+            // healthy runtime, including the previously separate ID query.
+            $existingTasksByTemplate = Task::query()
                 ->where('flow_job_id', $job->id)
                 ->where('workflow_phase_id', $phase->id)
                 ->whereIn('task_pack_task_id', $templateIds)
-                ->pluck('task_pack_task_id')
-                ->map(fn ($id) => (int) $id)
-                ->all()
-            : [];
+                ->orderBy('id')
+                ->get()
+                ->unique('task_pack_task_id')
+                ->keyBy(fn (Task $task) => (int) $task->task_pack_task_id);
+            $existingTemplateIds = $existingTasksByTemplate->keys()->map(fn ($id) => (int) $id)->all();
+
+            $taskIds = $existingTasksByTemplate->pluck('id')->all();
+            if ($taskIds) {
+                $commentedTaskIds = FlowTaskComment::query()
+                    ->whereIn('flow_task_id', $taskIds)
+                    ->where('body', $creationComment)
+                    ->pluck('flow_task_id')
+                    ->mapWithKeys(fn ($id) => [(int) $id => true])
+                    ->all();
+            }
+
+            // Don't read memberships for Task Packs with no assignees and no
+            // previously assigned tasks. Otherwise one read replaces N checks.
+            $hasAssignees = $existingTasksByTemplate->contains(fn (Task $task) => (int) $task->assignee_id > 0)
+                || $templates->contains(fn ($item) => $item->defaultAssignee || $item->defaultDepartment);
+            if ($hasAssignees) {
+                $memberIds = FlowJobMember::query()
+                    ->where('flow_job_id', $job->id)
+                    ->pluck('user_id')
+                    ->mapWithKeys(fn ($id) => [(int) $id => true])
+                    ->all();
+            }
+        } else {
+            // Flag OFF: preserve exactly the original per-template SQL path.
+            $existingTemplateIds = $templateIds
+                ? Task::query()
+                    ->where('flow_job_id', $job->id)
+                    ->where('workflow_phase_id', $phase->id)
+                    ->whereIn('task_pack_task_id', $templateIds)
+                    ->pluck('task_pack_task_id')
+                    ->map(fn ($id) => (int) $id)
+                    ->all()
+                : [];
+        }
+
         $missingTemplateIds = array_values(array_diff($templateIds, $existingTemplateIds));
         $reservedNumbers = app(TaskNumberSequenceService::class)->reserve(count($missingTemplateIds));
         $numbersByTemplate = array_combine($missingTemplateIds, $reservedNumbers) ?: [];
@@ -3323,11 +3366,15 @@ class LegacyJobService
                 ? $completedStatus
                 : ($isCurrent && $isFirstRequired ? $readyStatus : $notStartedStatus);
             $defaultStatusId = $orderTaskRules->statusRecord($defaultStatus, false)?->id;
-            $task = Task::firstOrCreate([
+            $taskAttributes = [
                 'flow_job_id' => $job->id,
                 'workflow_phase_id' => $phase->id,
                 'task_pack_task_id' => $template->id,
-            ], [
+            ];
+            // Keep firstOrCreate for missing rows: it is the existing safe
+            // fallback when a concurrent writer created the task meanwhile.
+            $task = ($batchMode ? $existingTasksByTemplate->get((int) $template->id) : null)
+                ?? Task::firstOrCreate($taskAttributes, [
                 'task_number' => $numbersByTemplate[(int) $template->id] ?? null,
                 'assignee_id' => $assigneeId,
                 'setup_assignee_id' => $assigneeId,
@@ -3391,9 +3438,15 @@ class LegacyJobService
             // this phase have reached their final generated state.
             $task = $orderTaskRules->syncTask($task->refresh(), false);
 
-            FlowTaskComment::firstOrCreate(['flow_task_id' => $task->id, 'body' => 'Task created from the configured phase Task Pack.'], ['user_id' => $job->coordinator_id]);
+            if (! $batchMode || ! isset($commentedTaskIds[(int) $task->id])) {
+                FlowTaskComment::firstOrCreate(['flow_task_id' => $task->id, 'body' => $creationComment], ['user_id' => $job->coordinator_id]);
+                $commentedTaskIds[(int) $task->id] = true;
+            }
             if ($task->assignee_id) {
-                FlowJobMember::firstOrCreate(['flow_job_id' => $job->id, 'user_id' => $task->assignee_id], ['access_level' => 'member', 'can_manage_tasks' => false, 'can_upload_documents' => true, 'can_view_financials' => false]);
+                if (! $batchMode || ! isset($memberIds[(int) $task->assignee_id])) {
+                    FlowJobMember::firstOrCreate(['flow_job_id' => $job->id, 'user_id' => $task->assignee_id], ['access_level' => 'member', 'can_manage_tasks' => false, 'can_upload_documents' => true, 'can_view_financials' => false]);
+                    $memberIds[(int) $task->assignee_id] = true;
+                }
             }
             if ($actor && $becameActive && $task->assignee_id) {
                 $taskId = $task->id;

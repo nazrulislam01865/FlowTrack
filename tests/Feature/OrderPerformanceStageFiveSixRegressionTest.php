@@ -30,7 +30,9 @@ PHP,
         $action = file_get_contents(app_path('Actions/Orders/AutoAdvanceOrder.php'));
 
         $this->assertStringContainsString('private ?FlowJob $preparedWorkflowJob = null;', $component);
-        $this->assertStringContainsString('$this->preparedWorkflowJob = app(AutoAdvanceOrder::class)->handle($runtimeJob, auth()->user());', $component);
+        // The same invocation is now measured, while preserving the prepared-job handoff.
+        $this->assertStringContainsString("\$this->preparedWorkflowJob = OrderBaselineRecorder::measure('workflow_auto_advance'", $component);
+        $this->assertStringContainsString('fn () => app(AutoAdvanceOrder::class)->handle($runtimeJob, auth()->user())', $component);
         $this->assertStringContainsString('$job = $this->preparedWorkflowJob;', $component);
         $this->assertStringContainsString('public function cachedPublishedPhasesForRead(int $workflowId): ?Collection', $binding);
         $this->assertStringContainsString('$cachedPublishedPhases = $binding->cachedPublishedPhasesForRead($workflowId);', $legacy);

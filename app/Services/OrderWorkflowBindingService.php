@@ -344,98 +344,100 @@ class OrderWorkflowBindingService
 
     private function syncOrder(int $jobId, Workflow $workflow, Collection $phases, ?int $targetSequenceOverride = null): void
     {
-        DB::transaction(function () use ($jobId, $workflow, $phases, $targetSequenceOverride): void {
-            $job = FlowJob::query()
-                ->lockForUpdate()
-                ->with(['phase:id,name,short_name,sequence', 'workflow:id,is_snapshot,source_workflow_id'])
-                ->findOrFail($jobId);
+        app(MasterDataService::class)->withWorkflowFlagSnapshot(function () use ($jobId, $workflow, $phases, $targetSequenceOverride): void {
+            DB::transaction(function () use ($jobId, $workflow, $phases, $targetSequenceOverride): void {
+                $job = FlowJob::query()
+                    ->lockForUpdate()
+                    ->with(['phase:id,name,short_name,sequence', 'workflow:id,is_snapshot,source_workflow_id'])
+                    ->findOrFail($jobId);
 
-            $targetSequence = $targetSequenceOverride !== null
-                ? max(1, min($phases->count(), $targetSequenceOverride))
-                : $this->targetSequence($job, $phases->count());
-            /** @var WorkflowPhase|null $targetPhase */
-            $targetPhase = $phases->firstWhere('sequence', $targetSequence) ?: $phases->first();
-            $firstPhase = $phases->first();
-            if (! $targetPhase || ! $firstPhase) return;
+                $targetSequence = $targetSequenceOverride !== null
+                    ? max(1, min($phases->count(), $targetSequenceOverride))
+                    : $this->targetSequence($job, $phases->count());
+                /** @var WorkflowPhase|null $targetPhase */
+                $targetPhase = $phases->firstWhere('sequence', $targetSequence) ?: $phases->first();
+                $firstPhase = $phases->first();
+                if (! $targetPhase || ! $firstPhase) return;
 
-            $phaseIds = $phases->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+                $phaseIds = $phases->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
 
-            // Archive every generated row that no longer belongs to the
-            // published 7-stage definition. This runs even when workflow_id is
-            // already correct; that is what removes stale old-stage tasks after
-            // an interrupted/partial workflow migration.
-            Task::query()
-                ->where('flow_job_id', $job->id)
-                ->whereNotNull('task_pack_task_id')
-                ->whereNotIn('workflow_phase_id', $phaseIds)
-                ->delete();
-
-            foreach ($phases as $phase) {
-                $allowed = $phase->taskPack?->items?->pluck('id')->map(fn ($id) => (int) $id)->values()->all() ?? [];
-                $query = Task::query()
+                // Archive every generated row that no longer belongs to the
+                // published 7-stage definition. This runs even when workflow_id is
+                // already correct; that is what removes stale old-stage tasks after
+                // an interrupted/partial workflow migration.
+                Task::query()
                     ->where('flow_job_id', $job->id)
-                    ->where('workflow_phase_id', $phase->id)
-                    ->whereNotNull('task_pack_task_id');
-                if ($allowed) $query->whereNotIn('task_pack_task_id', $allowed);
-                else $query->whereNotNull('task_pack_task_id');
-                $query->delete();
-            }
+                    ->whereNotNull('task_pack_task_id')
+                    ->whereNotIn('workflow_phase_id', $phaseIds)
+                    ->delete();
 
-            $changedWorkflow = (int) $job->workflow_id !== (int) $workflow->id;
-            $changedPhase = (int) $job->workflow_phase_id !== (int) $targetPhase->id;
+                foreach ($phases as $phase) {
+                    $allowed = $phase->taskPack?->items?->pluck('id')->map(fn ($id) => (int) $id)->values()->all() ?? [];
+                    $query = Task::query()
+                        ->where('flow_job_id', $job->id)
+                        ->where('workflow_phase_id', $phase->id)
+                        ->whereNotNull('task_pack_task_id');
+                    if ($allowed) $query->whereNotIn('task_pack_task_id', $allowed);
+                    else $query->whereNotNull('task_pack_task_id');
+                    $query->delete();
+                }
 
-            $job->update([
-                'workflow_id' => (int) $workflow->id,
-                'source_workflow_id' => (int) $workflow->id,
-                'workflow_phase_id' => (int) $targetPhase->id,
-                'source_workflow_phase_id' => (int) $targetPhase->id,
-                'started_from_phase_id' => (int) $firstPhase->id,
-            ]);
+                $changedWorkflow = (int) $job->workflow_id !== (int) $workflow->id;
+                $changedPhase = (int) $job->workflow_phase_id !== (int) $targetPhase->id;
 
-            // Close any old active history row and ensure the current published
-            // phase has exactly one active runtime history row.
-            FlowJobPhaseHistory::query()
-                ->where('flow_job_id', $job->id)
-                ->whereNotIn('workflow_phase_id', $phaseIds)
-                ->whereNull('completed_at')
-                ->update(['status' => 'replaced', 'completed_at' => now()]);
-
-            FlowJobPhaseHistory::query()->updateOrCreate(
-                ['flow_job_id' => $job->id, 'workflow_phase_id' => $targetPhase->id],
-                [
-                    'changed_by' => auth()->id() ?: $job->created_by,
-                    'phase_owner_id' => $job->coordinator_id,
-                    'target_date' => $job->delivery_date,
-                    'health_override' => $job->health,
-                    'status' => 'active',
-                    'entered_at' => now(),
-                    'completed_at' => null,
-                ]
-            );
-
-            $fresh = $job->fresh();
-            // Inject the exact dedicated phases so syncWorkflowTasks cannot
-            // accidentally see historical legacy Workflow::phases rows.
-            $fresh->load(['workflow']);
-            $fresh->workflow->setRelation('phases', $phases);
-            $fresh->setRelation('phase', $targetPhase);
-            app(JobService::class)->syncWorkflowTasks($fresh, null, true);
-
-            // A publish can replace legacy generated task identities. Repair
-            // artwork evidence immediately, before the Order is rendered, so
-            // Documents/links never disappear from a completed Artwork stage.
-            app(OrderArtworkEvidenceService::class)->repair((int) $job->id);
-
-            app(OrderTaskSequenceService::class)->synchronizeCurrentPhase($fresh->fresh(['phase']));
-
-            if ($changedWorkflow || $changedPhase) {
-                $job->activities()->create([
-                    'user_id' => auth()->id() ?: $job->created_by,
-                    'event' => 'job.order_workflow_rebound',
-                    'description' => 'Order synchronized with the published seven-stage Order workflow.',
+                $job->update([
+                    'workflow_id' => (int) $workflow->id,
+                    'source_workflow_id' => (int) $workflow->id,
+                    'workflow_phase_id' => (int) $targetPhase->id,
+                    'source_workflow_phase_id' => (int) $targetPhase->id,
+                    'started_from_phase_id' => (int) $firstPhase->id,
                 ]);
-            }
-        }, 3);
+
+                // Close any old active history row and ensure the current published
+                // phase has exactly one active runtime history row.
+                FlowJobPhaseHistory::query()
+                    ->where('flow_job_id', $job->id)
+                    ->whereNotIn('workflow_phase_id', $phaseIds)
+                    ->whereNull('completed_at')
+                    ->update(['status' => 'replaced', 'completed_at' => now()]);
+
+                FlowJobPhaseHistory::query()->updateOrCreate(
+                    ['flow_job_id' => $job->id, 'workflow_phase_id' => $targetPhase->id],
+                    [
+                        'changed_by' => auth()->id() ?: $job->created_by,
+                        'phase_owner_id' => $job->coordinator_id,
+                        'target_date' => $job->delivery_date,
+                        'health_override' => $job->health,
+                        'status' => 'active',
+                        'entered_at' => now(),
+                        'completed_at' => null,
+                    ]
+                );
+
+                $fresh = $job->fresh();
+                // Inject the exact dedicated phases so syncWorkflowTasks cannot
+                // accidentally see historical legacy Workflow::phases rows.
+                $fresh->load(['workflow']);
+                $fresh->workflow->setRelation('phases', $phases);
+                $fresh->setRelation('phase', $targetPhase);
+                app(JobService::class)->syncWorkflowTasks($fresh, null, true);
+
+                // A publish can replace legacy generated task identities. Repair
+                // artwork evidence immediately, before the Order is rendered, so
+                // Documents/links never disappear from a completed Artwork stage.
+                app(OrderArtworkEvidenceService::class)->repair((int) $job->id);
+
+                app(OrderTaskSequenceService::class)->synchronizeCurrentPhase($fresh->fresh(['phase']));
+
+                if ($changedWorkflow || $changedPhase) {
+                    $job->activities()->create([
+                        'user_id' => auth()->id() ?: $job->created_by,
+                        'event' => 'job.order_workflow_rebound',
+                        'description' => 'Order synchronized with the published seven-stage Order workflow.',
+                    ]);
+                }
+            }, 3);
+        });
 
         // Rebinding can replace phase/task identities while preserving the
         // workflow's business semantics. Invalidate only this Order's derived

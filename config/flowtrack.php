@@ -4,6 +4,16 @@ return [
     // Public Order Tracking / QR is enabled by default; use the env switch to disable if needed.
     'order_tracking_enabled' => env('FLOWTRACK_ORDER_TRACKING_ENABLED', true),
     'workspace_id' => (int) env('FLOWTRACK_WORKSPACE_ID', 1),
+    // Phase 3: keep legacy workspace-wide refresh routing available for immediate rollback.
+    'order_targeted_events_enabled' => (bool) env('FLOWTRACK_ORDER_TARGETED_EVENTS_ENABLED', false),
+    // Phase 4: optimize existing workflow reconciliation reads without changing
+    // the eligibility, transaction, task semantics or repair/advance behavior.
+    // OFF retains the legacy per-task reads for emergency comparison/rollback.
+    'workflow_maintenance_batch_enabled' => (bool) env('FLOWTRACK_WORKFLOW_MAINTENANCE_BATCH_ENABLED', false),
+    // Phase 5: use indexed EXISTS projections instead of loading every workflow
+    // task document/link into PHP when rebuilding an Order summary. OFF is the
+    // original eager-load path, retained for controlled A/B tests and rollback.
+    'workflow_summary_evidence_exists_enabled' => (bool) env('FLOWTRACK_WORKFLOW_SUMMARY_EVIDENCE_EXISTS_ENABLED', false),
     'document_disk' => env('FLOWTRACK_DOCUMENT_DISK', 'flowtrack_private'),
     'quarantine_disk' => env('FLOWTRACK_QUARANTINE_DISK', 'flowtrack_quarantine'),
     'legacy_document_disks' => array_values(array_filter(array_map('trim', explode(',', env('FLOWTRACK_LEGACY_DOCUMENT_DISKS', 'public,local'))))),

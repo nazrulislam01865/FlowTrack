@@ -1,5 +1,6 @@
 import { CONNECTION_STATES, LIVEWIRE_EVENTS, REALTIME_EVENTS } from '../core/events.js';
 import { metaContent } from '../core/meta.js';
+import { routeOrderWorkspaceRefresh } from './order-realtime.js';
 import { syncPersistedCounters } from '../core/persisted-counters.js';
 
 const state = {
@@ -16,12 +17,16 @@ const state = {
 };
 
 const workspaceChannelName = () => metaContent('flowtrack-reverb-workspace-channel') || null;
-const dispatchRefresh = (reason = null) => window.Livewire?.dispatch?.(LIVEWIRE_EVENTS.WORKSPACE_REFRESH, { reason });
+const dispatchRefresh = (reason = null, payload = {}) => {
+    if (routeOrderWorkspaceRefresh({ ...payload, reason })) return true;
+    window.Livewire?.dispatch?.(LIVEWIRE_EVENTS.WORKSPACE_REFRESH, { reason });
+    return false;
+};
 
-export const syncWorkspaceState = async ({ dispatchOnVersionChange = true } = {}) => {
+export const syncWorkspaceState = async ({ dispatchOnVersionChange = true, force = false } = {}) => {
     if (!metaContent('flowtrack-notification-count-url') || document.hidden) return;
 
-    const data = await syncPersistedCounters();
+    const data = await syncPersistedCounters({ force });
     if (!data) return;
 
     const nextVersion = String(data?.data_version ?? '1');
@@ -105,8 +110,12 @@ export const subscribeWorkspace = (realtime = null) => {
     state.channel.bind(REALTIME_EVENTS.WORKSPACE_REFRESH, (payload = {}) => {
         const incomingVersion = payload?.version == null ? null : String(payload.version);
         if (incomingVersion) state.version = incomingVersion;
-        dispatchRefresh(payload?.reason == null ? null : String(payload.reason));
-        syncWorkspaceState({ dispatchOnVersionChange: false });
+        const handled = dispatchRefresh(payload?.reason == null ? null : String(payload.reason), payload);
+        // The existing one-second workspace coalescing gate can hide another
+        // changed order. A fresh version probe after a scoped event triggers
+        // legacy broad reconciliation only when there are additional changes.
+        // Force a fresh result, never compare against a cached pre-event value.
+        syncWorkspaceState({ dispatchOnVersionChange: handled, force: handled });
     });
     bindConnectionLifecycle(realtime);
 

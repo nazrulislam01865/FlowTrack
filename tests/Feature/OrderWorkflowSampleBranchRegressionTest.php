@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Task;
 use App\Support\OrderDetailPresenter;
 use Tests\TestCase;
-use Tests\Support\OrderPhase5Source;
 
 class OrderWorkflowSampleBranchRegressionTest extends TestCase
 {
@@ -27,7 +26,8 @@ class OrderWorkflowSampleBranchRegressionTest extends TestCase
         $presenter = file_get_contents(app_path('Support/OrderDetailPresenter.php'));
         $jobPresenter = file_get_contents(app_path('Support/JobDetailPresenter.php'));
         $jobs = $this->jobServiceSource();
-        $livewire = OrderPhase5Source::livewire();
+        // The phase-advance action lives in the lazy Workflow child, not the old parent coordinator.
+        $workflowSection = file_get_contents(app_path('Livewire/Jobs/OrderWorkflowSection.php'));
 
         $this->assertStringContainsString("\$key === 'ART_CLIENT_ERP_DECISION' && \$decision === 'confirm'", $actions);
         $this->assertStringContainsString("'status' => 'Skipped'", $actions);
@@ -37,9 +37,15 @@ class OrderWorkflowSampleBranchRegressionTest extends TestCase
         $this->assertStringContainsString("['', 'not start', 'not started', 'not ready', 'locked']", $presenter);
         $this->assertStringContainsString('self::isConditionalTaskActivated($task)', $presenter);
         $this->assertStringContainsString('OrderDetailPresenter::isSkippedTask($task)', $jobPresenter);
-        $this->assertStringContainsString("['not start', 'not started', 'not ready', 'locked']", $jobPresenter);
+        // JobDetailPresenter delegates conditional activation to OrderDetailPresenter.
+        // Verify the shared runtime rule rather than requiring a duplicated status list.
+        foreach (['', 'Not Start', 'Not Started', 'Not Ready', 'Locked'] as $status) {
+            $this->assertFalse(OrderDetailPresenter::isConditionalTaskActivated(
+                new Task(['status' => $status, 'progress' => 0]),
+            ));
+        }
         $this->assertStringContainsString('$isPrototypeOrderRuntime', $jobs);
         $this->assertStringContainsString('filled($workflowActions->automationKey($task))', $jobs);
-        $this->assertStringContainsString('AutoAdvanceOrder::class)->handle($runtimeJob, auth()->user())', $livewire);
+        $this->assertStringContainsString('fn () => app(AutoAdvanceOrder::class)->handle($runtimeJob, auth()->user())', $workflowSection);
     }
 }

@@ -17,6 +17,40 @@ class MasterDataService
     /** @var array<string,array<string,string>> */
     private array $colorMaps = [];
 
+    /**
+     * Phase 4: avoid hundreds of repeated database-cache SELECTs for the same
+     * three Order flag lists during a single Workflow repair. Attribute arrays
+     * (not Eloquent instances) are reused only in this request; every caller
+     * still receives freshly hydrated, independent records.
+     *
+     * @var array<string,array<int,array<string,mixed>>>
+     */
+    private array $workflowFlagRows = [];
+
+    private int $workflowFlagSnapshotDepth = 0;
+
+    /**
+     * Limit request-local flag memoization to an explicit Workflow maintenance
+     * batch. Other Master Data reads retain their pre-existing cache behavior.
+     * Clears even when reconciliation throws, preventing stale later reads.
+     */
+    public function withWorkflowFlagSnapshot(callable $work): mixed
+    {
+        if (! (bool) config('flowtrack.workflow_maintenance_batch_enabled', false)) {
+            return $work();
+        }
+
+        $this->workflowFlagSnapshotDepth++;
+        try {
+            return $work();
+        } finally {
+            $this->workflowFlagSnapshotDepth--;
+            if ($this->workflowFlagSnapshotDepth === 0) {
+                $this->workflowFlagRows = [];
+            }
+        }
+    }
+
     /** @var array<string,MasterRecord>|null */
     private ?array $remoteAreaByPostalCode = null;
 
@@ -350,10 +384,21 @@ class MasterDataService
     {
         abort_unless(array_key_exists($type, self::LABELS), 404);
         $workspaceId = $this->workspaceId();
-        $rows = Cache::remember($this->activeCacheKey($workspaceId, $type), now()->addMinutes(5), fn () =>
-            MasterRecord::query()->forWorkspace($workspaceId)->ofType($type)->active()->orderBy('sort_order')->orderBy('name')->get()
-                ->map(fn (MasterRecord $record) => $record->getAttributes())->all()
-        );
+        $cacheKey = $this->activeCacheKey($workspaceId, $type);
+        $memoize = $this->workflowFlagSnapshotDepth > 0
+            && in_array($type, ['order_task_status', 'order_task_flag', 'order_flag'], true);
+
+        if ($memoize && array_key_exists($cacheKey, $this->workflowFlagRows)) {
+            $rows = $this->workflowFlagRows[$cacheKey];
+        } else {
+            $rows = Cache::remember($cacheKey, now()->addMinutes(5), fn () =>
+                MasterRecord::query()->forWorkspace($workspaceId)->ofType($type)->active()->orderBy('sort_order')->orderBy('name')->get()
+                    ->map(fn (MasterRecord $record) => $record->getAttributes())->all()
+            );
+            if ($memoize) {
+                $this->workflowFlagRows[$cacheKey] = $rows;
+            }
+        }
 
         return collect($rows)->map(fn (array $attributes) => (new MasterRecord())->newFromBuilder($attributes));
     }
@@ -1112,8 +1157,9 @@ class MasterDataService
 
     private function forgetActiveCache(string $type): void
     {
-        Cache::forget($this->activeCacheKey($this->workspaceId(), $type));
-        unset($this->colorMaps[$type]);
+        $cacheKey = $this->activeCacheKey($this->workspaceId(), $type);
+        Cache::forget($cacheKey);
+        unset($this->workflowFlagRows[$cacheKey], $this->colorMaps[$type]);
         if ($type === 'remote_area') {
             $this->remoteAreaByPostalCode = null;
             $this->remoteAreaPostalRanges = null;

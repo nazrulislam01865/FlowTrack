@@ -769,6 +769,7 @@ class NotificationService
             'actor_name' => $actor?->name,
             'actor_avatar_url' => $actor?->profileImageUrl(),
             'job_id' => $job?->id,
+            'workspace_id' => (int) config('flowtrack.workspace_id', 1),
             'job_number' => $job?->displayOrderNumber(),
             'task_id' => $task?->id,
             'task_number' => $task?->task_number,

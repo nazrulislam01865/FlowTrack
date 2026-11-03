@@ -263,7 +263,7 @@
                             <span><span class="ft-created-name">{{ $creatorName }}</span><time class="ft-created-on">{{ $job->created_at ? \App\Support\UserLocalTime::format($job->created_at, 'M j, Y · g:i A') : '—' }}</time></span>
                         </span>
                     </div>
-                    <div class="ft-cell ft-identity" data-label="Order"><a class="ft-id" href="{{ route('jobs.index',['open'=>$job->id]) }}" wire:navigate.hover>{{ $job->displayOrderNumber() }}</a><span class="ft-sub">{{ $job->order_number ?: 'REF-'.str_pad((string)$job->id,5,'0',STR_PAD_LEFT) }}</span></div>
+                    <div class="ft-cell ft-identity" data-label="Order"><a class="ft-id" href="{{ route('jobs.index',['open'=>$job->id]) }}" wire:navigate>{{ $job->displayOrderNumber() }}</a><span class="ft-sub">{{ $job->order_number ?: 'REF-'.str_pad((string)$job->id,5,'0',STR_PAD_LEFT) }}</span></div>
                     <div class="ft-cell ft-inquiry-cell" data-label="Inquiry">
                         @if($job->sourceInquiry)
                             @if(auth()->user()->canAccess('inquiries.view'))
@@ -330,7 +330,7 @@
                                 <a
                                     href="{{ route('jobs.index', ['open' => $job->id]) }}"
                                     role="menuitem"
-                                    wire:navigate.hover
+                                    wire:navigate
                                     x-on:click="$refs.menu.hidePopover()"
                                     aria-label="View details for {{ $job->displayOrderNumber() }}"
                                 >

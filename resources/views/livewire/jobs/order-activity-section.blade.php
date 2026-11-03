@@ -1,4 +1,4 @@
-<div wire:key="order-activity-workspace-{{ $orderId }}">
+<div wire:key="order-activity-workspace-{{ $orderId }}" data-flowtrack-order-section="activity" data-flowtrack-section-ready="{{ $ready ? '1' : '0' }}">
     @if(! $ready)
         <x-ui.progressive-section-loader
             section="activity"

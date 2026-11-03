@@ -76,6 +76,16 @@ final class OrderProductsSection extends Component
         $this->ready = true;
     }
 
+    #[On('flowtrack-order-changed')]
+    public function refreshTargetedOrder(int $orderId): void
+    {
+        // The client-side order ID is only a refresh hint. Each render keeps
+        // its existing server-side VisibleOrderQuery/access-control scope.
+        if ($orderId !== $this->orderId || ! $this->ready) {
+            $this->skipRender();
+        }
+    }
+
     #[On('flowtrack-notification')]
     public function refreshRealtime(): void
     {

@@ -1,5 +1,6 @@
 import { BROWSER_EVENTS, CONNECTION_STATES, LIVEWIRE_EVENTS, REALTIME_EVENTS } from '../core/events.js';
 import { metaContent } from '../core/meta.js';
+import { routeOrderNotification } from './order-realtime.js';
 import { syncPersistedCounters } from '../core/persisted-counters.js';
 import { setNotificationUnreadCount } from '../components/sidebar-counters.js';
 
@@ -15,6 +16,12 @@ const state = {
     initialNotificationSynced: false,
 };
 const unreadFallbackIntervalMs = 60000;
+
+const dispatchNotificationRefresh = (payload = {}) => {
+    if (routeOrderNotification(payload)) return;
+    // Other pages retain their original notification listener contract.
+    window.Livewire?.dispatch?.(LIVEWIRE_EVENTS.NOTIFICATION);
+};
 
 export const syncUnreadCount = async () => {
     if (!metaContent('flowtrack-notification-count-url') || document.hidden) return;
@@ -33,7 +40,7 @@ export const syncUnreadCount = async () => {
     }
     if (latestId > (state.latestNotificationId || 0)) {
         state.latestNotificationId = latestId;
-        window.Livewire?.dispatch?.(LIVEWIRE_EVENTS.NOTIFICATION);
+        dispatchNotificationRefresh(data?.latest);
     }
 };
 
@@ -95,12 +102,15 @@ const bindNotificationChannel = (realtime) => {
     state.notificationChannel.bind(REALTIME_EVENTS.NOTIFICATION, (payload = {}) => {
         const current = Number.parseInt(document.querySelector('#sidebar .nav-btn[href*="/notifications"] .nav-badge')?.textContent || '0', 10) || 0;
         setNotificationUnreadCount(payload?.unread_count ?? current + 1);
-        window.Livewire?.dispatch?.(LIVEWIRE_EVENTS.NOTIFICATION);
+        const id = Number.parseInt(String(payload?.id ?? 0), 10) || 0;
+        state.latestNotificationId = Math.max(state.latestNotificationId || 0, id);
+        state.initialNotificationSynced = true;
+        dispatchNotificationRefresh(payload);
         window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.REALTIME_NOTIFICATION, { detail: payload }));
     });
     state.notificationChannel.bind(REALTIME_EVENTS.NOTIFICATION_STATE, (payload = {}) => {
         setNotificationUnreadCount(payload?.unread_count ?? 0);
-        window.Livewire?.dispatch?.(LIVEWIRE_EVENTS.NOTIFICATION);
+        dispatchNotificationRefresh();
         window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.REALTIME_NOTIFICATION_STATE, { detail: payload }));
     });
 };

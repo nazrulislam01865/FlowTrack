@@ -47,7 +47,9 @@ class OrderWorkflowSummaryReadModelPerformanceTest extends TestCase
         $this->assertStringContainsString('updateHoldState((int) $job->id, true)', $holdService);
         $this->assertStringContainsString('updateHoldState((int) $job->id, false)', $holdService);
         $this->assertStringContainsString('markStale($jobId)', $bindingService);
-        $this->assertStringContainsString('wire:navigate.hover', $orderTable);
+        // Phase 3 deliberately removed hover prefetch while retaining click navigation.
+        $this->assertStringContainsString('wire:navigate', $orderTable);
+        $this->assertStringNotContainsString('wire:navigate.hover', $orderTable);
     }
 
     public function test_read_model_schema_and_backfill_command_are_present(): void

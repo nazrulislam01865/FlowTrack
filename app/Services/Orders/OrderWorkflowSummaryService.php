@@ -206,6 +206,29 @@ final class OrderWorkflowSummaryService
                 ->count()
             : 0;
 
+        // The summary needs only document/link *presence* to decide whether
+        // an untouched conditional task has been activated. On the opt-in path
+        // use indexed EXISTS projections in the Task SELECT instead of fetching
+        // potentially large Document/TaskLink collections. This adds no SQL
+        // round trips, keeps the original relations/scopes (including task
+        // visibility) and avoids a separate query per task.
+        $existsOnly = (bool) config('flowtrack.workflow_summary_evidence_exists_enabled', false);
+        $taskRelations = [
+            'setupTemplate:id,task_pack_id,is_required,sort_order,automation_key',
+            'template:id,task_pack_id,title,is_required,sequence',
+        ];
+        if (! $existsOnly) {
+            // Match the legacy eager-load order exactly when rolled back.
+            array_unshift($taskRelations, 'assignee:id,name,profile_image_path');
+            $taskRelations[] = 'documents:id,task_id';
+            $taskRelations[] = 'links:id,task_id,url,created_at';
+        } elseif ($viewer !== null) {
+            // A restricted viewer's scoped summary needs the assignee name.
+            // Shared materialized rebuilds do not store that display name;
+            // toArray() resolves it separately for the actual viewer.
+            $taskRelations[] = 'assignee:id,name,profile_image_path';
+        }
+
         $taskQuery = Task::query()
             ->where('flow_job_id', (int) $job->id)
             ->where('workflow_phase_id', (int) ($job->workflow_phase_id ?: 0))
@@ -213,13 +236,14 @@ final class OrderWorkflowSummaryService
                 'id', 'flow_job_id', 'workflow_phase_id', 'task_pack_task_id',
                 'assignee_id', 'title', 'status', 'progress', 'completed_at',
             ])
-            ->with([
-                'assignee:id,name,profile_image_path',
-                'setupTemplate:id,task_pack_id,is_required,sort_order,automation_key',
-                'template:id,task_pack_id,title,is_required,sequence',
-                'documents:id,task_id',
-                'links:id,task_id,url,created_at',
+            ->with($taskRelations);
+
+        if ($existsOnly) {
+            $taskQuery->withExists([
+                'documents',
+                'links' => fn (Builder $query) => $query->reorder(),
             ]);
+        }
 
         if ($viewer) {
             app(AccessControlService::class)->applyTaskScope($taskQuery, $viewer);
@@ -258,7 +282,9 @@ final class OrderWorkflowSummaryService
             'next_task_id' => $nextTask?->id ? (int) $nextTask->id : null,
             'next_task_title' => $nextTask?->title ? (string) $nextTask->title : null,
             'next_task_assignee_id' => $nextTask?->assignee_id ? (int) $nextTask->assignee_id : null,
-            'next_task_assignee_name' => (string) ($nextTask?->assignee?->name ?: ''),
+            'next_task_assignee_name' => $viewer === null && $existsOnly
+                ? ''
+                : (string) ($nextTask?->assignee?->name ?: ''),
             'progress_percent' => max(0, min(100, (int) ($job->progress ?? 0))),
             'order_status' => (string) ($job->status ?? ''),
             'is_on_hold' => $this->isHeld($job),

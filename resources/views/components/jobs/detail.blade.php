@@ -146,6 +146,9 @@
 @endphp
 <div
     {{ $attributes->class('ft-job-detail-page ft-order-prototype-detail ft-detail-products-scope') }}
+    data-flowtrack-order-id="{{ $job->id }}"
+    data-flowtrack-workspace-id="{{ (int) config('flowtrack.workspace_id', 1) }}"
+    data-flowtrack-order-targeted="{{ config('flowtrack.order_targeted_events_enabled') ? '1' : '0' }}"
     x-data="Object.assign(window.FlowTrack.ui.orderHoldGuard({ held: @js($orderIsOnHold) }), { redoNotice: '', redoNoticeOpen: false, showRedoNotice(message) { this.redoNotice = message; this.redoNoticeOpen = true; clearTimeout(this.__redoNoticeTimer); this.__redoNoticeTimer = setTimeout(() => this.redoNoticeOpen = false, 2600); } })"
     x-on:order-redo-notice.window="showRedoNotice($event.detail.message ?? 'Redo update saved.')"
     x-on:flowtrack:order-held-blocked.window="showHoldBlocked($event.detail?.action ?? '')"

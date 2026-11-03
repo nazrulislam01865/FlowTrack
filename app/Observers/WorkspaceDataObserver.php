@@ -127,6 +127,28 @@ class WorkspaceDataObserver
 
     private function changed(Model $model, string $action): void
     {
-        app(WorkspaceRefreshService::class)->touch(class_basename($model).':'.$action);
+        // No relationship lazy loading or additional SQL: only already-present
+        // model attributes may identify an affected Order. Unknown subjects
+        // deliberately retain the existing workspace-wide refresh fallback.
+        $orderId = match (true) {
+            $model instanceof FlowJob => (int) $model->getKey(),
+            // Morph-to parent identity is stored on the Activity itself.
+            // For Task or unrecognized subjects we cannot infer the Order
+            // without a query, so those retain the broad fallback.
+            $model instanceof Activity && in_array((string) $model->getAttribute('subject_type'), [FlowJob::class, 'flow_job'], true)
+                => (int) $model->getAttribute('subject_id'),
+            $model instanceof Task,
+            $model instanceof FlowJobItem,
+            $model instanceof FlowJobMember,
+            $model instanceof FlowJobPhaseHistory,
+            $model instanceof Document,
+            $model instanceof Invoice => (int) $model->getAttribute('flow_job_id'),
+            default => 0,
+        };
+
+        app(WorkspaceRefreshService::class)->touch(
+            class_basename($model).':'.$action,
+            $orderId > 0 ? $orderId : null,
+        );
     }
 }

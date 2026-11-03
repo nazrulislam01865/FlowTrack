@@ -123,6 +123,16 @@ final class OrderAttachmentsSection extends Component
         app(DocumentService::class)->delete($document, auth()->user());
     }
 
+    #[On('flowtrack-order-changed')]
+    public function refreshTargetedOrder(int $orderId): void
+    {
+        // The client-side order ID is only a refresh hint. Each render keeps
+        // its existing server-side VisibleOrderQuery/access-control scope.
+        if ($orderId !== $this->orderId || ! $this->ready) {
+            $this->skipRender();
+        }
+    }
+
     #[On('flowtrack-notification')]
     public function refreshRealtime(): void
     {
