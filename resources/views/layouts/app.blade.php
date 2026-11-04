@@ -77,7 +77,7 @@
     @endif
 
     @if(request()->routeIs('orders.purchase-orders'))
-        <link rel="stylesheet" href="{{ asset('css/flowtrack-purchase-orders.css') }}?v=3">
+        <link rel="stylesheet" href="{{ asset('css/flowtrack-purchase-orders.css') }}?v=4">
     @endif
     @if(request()->routeIs('supplier-reminder.index'))
         <link rel="stylesheet" href="{{ asset('css/flowtrack-supplier-reminders.css') }}?v=7">

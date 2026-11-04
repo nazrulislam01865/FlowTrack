@@ -51,7 +51,7 @@
                 </div>
                 <div class="ft-po-summary-cell"><span class="ft-po-summary-label">REFERENCE</span><strong>{{ $reference ?: '—' }}</strong></div>
                 <div class="ft-po-summary-cell"><span class="ft-po-summary-label">WORKFLOW STAGE</span><strong>{{ $selectedOrder->phase?->name ?: 'Not started' }}</strong></div>
-                <div class="ft-po-summary-cell"><span class="ft-po-summary-label" title="Automatically reflects the active order workflow task, not the supplier PO or email status.">ORDER STATUS</span><x-ui.status-badge :label="$selectedOrder->status ?: '—'" :variant="strcasecmp((string) $selectedOrder->status, 'Cancelled') === 0 ? 'danger' : (stripos((string) $selectedOrder->status, 'Waiting') !== false ? 'warning' : 'success')" /><small class="ft-po-summary-status-help">Based on the active workflow task</small></div>
+                <div class="ft-po-summary-cell"><span class="ft-po-summary-label">ORDER STATUS</span><strong class="ft-po-actual-order-status">{{ $selectedOrder->status ?: '—' }}</strong></div>
                 <div class="ft-po-summary-cell"><span class="ft-po-summary-label">CREATED</span><strong>{{ $selectedOrder->created_at ? \App\Support\UserLocalTime::format($selectedOrder->created_at, 'M j, Y') : '—' }}</strong></div>
                 <div class="ft-po-summary-cell"><span class="ft-po-summary-label">DELIVERY DATE</span><strong>{{ $selectedOrder->delivery_date ? \App\Support\UserLocalTime::format($selectedOrder->delivery_date, 'M j, Y') : 'Not set' }}</strong></div>
             </div>

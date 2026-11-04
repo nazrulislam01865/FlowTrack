@@ -25,7 +25,10 @@ class PurchaseOrderWorkspaceUxTest extends TestCase
         $this->assertStringContainsString("\$product['quantity']", $view);
         $this->assertStringContainsString("\$product['supplier']", $view);
         $this->assertStringContainsString('Open order details', $view);
-        $this->assertStringContainsString('Based on the active workflow task', $view);
+        $this->assertStringContainsString('ORDER STATUS', $view);
+        $this->assertStringContainsString("class=\"ft-po-actual-order-status\"", $view);
+        $this->assertStringContainsString('$selectedOrder->status', $view);
+        $this->assertStringNotContainsString('Based on the active workflow task', $view);
         $this->assertStringContainsString('supplier-purchase-order-panel', $view);
     }
 
