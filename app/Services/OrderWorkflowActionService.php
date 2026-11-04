@@ -28,8 +28,6 @@ class OrderWorkflowActionService
         'prepare & upload artwork' => 'ART_PREPARE_UPLOAD',
         'prepare and upload artwork' => 'ART_PREPARE_UPLOAD',
         'internal artwork review' => 'ART_INTERNAL_REVIEW',
-        'create po / purchase order' => 'ART_CREATE_SUPPLIER_PO',
-        'create purchase order' => 'ART_CREATE_SUPPLIER_PO',
         'send artwork to order team' => 'ART_SEND_ORDER_TEAM',
         'client erp / approval' => 'ART_CLIENT_ERP_DECISION',
         'sample approval (when required)' => 'ART_SAMPLE_APPROVAL',
@@ -83,7 +81,6 @@ class OrderWorkflowActionService
             'NEW_SEND_PO_ARTWORK' => 'Send to Artwork Team',
             'ART_PREPARE_UPLOAD' => $hasEvidence ? 'Upload Revised Artwork' : 'Upload Artwork',
             'ART_INTERNAL_REVIEW' => 'Review Artwork',
-            'ART_CREATE_SUPPLIER_PO' => 'Create PO',
             'ART_SEND_ORDER_TEAM' => 'Send Artwork',
             'ART_CLIENT_ERP_DECISION' => str_contains($status, 'waiting for client') || str_contains($status, 'client approval')
                 ? 'Record Client Decision'
@@ -128,12 +125,6 @@ class OrderWorkflowActionService
                 'title' => 'Send Purchase Order to Artwork Team',
                 'copy' => 'Review the destination team and uploaded Purchase Order before sending.',
                 'choices' => ['confirm' => 'Send Purchase Order'],
-            ],
-            'ART_CREATE_SUPPLIER_PO' => [
-                'variant' => 'supplier_po',
-                'title' => 'Create Purchase Order',
-                'copy' => 'Choose a single PO for the Order, or split into multiple product-based POs. Each generated PDF can be emailed to its tagged supplier or additional recipients.',
-                'choices' => [],
             ],
             'ART_INTERNAL_REVIEW' => [
                 'variant' => 'artwork_review',
@@ -981,11 +972,6 @@ class OrderWorkflowActionService
                 return $this->complete($locked, $actor);
             }
 
-            if ($key === 'ART_CREATE_SUPPLIER_PO') {
-                abort_unless(\App\Models\SupplierPurchaseOrder::query()->where('task_id', $locked->id)->whereNull('archived_at')->exists(), 422, 'Generate at least one Purchase Order PDF first.');
-                return $this->complete($locked, $actor);
-            }
-
             if ($key === 'PAY_PROCESS') {
                 $this->validatePayment($payload);
                 $amount = (float) $payload['payment_amount'];
@@ -1238,13 +1224,11 @@ class OrderWorkflowActionService
         }
         $mentionIds = $mentionIds->map(fn ($id) => (int) $id)->filter()->unique()->values()->all();
 
-        // An artwork revision invalidates earlier supplier instructions.
-        // Archive the old PO batch and its documents, but retain every PDF and
-        // email audit. This runs inside the revision's existing transaction.
-        $poTask = $tasks->first(fn (Task $candidate) => $this->automationKey($candidate) === 'ART_CREATE_SUPPLIER_PO');
-        if ($poTask) {
+        // Supplier POs now belong to the Order, independently of Artwork tasks.
+        // Keep the original archive-on-revision behaviour and PDF history.
+        if ($job) {
             app(\App\Services\Orders\SupplierPurchaseOrderService::class)
-                ->archiveForArtworkRevision($poTask);
+                ->archiveForArtworkRevision($job);
         }
 
         $ready = app(OrderTaskFlagService::class)->readyStatus();

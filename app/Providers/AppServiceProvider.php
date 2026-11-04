@@ -22,6 +22,7 @@ use App\Services\MentionService;
 use App\Services\MasterDataService;
 use App\Services\OrderWorkflowBindingService;
 use App\Services\OrderWorkflowSetupService;
+use App\Services\Orders\OrderWorkflowSummaryService;
 use App\Services\ShellDataService;
 use App\Services\StoredAssetUrlService;
 use App\Services\SetupContext;
@@ -60,6 +61,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(MasterDataService::class);
         $this->app->scoped(OrderWorkflowSetupService::class);
         $this->app->scoped(OrderWorkflowBindingService::class);
+        $this->app->scoped(OrderWorkflowSummaryService::class);
         $this->app->scoped(BrandingService::class);
         $this->app->scoped(RequestPerformanceMonitor::class);
         $this->app->scoped(ShellDataService::class);

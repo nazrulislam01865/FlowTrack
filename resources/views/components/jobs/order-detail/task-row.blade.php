@@ -25,7 +25,6 @@
         );
     }
     $taskDocuments = $taskDocuments->sortByDesc('created_at')->values();
-    $archivedSupplierPoDocuments = $taskDocuments->where('category', 'Archived Supplier Purchase Order')->values();
     $taskLinks = \App\Support\JobDetailPresenter::taskLinks($job, $task);
     $automationKey = app(\App\Services\OrderWorkflowActionService::class)->automationKey($task);
     $isArtworkUploadTask = $automationKey === 'ART_PREPARE_UPLOAD';
@@ -33,8 +32,7 @@
     // artwork uploads: show the uploaded file card with uploader, timestamp,
     // latest marker and document actions.
     $isPurchaseOrderUploadTask = $automationKey === 'NEW_UPLOAD_PO';
-    $isSupplierPoTask = $automationKey === 'ART_CREATE_SUPPLIER_PO';
-    $currentTaskDocuments = $isSupplierPoTask ? $taskDocuments->where('category', '!=', 'Archived Supplier Purchase Order')->values() : $taskDocuments;
+    $currentTaskDocuments = $taskDocuments;
     $isProductionEstimatedDeliveryTask = $automationKey === 'PROD_SET_ESTIMATED_DELIVERY';
     $isProductionMonitorTask = $automationKey === 'PROD_ISSUE';
     $isRegularOptionalTask = \App\Support\OrderTaskRequirement::isRegularOptional($task);
@@ -115,7 +113,6 @@
     $requiredBeforeCompletion = (bool) ($task->setupTemplate?->document_required_before_completion ?? false);
     $workflowAction = data_get($context, 'taskActions.'.(int) $task->id, []);
     $workflowActionLabel = (string) ($workflowAction['label'] ?? 'Take action');
-    if ($isSupplierPoTask && $currentTaskDocuments->isNotEmpty()) $workflowActionLabel = 'Review POs';
     $workflowActionType = (string) ($workflowAction['type'] ?? 'workflow');
     $workflowEmailStatus = (array) data_get($context, 'workflowEmailStatuses.'.(int) $task->id, []);
     $workflowInvoice = (array) data_get($context, 'workflowInvoices.'.(int) $task->id, []);
@@ -339,10 +336,7 @@
                 @endif
             @endif
         @elseif($mode === 'done')
-            @if($isSupplierPoTask && $canEditTask && !$orderOnHold)
-                <button type="button" class="btn small primary" wire:click="openGeneratedSupplierPurchaseOrders({{ $task->id }})">View POs</button>
-                <button type="button" class="btn small" wire:click="viewTask({{ $task->id }})">View</button>
-            @elseif($automationKey === 'NEW_UPLOAD_PO' && $canEditTask && ($canUploadDocument || $canLinkDocument))
+            @if($automationKey === 'NEW_UPLOAD_PO' && $canEditTask && ($canUploadDocument || $canLinkDocument))
                 <button type="button" class="btn small" wire:click="openOverviewTaskDocumentModal({{ $task->id }})">Add other documents</button>
             @elseif($isTrackedEmailTask && $canEditTask)
                 @if($emailCanResend)
@@ -439,18 +433,3 @@
     </div>
 @endif
 
-@if($isSupplierPoTask && $archivedSupplierPoDocuments->isNotEmpty())
-    <details class="task-resources ft-order-task-resources ft-supplier-po-archives">
-        <summary>Archived Purchase Orders ({{ $archivedSupplierPoDocuments->count() }})</summary>
-        @foreach($archivedSupplierPoDocuments as $document)
-            <div wire:key="archived-supplier-po-{{ $document->id }}" class="ft-order-task-resource-row">
-                <x-ui.file-type-badge :name="$document->name" class="ft-order-file-icon" />
-                <span><b>{{ $document->name }}</b><small>Previous artwork version · Archived</small></span>
-                <span class="ft-order-task-resource-actions">
-                    <a href="{{ route('documents.open', $document) }}" target="_blank" rel="noopener">Open</a>
-                    @if($canExportDocument)<a href="{{ route('documents.download', $document) }}">Download</a>@endif
-                </span>
-            </div>
-        @endforeach
-    </details>
-@endif

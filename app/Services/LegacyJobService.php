@@ -511,7 +511,7 @@ class LegacyJobService
             ->with([
                 'client:id,name,contact_name,logo_path',
                 'orderFlag:id,type,name,color,status,sort_order,metadata',
-                'phase:id,name,short_name,sequence,color',
+                'phase:id,name,short_name,sequence,color,task_pack_id',
                 'owner:id,name,profile_image_path',
                 'coordinator:id,name,profile_image_path',
                 'creator:id,name,profile_image_path',
@@ -3041,6 +3041,19 @@ class LegacyJobService
     private function findVisibleForAutoAdvance(User $actor, int $id): FlowJob
     {
         $job = $this->findVisibleBase($actor, $id);
+
+        // A known incomplete, required task in the current phase is a
+        // sufficient blocker: JobDetailPresenter::blockers() cannot be empty.
+        // Check this only after the original viewer-scoped order read. The
+        // EXISTS subquery covers manual tasks and required items from the
+        // current phase's Task Pack, but never guesses about optional tasks,
+        // missing evidence, or stale workflow snapshots. All uncertain cases
+        // continue through the full canonical gate below.
+        if (config('flowtrack.workflow_auto_advance_blocker_fast_path_enabled', false)
+            && $this->hasGuaranteedOpenRequiredPhaseTask($job)) {
+            return $job;
+        }
+
         $this->loadVisibleOverviewSummary($job, $actor);
 
         // The actor's task scope is for UI visibility, not for deciding whether
@@ -3067,9 +3080,49 @@ class LegacyJobService
         return $job;
     }
 
+    /**
+     * Return true only for a task that the authoritative phase gate would
+     * unquestionably treat as an incomplete required blocker. Eloquent's Task
+     * SoftDeletes scope excludes archived tasks automatically. This is one
+     * EXISTS statement, not a collection scan or a second task graph.
+     */
+    private function hasGuaranteedOpenRequiredPhaseTask(FlowJob $job): bool
+    {
+        $phaseId = (int) ($job->workflow_phase_id ?: 0);
+        if ($phaseId <= 0 || ! $job->phase) {
+            return false;
+        }
+
+        $packId = (int) ($job->phase->task_pack_id ?: 0);
+
+        return Task::query()
+            ->where('flow_job_id', $job->id)
+            ->where('workflow_phase_id', $phaseId)
+            ->whereNull('completed_at')
+            ->where(function (Builder $query): void {
+                // Match the phase gate's exact Completed comparison; a null
+                // status also means this task has not been completed.
+                $query->where('status', '!=', 'Completed')->orWhereNull('status');
+            })
+            ->where(function (Builder $query) use ($packId): void {
+                // Manually added tasks are required by the existing gate.
+                $query->whereNull('task_pack_task_id');
+                if ($packId > 0) {
+                    $query->orWhereHas('setupTemplate', fn (Builder $item) => $item
+                        ->where('task_pack_id', $packId)
+                        ->where('is_required', true));
+                }
+            })
+            ->exists();
+    }
+
     public function maybeAutoAdvance(FlowJob $job, User $actor): FlowJob
     {
         $job = $this->findVisibleForAutoAdvance($actor, $job->id);
+        // When the conservative blocker check succeeded, the canonical task
+        // graph was deliberately not loaded. There is no eligible transition;
+        // the Order Details renderer still reads its own permission-scoped data.
+        if (! $job->relationLoaded('tasks')) return $job;
         if (app(\App\Services\Orders\OrderHoldService::class)->activeHold($job)) return $job;
 
         // The approved Order runtime stays sequential/automatic regardless of

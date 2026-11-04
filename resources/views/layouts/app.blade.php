@@ -76,12 +76,19 @@
         @vite('resources/css/modules/clients/filters.css')
     @endif
 
+    @if(request()->routeIs('orders.purchase-orders'))
+        <link rel="stylesheet" href="{{ asset('css/flowtrack-purchase-orders.css') }}?v=3">
+    @endif
     @if(request()->routeIs('supplier-reminder.index'))
         <link rel="stylesheet" href="{{ asset('css/flowtrack-supplier-reminders.css') }}?v=7">
     @endif
     @livewireStyles
     {{-- Central dashboard-derived theme package. Keep after Livewire CSS so it is the final static typography/theme authority. --}}
     @vite('resources/theme/flowtrack/theme.css')
+    {{-- Shared PO action component: compact control styles for Orders and Purchase Orders. --}}
+    @if(request()->routeIs('jobs.index', 'orders.purchase-orders'))
+        <link rel="stylesheet" href="{{ asset('css/flowtrack-po-actions.css') }}?v=1">
+    @endif
 
     {{--
         Livewire tracks query-string changes on data-navigate-track assets.

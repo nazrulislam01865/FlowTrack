@@ -4,7 +4,6 @@ namespace App\Livewire\Jobs;
 
 use App\Actions\Orders\AutoAdvanceOrder;
 use App\Livewire\Concerns\HandlesInlineEdits;
-use App\Livewire\Concerns\ManagesSupplierPurchaseOrders;
 use App\Livewire\Jobs\Concerns\ManagesDetailProgressiveLoading;
 use App\Livewire\Jobs\Concerns\ManagesOrderDocuments;
 use App\Livewire\Jobs\Concerns\ManagesOrderShipments;
@@ -42,7 +41,6 @@ final class OrderWorkflowSection extends Component
 {
     use HandlesInlineEdits;
     use ManagesOrderWorkflow;
-    use ManagesSupplierPurchaseOrders;
     use ManagesOrderShipments;
     use ManagesOrderTaskResources;
     use ManagesOrderTasks;
@@ -158,7 +156,11 @@ final class OrderWorkflowSection extends Component
             return;
         }
 
-        $beforePhaseId = (int) (FlowJob::query()->whereKey($this->orderId)->value('workflow_phase_id') ?: 0);
+        // One model provides both the original phase and the auto-advance
+        // input. A successful reconciliation refreshes it below; on a healthy
+        // order there is no need for a second FlowJob SELECT.
+        $runtimeJob = FlowJob::query()->findOrFail($this->orderId);
+        $beforePhaseId = (int) ($runtimeJob->workflow_phase_id ?: 0);
 
         // Preserve historical self-healing, but keep it outside the critical
         // initial document request. The workflow is repaired before any task
@@ -170,7 +172,9 @@ final class OrderWorkflowSection extends Component
                 fn () => app(OrderArtworkEvidenceService::class)->repair($this->orderId), $this->orderId);
         }
 
-        $runtimeJob = FlowJob::query()->findOrFail($this->orderId);
+        if ($workflowWasSynced) {
+            $runtimeJob->refresh();
+        }
         $this->preparedWorkflowJob = OrderBaselineRecorder::measure('workflow_auto_advance',
             fn () => app(AutoAdvanceOrder::class)->handle($runtimeJob, auth()->user()), $this->orderId);
 

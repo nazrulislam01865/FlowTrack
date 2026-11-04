@@ -194,6 +194,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-work', MyWorkController::class)->middleware('permission:tasks.view')->name('my-work');
     Route::get('/inquiries', InquiriesController::class)->middleware('permission:inquiries.view')->name('inquiries.index');
     Route::get('/inquiries/export', [ListExportController::class, 'inquiries'])->middleware(['permission:inquiries.view', 'permission:reports.export'])->name('inquiries.export');
+    Route::get('/orders/purchase-orders', fn () => view('pages.purchase-orders', ['title' => 'Purchase Orders']))
+        ->middleware('permission:jobs.view')->name('orders.purchase-orders');
     Route::get('/orders/bulk-import', [BulkOrderImportController::class, 'index'])->middleware('permission:jobs.create')->name('orders.bulk-import');
     Route::post('/orders/bulk-import/validate', [BulkOrderImportController::class, 'validateUpload'])->middleware('permission:jobs.create')->name('orders.bulk-import.validate');
     Route::post('/orders/bulk-import/revalidate', [BulkOrderImportController::class, 'revalidate'])->middleware('permission:jobs.create')->name('orders.bulk-import.revalidate');

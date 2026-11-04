@@ -48,8 +48,13 @@ class OrderRedoService
 
         $rootOrderId = (int) ($incoming?->original_order_id ?: $order->id);
         $outgoingQuery = OrderRedo::query()->where('original_order_id', $rootOrderId);
-        $redoCount = (int) (clone $outgoingQuery)->count();
-        $redoOrderCount = (int) (clone $outgoingQuery)->whereNotNull('redo_order_id')->count();
+        // Both badges use the same root Order scope. A single aggregate avoids
+        // counting the same Redo rows twice on every Order Details render.
+        $counts = (clone $outgoingQuery)
+            ->selectRaw('COUNT(*) AS redo_count, COUNT(redo_order_id) AS redo_order_count')
+            ->first();
+        $redoCount = (int) ($counts?->redo_count ?? 0);
+        $redoOrderCount = (int) ($counts?->redo_order_count ?? 0);
 
         $displayRecord = $incoming;
         if (! $displayRecord && $redoCount > 0) {

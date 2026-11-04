@@ -1,0 +1,47 @@
+{
+  "environment": "",
+  "reviewer": "",
+  "tested_at": "",
+  "checks": {
+    "automated_regressions": {
+      "passed": null,
+      "evidence": ""
+    },
+    "vite_build_and_audit": {
+      "passed": null,
+      "evidence": ""
+    },
+    "workflow_repair_and_advance": {
+      "passed": null,
+      "evidence": ""
+    },
+    "supplier_and_concurrency": {
+      "passed": null,
+      "evidence": ""
+    },
+    "same_order_refresh": {
+      "passed": null,
+      "evidence": ""
+    },
+    "unrelated_order_no_refresh": {
+      "passed": null,
+      "evidence": ""
+    },
+    "permission_revocation": {
+      "passed": null,
+      "evidence": ""
+    },
+    "lazy_and_fallback": {
+      "passed": null,
+      "evidence": ""
+    },
+    "ui_parity": {
+      "passed": null,
+      "evidence": ""
+    },
+    "rollback_drill": {
+      "passed": null,
+      "evidence": ""
+    }
+  }
+}

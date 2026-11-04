@@ -158,6 +158,7 @@ class FlowJob extends Model
     public function flaggedTasks(): HasMany { return $this->hasMany(Task::class)->whereNotNull('order_task_flag_id')->whereNull('completed_at')->orderBy('id'); }
     public function documents(): HasMany { return $this->hasMany(Document::class); }
     public function artworkTrackingPdf(): HasOne { return $this->hasOne(Document::class)->where('category', Document::CATEGORY_ARTWORK_TRACKING_PDF)->latestOfMany(); }
+    public function supplierPurchaseOrders(): HasMany { return $this->hasMany(SupplierPurchaseOrder::class, 'flow_job_id'); }
     public function items(): HasMany { return $this->hasMany(FlowJobItem::class, 'flow_job_id')->orderBy('sort_order'); }
     public function shipments(): HasMany { return $this->hasMany(OrderShipment::class, 'flow_job_id')->orderBy('sequence')->orderBy('id'); }
     public function holds(): HasMany { return $this->hasMany(OrderHold::class, 'flow_job_id')->latest('id'); }

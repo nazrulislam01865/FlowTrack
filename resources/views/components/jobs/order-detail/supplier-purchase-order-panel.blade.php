@@ -1,4 +1,4 @@
-@props(['task', 'payload' => [], 'preview' => []])
+@props(['task' => null, 'payload' => [], 'preview' => [], 'standalone' => false])
 @php
     $poRows = (array) ($preview['rows'] ?? []);
     $poProducts = (array) ($preview['products'] ?? []);
@@ -93,7 +93,7 @@
             </x-ui.button>
         </footer>
     @else
-        <div class="ft-supplier-po-ready"><span aria-hidden="true">✓</span><div><strong>{{ count($poRows) }} Purchase Order{{ count($poRows) === 1 ? '' : 's' }} ready</strong><small>PDF{{ count($poRows) === 1 ? '' : 's' }} saved under this task. Email is optional; you can complete without sending.</small></div></div>
+        <div class="ft-supplier-po-ready"><span aria-hidden="true">✓</span><div><strong>{{ count($poRows) }} Purchase Order{{ count($poRows) === 1 ? '' : 's' }} ready</strong><small>PDF{{ count($poRows) === 1 ? '' : 's' }} saved under this order. Email is optional; you can finish without sending.</small></div></div>
         @if(count($poRows) > 1)
             <nav class="ft-supplier-po-files" aria-label="Generated Purchase Orders">
                 @foreach($poRows as $po)
@@ -118,7 +118,7 @@
                 <div class="ft-supplier-po-email-details">
                     <div class="ft-supplier-po-meta"><div><span>SUPPLIER</span><strong>{{ $selectedPo['supplier'] }}</strong></div><div><span>STATUS</span><strong class="{{ $selectedPo['status'] === 'sent' ? 'ft-supplier-po-sent-text' : '' }}">{{ $selectedPo['status'] === 'sent' ? 'Sent' : ($selectedPo['status'] === 'failed' ? 'Failed - retry' : 'Not sent') }}</strong></div></div>
                     <div class="ft-supplier-po-meta ft-supplier-po-items"><div><span>PRODUCTS</span><strong>{{ $selectedPo['items'] }}</strong></div></div>
-                    @if($selectedPo['status'] !== 'sent' && (!$task->completed_at || $selectedPo['status'] === 'failed'))
+                    @if($selectedPo['status'] !== 'sent' && ($standalone || !$task->completed_at || $selectedPo['status'] === 'failed'))
                     <section class="ft-supplier-po-recipient-section" aria-label="Email recipients">
                         <strong>To <small>(optional)</small></strong>
                         @foreach((array) ($payload['supplier_po_recipients'][$selectedPo['id']] ?? ['']) as $recipientKey => $recipientEmail)
@@ -133,12 +133,12 @@
                     @elseif($selectedPo['status'] === 'sent')
                         <p class="ft-supplier-po-delivered" role="status">Email sent successfully{{ $selectedPo['sent_at'] ? ' · '.$selectedPo['sent_at'] : '' }}. No resend is needed.</p>
                     @else
-                        <p class="ft-supplier-po-delivered">This task is completed. The PO PDF is available above.</p>
+                        <p class="ft-supplier-po-delivered">This PO PDF is available above.</p>
                     @endif
                     <div class="ft-supplier-po-message"><span>SUBJECT</span><p>{{ $selectedPo['subject'] }}</p><span>EMAIL BODY</span><div class="ft-supplier-po-body">{{ $selectedPo['body'] }}</div></div>
-                    @if($selectedPo['status'] !== 'sent' && (!$task->completed_at || $selectedPo['status'] === 'failed'))
+                    @if($selectedPo['status'] !== 'sent' && ($standalone || !$task->completed_at || $selectedPo['status'] === 'failed'))
                         <div class="ft-supplier-po-send-action">
-                            <small>{{ $selectedPo['status'] === 'failed' ? 'Delivery failed. You can retry or complete without email.' : 'Add a recipient to send, or complete without email.' }}</small>
+                            <small>{{ $selectedPo['status'] === 'failed' ? 'Delivery failed. You can retry or finish without email.' : 'Add a recipient to send, or finish without email.' }}</small>
                             <x-ui.button variant="primary" wire:click="sendSupplierPurchaseOrder({{ $selectedPo['id'] }})" wire:loading.attr="disabled" wire:target="sendSupplierPurchaseOrder({{ $selectedPo['id'] }})">
                                 <span wire:loading.remove wire:target="sendSupplierPurchaseOrder({{ $selectedPo['id'] }})">{{ $selectedPo['status'] === 'failed' ? 'Resend PO' : 'Send PO' }}</span>
                                 <span wire:loading wire:target="sendSupplierPurchaseOrder({{ $selectedPo['id'] }})">Sending...</span>
@@ -149,14 +149,14 @@
             </div>
         @endif
         <footer class="ft-supplier-po-actions">
-            @if(!$task->completed_at)
+            @if($standalone || !$task->completed_at)
                 <x-ui.button variant="secondary" wire:click="closeOrderWorkflowAction">Close</x-ui.button>
                 @if(count($poRows) > 1 && collect($poRows)->contains(fn (array $po) => in_array($po['status'], ['not_sent', 'failed'], true)))
                     <x-ui.button variant="secondary" wire:click="sendAllSupplierPurchaseOrders" wire:loading.attr="disabled" wire:target="sendAllSupplierPurchaseOrders">Send all POs</x-ui.button>
                 @endif
                 <x-ui.button variant="primary" wire:click="completeSupplierPurchaseOrdersWithoutEmail" wire:loading.attr="disabled" wire:target="completeSupplierPurchaseOrdersWithoutEmail">
-                    <span wire:loading.remove wire:target="completeSupplierPurchaseOrdersWithoutEmail">{{ collect($poRows)->contains(fn (array $po) => $po['status'] === 'sent') ? 'Complete (skip remaining emails)' : 'Complete without email' }}</span>
-                    <span wire:loading wire:target="completeSupplierPurchaseOrdersWithoutEmail">Completing...</span>
+                    <span wire:loading.remove wire:target="completeSupplierPurchaseOrdersWithoutEmail">{{ $standalone ? 'Finish without email' : (collect($poRows)->contains(fn (array $po) => $po['status'] === 'sent') ? 'Complete (skip remaining emails)' : 'Complete without email') }}</span>
+                    <span wire:loading wire:target="completeSupplierPurchaseOrdersWithoutEmail">Finishing...</span>
                 </x-ui.button>
             @else
                 <x-ui.button variant="secondary" wire:click="closeOrderWorkflowAction">Done</x-ui.button>

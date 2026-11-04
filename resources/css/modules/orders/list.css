@@ -4676,3 +4676,14 @@ body:has(.ft-order-list-v5) .ft-shell-order-export:hover {
     font-size: .5625rem;
     line-height: 1;
 }
+
+/* Order-list PO action: single shared component used here and on the PO page. */
+.ft-order-list-v5 .ft-order-po-cell{min-width:150px;white-space:nowrap}
+.ft-po-row-action{display:flex;align-items:flex-start;flex-direction:column;gap:7px;min-width:0}
+.ft-po-row-action-status{display:inline-flex;align-items:center;gap:6px;font-size:var(--ft-font-size-xs,.71rem);font-weight:750;color:var(--ft-text-secondary,#62728a);white-space:nowrap}
+.ft-po-row-action.is-generated .ft-po-row-action-status{color:var(--ft-theme-primary,#008778)}
+.ft-po-row-action-dot{width:7px;height:7px;border-radius:50%;background:#9caec1}
+.ft-po-row-action.is-generated .ft-po-row-action-dot{background:var(--ft-theme-primary,#008778)}
+.ft-po-row-action-button{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;white-space:nowrap;min-height:34px}
+.ft-po-row-action-button svg{width:15px;height:15px;flex:0 0 15px}
+.ft-order-list-v5 .ft-po-row-action-button:hover{transform:none}

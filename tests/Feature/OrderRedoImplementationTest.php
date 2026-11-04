@@ -29,7 +29,7 @@ class OrderRedoImplementationTest extends TestCase
         self::assertStringContainsString("'redo_order_id' => \$redoOrder->id", $service);
         self::assertStringContainsString('syncWorkflowTasks($redoOrder, $actor, true)', $service);
         self::assertStringContainsString('initializeRedoWorkflowAtPhase($redoOrder, $phases, $restartPhase, $actor)', $service);
-        self::assertStringContainsString("'workflow_phase_id' => (int) $restartPhase->id", $service);
+        self::assertStringContainsString("'workflow_phase_id' => (int) \$restartPhase->id", $service);
         self::assertStringContainsString('synchronizePhase($fresh, $restartPhase, $actor)', $service);
         self::assertStringContainsString('firstIncompleteRequiredTask($fresh, (int) $restartPhase->id)', $service);
         self::assertStringContainsString('$this->openJob($redoOrderId);', $redo);
@@ -52,8 +52,9 @@ class OrderRedoImplementationTest extends TestCase
         $redo = file_get_contents($root.'/app/Livewire/Jobs/Concerns/ManagesOrderRedo.php');
 
         self::assertStringContainsString("\$needle = \$scope === 'artwork' ? 'artwork' : 'production';", $service);
-        self::assertStringContainsString("'started_from_phase_id' => (int) $restartPhase->id", $service);
-        self::assertStringContainsString("'source_workflow_phase_id' => (int) ($restartPhase->source_workflow_phase_id ?: $restartPhase->id)", $service);
+        self::assertStringContainsString("'started_from_phase_id' => (int) \$restartPhase->id", $service);
+        self::assertStringContainsString('$restartSourcePhaseId = (int) ($restartPhase->source_workflow_phase_id ?: $restartPhase->id);', $service);
+        self::assertStringContainsString("'source_workflow_phase_id' => \$restartSourcePhaseId", $service);
         self::assertStringContainsString('if ($sequence < $restartSequence)', $service);
         self::assertStringContainsString('if ($sequence > $restartSequence)', $service);
         self::assertStringContainsString('$this->openJob($redoOrderId);', $redo);
@@ -102,7 +103,7 @@ class OrderRedoImplementationTest extends TestCase
         $modal = file_get_contents($root.'/resources/views/components/jobs/order-detail/redo-modal.blade.php');
 
         self::assertStringContainsString("->with(['catalogProduct:id,type,metadata'])", $service);
-        self::assertStringContainsString('productPriceForQuantity($quantity)', $service);
+        self::assertStringContainsString('productPriceForQuantity($quantity, (int) $order->client_id)', $service);
         self::assertStringContainsString("->whereNotIn('status', ['draft', 'cancelled'])", $service);
         self::assertStringContainsString("wire:model.live.debounce.250ms=\"redoCustomerDiscount\"", $modal);
         self::assertStringContainsString("wire:model.live.debounce.250ms=\"redoSupplierChargePercent\"", $modal);
@@ -202,9 +203,10 @@ class OrderRedoImplementationTest extends TestCase
             $detail,
         );
         self::assertStringContainsString(
-            "in_array(\$this->detailTab, ['overview', 'redo'], true)",
+            "if (\$this->detailTab === 'redo')",
             $pageData,
         );
+        self::assertStringContainsString('$orderQuery->loadOverviewActivity(', $pageData);
         self::assertStringContainsString(
             ':activity-tab="$activityTab"',
             $detail,

@@ -242,14 +242,7 @@
     // or horizontally shift the popup after submit.
     $usesStableFinanceValidation = $step === 'main'
         && in_array($variant, ['invoice_prepare', 'payment'], true);
-    $supplierPoGenerated = $variant === 'supplier_po' && !empty($modalPreview['supplier_po']['rows']);
-    if ($variant === 'supplier_po') {
-        $title = $supplierPoGenerated ? 'Send Purchase Order' : 'Create Purchase Order';
-        $copy = $supplierPoGenerated
-            ? 'Review the PDF and email it to the supplier or other recipients.'
-            : 'Select single or split to generate the supplier Purchase Order PDFs.';
-    }
-    $modalWide = in_array($variant, ['courier_label', 'shipment_info', 'invoice_send'], true) || $supplierPoGenerated;
+    $modalWide = in_array($variant, ['courier_label', 'shipment_info', 'invoice_send'], true);
     // Every artwork revision dialog uses the same compact prototype shell.
     // The copy/labels still vary by task, but layout and controls stay consistent.
     $isArtworkRevisionRequest = $step === 'revision';
@@ -572,8 +565,6 @@
                 <label class="ft-prototype-field"><span>Description</span><textarea wire:model="orderWorkflowActionComment" rows="5" placeholder="Describe the issue and corrective action required..."></textarea>@error('orderWorkflowActionComment')<p class="validation-error">{{ $message }}</p>@enderror</label>
                 <div class="ft-prototype-file-placeholder"><strong>Screenshot / photo</strong><span>Supporting images/documents can be added to the task after the issue is recorded.</span></div>
                 <div class="ft-prototype-email-preview"><b>Email preview</b><span>The issue notification will be recorded for {{ $supplierName }} with this Order and task.</span></div>
-            @elseif($variant === 'supplier_po')
-                <x-jobs.order-detail.supplier-purchase-order-panel :task="$task" :payload="$payload" :preview="$modalPreview['supplier_po'] ?? []" />
             @elseif($variant === 'purchase_order_email')
                 @php
                     $recipientOptions = collect($emailHandoffPreview['recipient_options'] ?? []);
@@ -1225,7 +1216,7 @@
             // Once one of those choices opens a nested revision/issue dialog, the
             // normal footer must return so the user can actually submit it.
             $usesInlineWorkflowActions = $step === 'main'
-                && in_array($variant, ['client_decision','qc_check', 'supplier_po'], true);
+                && in_array($variant, ['client_decision','qc_check'], true);
             $usesShipmentFooter = $step === 'main' && $variant === 'shipment_info';
             $editingCompletedShipmentInformation = $usesShipmentFooter
                 && \App\Support\OrderDetailPresenter::isCompletedTask($task);

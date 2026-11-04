@@ -3,6 +3,9 @@
     @if((request()->routeIs('jobs.index') && ! request()->hasAny(['open', 'task', 'create'])) || request()->routeIs('orders.cancelled'))
         <div class="ft-shell-route-crumb">Orders</div>
     @endif
+    @if(request()->routeIs('orders.purchase-orders'))
+        <div class="ft-shell-route-crumb">Purchase Orders</div>
+    @endif
     @if(request()->routeIs('dashboard'))
         <div class="ft-dashboard-welcome"><strong>Welcome back, {{ auth()->user()->name }}</strong><span> — here is what needs your attention today.</span></div>
     @endif

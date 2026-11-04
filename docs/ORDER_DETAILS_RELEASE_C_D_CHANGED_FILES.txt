@@ -1,0 +1,10 @@
+Release C/D changed files relative to the project root:
+- app/Providers/AppServiceProvider.php
+- app/Services/OrderRedoService.php
+- app/Services/Orders/OrderWorkflowSummaryService.php
+- docs/ORDER_DETAILS_RELEASE_C_D_2026_11_05.md
+- resources/js/features/order-realtime.js
+- tests/Feature/OrderDetailsReleaseCDSummaryOptimizationTest.php
+- tests/JavaScript/order-phase3-routing.mjs
+
+No original files removed. No database schema or Blade/UI changes.

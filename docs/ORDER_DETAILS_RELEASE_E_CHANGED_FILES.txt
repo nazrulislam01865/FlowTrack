@@ -1,0 +1,11 @@
+Release E new files (relative to FlowTracker project root):
+- scripts/order-release-e-gate.py
+- scripts/order-release-e-tests.sh
+- scripts/tests/test_order_release_e_gate.py
+- docs/ORDER_DETAILS_RELEASE_E_2026_11_05.md
+- docs/ORDER_DETAILS_RELEASE_E_ARCHIVED_ASSESSMENT.md
+- docs/ORDER_DETAILS_RELEASE_E_MANUAL_CHECKLIST.example.json
+- docs/ORDER_DETAILS_RELEASE_E_CHANGED_FILES.txt
+
+No application runtime source files, migrations, routes, Blade, CSS or JS bundles were modified.
+All pre-existing project files remain unchanged.

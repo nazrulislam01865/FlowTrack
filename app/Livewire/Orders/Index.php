@@ -33,7 +33,6 @@ class Index extends Component
 {
     use RefreshesFromWorkspace;
     use \App\Livewire\Concerns\ManagesArtworkHandoffRecipients;
-    use \App\Livewire\Concerns\ManagesSupplierPurchaseOrders;
     use WithFileUploads;
     use WithPagination;
 
@@ -497,7 +496,6 @@ class Index extends Component
         $this->initializeArtworkRecipients();
         $this->orderWorkflowActionModalPreview = app(\App\Services\Orders\OrderWorkflowActionModalPreviewService::class)
             ->snapshot($task, $this->orderWorkflowActionPayload, false);
-        if ($workflowActions->automationKey($task) === 'ART_CREATE_SUPPLIER_PO') $this->prepareSupplierPoModal($task);
         $this->resetOrderWorkflowEmailFallbackState();
 
         if (in_array($descriptor['key'] ?? null, ['NEW_SEND_PO_ARTWORK', 'ART_SEND_ORDER_TEAM'], true)) {
@@ -1283,6 +1281,10 @@ class Index extends Component
         ];
         $stages = $list->stagesForFilters($user, $filters);
         $jobs = $list->paginate($user, $filters, $stages, $this->perPage);
+        // One batched, indexed existence lookup for visible rows (never one query per row).
+        $jobs->getCollection()->loadExists([
+            'supplierPurchaseOrders as has_active_supplier_po' => static fn ($query) => $query->whereNull('archived_at'),
+        ]);
         $metrics = [
             'completed' => $list->completedCount($user, $filters, $stages),
         ];

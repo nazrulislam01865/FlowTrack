@@ -48,6 +48,7 @@
                                 <td data-label="Current status"><span class="row-status {{ $isOnHold ? 'hold' : (filled(data_get($row,'flag')) ? 'attn' : 'good') }}">{{ data_get($row,'status') }}</span>@if(filled(data_get($row,'flag')))<span class="order-cell-ref">⚑ {{ data_get($row,'flag') }}</span>@endif</td>
                                 <td data-label="Owner & delivery"><div class="owner-delivery"><x-ui.avatar :name="data_get($row,'owner','Unassigned')" :src="data_get($row,'owner_avatar')" :size="28" /><div><b>{{ data_get($row,'owner') }}</b><small>{{ data_get($row,'delivery') ? 'CRDD '.$formatDate(data_get($row,'delivery')) : 'No delivery date' }}</small></div></div></td>
                                 <td data-label="Progress"><div class="row-progress"><span class="row-progress-track"><i style="width:{{ data_get($row,'progress',0) }}%"></i></span><b>{{ data_get($row,'progress',0) }}%</b></div></td>
+                            @include('components.orders.list.po-cell', ['job' => $job])
                             </tr>
                         @elseif($sequence === 1)
                             <tr class="{{ $rowClass }}" style="{{ $rowStyle }}" x-data x-on:click="window.location.href='{{ $detailUrl }}'">
@@ -57,6 +58,7 @@
                                 <td data-label="Purchase order"><div class="stage-doc"><span class="stage-doc-icon">PO</span><div><b>{{ data_get($row,'po_status') }}</b><span class="stage-table-note">{{ data_get($row,'po_document')?->name ?: 'Not uploaded' }}</span>@if(data_get($row,'po_document'))<div class="cell-controls"><a class="cell-link" href="{{ route('documents.open', data_get($row,'po_document')) }}" target="_blank" rel="noopener" x-on:click.stop>View PO</a>@if(auth()->user()->canModule('documents','export'))<a class="cell-link download" href="{{ route('documents.download', data_get($row,'po_document')) }}" x-on:click.stop>Download</a>@endif</div>@endif</div></div></td>
                                 <td data-label="Owner & CRDD">@include('components.orders.prototype-owner-cell', ['row' => $row, 'dateLabel' => 'CRDD', 'formatDate' => $formatDate])</td>
                                 <td data-label="Next action">@include('components.orders.prototype-next-action', ['row' => $row, 'detailUrl' => $detailUrl])</td>
+                            @include('components.orders.list.po-cell', ['job' => $job])
                             </tr>
                         @elseif($sequence === 2)
                             <tr class="{{ $rowClass }}" style="{{ $rowStyle }}" x-data x-on:click="window.location.href='{{ $detailUrl }}'">
@@ -66,6 +68,7 @@
                                 <td data-label="Approval"><b>{{ data_get($row,'client_approval') }}</b><span class="stage-table-note">Sample: {{ data_get($row,'sample_status') }}</span></td>
                                 <td data-label="Owner & due date">@include('components.orders.prototype-owner-cell', ['row' => $row, 'dateLabel' => 'Due', 'formatDate' => $formatDate])</td>
                                 <td data-label="Next action">@include('components.orders.prototype-next-action', ['row' => $row, 'detailUrl' => $detailUrl])</td>
+                            @include('components.orders.list.po-cell', ['job' => $job])
                             </tr>
                         @elseif($sequence === 3)
                             <tr class="{{ $rowClass }}" style="{{ $rowStyle }}" x-data x-on:click="window.location.href='{{ $detailUrl }}'">
@@ -76,6 +79,7 @@
                                 <td data-label="Open issue"><span class="{{ data_get($row,'production_issue') === 'No open issue' ? 'stage-ok' : 'stage-alert' }}">{{ data_get($row,'production_issue') }}</span>@if(data_get($row,'production_issue') !== 'No open issue')<div class="cell-controls"><a class="cell-link" href="{{ $detailUrl }}" wire:navigate x-on:click.stop>View issue</a><a class="cell-action danger" href="{{ $detailUrl }}" wire:navigate x-on:click.stop>Resolve</a></div>@endif</td>
                                 <td data-label="Owner & CRDD">@include('components.orders.prototype-owner-cell', ['row' => $row, 'dateLabel' => 'CRDD', 'formatDate' => $formatDate])</td>
                                 <td data-label="Next action">@include('components.orders.prototype-next-action', ['row' => $row, 'detailUrl' => $detailUrl])</td>
+                            @include('components.orders.list.po-cell', ['job' => $job])
                             </tr>
                         @elseif($sequence === 4)
                             <tr class="{{ $rowClass }}" style="{{ $rowStyle }}" x-data x-on:click="window.location.href='{{ $detailUrl }}'">
@@ -86,6 +90,7 @@
                                 <td data-label="QC issue"><span class="{{ data_get($row,'qc_issue') === 'None' ? 'stage-ok' : 'stage-alert' }}">{{ data_get($row,'qc_issue') }}</span>@if(data_get($row,'qc_issue') !== 'None')<div class="cell-controls"><a class="cell-link" href="{{ $detailUrl }}" wire:navigate x-on:click.stop>View issue</a><a class="cell-action danger" href="{{ $detailUrl }}" wire:navigate x-on:click.stop>Resolve</a></div>@endif</td>
                                 <td data-label="Owner & due date">@include('components.orders.prototype-owner-cell', ['row' => $row, 'dateLabel' => 'Due', 'formatDate' => $formatDate])</td>
                                 <td data-label="Next action">@include('components.orders.prototype-next-action', ['row' => $row, 'detailUrl' => $detailUrl])</td>
+                            @include('components.orders.list.po-cell', ['job' => $job])
                             </tr>
                         @elseif($sequence === 5)
                             <tr class="{{ $rowClass }}" style="{{ $rowStyle }}" x-data x-on:click="window.location.href='{{ $detailUrl }}'">
@@ -96,6 +101,7 @@
                                 <td data-label="Tracking"><b>{{ data_get($row,'tracking') }}</b>@if(data_get($row,'tracking') === 'Pending')<div class="cell-controls"><a class="cell-action" href="{{ $detailUrl }}" wire:navigate x-on:click.stop>Add tracking number</a></div>@endif</td>
                                 <td data-label="Owner & delivery">@include('components.orders.prototype-owner-cell', ['row' => $row, 'dateLabel' => 'Delivery', 'formatDate' => $formatDate])</td>
                                 <td data-label="Next action">@include('components.orders.prototype-next-action', ['row' => $row, 'detailUrl' => $detailUrl])</td>
+                            @include('components.orders.list.po-cell', ['job' => $job])
                             </tr>
                         @elseif($sequence === 6)
                             <tr class="{{ $rowClass }}" style="{{ $rowStyle }}" x-data x-on:click="window.location.href='{{ $detailUrl }}'">
@@ -106,6 +112,7 @@
                                 <td data-label="Invoice status"><span class="row-status {{ strtolower((string)data_get($row,'invoice_status')) === 'pending' ? 'attn' : 'good' }}">{{ data_get($row,'invoice_status') }}</span>@if(str_contains(strtolower((string)data_get($row,'invoice_status')), 'prepared'))<div class="cell-controls"><a class="cell-action" href="{{ $financeUrl }}" wire:navigate x-on:click.stop>Send invoice</a></div>@endif</td>
                                 <td data-label="Owner & due date">@include('components.orders.prototype-owner-cell', ['row' => $row, 'dateLabel' => 'Due', 'formatDate' => $formatDate, 'overrideDate' => data_get($row,'invoice_due')])</td>
                                 <td data-label="Next action">@include('components.orders.prototype-next-action', ['row' => $row, 'detailUrl' => $detailUrl])</td>
+                            @include('components.orders.list.po-cell', ['job' => $job])
                             </tr>
                         @else
                             <tr class="{{ $rowClass }}" style="{{ $rowStyle }}" x-data x-on:click="window.location.href='{{ $detailUrl }}'">
@@ -116,6 +123,7 @@
                                 <td data-label="Payment status"><span class="row-status {{ str_contains(strtolower((string)data_get($row,'payment_status')), 'partial') ? 'attn' : 'good' }}">{{ data_get($row,'payment_status') }}</span></td>
                                 <td data-label="Owner & due date">@include('components.orders.prototype-owner-cell', ['row' => $row, 'dateLabel' => 'Due', 'formatDate' => $formatDate, 'overrideDate' => data_get($row,'invoice_due')])</td>
                                 <td data-label="Next action">@include('components.orders.prototype-next-action', ['row' => $row, 'detailUrl' => $detailUrl])</td>
+                            @include('components.orders.list.po-cell', ['job' => $job])
                             </tr>
                         @endif
                     @empty

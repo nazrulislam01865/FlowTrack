@@ -39,14 +39,17 @@ const refreshSections = (orderId, sections) => {
 
 const workspaceSections = (reason) => {
     const subject = String(reason ?? '').split(':', 1)[0];
-    if (subject === 'Task' || subject === 'FlowJobPhaseHistory' || subject === 'FlowJobMember') {
+    if (subject === 'Task' || subject === 'FlowJobPhaseHistory') {
         return ['summary', 'workflow', 'activity'];
     }
+    // Membership changes can revoke visibility, and parent Order fields can
+    // affect child views (e.g. the Products owner). Reauthorize all ready
+    // sections rather than leave previously rendered data visible/stale.
+    if (subject === 'FlowJobMember' || subject === 'FlowJob') return allSections;
     if (subject === 'FlowJobItem') return ['summary', 'products', 'workflow', 'activity'];
     if (subject === 'Document') return ['summary', 'workflow', 'attachments', 'activity'];
     if (subject === 'Invoice') return ['summary', 'activity'];
     if (subject === 'Activity') return ['activity'];
-    if (subject === 'FlowJob') return ['summary', 'workflow'];
     // An Order's own changed fields can affect every detail card.
     return allSections;
 };

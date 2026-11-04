@@ -319,8 +319,10 @@ final class OrderWorkflowSummaryService
     {
         $assigneeName = '';
         if ($summary->next_task_assignee_id) {
-            $assigneeName = (string) (User::query()
-                ->whereKey((int) $summary->next_task_assignee_id)
+            $assigneeId = (int) $summary->next_task_assignee_id;
+            $loadedAssignee = $this->loadedAssigneeName($job, $assigneeId);
+            $assigneeName = $loadedAssignee ?? (string) (User::query()
+                ->whereKey($assigneeId)
                 ->value('name') ?: '');
         }
 
@@ -343,6 +345,34 @@ final class OrderWorkflowSummaryService
             'order_status' => (string) ($job->status ?? $summary->order_status ?? ''),
             'is_on_hold' => (bool) $summary->is_on_hold,
         ];
+    }
+
+    /**
+     * The authorized Order shell already loads its owner, coordinator, creator
+     * and member users. Read names only from those loaded relations; a next
+     * assignee outside that set still uses the original fresh lookup.
+     */
+    private function loadedAssigneeName(FlowJob $job, int $assigneeId): ?string
+    {
+        foreach (['owner', 'coordinator', 'creator', 'cancelledBy'] as $relation) {
+            if (! $job->relationLoaded($relation)) continue;
+            $user = $job->getRelation($relation);
+            if ($user instanceof User && (int) $user->id === $assigneeId && $user->name !== null) {
+                return (string) $user->name;
+            }
+        }
+
+        if ($job->relationLoaded('members')) {
+            foreach ($job->getRelation('members') as $member) {
+                if (! $member->relationLoaded('user')) continue;
+                $user = $member->getRelation('user');
+                if ($user instanceof User && (int) $user->id === $assigneeId && $user->name !== null) {
+                    return (string) $user->name;
+                }
+            }
+        }
+
+        return null;
     }
 
     private function isHeld(FlowJob $job): bool

@@ -306,11 +306,10 @@ class OrderWorkflowBindingService
             return $this->publishedWorkflowCache[$workflowId];
         }
 
-        app(OrderWorkflowSetupService::class)->ensureRuntimeMirror($workflowId);
-        $workflow = Workflow::query()
-            ->whereKey($workflowId)
-            ->where('is_snapshot', false)
-            ->firstOrFail();
+        // ensureRuntimeMirror() returns the current Workflow model after its
+        // compatibility checks. Reusing that model avoids immediately SELECTing
+        // the same workflow again on every healthy Order Details visit.
+        $workflow = app(OrderWorkflowSetupService::class)->ensureRuntimeMirror($workflowId);
 
         $phases = $this->loadPublishedPhases($workflowId);
 

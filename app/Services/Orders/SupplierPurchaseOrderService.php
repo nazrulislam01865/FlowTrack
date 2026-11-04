@@ -8,11 +8,9 @@ use App\Models\FlowJob;
 use App\Models\FlowJobItem;
 use App\Models\MasterRecord;
 use App\Models\SupplierPurchaseOrder;
-use App\Models\Task;
 use App\Models\User;
 use App\Services\Email\EmailService;
 use App\Services\Email\ModuleEmailControlService;
-use App\Services\OrderWorkflowActionService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -24,16 +22,10 @@ final class SupplierPurchaseOrderService
     /** @var array<int, MasterRecord|null> */
     private array $supplierCache = [];
 
-    private function assertTask(Task $task): void
+    public function rows(FlowJob $job): array
     {
-        abort_unless(app(OrderWorkflowActionService::class)->automationKey($task) === 'ART_CREATE_SUPPLIER_PO', 422);
-    }
-
-    public function rows(Task $task): array
-    {
-        $this->assertTask($task);
         return SupplierPurchaseOrder::query()
-            ->where('flow_job_id', $task->flow_job_id)->where('task_id', $task->id)
+            ->where('flow_job_id', $job->id)
             ->whereNull('archived_at')->with(['supplier:id,name,metadata', 'job:id,job_number'])
             ->orderBy('id')->get()->map(fn (SupplierPurchaseOrder $po) => [
                 'id' => $po->id,
@@ -52,10 +44,9 @@ final class SupplierPurchaseOrderService
             ])->all();
     }
 
-    public function products(Task $task): array
+    public function products(FlowJob $job): array
     {
-        $this->assertTask($task);
-        $items = FlowJobItem::query()->where('flow_job_id', $task->flow_job_id)
+        $items = FlowJobItem::query()->where('flow_job_id', $job->id)
             ->where('is_removed', false)->with(['supplier', 'catalogProduct'])->orderBy('sort_order')->orderBy('id')->get();
         return $items->map(fn (FlowJobItem $item) => [
             'id' => $item->id,
@@ -88,11 +79,10 @@ final class SupplierPurchaseOrderService
     }
 
     /** @return list<SupplierPurchaseOrder> */
-    public function generate(Task $task, User $actor, string $mode, array $splitItemIds, array $templateDetails = []): array
+    public function generate(FlowJob $job, User $actor, string $mode, array $splitItemIds, array $templateDetails = []): array
     {
-        $this->assertTask($task);
         abort_unless(in_array($mode, ['single', 'split'], true), 422);
-        app(OrderHoldService::class)->assertNotHeld((int) $task->flow_job_id);
+        app(OrderHoldService::class)->assertNotHeld((int) $job->id);
         $templateKeys = [
             'carton_buyer', 'carton_style', 'carton_colour', 'carton_size', 'carton_qty', 'carton_gross_weight',
             'carton_net_weight', 'carton_measurement', 'carton_other', 'carton_mark_type',
@@ -103,7 +93,7 @@ final class SupplierPurchaseOrderService
         $templateDetails = array_intersect_key($templateDetails, array_flip($templateKeys));
         $templateDetails = array_map(fn ($value) => trim((string) $value), $templateDetails);
 
-        $job = FlowJob::query()->with(['client', 'items.supplier', 'items.catalogProduct'])->findOrFail($task->flow_job_id);
+        $job->loadMissing(['client', 'items.supplier', 'items.catalogProduct']);
         $items = $job->items->reject(fn (FlowJobItem $item) => $item->is_removed)->values();
         if ($items->isEmpty()) throw ValidationException::withMessages(['orderWorkflowActionPayload' => 'Add at least one active Order product before creating a PO.']);
 
@@ -128,16 +118,14 @@ final class SupplierPurchaseOrderService
             }
         }
 
-        // Exactly one active PO generation per artwork revision cycle. A new
-        // revision archives prior instructions before allowing regeneration.
+        // One active PO batch per order. Artwork revision archives an old batch.
         $writtenPaths = [];
         try {
-            return DB::transaction(function () use ($task, $actor, $job, $groups, $mode, $templateDetails, &$writtenPaths): array {
-            $locked = Task::query()->whereKey($task->id)->lockForUpdate()->firstOrFail();
+            return DB::transaction(function () use ($actor, $job, $groups, $mode, $templateDetails, &$writtenPaths): array {
+            FlowJob::query()->whereKey($job->id)->lockForUpdate()->firstOrFail();
             // One indexed read checks whether the latest generation is still
             // active and supplies a unique revision suffix for regenerated POs.
-            $previous = SupplierPurchaseOrder::query()->where('task_id', $locked->id)
-                ->orderByDesc('id')->first(['po_number', 'archived_at']);
+            $previous = SupplierPurchaseOrder::query()->where('flow_job_id', $job->id)->orderByDesc('id')->first(['po_number', 'archived_at']);
             abort_unless(!$previous || $previous->archived_at, 422, 'Purchase orders have already been generated.');
             // Easy-to-read revision numbering: original, R2, R3, ...
             $lastRevision = 1;
@@ -145,14 +133,6 @@ final class SupplierPurchaseOrderService
                 $lastRevision = (int) $matches[1];
             }
             $numberSuffix = $previous ? '-R'.($lastRevision + 1) : '';
-            // Existing Orders may have progressed beyond Artwork before this
-            // required task was introduced. The binding service marks newly
-            // inserted past-stage tasks completed to protect history; allow
-            // their PO documents to be created retroactively, without
-            // reopening or advancing any already-completed workflow stage.
-            if (!$locked->completed_at) {
-                app(\App\Services\OrderTaskSequenceService::class)->assertStatusActionable($locked);
-            }
             $batch = (string) Str::uuid();
             $created = [];
             foreach ($groups as $index => $group) {
@@ -171,7 +151,7 @@ final class SupplierPurchaseOrderService
                 ])->values()->all();
                 $number = 'SPO-'.str_pad((string) $job->id, 6, '0', STR_PAD_LEFT).$numberSuffix.'-'.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT);
                 $po = SupplierPurchaseOrder::query()->create([
-                    'flow_job_id' => $job->id, 'task_id' => $locked->id,
+                    'flow_job_id' => $job->id, 'task_id' => null,
                     'supplier_id' => $supplierId, 'created_by' => $actor->id,
                     'po_number' => $number, 'batch_uuid' => $batch,
                     'mode' => $mode, 'items_snapshot' => $snapshot, 'template_details' => $templateDetails,
@@ -182,7 +162,7 @@ final class SupplierPurchaseOrderService
                 $writtenPaths[] = $po->pdf_path;
                 if (!Storage::disk('local')->put($po->pdf_path, $bytes)) throw new \RuntimeException('Unable to save the Purchase Order PDF.');
                 $document = $job->documents()->create([
-                    'task_id' => $locked->id,
+                    'task_id' => null,
                     'client_id' => $job->client_id,
                     'uploaded_by' => $actor->id,
                     'document_number' => 'SPO-DOC-'.$po->id,
@@ -198,7 +178,7 @@ final class SupplierPurchaseOrderService
             $job->activities()->create([
                 'user_id' => $actor->id, 'event' => 'job.supplier_purchase_orders_generated',
                 'description' => count($created).' supplier purchase order(s) generated.',
-                'meta' => ['task_id' => $locked->id, 'po_ids' => collect($created)->pluck('id')->all(), 'mode' => $mode],
+                'meta' => ['po_ids' => collect($created)->pluck('id')->all(), 'mode' => $mode],
             ]);
             return $created;
             }, 3);
@@ -213,18 +193,16 @@ final class SupplierPurchaseOrderService
     }
 
     /** Archive the prior PO generation without deleting its PDFs or send audit. */
-    public function archiveForArtworkRevision(Task $task): void
+    public function archiveForArtworkRevision(FlowJob $job): void
     {
-        $this->assertTask($task);
-        $active = SupplierPurchaseOrder::query()->where('task_id', $task->id)
-            ->where('flow_job_id', $task->flow_job_id)->whereNull('archived_at');
+        $active = SupplierPurchaseOrder::query()->where('flow_job_id', $job->id)->whereNull('archived_at');
         $rows = (clone $active)->get(['id', 'document_id']);
         if ($rows->isEmpty()) return;
         $active->update(['archived_at' => now()]);
         $documentIds = $rows->pluck('document_id')->filter();
         if ($documentIds->isNotEmpty()) {
             // Keep historical documents visible in a separate Archived section.
-            Document::query()->whereIn('id', $documentIds)->where('task_id', $task->id)
+            Document::query()->whereIn('id', $documentIds)->where('flow_job_id', $job->id)
                 ->update(['category' => 'Archived Supplier Purchase Order']);
         }
     }
@@ -256,12 +234,10 @@ final class SupplierPurchaseOrderService
     }
 
     /** @return list<string> */
-    public function validateSend(Task $task, SupplierPurchaseOrder $po, string $emails): array
+    public function validateSend(FlowJob $job, SupplierPurchaseOrder $po, string $emails): array
     {
-        $this->assertTask($task);
-        abort_unless((int) $po->flow_job_id === (int) $task->flow_job_id
-            && (int) $po->task_id === (int) $task->id, 403);
-        app(OrderHoldService::class)->assertNotHeld((int) $task->flow_job_id);
+        abort_unless((int) $po->flow_job_id === (int) $job->id, 403);
+        app(OrderHoldService::class)->assertNotHeld((int) $job->id);
         $recipients = collect(preg_split('/[,;\s]+/', trim($emails)) ?: [])
             ->map(fn ($email) => trim($email))->filter()->unique(fn ($email) => strtolower($email))->values()->all();
         $error = 'orderWorkflowActionPayload.supplier_po_emails.'.$po->id;
@@ -277,14 +253,12 @@ final class SupplierPurchaseOrderService
         return $recipients;
     }
 
-    public function send(Task $task, int $poId, User $actor, string $emails): SupplierPurchaseOrder
+    public function send(FlowJob $job, int $poId, User $actor, string $emails): SupplierPurchaseOrder
     {
-        $this->assertTask($task);
-        $po = SupplierPurchaseOrder::query()->with(['supplier', 'job'])->where('task_id', $task->id)
-            ->where('flow_job_id', $task->flow_job_id)->whereNull('archived_at')->findOrFail($poId);
+        $po = SupplierPurchaseOrder::query()->with(['supplier', 'job'])->where('flow_job_id', $job->id)->whereNull('archived_at')->findOrFail($poId);
         // Never send a second supplier instruction after confirmed delivery.
         if ($po->email_status === 'sent') return $po;
-        $recipients = $this->validateSend($task, $po, $emails);
+        $recipients = $this->validateSend($job, $po, $emails);
         $claimed = SupplierPurchaseOrder::query()->whereKey($po->id)->whereNull('archived_at')
             ->whereIn('email_status', ['not_sent', 'failed'])->update(['email_status' => 'sending']);
         if ($claimed !== 1) return $po->refresh();
@@ -313,7 +287,7 @@ final class SupplierPurchaseOrderService
         $po->job->activities()->create([
             'user_id' => $actor->id, 'event' => $event,
             'description' => $description,
-            'meta' => ['task_id' => $task->id, 'supplier_purchase_order_id' => $po->id, 'recipient_count' => count($recipients)],
+            'meta' => ['supplier_purchase_order_id' => $po->id, 'recipient_count' => count($recipients)],
         ]);
         return $po->refresh();
     }

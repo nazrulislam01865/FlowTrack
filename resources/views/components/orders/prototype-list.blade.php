@@ -58,6 +58,7 @@
         7 => ['Order','Client','Invoice','Paid / balance','Payment status','Owner / due','Next action'],
         default => ['Order','Client & product','Current stage','Status','Owner / delivery','Progress'],
     };
+    $headers[] = 'Purchase order';
     $selectedStageFiltersActive = filled($stageSupplier) || filled($stageAssignee) || filled($stageUrgency) || filled($stageCarrier) || filled($stageClient) || $stageQuick !== 'all';
     // CHANGE 2026-08-24: prototype checkbox colors for the selected phase.
     $stageQuickMeta = \App\Services\OrderListPrototypeService::quickFilterMeta($sequence);

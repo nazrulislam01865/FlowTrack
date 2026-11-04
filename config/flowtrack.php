@@ -10,6 +10,10 @@ return [
     // the eligibility, transaction, task semantics or repair/advance behavior.
     // OFF retains the legacy per-task reads for emergency comparison/rollback.
     'workflow_maintenance_batch_enabled' => (bool) env('FLOWTRACK_WORKFLOW_MAINTENANCE_BATCH_ENABLED', false),
+
+    // Release B: conservative, one-query guard for a known incomplete required
+    // current-phase task. Disabled until matched staging tests are signed off.
+    'workflow_auto_advance_blocker_fast_path_enabled' => (bool) env('FLOWTRACK_WORKFLOW_AUTO_ADVANCE_BLOCKER_FAST_PATH_ENABLED', false),
     // Phase 5: use indexed EXISTS projections instead of loading every workflow
     // task document/link into PHP when rebuilding an Order summary. OFF is the
     // original eager-load path, retained for controlled A/B tests and rollback.

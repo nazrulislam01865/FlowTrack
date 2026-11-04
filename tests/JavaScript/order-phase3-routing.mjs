@@ -64,6 +64,29 @@ assert.deepEqual(calls.map((c) => c.component), [
 ]);
 reset();
 
+// Order membership can revoke access to any ready child. Every section
+// must reauthorize, rather than retaining stale data in a visible component.
+assert.equal(routeOrderWorkspaceRefresh({ order_id: 77, workspace_id: 1, reason: 'FlowJobMember:updated' }), true);
+assert.deepEqual(calls.map((c) => c.component), [
+    'jobs.index', 'jobs.order-products-section', 'jobs.order-workflow-section',
+    'jobs.order-attachments-section', 'jobs.order-activity-section',
+]);
+reset();
+
+// Changes to an Order can affect fields used by the Products section (owner),
+// so a scoped Order event must update every already-ready section.
+assert.equal(routeOrderWorkspaceRefresh({ order_id: 77, reason: 'FlowJob:updated' }), true);
+assert.equal(calls.length, 5);
+reset();
+
+assert.equal(routeOrderWorkspaceRefresh({ order_id: 99, reason: 'FlowJobMember:updated' }), true);
+assert.deepEqual(calls, [], 'other-order permission changes must not touch this Order');
+
+// No supported Order ID or subject type means we must preserve legacy routing.
+assert.equal(routeOrderWorkspaceRefresh({ order_id: 77, reason: 'UnknownModel:updated' }), true);
+assert.equal(calls.length, 5, 'unrecognized scoped model events must refresh all ready sections');
+reset();
+
 assert.equal(routeOrderWorkspaceRefresh({ order_id: null, reason: 'Task:updated' }), false,
     'ambiguous workspace changes require the unchanged broad refresh fallback');
 assert.equal(calls.length, 0);
