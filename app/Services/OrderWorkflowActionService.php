@@ -246,9 +246,14 @@ class OrderWorkflowActionService
             : null;
         $total = $this->orderTotal($job);
         $remoteArea = $key === 'BILL_PREPARE'
-            ? app(MasterDataService::class)->remoteAreaForPostalCode($job->shipping_postal_code)
+            ? (config('remote_area_lookup.order_snapshot_reads_enabled', false)
+                ? app(\App\Services\Orders\OrderRemoteAreaReadService::class)
+                    ->forDisplay($job, app(MasterDataService::class)->workspaceId())['remoteArea']
+                : app(MasterDataService::class)->remoteAreaForPostalCode($job->shipping_postal_code))
             : null;
-        $remoteAreaCharge = max(0, (float) ($remoteArea?->remoteAreaExtraCharge() ?? 0));
+        $remoteAreaCharge = max(0, (float) (is_array($remoteArea)
+            ? ($remoteArea['extra_charge'] ?? 0) : ($remoteArea?->remoteAreaExtraCharge() ?? 0)));
+        $remoteAreaName = is_array($remoteArea) ? ($remoteArea['name'] ?? '') : ($remoteArea?->name ?? '');
         $paid = $this->recordedPaymentTotal($job);
         $units = (int) $job->items->filter(fn ($item) => ! ($item->is_removed ?? false))->sum(fn ($item) => (int) ($item->quantity ?? 0));
         $inspected = $units > 0 ? max(1, min($units, (int) ceil($units * 0.10))) : 1;
@@ -293,7 +298,7 @@ class OrderWorkflowActionService
             'invoice_date' => app(WorkspaceSettingsService::class)->localToday()->toDateString(),
             'invoice_amount' => $total > 0 ? number_format($total, 2, '.', '') : '0.00',
             'remote_area_charge' => $remoteAreaCharge,
-            'remote_area_name' => trim((string) ($remoteArea?->name ?? '')),
+            'remote_area_name' => trim((string) $remoteAreaName),
             'remote_area_postal_code' => $remoteArea
                 ? app(MasterDataService::class)->normalizePostalCode((string) $job->shipping_postal_code)
                 : '',
@@ -545,8 +550,18 @@ class OrderWorkflowActionService
     private function performCanonical(Task $task, User $actor, ?string $decision, ?string $comment, array $payload, array $attachments): Task
     {
         return DB::transaction(function () use ($task, $actor, $decision, $comment, $payload, $attachments): Task {
-            $locked = Task::query()->whereKey($task->id)->lockForUpdate()->with(['job.phase', 'setupTemplate'])->firstOrFail();
-            $job = FlowJob::query()->whereKey($locked->flow_job_id)->lockForUpdate()->with(['client', 'items'])->firstOrFail();
+            $reuseLockedTask = (bool) config('flowtrack.workflow_action_locked_task_reuse_enabled', false);
+            $locked = Task::query()->whereKey($task->id)->lockForUpdate()
+                ->with($reuseLockedTask ? ['setupTemplate'] : ['job.phase', 'setupTemplate'])
+                ->firstOrFail();
+            $job = FlowJob::query()->whereKey($locked->flow_job_id)->lockForUpdate()
+                ->with($reuseLockedTask ? ['client', 'items', 'phase'] : ['client', 'items'])
+                ->firstOrFail();
+            if ($reuseLockedTask) {
+                // Reuse the authorized parent row locked above, not the
+                // earlier nonlocking eager-load from Task::job.
+                $locked->setRelation('job', $job);
+            }
 
             // Workflow actions are allowed to be retried safely. A duplicate
             // Livewire request can arrive after the first request completed the
@@ -560,7 +575,9 @@ class OrderWorkflowActionService
             app(\App\Services\Orders\OrderHoldService::class)->assertNotHeld($job);
             abort_unless((int) $locked->workflow_phase_id === (int) $job->workflow_phase_id, 422, 'This task is locked until its workflow stage is active.');
             app(OrderTaskSequenceService::class)->assertStatusActionable($locked);
-            $locked = app(TaskService::class)->claimForAction($locked, $actor, 'performed a workflow action');
+            $locked = app(TaskService::class)->claimForAction(
+                $locked, $actor, 'performed a workflow action', $reuseLockedTask
+            );
 
             $key = $this->automationKey($locked);
             $decision = strtolower(trim((string) $decision));
@@ -596,7 +613,8 @@ class OrderWorkflowActionService
                     'description' => 'Artwork uploaded to Client ERP'.($reference !== '' ? ' · Reference '.$reference : '').'.',
                     'meta' => ['erp_reference' => $reference],
                 ]);
-                app(JobService::class)->syncAutomaticStatus($job->refresh(), $actor);
+                // syncAutomaticStatus() refreshes the authoritative Order itself.
+                app(JobService::class)->syncAutomaticStatus($job, $actor);
                 return $locked->refresh();
             }
 
@@ -781,7 +799,8 @@ class OrderWorkflowActionService
                     'description' => $comment,
                     'meta' => ['category' => $category],
                 ]);
-                app(JobService::class)->syncAutomaticStatus($job->refresh(), $actor);
+                // syncAutomaticStatus() refreshes the authoritative Order itself.
+                app(JobService::class)->syncAutomaticStatus($job, $actor);
                 return $locked->refresh();
             }
 
@@ -861,7 +880,8 @@ class OrderWorkflowActionService
                     'description' => 'Courier label generated and ready for preview/print.',
                     'meta' => $this->onlyPayload($payload, ['carrier','tracking_number']),
                 ]);
-                app(JobService::class)->syncAutomaticStatus($job->refresh(), $actor);
+                // syncAutomaticStatus() refreshes the authoritative Order itself.
+                app(JobService::class)->syncAutomaticStatus($job, $actor);
                 return $locked->refresh();
             }
 
@@ -988,7 +1008,8 @@ class OrderWorkflowActionService
                 if ($total > 0 && $newPaid + 0.0001 < $total) {
                     $progress = max(1, min(99, (int) round(($newPaid / $total) * 100)));
                     $locked->update(['status' => 'Partially Paid', 'completed_at' => null, 'progress' => $progress]);
-                    app(JobService::class)->syncAutomaticStatus($job->refresh(), $actor);
+                    // syncAutomaticStatus() refreshes the authoritative Order itself.
+                    app(JobService::class)->syncAutomaticStatus($job, $actor);
                     return $locked->refresh();
                 }
 

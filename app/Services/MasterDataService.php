@@ -636,6 +636,8 @@ class MasterDataService
                 DB::table('tasks')
                     ->where('task_flag_id', $record->id)
                     ->update(['attention_reason' => $record->name]);
+                app(\App\Services\Orders\OrderWorkflowSnapshotService::class)
+                    ->invalidateForTaskColumn('task_flag_id', (int) $record->id);
             }
 
             $this->mirrorLegacy($record);
@@ -692,6 +694,8 @@ class MasterDataService
                     ->whereNull('deleted_at')
                     ->pluck('id');
                 DB::table('tasks')->where('order_task_status_id', $record->id)->update(['status' => $record->name]);
+                app(\App\Services\Orders\OrderWorkflowSnapshotService::class)
+                    ->invalidateForTaskColumn('order_task_status_id', (int) $record->id);
             } elseif ($record->type === 'order_task_flag' && Schema::hasColumn('tasks', 'order_task_flag_id')) {
                 $taskIds = DB::table('tasks')
                     ->where('order_task_flag_id', $record->id)

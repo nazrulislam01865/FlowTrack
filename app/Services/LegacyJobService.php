@@ -1140,7 +1140,12 @@ class LegacyJobService
             ? 'workflow:id,name'
             : 'workflow.phases.taskPack.items.documentCategory';
 
-        $job->load([
+        // Gate the new read-only phase/task projection. The complete legacy
+        // graph remains the rollback path for historical and incomplete Orders.
+        $useDisplayQuery = (bool) config('flowtrack.workflow_display_query_enabled', false)
+            && $isPublishedOrderWorkflow;
+
+        $relations = [
             $workflowRelation,
             'shippingSourceAddress:id,client_id,label,recipient,address_line1,suite,city,state,zip,country,is_default,sort_order',
             'shipments.shippingMethod:id,type,name,code,sort_order,status',
@@ -1152,20 +1157,48 @@ class LegacyJobService
             'workflowInvoiceActivities:activities.id,activities.subject_type,activities.subject_id,activities.user_id,activities.event,activities.description,activities.meta,activities.created_at',
             'latestProductionMonitorActivity:activities.id,activities.subject_type,activities.subject_id,activities.user_id,activities.event,activities.description,activities.meta,activities.created_at',
             'invoices.creator:id,name',
-            'tasks' => fn ($query) => app(AccessControlService::class)
-                ->applyTaskScope($query, $user)
-                ->with([
-                    'assignee:id,name,profile_image_path',
-                    'phase:id,name,short_name,sequence,color',
-                    'template',
-                    'documentCategory',
-                    'setupTemplate.documentCategory',
-                ]),
             // Task rows expose their evidence inline, so document resources are
             // part of the workflow section rather than the first page render.
             'documents.uploader:id,name,profile_image_path',
             'documents.task:id,title',
-        ]);
+        ];
+
+        if ($useDisplayQuery) {
+            // The initial Workflow card request needs phase headers, scoped
+            // task cards, shipments and addresses. Email histories, invoices,
+            // production reports and documents are fetched below only when
+            // the selected phase/action uses them. The legacy flag-OFF graph
+            // is unchanged and remains the complete rollback path.
+            $deferred = [
+                'latestShipmentInformationActivity', 'latestCourierLabelActivity',
+                'workflowEmailActivities', 'workflowInvoiceActivities',
+                'latestProductionMonitorActivity', 'invoices', 'documents',
+            ];
+            $relations = array_values(array_filter($relations, static function (string $relation) use ($deferred): bool {
+                foreach ($deferred as $name) {
+                    if ($relation === $name || str_starts_with($relation, $name.'.')
+                        || str_starts_with($relation, $name.':')) {
+                        return false;
+                    }
+                }
+                return true;
+            }));
+        }
+
+        $legacyTaskLoader = fn ($query) => app(AccessControlService::class)
+            ->applyTaskScope($query, $user)
+            ->with([
+                'assignee:id,name,profile_image_path',
+                'phase:id,name,short_name,sequence,color',
+                'template',
+                'documentCategory',
+                'setupTemplate.documentCategory',
+            ]);
+        if (! $useDisplayQuery) {
+            $relations['tasks'] = $legacyTaskLoader;
+        }
+
+        $job->load($relations);
 
         // The workflow render already hydrates shipments. Checking the loaded
         // collection avoids an extra shipments EXISTS query on every normal
@@ -1180,6 +1213,112 @@ class LegacyJobService
         }
 
         $this->hydratePublishedOrderWorkflow($job);
+        if ($useDisplayQuery) {
+            $publishedPhases = $job->workflow?->phases ?? collect();
+            if ($publishedPhases->isEmpty()
+                || ! $publishedPhases->contains('id', (int) $job->workflow_phase_id)) {
+                // An incomplete legacy binding must keep the original task
+                // reader instead of silently showing an empty workflow.
+                $job->load(['tasks' => $legacyTaskLoader]);
+            } else {
+                // Reuse the published definition graph and exact task scope.
+                // The legacy reader remains available by disabling one flag.
+                $display = app(\App\Queries\Orders\OrderWorkflowDisplayQuery::class);
+                $display->loadForAuthorizedOrder($job, $user, $publishedPhases);
+
+                $preference = $display->displayPreference($job);
+                $selected = $publishedPhases->firstWhere('id', (int) $preference['phase']);
+                $current = $publishedPhases->firstWhere('id', (int) $job->workflow_phase_id);
+                if (! $selected || ! $current || (int) $selected->sequence > (int) $current->sequence) {
+                    $selected = $current;
+                }
+                $displayPhaseId = (int) ($selected?->id ?: $job->workflow_phase_id);
+                $displayTasks = $job->tasks
+                    ->where('workflow_phase_id', $displayPhaseId)->values();
+                $displayTaskIds = $displayTasks->pluck('id')->map(fn ($id): int => (int) $id)->all();
+                $modalTaskId = (int) ($preference['modalTaskId'] ?? 0);
+                $modalTask = $modalTaskId > 0 ? $job->tasks->firstWhere('id', $modalTaskId) : null;
+                // Unknown, historical and file/finance-related modal actions
+                // retain full legacy evidence. Only these audited, form-only
+                // actions can safely use selected-stage resource hydration.
+                $simpleModal = $modalTask && in_array(
+                    app(OrderWorkflowActionService::class)->automationKey($modalTask),
+                    ['PROD_SET_ESTIMATED_DELIVERY'],
+                    true,
+                );
+                $fullDocuments = (bool) $preference['fullDocuments']
+                    || ($modalTaskId > 0 && ! $simpleModal);
+                if ($modalTask && ! in_array((int) $modalTask->id, $displayTaskIds, true)) {
+                    $displayTaskIds[] = (int) $modalTask->id;
+                }
+
+                // Exact displayed document cards require their full existing
+                // file metadata. Other phase documents wait until that phase
+                // is opened. A modal keeps the full legacy document scope so
+                // email/PO and revision previews never lose earlier evidence.
+                if ($fullDocuments) {
+                    $job->load([
+                        'documents.uploader:id,name,profile_image_path',
+                        'documents.task:id,title',
+                    ]);
+                } else {
+                    $job->load([
+                        'documents' => fn ($documents) => $documents->where(
+                            fn (Builder $scope) => $scope
+                                ->whereIn('task_id', $displayTaskIds)
+                                ->orWhere('category', \App\Models\Document::CATEGORY_ARTWORK_TRACKING_PDF),
+                        ),
+                        'documents.uploader:id,name,profile_image_path',
+                        'documents.task:id,title',
+                    ]);
+                }
+                $display->indexLoadedDocuments($job);
+
+                $keys = $displayTasks
+                    ->map(fn (Task $task): string => (string) app(OrderWorkflowActionService::class)->automationKey($task))
+                    ->filter()->flip();
+                if ($fullDocuments) {
+                    // Modal templates may reference evidence and historical
+                    // delivery records from an earlier phase. Preserve the
+                    // complete legacy dependencies for those interactions.
+                    $job->load([
+                        'workflowEmailActivities:activities.id,activities.subject_type,activities.subject_id,activities.user_id,activities.event,activities.description,activities.meta,activities.created_at',
+                        'workflowInvoiceActivities:activities.id,activities.subject_type,activities.subject_id,activities.user_id,activities.event,activities.description,activities.meta,activities.created_at',
+                        'latestProductionMonitorActivity:activities.id,activities.subject_type,activities.subject_id,activities.user_id,activities.event,activities.description,activities.meta,activities.created_at',
+                        'invoices.creator:id,name',
+                    ]);
+                } else {
+                    if ($keys->has('ART_SEND_ORDER_TEAM') || $keys->has('BILL_SEND')) {
+                        $job->load('workflowEmailActivities:activities.id,activities.subject_type,activities.subject_id,activities.user_id,activities.event,activities.description,activities.meta,activities.created_at');
+                    }
+                    if ($keys->has('PROD_ISSUE')) {
+                        $job->load('latestProductionMonitorActivity:activities.id,activities.subject_type,activities.subject_id,activities.user_id,activities.event,activities.description,activities.meta,activities.created_at');
+                    }
+                    if ($keys->has('BILL_PREPARE') && app(AccessControlService::class)->can($user, 'finance', 'view')) {
+                        $job->load('workflowInvoiceActivities:activities.id,activities.subject_type,activities.subject_id,activities.user_id,activities.event,activities.description,activities.meta,activities.created_at');
+                        if ($job->workflowInvoiceActivities->isNotEmpty()) {
+                            $job->load('invoices.creator:id,name');
+                        }
+                    }
+                }
+                $this->hydrateLoadedTaskLinks($job, $fullDocuments ? null : $displayTaskIds);
+                // Historical/manual artwork upload tasks may have a title
+                // recognized by artwork repair without a Task Pack automation
+                // key. Keep revision notes and accepted-file presentation for
+                // those tasks too; avoid the history reads for unrelated phases.
+                $hasArtworkUpload = $keys->has('ART_PREPARE_UPLOAD')
+                    || $displayTasks->contains(static function (Task $task): bool {
+                        $title = strtolower(trim((string) $task->title));
+                        return str_contains($title, 'artwork')
+                            && (str_contains($title, 'upload') || str_contains($title, 'prepare'));
+                    });
+                if ($hasArtworkUpload || $fullDocuments) {
+                    $this->hydrateArtworkRevisionNotes($job);
+                }
+
+                return $job;
+            }
+        }
         $this->hydrateLoadedTaskLinks($job);
         $this->hydrateArtworkRevisionNotes($job);
 
@@ -1235,7 +1374,7 @@ class LegacyJobService
      * during Livewire DOM refreshes, so a just-saved link remains visible after
      * the inline Add link form closes and after realtime workspace refreshes.
      */
-    private function hydrateLoadedTaskLinks(FlowJob $job): void
+    private function hydrateLoadedTaskLinks(FlowJob $job, ?array $selectedTaskIds = null): void
     {
         if (! $job->relationLoaded('tasks') || $job->tasks->isEmpty()) {
             return;
@@ -1244,7 +1383,7 @@ class LegacyJobService
         $taskIds = $job->tasks
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
-            ->filter()
+            ->filter(fn (int $id): bool => $id > 0 && ($selectedTaskIds === null || in_array($id, $selectedTaskIds, true)))
             ->values();
 
         if ($taskIds->isEmpty()) {
@@ -1261,6 +1400,12 @@ class LegacyJobService
             ->groupBy(fn (TaskLink $link) => (int) $link->task_id);
 
         foreach ($job->tasks as $task) {
+            if ($selectedTaskIds !== null && ! in_array((int) $task->id, $selectedTaskIds, true)) {
+                // Keep links_exists available for conditional task activation.
+                // An empty, eagerly assigned relation here would incorrectly
+                // hide historical link evidence in an unselected phase.
+                continue;
+            }
             $task->setRelation(
                 'links',
                 collect($linksByTask->get((int) $task->id, collect()))->values(),
@@ -1625,6 +1770,11 @@ class LegacyJobService
                 app(OrderShipmentService::class)->createInitialShipments($job, $actor, $initialShipments);
             } else {
                 app(OrderShipmentService::class)->seedPrimaryShipment($job, $actor);
+            }
+            // The primary shipment is now canonical. Resolve once after its
+            // mirror, never from Order Details or individual task-card renders.
+            if (config('remote_area_lookup.order_resolution_writes_enabled', false)) {
+                app(\App\Services\Orders\OrderRemoteAreaResolutionService::class)->persistForOrder($job);
             }
 
             $items = collect($data['items'] ?? [])->filter(fn ($item) => filled($item['product'] ?? null))->values();
@@ -2303,15 +2453,39 @@ class LegacyJobService
             $updates['shipping_source_address_id'] = null;
         }
 
-        $job->update($updates);
-        $job->activities()->create([
-            'user_id' => $actor->id,
-            'event' => 'job.shipping_updated',
-            'description' => 'Order shipping details updated',
-            'meta' => ['fields' => array_values(array_intersect(array_keys($updates), $allowed))],
-        ]);
-
-        $fresh = $job->refresh();
+        if (config('remote_area_lookup.order_resolution_writes_enabled', false)
+            && array_key_exists('shipping_postal_code', $updates)) {
+            $resolver = app(\App\Services\Orders\OrderRemoteAreaResolutionService::class);
+            // A phone/address edit can include an unchanged postal field.
+            // Do not trigger another Remote Area match for the same input key.
+            $candidate = \App\Services\RemoteAreas\PostalRangeCompiler::key($job->shipping_postal_code)
+                !== \App\Services\RemoteAreas\PostalRangeCompiler::key($updates['shipping_postal_code'])
+                ? $resolver->resolveForInput($updates['shipping_postal_code']) : null;
+            $fresh = DB::transaction(function () use ($job, $actor, $allowed, $updates, $resolver, $candidate): FlowJob {
+                $locked = FlowJob::query()->whereKey($job->id)->lockForUpdate()->firstOrFail();
+                $this->assertEditable($locked, $actor);
+                $fields = array_merge($updates, $resolver->attributesForPostal(
+                    $locked, $updates['shipping_postal_code'], $candidate,
+                ));
+                $locked->update($fields);
+                $locked->activities()->create([
+                    'user_id' => $actor->id,
+                    'event' => 'job.shipping_updated',
+                    'description' => 'Order shipping details updated',
+                    'meta' => ['fields' => array_values(array_intersect(array_keys($updates), $allowed))],
+                ]);
+                return $locked->refresh();
+            }, 3);
+        } else {
+            $job->update($updates);
+            $job->activities()->create([
+                'user_id' => $actor->id,
+                'event' => 'job.shipping_updated',
+                'description' => 'Order shipping details updated',
+                'meta' => ['fields' => array_values(array_intersect(array_keys($updates), $allowed))],
+            ]);
+            $fresh = $job->refresh();
+        }
         app(NotificationService::class)->notifyJobParticipants(
             $fresh,
             'Order shipping details updated',
@@ -2801,8 +2975,30 @@ class LegacyJobService
             return;
         }
 
+        // In a complete seven-phase maintenance run, unchanged earlier/later
+        // phases cannot affect the active phase's sequence gate. Batch mode
+        // may defer their redundant parent scans until the final phase has
+        // reached its persisted state. Standalone activateTaskPack() never
+        // uses this optimization because its next action depends immediately
+        // on the parent state.
+        $coalesceParents = (bool) config('flowtrack.workflow_maintenance_batch_enabled', false)
+            && (bool) config('flowtrack.workflow_parent_coalesce_enabled', false);
+        $deferredParent = false;
         foreach ($job->workflow->phases as $phase) {
-            $this->syncPhaseTaskPack($job, $phase, false, $actor);
+            $deferForPhase = $coalesceParents
+                && (int) $phase->id !== (int) $job->workflow_phase_id;
+            $this->syncPhaseTaskPack($job, $phase, false, $actor, $deferForPhase);
+            $deferredParent = $deferredParent || $deferForPhase;
+        }
+        if ($deferredParent) {
+            $fresh = $job->fresh();
+            $finalTasks = $fresh->tasks()
+                ->whereNull('deleted_at')
+                ->with(['orderTaskFlag:id,type,name,color,status,sort_order,metadata'])
+                ->orderBy('id')
+                ->get();
+            app(OrderTaskFlagService::class)->syncJob($fresh, $finalTasks, false);
+            $this->syncAutomaticStatus($fresh, null, $finalTasks);
         }
         // Avoid any supplier-assignment queries for Task Packs that only use
         // internal assignees (the common path).
@@ -2907,15 +3103,19 @@ class LegacyJobService
      * are reflected on the parent while that task is the active work item.
      * Final Order states remain owned by the workflow/status actions.
      */
-    public function syncAutomaticStatus(FlowJob $job, ?User $actor = null): FlowJob
+    public function syncAutomaticStatus(FlowJob $job, ?User $actor = null, ?Collection $prefetchedTasks = null): FlowJob
     {
-        $job->refresh();
+        // The batch caller already holds a fresh parent and a post-write
+        // task snapshot. The legacy standalone path still refreshes the Order.
+        if ($prefetchedTasks === null) {
+            $job->refresh();
+        }
         $current = mb_strtolower(trim((string) $job->status));
         if ($job->completed_at || in_array($current, ['draft', 'completed', 'cancelled', 'canceled', 'inactive'], true)) {
             return $job;
         }
 
-        $tasks = $job->tasks()
+        $tasks = $prefetchedTasks ?? $job->tasks()
             ->whereNull('deleted_at')
             ->orderBy('id')
             ->get(['id', 'workflow_phase_id', 'status', 'progress', 'completed_at', 'updated_at']);
@@ -2975,7 +3175,7 @@ class LegacyJobService
             }
         }
 
-        return $job->refresh();
+        return $prefetchedTasks === null ? $job->refresh() : $job;
     }
 
     public function recalculateProgress(FlowJob $job): int
@@ -3100,9 +3300,16 @@ class LegacyJobService
             ->where('workflow_phase_id', $phaseId)
             ->whereNull('completed_at')
             ->where(function (Builder $query): void {
-                // Match the phase gate's exact Completed comparison; a null
-                // status also means this task has not been completed.
-                $query->where('status', '!=', 'Completed')->orWhereNull('status');
+                // A skipped/not-applicable task does not block a phase in
+                // OrderDetailPresenter::blockers(). Exclude those statuses
+                // before taking the conservative auto-advance shortcut.
+                // NULL means incomplete and remains eligible as a blocker.
+                $query->where(function (Builder $status): void {
+                    $status->where('status', '!=', 'Completed')
+                        ->whereNotIn(DB::raw('LOWER(TRIM(status))'), [
+                            'skipped', 'not applicable', 'n/a',
+                        ]);
+                })->orWhereNull('status');
             })
             ->where(function (Builder $query) use ($packId): void {
                 // Manually added tasks are required by the existing gate.
@@ -3269,7 +3476,7 @@ class LegacyJobService
         $this->syncPhaseTaskPack($job, $phase, true, $actor);
     }
 
-    private function syncPhaseTaskPack(FlowJob $job, WorkflowPhase $phase, bool $activate = false, ?User $actor = null): void
+    private function syncPhaseTaskPack(FlowJob $job, WorkflowPhase $phase, bool $activate = false, ?User $actor = null, bool $deferParent = false): void
     {
         $phase->loadMissing('taskPack.items.defaultAssignee', 'taskPack.items.defaultDepartment', 'taskPack.items.priority', 'taskPack.items.documentCategory');
         if (!$phase->taskPack) return;
@@ -3489,7 +3696,16 @@ class LegacyJobService
             // A Task Pack phase is a batch. Persist each task's own flag/status,
             // but defer the expensive parent Order rescan until all tasks in
             // this phase have reached their final generated state.
-            $task = $orderTaskRules->syncTask($task->refresh(), false);
+            // Task::create()/update() already updated the same Eloquent
+            // instance, and the only registered Task observer publishes a
+            // post-commit refresh. Batch mode therefore does not need another
+            // SELECT before deriving flags; keep the exact legacy refresh
+            // when the optimization flag is disabled.
+            if ($batchMode) {
+                $task = $orderTaskRules->syncTask($task, false);
+            } else {
+                $task = $orderTaskRules->syncTask($task->refresh(), false);
+            }
 
             if (! $batchMode || ! isset($commentedTaskIds[(int) $task->id])) {
                 FlowTaskComment::firstOrCreate(['flow_task_id' => $task->id, 'body' => $creationComment], ['user_id' => $job->coordinator_id]);
@@ -3513,12 +3729,36 @@ class LegacyJobService
         // Preserve the existing phase-level ordering: parent state is synced
         // before current-phase sequence normalization, but only once for the
         // completed phase batch instead of once per generated task.
+        if ($deferParent) {
+            // Every task flag, comment and membership has been persisted. The
+            // parent state will be recomputed once by syncWorkflowTasks() after
+            // all seven phases finish; no downstream phase action relies on
+            // the non-current phase's parent flag in this maintenance pass.
+            return;
+        }
+
         $freshJob = $job->fresh();
-        $orderTaskRules->syncJob($freshJob);
-        $this->syncAutomaticStatus($freshJob);
+        if ($batchMode) {
+            // Both parent flag and automatic status use the final task state.
+            // Read it once per phase, rather than rescan the complete Order
+            // twice. Per-phase ordering, status activities, and transaction
+            // boundaries are deliberately unchanged.
+            $finalTasks = $freshJob->tasks()
+                ->whereNull('deleted_at')
+                ->with(['orderTaskFlag:id,type,name,color,status,sort_order,metadata'])
+                ->orderBy('id')
+                ->get();
+            $orderTaskRules->syncJob($freshJob, $finalTasks, false);
+            $this->syncAutomaticStatus($freshJob, null, $finalTasks);
+        } else {
+            $orderTaskRules->syncJob($freshJob);
+            $this->syncAutomaticStatus($freshJob);
+        }
 
         if ($isCurrent) {
-            app(OrderTaskSequenceService::class)->synchronizePhase($job->refresh(), $phase, $actor);
+            app(OrderTaskSequenceService::class)->synchronizePhase(
+                $batchMode ? $freshJob : $job->refresh(), $phase, $actor
+            );
         }
     }
 

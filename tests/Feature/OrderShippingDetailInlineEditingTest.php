@@ -19,10 +19,14 @@ class OrderShippingDetailInlineEditingTest extends TestCase
 
         $this->assertStringContainsString('<x-jobs.order-detail.planning', $overview);
         $this->assertStringContainsString('<x-jobs.order-detail.shipping', $overview);
-        $this->assertStringContainsString('<x-jobs.order-detail.products', $overview);
+        $this->assertStringContainsString('<livewire:jobs.order-products-section', $overview);
+        $productsSection = file_get_contents(resource_path('views/livewire/jobs/order-products-section.blade.php'));
+        $this->assertStringContainsString('<x-jobs.order-detail.products', $productsSection);
         $this->assertStringContainsString('Planning &amp; ownership', $planning);
         $this->assertStringContainsString('Shipping address', $shipping);
-        $this->assertStringContainsString('Products &amp; quantities', $products);
+        $productsCard = file_get_contents(resource_path('views/components/catalog/detail-products-card.blade.php'));
+        $this->assertStringContainsString('<x-catalog.detail-products-card', $products);
+        $this->assertStringContainsString("'title' => 'Products & quantities'", $productsCard);
 
         $this->assertStringContainsString('shipping_address', $shipping);
         $this->assertStringContainsString('shipping_phone_country_code', $service);
@@ -31,7 +35,7 @@ class OrderShippingDetailInlineEditingTest extends TestCase
         $this->assertStringContainsString('updateJobShippingDetails', $shipping);
         $this->assertStringContainsString('@media(max-width:1180px)', $css);
         $this->assertStringContainsString('.ft-order-overview-grid', $css);
-        $this->assertMatchesRegularExpression('/#\[Renderless\]\s+public function updateJobShippingDetails\b/', $jobs);
+        $this->assertMatchesRegularExpression('/#\[Json\]\s+public function updateJobShippingDetails\b/', $jobs);
     }
 
 }

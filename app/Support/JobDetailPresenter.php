@@ -33,14 +33,29 @@ final class JobDetailPresenter
         $phase ??= $job->workflow?->phases?->firstWhere('id', $job->workflow_phase_id) ?: $job->phase;
         if (!$phase) return collect();
 
-        $tasks = $job->tasks->where('workflow_phase_id', $phase->id);
+        $displayQuery = (bool) config('flowtrack.workflow_display_query_enabled', false)
+            ? app(\App\Queries\Orders\OrderWorkflowDisplayQuery::class)
+            : null;
+
+        return $displayQuery
+            ? $displayQuery->rememberedPhaseTasks($job, (int) $phase->id, fn (): Collection => self::buildPhaseTasks($job, $phase, $displayQuery))
+            : self::buildPhaseTasks($job, $phase);
+    }
+
+    private static function buildPhaseTasks(FlowJob $job, WorkflowPhase $phase, ?\App\Queries\Orders\OrderWorkflowDisplayQuery $displayQuery = null): Collection
+    {
+        $tasks = $displayQuery?->tasksForPhase($job, (int) $phase->id)
+            ?? $job->tasks->where('workflow_phase_id', $phase->id);
         if ($phase->taskPack) {
-            $allowedItemIds = $phase->taskPack->items->pluck('id')->map(fn ($id) => (int) $id)->all();
+            // Phase/Task Pack membership is a set lookup, not a linear scan of
+            // all template IDs for every task and every stage-card render.
+            $allowedItemIds = $phase->taskPack->items->pluck('id')
+                ->mapWithKeys(fn ($id): array => [(int) $id => true])->all();
             $tasks = $tasks->filter(function (Task $task) use ($allowedItemIds, $phase) {
                 // Manual Order tasks belong to the phase directly and do not have
                 // a Task Pack item. Keep them visible beside configured tasks.
                 if (!$task->task_pack_task_id) return true;
-                if (in_array((int) $task->task_pack_task_id, $allowedItemIds, true)) return true;
+                if (isset($allowedItemIds[(int) $task->task_pack_task_id])) return true;
                 return (int) ($task->setupTemplate?->task_pack_id ?? 0) === (int) $phase->task_pack_id;
             });
         } else {
@@ -163,6 +178,16 @@ final class JobDetailPresenter
     private static function documentsForTask(FlowJob $job, Task $task): Collection
     {
         if ($job->relationLoaded('documents')) {
+            // The opt-in workflow reader has already grouped this loaded
+            // collection once. Keep the original fallback for every other tab.
+            if ((bool) config('flowtrack.workflow_display_query_enabled', false)) {
+                $indexed = app(\App\Queries\Orders\OrderWorkflowDisplayQuery::class)
+                    ->documentsForTask($job, (int) $task->id);
+                if ($indexed !== null) {
+                    return $indexed->values();
+                }
+            }
+
             return $job->documents
                 ->where('task_id', $task->id)
                 ->values();

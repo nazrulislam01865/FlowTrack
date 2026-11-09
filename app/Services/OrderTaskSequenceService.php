@@ -54,7 +54,7 @@ class OrderTaskSequenceService
         }
 
         if (strcasecmp(trim((string) $first->status), 'Waiting for QC Issue Resolution') === 0
-            && str_contains(strtolower((string) $task->title), 'qc issue')) {
+            && OrderTaskRequirement::automationKey($task) === 'QC_ISSUE') {
             return;
         }
 

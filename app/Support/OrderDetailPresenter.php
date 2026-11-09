@@ -82,7 +82,7 @@ final class OrderDetailPresenter
             $issue = $tasks->first(fn (Task $task) =>
                 ! self::isCompletedTask($task)
                 && ! self::isSkippedTask($task)
-                && str_contains(strtolower((string) $task->title), 'qc issue')
+                && OrderTaskRequirement::automationKey($task) === 'QC_ISSUE'
             );
             if ($issue) return $issue;
         }

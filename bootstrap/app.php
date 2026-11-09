@@ -37,6 +37,9 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/api/supplier-bridge/order-artwork/{order}/{document}', \App\Http\Controllers\SupplierBridge\DownloadOrderArtwork::class)
                 ->whereNumber('order')->whereNumber('document')->middleware('throttle:60,1');
 
+            Route::get('/api/supplier-bridge/order-qc-documents/{order}/{document}', \App\Http\Controllers\SupplierBridge\DownloadOrderQcDocument::class)
+                ->whereNumber('order')->whereNumber('document')->middleware('throttle:60,1');
+
             Route::post('/api/supplier-bridge/rfq-quotation-files', \App\Http\Controllers\SupplierBridge\ReceiveSupplierQuotationFile::class)
                 ->middleware('throttle:30,1');
             Route::post('/api/supplier-bridge/inquiry-task-actions', \App\Http\Controllers\SupplierBridge\ReceiveSupplierInquiryTaskAction::class)

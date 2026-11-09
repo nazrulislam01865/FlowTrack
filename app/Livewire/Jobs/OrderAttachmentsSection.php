@@ -26,6 +26,8 @@ final class OrderAttachmentsSection extends Component
     public int $orderId;
     public bool $ready = false;
     public array $jobDocumentUploads = [];
+    public int $documentPage = 1;
+    private const DOCUMENTS_PER_PAGE = 20;
 
     public function mount(int $orderId): void
     {
@@ -39,6 +41,17 @@ final class OrderAttachmentsSection extends Component
         }
 
         $this->ready = true;
+    }
+
+    public function loadMoreOrderDocuments(): void
+    {
+        if (! $this->ready) {
+            return;
+        }
+
+        // One user action extends the existing bounded list by one page.
+        // The real count and authorization are checked again in render().
+        $this->documentPage = min(1000, max(1, $this->documentPage) + 1);
     }
 
     public function updatedJobDocumentUploads(): void
@@ -151,13 +164,33 @@ final class OrderAttachmentsSection extends Component
         $user = auth()->user();
         $query = app(VisibleOrderQuery::class);
         $job = $query->base($user, $this->orderId);
-        $query->loadOverviewDocuments($job);
+        // The paginated reader can be independently rolled back while the
+        // original authorized document loader remains available for parity.
+        // The stored relation keeps the exact existing Blade contract.
+        if ((bool) config('flowtrack.order_attachment_pagination_enabled', false)) {
+            $documentsQuery = $job->documents()->whereNull('task_id');
+            $documentTotal = (clone $documentsQuery)->count();
+            $documentLimit = min($documentTotal, min(1000, max(1, $this->documentPage)) * self::DOCUMENTS_PER_PAGE);
+            $documents = $documentsQuery
+                ->with('uploader:id,name,profile_image_path')
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->limit($documentLimit)
+                ->get();
+            $job->setRelation('documents', $documents);
+        } else {
+            $query->loadOverviewDocuments($job);
+            $documents = $job->documents->filter(static fn (Document $document): bool => blank($document->task_id));
+            $documentTotal = $documents->count();
+        }
 
         $access = app(AccessControlService::class);
         $context = [
             'canUploadDocument' => $access->can($user, 'documents', 'create'),
             'canDeleteDocument' => $access->can($user, 'documents', 'delete'),
             'canExportDocument' => $access->can($user, 'documents', 'export'),
+            'attachmentTotal' => $documentTotal,
+            'attachmentHasMore' => $documentTotal > $documents->count(),
         ];
 
         return view('livewire.jobs.order-attachments-section', compact('job', 'context'));

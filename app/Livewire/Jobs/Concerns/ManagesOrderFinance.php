@@ -38,7 +38,14 @@ trait ManagesOrderFinance
         $invoiceTypes = $master->active('invoice_type');
         $currencies = $master->active('currency');
         $paymentTerms = $master->active('payment_term');
-        $remoteArea = $master->remoteAreaForPostalCode($job->shipping_postal_code);
+        $remoteArea = config('remote_area_lookup.order_snapshot_reads_enabled', false)
+            ? app(\App\Services\Orders\OrderRemoteAreaReadService::class)
+                ->forDisplay($job, $master->workspaceId())['remoteArea']
+            : $master->remoteAreaForPostalCode($job->shipping_postal_code);
+        $remoteCharge = is_array($remoteArea)
+            ? ($remoteArea['extra_charge'] ?? null)
+            : $remoteArea?->remoteAreaExtraCharge();
+        $remoteName = is_array($remoteArea) ? ($remoteArea['name'] ?? '') : ($remoteArea?->name ?? '');
 
         $this->invoiceType = (string) ($invoiceTypes->firstWhere('name', 'Final invoice')?->name ?: $invoiceTypes->first()?->name ?: '');
         $jobCurrency = strtoupper((string) ($job->currency ?: 'USD'));
@@ -55,8 +62,8 @@ trait ManagesOrderFinance
         $this->invoiceTaxRate = '0';
         // These values are for the Livewire preview only. createInvoice() resolves
         // the Remote Area again from the locked Order before persisting totals.
-        $this->invoiceRemoteAreaCharge = max(0, (float) ($remoteArea?->remoteAreaExtraCharge() ?? 0));
-        $this->invoiceRemoteAreaName = trim((string) ($remoteArea?->name ?? ''));
+        $this->invoiceRemoteAreaCharge = max(0, (float) ($remoteCharge ?? 0));
+        $this->invoiceRemoteAreaName = trim((string) $remoteName);
         $this->invoiceRemoteAreaPostalCode = $remoteArea
             ? $master->normalizePostalCode((string) $job->shipping_postal_code)
             : '';

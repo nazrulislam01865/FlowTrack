@@ -79,6 +79,10 @@ final class SupplierWorkflowProjection
      */
     public static function taskMode(FlowJob $order, \App\Models\Task $task): string
     {
+        // An explicitly reported QC issue is the one sanctioned exception to
+        // sequential required-task gating. Resolve from loaded task state only.
+        if (self::activeQcResolution($order, $task)) return 'active';
+
         $mode = OrderDetailPresenter::taskMode($order, $task);
         $status = strtolower(trim((string) $task->status));
         $key = OrderTaskRequirement::automationKey($task);
@@ -121,11 +125,34 @@ final class SupplierWorkflowProjection
         return $firstOpen && (int) $firstOpen->id === (int) $task->id ? 'active' : $mode;
     }
 
+    /** Pure, query-free guard for the QC exception to normal task order. */
+    public static function activeQcResolution(FlowJob $order, \App\Models\Task $task): bool
+    {
+        if (OrderTaskRequirement::automationKey($task) !== 'QC_ISSUE'
+            || strcasecmp(trim((string) $task->status), 'QC Issue Reported') !== 0
+            || $task->completed_at !== null
+            || (int) $task->workflow_phase_id !== (int) $order->workflow_phase_id
+            || $order->completed_at !== null
+            || in_array(strtolower(trim((string) $order->status)), ['draft', 'cancelled', 'completed'], true)
+            || ! $order->relationLoaded('tasks')) {
+            return false;
+        }
+
+        // Never unlock a standalone issue task: the failed check must be in
+        // FlowTracker's explicit waiting state in this same order and stage.
+        return $order->tasks->contains(static fn ($candidate): bool =>
+            (int) $candidate->workflow_phase_id === (int) $task->workflow_phase_id
+            && OrderTaskRequirement::automationKey($candidate) === 'QC_CHECK'
+            && strcasecmp(trim((string) $candidate->status), 'Waiting for QC Issue Resolution') === 0
+            && $candidate->completed_at === null
+        );
+    }
+
     public function build(FlowJob $order, int $supplierId): array
     {
         $order->loadMissing([
             'workflow.phases.taskPack.items', 'tasks.setupTemplate', 'tasks.assignee:id,name',
-            'tasks.documents:id,task_id', 'tasks.links:id,task_id',
+            'tasks.documents:id,task_id,name,size', 'tasks.links:id,task_id',
             'phase:id,name,short_name,sequence',
         ]);
         $assigned = SupplierTaskAssignment::query()->where('flow_job_id', $order->id)
@@ -147,6 +174,14 @@ final class SupplierWorkflowProjection
                 $mode = self::taskMode($order, $task);
                 $key = self::actionKey(OrderTaskRequirement::automationKey($task), (int) $phase->sequence);
                 $isAssigned = $assigned->has((int) $task->id);
+                $isQcDocumentTask = $isAssigned && in_array($key, ['QC_CHECK', 'QC_ISSUE'], true);
+                // A QC attachment is independent of task completion, just like
+                // FlowTracker's QC Document link. No new queries: task documents
+                // were eager-loaded for the entire Order in one bounded select.
+                $canAttachQc = $isQcDocumentTask
+                    && (int) $task->workflow_phase_id === (int) $order->workflow_phase_id
+                    && ! $order->completed_at
+                    && ! in_array(strtolower((string) $order->status), ['draft', 'cancelled', 'completed'], true);
                 // Scheduling dates are buyer-managed: an assigned supplier can view this
                 // task but cannot set an estimated delivery date through the portal.
                 $canAct = $isAssigned && $mode === 'active' && $key !== null
@@ -183,6 +218,14 @@ final class SupplierWorkflowProjection
                     'can_act' => $canAct,
                     'date_controlled_by_flowtracker' => $key === 'PROD_SET_ESTIMATED_DELIVERY',
                     'action_key' => $canAct ? $key : null,
+                    'document_action_key' => $isQcDocumentTask ? $key : null,
+                    'can_attach' => $canAttachQc,
+                    'document_files' => $isQcDocumentTask ? $task->documents->take(30)
+                        ->map(fn ($doc) => [
+                            'id' => (int) $doc->id,
+                            'name' => mb_substr(basename(str_replace('\\', '/', (string) $doc->name)), 0, 255),
+                            'size' => (int) $doc->size,
+                        ])->values()->all() : [],
                     'artwork_files' => $reviewArtwork, 'revision_sources' => $replaceArtwork,
                 ];
             }

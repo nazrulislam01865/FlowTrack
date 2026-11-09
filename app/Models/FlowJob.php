@@ -79,6 +79,16 @@ class FlowJob extends Model
         'shipping_source_address_id',
         'tracking_token',
         'tracking_token_created_at',
+        'remote_area_resolution_status',
+        'remote_area_lookup_key',
+        'remote_area_input_fingerprint',
+        'remote_area_rule_id',
+        'remote_area_name_snapshot',
+        'remote_area_location_snapshot',
+        'remote_area_charge',
+        'remote_area_rule_revision',
+        'remote_area_workspace_id',
+        'remote_area_resolved_at',
     ];
 
     protected static function booted(): void
@@ -130,6 +140,9 @@ class FlowJob extends Model
             'completed_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'commercial_value' => 'decimal:2',
+            'remote_area_charge' => 'decimal:2',
+            'remote_area_resolved_at' => 'datetime',
+            'workflow_display_version' => 'integer',
         ];
     }
 

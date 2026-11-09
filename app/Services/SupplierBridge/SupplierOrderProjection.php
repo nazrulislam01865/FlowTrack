@@ -13,7 +13,7 @@ final class SupplierOrderProjection
 {
     // Bump when the supplier-visible projection semantics change. Legacy outbox
     // rows are reconciled once; normal writes still deliver event-first.
-    public const FORMAT_VERSION = 5;
+    public const FORMAT_VERSION = 9;
 
     private const TASKS = [
         2 => [
@@ -188,6 +188,73 @@ final class SupplierOrderProjection
             'date' => $order->created_at?->toIso8601String(),
         ];
 
+        // No redo lookup for normal orders and no query inside the item/task loops.
+        // The unique redo_order_id index and one joined original-order reference
+        // supply only operational information for this assigned supplier.
+        $redo = null;
+        if ($order->start_handling === 'Redo') {
+            $record = DB::table('order_redos as redo')
+                ->join('flow_jobs as original', 'original.id', '=', 'redo.original_order_id')
+                ->where('redo.redo_order_id', $orderId)
+                ->first([
+                    'original.job_number as original_number',
+                    'redo.scope', 'redo.issue_category', 'redo.issue_description',
+                    'redo.affected_quantity', 'redo.redo_quantity',
+                    'redo.supplier_id', 'redo.supplier_adjustment_type',
+                    'redo.supplier_adjustment_value', 'redo.supplier_redo_charge',
+                    'redo.freight_amount', 'redo.courier_freight_amount',
+                    'redo.total_supplier_recovery',
+                ]);
+            if ($record) {
+                $original = (string) $record->original_number;
+                $redo = [
+                    'original_reference' => str_starts_with($original, 'JOB-')
+                        ? 'ORDER-'.substr($original, 4) : $original,
+                    'scope' => (string) $record->scope,
+                    'issue_category' => mb_substr((string) $record->issue_category, 0, 120),
+                    'issue_description' => mb_substr(
+                        app(\App\Services\RichTextService::class)->plainText((string) $record->issue_description),
+                        0, 5000,
+                    ),
+                    'affected_quantity' => (int) $record->affected_quantity,
+                    'redo_quantity' => (int) $record->redo_quantity,
+                ];
+                // An explicitly selected financial supplier always takes precedence.
+                // Without one, prefer the redo order's supplier. Historical redo
+                // orders can have neither ID (or an outdated order-level ID),
+                // despite having one supplier on all active item rows. In that
+                // case, check for another assigned supplier once, not per item.
+                // Never disclose the recovery when multiple suppliers are possible.
+                $selectedSupplierId = (int) $record->supplier_id;
+                $financialSupplierId = $selectedSupplierId ?: (int) $order->supplier_id;
+                $isFinancialRecipient = $financialSupplierId > 0 && $financialSupplierId === $supplierId;
+                if (! $isFinancialRecipient && $selectedSupplierId === 0) {
+                    // $items already proves the recipient owns at least one
+                    // active assigned line. A single indexed EXISTS rules out
+                    // other recipients without loading their order lines.
+                    $isFinancialRecipient = ! DB::table('flow_job_items')
+                        ->where('flow_job_id', $orderId)
+                        ->where('is_removed', false)
+                        ->where('quantity', '>', 0)
+                        ->whereNotNull('supplier_id')
+                        ->where('supplier_id', '!=', $supplierId)
+                        ->exists();
+                }
+                if ($isFinancialRecipient) {
+                    $courierFreight = max(0, round((float) $record->courier_freight_amount, 2));
+                    $supplierFreight = max(0, round((float) $record->freight_amount - $courierFreight, 2));
+                    $redo['supplier_adjustment'] = [
+                        'type' => $record->supplier_adjustment_type === 'pcs' ? 'pcs' : 'percent',
+                        'value' => (float) $record->supplier_adjustment_value,
+                        'charge' => (float) $record->supplier_redo_charge,
+                        'freight' => $supplierFreight,
+                        'courier_freight' => $courierFreight,
+                        'total_recovery' => (float) $record->total_supplier_recovery,
+                    ];
+                }
+            }
+        }
+
         return ['event_id' => $eventId, 'supplier_id' => $supplierId, 'order' => [
             'reference' => $order->displayOrderNumber(),
             'title' => mb_substr(trim((string) $order->title) ?: ('Order '.$order->displayOrderNumber()), 0, 255),
@@ -209,6 +276,7 @@ final class SupplierOrderProjection
             'currency' => preg_match('/^[A-Z]{3}$/', strtoupper((string) $order->currency))
                 ? strtoupper((string) $order->currency) : 'USD',
             'supplier_instruction' => mb_substr((string) ($order->supplier_instruction ?? ''), 0, 2000),
+            ...($redo !== null ? ['redo' => $redo] : []),
             'items' => $lines, 'stages' => $stages,
             'workflow' => app(SupplierWorkflowProjection::class)->build($order, $supplierId), 'documents' => $documents,
             'recent_updates' => $recent,

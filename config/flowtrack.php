@@ -6,10 +6,24 @@ return [
     'workspace_id' => (int) env('FLOWTRACK_WORKSPACE_ID', 1),
     // Phase 3: keep legacy workspace-wide refresh routing available for immediate rollback.
     'order_targeted_events_enabled' => (bool) env('FLOWTRACK_ORDER_TARGETED_EVENTS_ENABLED', false),
+    // Phase 4: bounded general Order documents, with the original full-history
+    // loader available for immediate rollback.
+    'order_attachment_pagination_enabled' => (bool) env('FLOWTRACK_ORDER_ATTACHMENT_PAGINATION_ENABLED', false),
     // Phase 4: optimize existing workflow reconciliation reads without changing
     // the eligibility, transaction, task semantics or repair/advance behavior.
     // OFF retains the legacy per-task reads for emergency comparison/rollback.
     'workflow_maintenance_batch_enabled' => (bool) env('FLOWTRACK_WORKFLOW_MAINTENANCE_BATCH_ENABLED', false),
+    // Stage- and role-scoped workflow task cards; OFF keeps the exact legacy reader.
+    // Coalesce non-current phase parent scans during full batch maintenance.
+    // OFF keeps per-phase state transitions until staging comparison passes.
+    'workflow_parent_coalesce_enabled' => (bool) env('FLOWTRACK_WORKFLOW_PARENT_COALESCE_ENABLED', false),
+    // Reuse the canonical task row already locked during a workflow action.
+    // OFF keeps the legacy duplicate task read for independent rollback.
+    'workflow_action_locked_task_reuse_enabled' => (bool) env('FLOWTRACK_WORKFLOW_ACTION_LOCKED_TASK_REUSE_ENABLED', false),
+    'workflow_display_query_enabled' => (bool) env('FLOWTRACK_WORKFLOW_DISPLAY_QUERY_ENABLED', false),
+    // Independent writer/read controls: migrate and backfill before serving snapshots.
+    'workflow_read_snapshot_writes_enabled' => (bool) env('FLOWTRACK_WORKFLOW_READ_SNAPSHOT_WRITES_ENABLED', false),
+    'workflow_read_snapshot_enabled' => (bool) env('FLOWTRACK_WORKFLOW_READ_SNAPSHOT_ENABLED', false),
 
     // Release B: conservative, one-query guard for a known incomplete required
     // current-phase task. Disabled until matched staging tests are signed off.

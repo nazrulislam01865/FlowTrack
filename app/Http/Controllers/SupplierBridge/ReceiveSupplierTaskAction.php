@@ -99,6 +99,7 @@ final class ReceiveSupplierTaskAction extends Controller
             'payload.qty_inspected' => ['sometimes', 'integer', 'min:0'],
             'payload.qty_accepted' => ['sometimes', 'integer', 'min:0'],
             'payload.qty_rejected' => ['sometimes', 'integer', 'min:0'],
+            'payload.qc_comments' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'payload.issue_category' => ['sometimes', 'string', 'max:100'],
             'payload.erp_reference' => ['sometimes', 'string', 'max:150'],
             'payload.carrier' => ['sometimes', 'string', 'max:150'],
@@ -171,19 +172,27 @@ final class ReceiveSupplierTaskAction extends Controller
             }
             abort_unless(hash_equals((string) ($task->status ?: 'Ready'), $validated['expected_status']), 409);
             $job->loadMissing(['phase', 'workflow.phases.taskPack.items', 'tasks.setupTemplate']);
-            abort_unless(SupplierWorkflowProjection::taskMode($job, $task) === 'active', 409);
             $key = SupplierWorkflowProjection::actionKey(
                 OrderTaskRequirement::automationKey($task), (int) ($job->phase?->sequence ?? 0));
             abort_unless($key !== null && $key !== 'PROD_SET_ESTIMATED_DELIVERY', 403);
             $decision = $validated['decision'];
+            // QC Documents are the same separate task-evidence operation used
+            // in FlowTracker. They must never pass/fail or resolve a QC task.
+            $qcAttachment = $decision === 'attach' && in_array($key, ['QC_CHECK', 'QC_ISSUE'], true)
+                && (int) $task->workflow_phase_id === (int) $job->workflow_phase_id
+                && ! $job->completed_at && strcasecmp((string) $job->status, 'Completed') !== 0;
+            abort_unless($qcAttachment || SupplierWorkflowProjection::taskMode($job, $task) === 'active', 409);
             // The ERP upload and the client's later decision are separate
             // canonical transitions; do not accept a shortcut across them.
-            abort_unless(in_array($decision,
+            abort_unless($qcAttachment || in_array($decision,
                 SupplierWorkflowProjection::decisionsForStatus($key, (string) $task->status), true), 409);
             abort_unless($multipart === (count($files) > 0), 422);
             $isDocumentTask = in_array($key, SupplierWorkflowProjection::DOCUMENT_KEYS, true);
+            abort_if($multipart && in_array($key, ['QC_CHECK', 'QC_ISSUE', 'QC_APPROVE_SHIPMENT'], true)
+                && ! $qcAttachment, 422);
             abort_unless(($isDocumentTask && $multipart && $decision === 'upload')
-                || (! $isDocumentTask && $decision !== 'upload'), 422);
+                || ($qcAttachment && $multipart)
+                || (! $isDocumentTask && ! $qcAttachment && $decision !== 'upload' && $decision !== 'attach'), 422);
             $actor = User::query()->where('is_active', true)->findOrFail($assignment->assigned_by);
             $access = app(AccessControlService::class);
             abort_unless($access->canEditTask($actor, $task), 403);
@@ -233,11 +242,13 @@ final class ReceiveSupplierTaskAction extends Controller
                 // date stored on the order is not modified by dispatch.
                 $actionPayload['shipment_date'] = app(WorkspaceSettingsService::class)->localToday()->toDateString();
             }
-            $changed = $isDocumentTask
-                ? $this->completeUploadedTask($task, $actor)
-                : app(OrderWorkflowActionService::class)->perform(
-                    $task, $actor, $decision, $validated['comment'] ?? '', $actionPayload,
-                );
+            $changed = $qcAttachment
+                ? $task // Evidence only; QC status, progress and dependencies never change.
+                : ($isDocumentTask
+                    ? $this->completeUploadedTask($task, $actor)
+                    : app(OrderWorkflowActionService::class)->perform(
+                        $task, $actor, $decision, $validated['comment'] ?? '', $actionPayload,
+                    ));
             // Immutable audit identifying the actual supplier principal (not the FlowTracker delegate).
             $job->activities()->create([
                 'user_id' => $actor->id, 'event' => 'supplier.workflow_task_action',

@@ -527,8 +527,15 @@ class BulkOrderImportService
         $job = FlowJob::query()->findOrFail((int) $row['existing_job_id']);
         abort_unless($this->canUpdateExisting($actor, $job), 403);
 
-        DB::transaction(function () use ($job, $row, $actor, $importNumber): void {
-            $job->update([
+        $resolver = config('remote_area_lookup.order_resolution_writes_enabled', false)
+            ? app(\App\Services\Orders\OrderRemoteAreaResolutionService::class)
+            : null;
+        $candidate = $resolver && \App\Services\RemoteAreas\PostalRangeCompiler::key($job->shipping_postal_code)
+            !== \App\Services\RemoteAreas\PostalRangeCompiler::key($row['shipping_postal_code'])
+                ? $resolver->resolveForInput($row['shipping_postal_code']) : null;
+        DB::transaction(function () use ($job, $row, $actor, $importNumber, $resolver, $candidate): void {
+            if ($resolver) $job = FlowJob::query()->whereKey($job->id)->lockForUpdate()->firstOrFail();
+            $job->update(array_merge([
                 'order_number' => $row['ref'],
                 'is_repeat_order' => (bool) ($row['is_repeat_resolved'] ?? false),
                 'repeat_order_number' => ($row['is_repeat_resolved'] ?? false) ? $row['repeat_order_no'] : null,
@@ -551,7 +558,7 @@ class BulkOrderImportService
                 'notes' => blank($row['notes']) ? null : trim((string) $row['notes']),
                 'import_profile' => $row['import_profile_resolved'] ?? null,
                 'bulk_import_id' => $importNumber,
-            ]);
+            ], $resolver ? $resolver->attributesForPostal($job, $row['shipping_postal_code'], $candidate) : []));
 
             $job->items()->delete();
             if (filled($row['product_resolved_id'] ?? null)) {

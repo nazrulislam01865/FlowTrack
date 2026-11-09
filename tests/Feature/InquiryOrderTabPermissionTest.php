@@ -44,8 +44,12 @@ class InquiryOrderTabPermissionTest extends TestCase
         $overview = file_get_contents(resource_path('views/components/jobs/detail-overview.blade.php'));
         $products = file_get_contents(resource_path('views/components/jobs/order-detail/products.blade.php'));
 
-        $this->assertStringContainsString('<x-jobs.order-detail.products', $overview);
-        $this->assertStringContainsString('Products &amp; quantities', $products);
+        $this->assertStringContainsString('<livewire:jobs.order-products-section', $overview);
+        $productsSection = file_get_contents(resource_path('views/livewire/jobs/order-products-section.blade.php'));
+        $this->assertStringContainsString('<x-jobs.order-detail.products', $productsSection);
+        $productsCard = file_get_contents(resource_path('views/components/catalog/detail-products-card.blade.php'));
+        $this->assertStringContainsString('<x-catalog.detail-products-card', $products);
+        $this->assertStringContainsString("'title' => 'Products & quantities'", $productsCard);
         $this->assertStringContainsString("can(\$user, 'catalog_products', 'view')", $viewService);
         $this->assertStringContainsString("can(\$user, 'catalog_products', 'edit')", $viewService);
         $this->assertStringContainsString("can(\$actor, 'catalog_products', 'create')", $service);

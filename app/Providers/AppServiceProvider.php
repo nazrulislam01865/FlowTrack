@@ -61,7 +61,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(MasterDataService::class);
         $this->app->scoped(OrderWorkflowSetupService::class);
         $this->app->scoped(OrderWorkflowBindingService::class);
+        $this->app->scoped(\App\Queries\Orders\OrderWorkflowDisplayQuery::class);
         $this->app->scoped(OrderWorkflowSummaryService::class);
+        $this->app->scoped(\App\Services\Orders\OrderWorkflowSnapshotService::class);
         $this->app->scoped(BrandingService::class);
         $this->app->scoped(RequestPerformanceMonitor::class);
         $this->app->scoped(ShellDataService::class);
@@ -112,6 +114,15 @@ class AppServiceProvider extends ServiceProvider
         // Durable Remote Area index revisions are written only when the
         // compiled matcher is explicitly enabled. No ordinary read is changed.
         MasterRecord::observe(\App\Observers\RemoteAreaLookupVersionObserver::class);
+
+        // Source-version changes must occur in the SAME transaction as the
+        // authoritative mutation, not in a post-commit model observer.
+        foreach ([Task::class, FlowJob::class, Document::class,
+            \App\Models\TaskLink::class, \App\Models\SupplierTaskAssignment::class,
+            \App\Models\FlowJobPhaseHistory::class, \App\Models\Activity::class,
+        ] as $modelClass) {
+            $modelClass::observe(\App\Observers\OrderWorkflowSnapshotInvalidationObserver::class);
+        }
 
         foreach (WorkspaceDataObserver::observedModels() as $modelClass) {
             $modelClass::observe(WorkspaceDataObserver::class);

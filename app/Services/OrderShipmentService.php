@@ -915,14 +915,27 @@ final class OrderShipmentService
 
     private function syncLegacyPrimaryAddress(FlowJob $job, OrderShipment $shipment): void
     {
-        $job->update(array_merge([
+        $updates = array_merge([
             'shipping_address' => $this->legacyShippingAddressText($shipment),
             'shipping_contact_name' => $shipment->recipient,
             'shipping_phone_country_code' => $shipment->phone_country_code,
             'shipping_phone' => $shipment->phone,
             'shipping_postal_code' => $shipment->postal_code,
             'shipping_source_address_id' => $shipment->shipping_source_address_id,
-        ], $this->legacyPrimaryShippingSelection($shipment)));
+        ], $this->legacyPrimaryShippingSelection($shipment));
+        if (config('remote_area_lookup.order_resolution_writes_enabled', false)) {
+            // A primary shipment edit can race an inline postal edit. Re-read
+            // the authoritative Order under lock before comparing fingerprints,
+            // then persist the primary postal and snapshot in one update.
+            $lockedJob = FlowJob::query()->whereKey($job->id)->lockForUpdate()->firstOrFail();
+            $updates = array_merge($updates,
+                app(\App\Services\Orders\OrderRemoteAreaResolutionService::class)
+                    ->attributesForPostal($lockedJob, $shipment->postal_code));
+            $lockedJob->update($updates);
+            $job->setRawAttributes($lockedJob->getAttributes(), true);
+            return;
+        }
+        $job->update($updates);
     }
 
     private function syncLegacyPrimaryShippingSelection(FlowJob $job, OrderShipment $shipment): void

@@ -62,6 +62,18 @@ final class VisibleOrderQuery
         return $this->jobs->loadVisibleOverviewWorkflow($order, $actor);
     }
 
+    /**
+     * Explicit authorized entry point for an isolated workflow-card projection.
+     * Order and task visibility are checked by the reader; this is never an
+     * action or supplier download authorization shortcut.
+     *
+     * @param array<int, int> $phaseIds
+     */
+    public function taskCards(User $actor, int $orderId, array $phaseIds): WorkflowDisplayProjection
+    {
+        return app(OrderWorkflowDisplayQuery::class)->taskCards($actor, $orderId, $phaseIds);
+    }
+
     public function loadOverviewDocuments(FlowJob $order): FlowJob
     {
         return $this->jobs->loadVisibleOverviewDocuments($order);

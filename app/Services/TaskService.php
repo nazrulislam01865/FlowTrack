@@ -26,10 +26,15 @@ class TaskService
      * person doing the work. The assignment is audited on both the Task and
      * its parent Order through the normal activity/notification pipeline.
      */
-    public function claimForAction(Task $task, User $actor, string $action = 'acted on the task'): Task
+    public function claimForAction(Task $task, User $actor, string $action = 'acted on the task', bool $lockedFreshTask = false): Task
     {
         app(\App\Services\Orders\OrderHoldService::class)->assertNotHeld((int) $task->flow_job_id);
-        $task = Task::query()->findOrFail($task->id);
+        // A workflow action supplies a freshly locked Task in the same DB
+        // transaction. Re-querying it is redundant; untrusted/nonlocked
+        // callers retain the original authoritative SELECT.
+        if (! $lockedFreshTask) {
+            $task = Task::query()->findOrFail($task->id);
+        }
         $previousAssigneeId = $task->assignee_id ? (int) $task->assignee_id : null;
 
         if ($previousAssigneeId === (int) $actor->id) {
@@ -62,7 +67,11 @@ class TaskService
             ],
         );
 
-        $task = $task->refresh();
+        // record() already refreshed this exact Task for notifications. The
+        // locked-action path does not need another identical SELECT.
+        if (! $lockedFreshTask) {
+            $task = $task->refresh();
+        }
         app(\App\Services\Orders\OrderWorkflowSummaryService::class)->updateNextTaskAssignee($task);
 
         return $task;

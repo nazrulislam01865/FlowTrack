@@ -54,4 +54,18 @@ class OrderWorkflowBatchSyncPerformanceTest extends TestCase
         $this->assertStringNotContainsString("loadTab(\$job, \$user, 'overview')", $method);
     }
 
+
+    public function test_batch_uses_one_post_write_task_snapshot_and_preserves_legacy_branch(): void
+    {
+        $workflow = file_get_contents(app_path('Services/LegacyJobService.php'));
+        $flags = file_get_contents(app_path('Services/OrderTaskFlagService.php'));
+
+        $this->assertStringContainsString('$finalTasks = $freshJob->tasks()', $workflow);
+        $this->assertStringContainsString('$orderTaskRules->syncJob($freshJob, $finalTasks, false)', $workflow);
+        $this->assertStringContainsString('$this->syncAutomaticStatus($freshJob, null, $finalTasks)', $workflow);
+        $this->assertStringContainsString('$orderTaskRules->syncTask($task, false)', $workflow);
+        $this->assertStringContainsString('$orderTaskRules->syncTask($task->refresh(), false)', $workflow);
+        $this->assertStringContainsString('?Collection $prefetchedTasks = null', $flags);
+        $this->assertStringContainsString('bool $returnFresh = true', $flags);
+    }
 }

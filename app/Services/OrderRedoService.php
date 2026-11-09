@@ -454,6 +454,9 @@ class OrderRedoService
             // shipping fields copied above. The Shipment stage can then fan it
             // out into same-address or multi-address shipments independently.
             app(OrderShipmentService::class)->seedPrimaryShipment($redoOrder, $actor);
+            if (config('remote_area_lookup.order_resolution_writes_enabled', false)) {
+                app(\App\Services\Orders\OrderRemoteAreaResolutionService::class)->persistForOrder($redoOrder);
+            }
 
             $this->cloneRedoItems($root, $redoOrder, $redoQuantity, $supplierId, $actor);
             $this->ensureCoreMembers($redoOrder);

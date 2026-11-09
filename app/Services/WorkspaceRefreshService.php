@@ -13,7 +13,8 @@ class WorkspaceRefreshService
     private const DISPATCH_GATE_PREFIX = 'flowtrack:workspace-refresh-gate:';
 
     private bool $afterCommitScheduled = false;
-    private string $pendingReason = 'data';
+    /** @var array<string,true> Mutation subjects coalesced inside one transaction. */
+    private array $pendingReasons = [];
     private ?int $pendingOrderId = null;
 
     public function workspaceId(): int
@@ -36,7 +37,15 @@ class WorkspaceRefreshService
         $orderId = $orderId !== null && $orderId > 0 ? $orderId : null;
 
         if (DB::transactionLevel() > 0) {
-            $this->pendingReason = $reason;
+            // Preserve every distinct model subject. A Task status update
+            // followed by an Activity insert must refresh BOTH workflow and
+            // activity, not just whichever observer ran last.
+            $this->pendingReasons[$reason] = true;
+            if (count($this->pendingReasons) > 12) {
+                // Unknown/multi-resource transactions safely reauthorize all
+                // ready Order components instead of dropping earlier changes.
+                $this->pendingReasons = ['FlowJob:updated' => true];
+            }
             if ($this->afterCommitScheduled) {
                 // When several orders (or unknown subjects) change inside one
                 // transaction, never publish a misleading single-order scope.
@@ -49,10 +58,10 @@ class WorkspaceRefreshService
             $this->pendingOrderId = $orderId;
             $this->afterCommitScheduled = true;
             DB::afterCommit(function (): void {
-                $reason = $this->pendingReason;
+                $reason = implode('|', array_keys($this->pendingReasons)) ?: 'data';
                 $orderId = $this->pendingOrderId;
                 $this->afterCommitScheduled = false;
-                $this->pendingReason = 'data';
+                $this->pendingReasons = [];
                 $this->pendingOrderId = null;
                 $this->commitTouch($reason, $orderId);
             });
@@ -75,7 +84,10 @@ class WorkspaceRefreshService
         // Bulk imports/workflow transitions can still cause several independent
         // commits. Coalesce their realtime traffic into a single delayed signal.
         // Receivers always re-query the latest authorized database state.
-        if (! Cache::add($this->dispatchGateKey(), true, now()->addSecond())) {
+        $isTargetedOrderEvent = $orderId !== null
+            && (bool) config('flowtrack.order_targeted_events_enabled', false);
+        if (! $isTargetedOrderEvent
+            && ! Cache::add($this->dispatchGateKey(), true, now()->addSecond())) {
             return;
         }
 

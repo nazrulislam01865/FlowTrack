@@ -159,7 +159,11 @@ final class OrderWorkflowSection extends Component
         // One model provides both the original phase and the auto-advance
         // input. A successful reconciliation refreshes it below; on a healthy
         // order there is no need for a second FlowJob SELECT.
-        $runtimeJob = FlowJob::query()->findOrFail($this->orderId);
+        // Authorize before reconciliation, evidence repair or auto-advance.
+        // A guessed Order ID must not trigger writes to an inaccessible Order.
+        $viewer = auth()->user();
+        abort_unless($viewer instanceof User, 403);
+        $runtimeJob = app(VisibleOrderQuery::class)->scoped($viewer, $this->orderId);
         $beforePhaseId = (int) ($runtimeJob->workflow_phase_id ?: 0);
 
         // Preserve historical self-healing, but keep it outside the critical
@@ -177,6 +181,14 @@ final class OrderWorkflowSection extends Component
         }
         $this->preparedWorkflowJob = OrderBaselineRecorder::measure('workflow_auto_advance',
             fn () => app(AutoAdvanceOrder::class)->handle($runtimeJob, auth()->user()), $this->orderId);
+        if ((bool) config('flowtrack.workflow_read_snapshot_enabled', false)
+            && (bool) config('flowtrack.workflow_read_snapshot_writes_enabled', false)) {
+            // Binding/evidence repair and AutoAdvance may have committed a Task
+            // mutation after $runtimeJob was first fetched. Keep the same
+            // prepared Order and re-read only its durable source version.
+            $this->preparedWorkflowJob->workflow_display_version = (int) \Illuminate\Support\Facades\DB::table('flow_jobs')
+                ->where('id', $this->orderId)->value('workflow_display_version');
+        }
 
         // AutoAdvanceOrder returns the already-authorized/readied Order used to
         // make the phase decision. Reuse its phase value instead of issuing a
@@ -264,6 +276,14 @@ final class OrderWorkflowSection extends Component
             $job = $query->base($user, $this->orderId);
         }
         $this->preparedWorkflowJob = null;
+        if ((bool) config('flowtrack.workflow_display_query_enabled', false)) {
+            app(\App\Queries\Orders\OrderWorkflowDisplayQuery::class)->preferDisplayPhase(
+                $job,
+                (int) ($this->overviewPhaseId ?: $job->workflow_phase_id),
+                $this->showOverviewTaskDocumentModal || $this->showShipmentModal,
+                $this->showOrderWorkflowActionModal ? (int) ($this->orderWorkflowActionTaskId ?: 0) : 0,
+            );
+        }
         OrderBaselineRecorder::measure('workflow_load_relations',
             fn () => $query->loadOverviewWorkflow($job, $user), $this->orderId);
 
@@ -281,7 +301,15 @@ final class OrderWorkflowSection extends Component
         $couriers = $master->active('courier');
 
         $context = OrderBaselineRecorder::measure('workflow_detail_context',
-            fn () => app(OrderDetailViewService::class)->build($job, $user, $shipmentUrgencies, $couriers), $this->orderId);
+            fn () => app(OrderDetailViewService::class)->build(
+                $job,
+                $user,
+                $shipmentUrgencies,
+                $couriers,
+                (bool) config('flowtrack.workflow_display_query_enabled', false)
+                    ? ($this->showOrderWorkflowActionModal ? (int) $this->orderWorkflowActionTaskId : 0)
+                    : null,
+            ), $this->orderId);
         // Supplier assignment is now inherited from Task Pack Setup; no row-level selector/query.
         $job->tasks->loadMissing('supplierAssignment');
         $context['shipmentMethods'] = $shipmentMethods;

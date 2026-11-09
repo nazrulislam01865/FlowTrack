@@ -12,7 +12,7 @@
 @endphp
 <section class="section-card attachments-card ft-order-section-card ft-order-attachments-card" data-order-disclosure>
     <div class="section-head ft-order-section-head">
-        <h2>Other document <span class="status-pill">{{ $otherDocuments->count() }}</span></h2>
+        <h2>Other document <span class="status-pill">{{ $context['attachmentTotal'] ?? $otherDocuments->count() }}</span></h2>
         <button type="button" class="section-toggle ft-order-disclosure-button ft-order-compact-toggle" data-order-disclosure-trigger aria-expanded="true">Hide files</button>
     </div>
     <div class="collapse-body ft-order-disclosure-body" data-order-disclosure-body>
@@ -46,5 +46,8 @@
                 <div class="empty-stage ft-order-empty-state">No other documents yet.</div>
             @endforelse
         </div>
+        @if($context['attachmentHasMore'] ?? false)
+            <button type="button" class="btn small" wire:click="loadMoreOrderDocuments" wire:loading.attr="disabled" wire:target="loadMoreOrderDocuments">Load more</button>
+        @endif
     </div>
 </section>

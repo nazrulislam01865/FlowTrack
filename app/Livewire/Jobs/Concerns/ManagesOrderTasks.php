@@ -191,8 +191,14 @@ trait ManagesOrderTasks
         ]);
 
         if (filled($data['newOrderTaskAssigneeId'] ?? null)) {
-            $allowedAssigneeIds = $this->userOptions($user)->pluck('id')->map(fn ($id) => (int) $id);
-            abort_unless($allowedAssigneeIds->contains((int) $data['newOrderTaskAssigneeId']), 403);
+            $assigneeId = (int) $data['newOrderTaskAssigneeId'];
+            $canAssignOthers = (int) $job->created_by === (int) $user->id
+                || $user->canModule('tasks', 'assign') || $user->canModule('jobs', 'assign');
+            // Check only the selected user. Do not hydrate the full assignee
+            // directory just to validate a task addition.
+            abort_unless($canAssignOthers
+                ? User::query()->whereKey($assigneeId)->where('is_active', true)->exists()
+                : $assigneeId === (int) $user->id, 403);
         }
 
         app(AppendOrderTask::class)->handle($job, [

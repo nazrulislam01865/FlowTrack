@@ -310,12 +310,21 @@ class OrderFinanceService
             return ! str_starts_with($description, $prefix);
         }));
 
-        $remoteArea = $this->masterData->remoteAreaForPostalCode($job->shipping_postal_code);
-        $charge = $remoteArea?->remoteAreaExtraCharge();
-        if (! $remoteArea || $charge === null || $charge <= 0) return $items;
+        if (config('remote_area_lookup.order_invoice_snapshot_enabled', false)) {
+            // This method executes only on the locked Order in createInvoice().
+            // An unavailable/stale resolution is a pricing error, never a zero fee.
+            $resolution = app(\App\Services\Orders\OrderRemoteAreaResolutionService::class)
+                ->ensureFinanciallyValid($job);
+            $charge = (float) $resolution->charge;
+            $areaName = trim((string) ($resolution->name ?? ''));
+        } else {
+            $remoteArea = $this->masterData->remoteAreaForPostalCode($job->shipping_postal_code);
+            $charge = $remoteArea?->remoteAreaExtraCharge();
+            $areaName = trim((string) ($remoteArea?->name ?? ''));
+        }
+        if ($charge === null || $charge <= 0) return $items;
 
         $description = self::REMOTE_AREA_SURCHARGE_PREFIX;
-        $areaName = trim((string) $remoteArea->name);
         $postalCode = $this->masterData->normalizePostalCode((string) $job->shipping_postal_code);
         if ($areaName !== '') $description .= ' - '.$areaName;
         if ($postalCode !== '') $description .= ' ('.$postalCode.')';

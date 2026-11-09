@@ -18,7 +18,10 @@
     $canLinkDocument = $documentLinkPermission && ! $orderOnHold;
     $canDeleteDocument = $documentDeletePermission && ! $orderOnHold;
     $canExportDocument = (bool) ($context['canExportDocument'] ?? false);
-    $taskDocuments = $job->documents->where('task_id', $task->id);
+    $taskDocuments = (bool) config('flowtrack.workflow_display_query_enabled', false)
+        ? (app(\App\Queries\Orders\OrderWorkflowDisplayQuery::class)->documentsForTask($job, (int) $task->id)
+            ?? $job->documents->where('task_id', $task->id))
+        : $job->documents->where('task_id', $task->id);
     if (! (bool) config('flowtrack.order_tracking_enabled', false)) {
         $taskDocuments = $taskDocuments->reject(
             fn ($document) => $document->category === \App\Models\Document::CATEGORY_ARTWORK_TRACKING_PDF

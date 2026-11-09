@@ -94,6 +94,18 @@ class OrderWorkflowReleaseABFastPathTest extends TestCase
         $this->assertFalse($this->blocked($this->job()));
     }
 
+    public function test_skipped_and_not_applicable_tasks_never_block_auto_advance(): void
+    {
+        DB::table('task_pack_items')->insert(['id' => 1, 'task_pack_id' => 5, 'is_required' => true]);
+        foreach (['Skipped', 'Not Applicable', 'N/A'] as $status) {
+            $this->insertTask(1, $status);
+            $this->insertTask(null, $status);
+        }
+        $this->assertFalse($this->blocked($this->job()));
+        $this->insertTask(1);
+        $this->assertTrue($this->blocked($this->job()));
+    }
+
     public function test_archived_tasks_are_excluded_and_manual_open_tasks_still_block(): void
     {
         DB::table('task_pack_items')->insert(['id' => 1, 'task_pack_id' => 5, 'is_required' => true]);

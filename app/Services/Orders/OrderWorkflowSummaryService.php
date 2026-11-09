@@ -102,6 +102,9 @@ final class OrderWorkflowSummaryService
 
     public function markStale(int $orderId): void
     {
+        // Covers canonical bulk maintenance paths that bypass Eloquent Task
+        // observers. One source-version bump per Order/transaction group.
+        app(OrderWorkflowSnapshotService::class)->invalidateInTransaction($orderId);
         if (! $this->tableReady()) return;
 
         OrderWorkflowSummary::query()
@@ -111,6 +114,7 @@ final class OrderWorkflowSummaryService
 
     public function markStaleForTaskPackItem(int $taskPackItemId): void
     {
+        app(OrderWorkflowSnapshotService::class)->invalidateForTaskPackItem($taskPackItemId);
         if (! $this->tableReady()) return;
 
         OrderWorkflowSummary::query()
@@ -123,6 +127,7 @@ final class OrderWorkflowSummaryService
 
     public function markStaleForWorkflow(int $workflowId): void
     {
+        app(OrderWorkflowSnapshotService::class)->invalidateForWorkflow($workflowId);
         if (! $this->tableReady() || $workflowId <= 0) return;
 
         OrderWorkflowSummary::query()
@@ -132,6 +137,7 @@ final class OrderWorkflowSummaryService
 
     public function updateHoldState(int $orderId, bool $isOnHold): void
     {
+        app(OrderWorkflowSnapshotService::class)->invalidateInTransaction($orderId);
         if (! $this->tableReady()) return;
 
         OrderWorkflowSummary::query()
@@ -149,6 +155,7 @@ final class OrderWorkflowSummaryService
      */
     public function updateNextTaskAssignee(Task $task): void
     {
+        app(OrderWorkflowSnapshotService::class)->invalidateInTransaction((int) $task->flow_job_id);
         if (! $this->tableReady()) return;
 
         OrderWorkflowSummary::query()

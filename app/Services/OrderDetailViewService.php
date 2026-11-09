@@ -49,9 +49,7 @@ class OrderDetailViewService
             (array) ($job->shipment_urgency_ids ?? []),
         );
         $shippingOptions = CreateOrderShippingMethodPresenter::orderShippingOptions($shipmentMethodOptions, $shipmentUrgencyOptions);
-        $masterData = app(MasterDataService::class);
-        $remoteArea = OrderBaselineRecorder::measure('remote_area_match',
-            fn () => $masterData->remoteAreaForPostalCode($job->shipping_postal_code), (int) $job->id);
+        $remoteAreaResult = $this->remoteAreaForOrderDisplay($job);
 
         return [
             'team' => $this->summaryTeam($job),
@@ -85,13 +83,8 @@ class OrderDetailViewService
             'shipmentShippingName' => $shippingState['name'],
             'shipmentShippingTone' => $shippingState['tone'],
             'shipmentShippingOptions' => $shippingOptions->all(),
-            'remoteArea' => $remoteArea ? [
-                'id' => (int) $remoteArea->id,
-                'name' => trim((string) $remoteArea->name),
-                'postal_code' => $masterData->normalizePostalCode((string) $job->shipping_postal_code),
-                'location' => $remoteArea->remoteAreaLocationLabel(),
-                'extra_charge' => $remoteArea->remoteAreaExtraCharge(),
-            ] : null,
+            'remoteArea' => $remoteAreaResult['remoteArea'],
+            'remoteAreaResolutionStatus' => $remoteAreaResult['status'],
             // The shell never needs task-level workflow state. Keep stable empty
             // keys so existing Blade access remains backward-compatible.
             'taskPermissions' => [],
@@ -101,6 +94,28 @@ class OrderDetailViewService
             'workflowInvoices' => [],
             'productionMonitorDetails' => [],
             'courierOptions' => [],
+        ];
+    }
+
+    /** Snapshot reads do not issue a Remote Area lookup or touch the Master Data table. */
+    private function remoteAreaForOrderDisplay(FlowJob $job): array
+    {
+        if (config('remote_area_lookup.order_snapshot_reads_enabled', false)) {
+            return app(\App\Services\Orders\OrderRemoteAreaReadService::class)
+                ->forDisplay($job, app(MasterDataService::class)->workspaceId());
+        }
+        $master = app(MasterDataService::class);
+        $record = OrderBaselineRecorder::measure('remote_area_match',
+            fn () => $master->remoteAreaForPostalCode($job->shipping_postal_code), (int) $job->id);
+        return [
+            'status' => $record ? 'matched' : 'no_match',
+            'remoteArea' => $record ? [
+                'id' => (int) $record->id,
+                'name' => trim((string) $record->name),
+                'postal_code' => $master->normalizePostalCode((string) $job->shipping_postal_code),
+                'location' => $record->remoteAreaLocationLabel(),
+                'extra_charge' => $record->remoteAreaExtraCharge(),
+            ] : null,
         ];
     }
 
@@ -123,7 +138,7 @@ class OrderDetailViewService
         return $base->concat($members)->unique('id')->values();
     }
 
-    public function build(FlowJob $job, User $user, Collection $shipmentUrgencyOptions, ?Collection $courierOptions = null): array
+    public function build(FlowJob $job, User $user, Collection $shipmentUrgencyOptions, ?Collection $courierOptions = null, ?int $modalTaskId = null): array
     {
         $access = app(AccessControlService::class);
         $courierOptions ??= collect();
@@ -143,23 +158,35 @@ class OrderDetailViewService
         // Resolve the Remote Area once while building the detail context. Blade
         // remains query-free, and MasterDataService serves lookups from one cached
         // active collection instead of querying once per rendered field.
-        $masterData = app(MasterDataService::class);
-        $remoteArea = OrderBaselineRecorder::measure('remote_area_match',
-            fn () => $masterData->remoteAreaForPostalCode($job->shipping_postal_code), (int) $job->id);
+        $remoteAreaResult = $this->remoteAreaForOrderDisplay($job);
         $workflowActions = app(OrderWorkflowActionService::class);
         $documentTaskIds = $job->relationLoaded('documents')
             ? $job->documents->pluck('task_id')->filter()->map(fn ($id) => (int) $id)->flip()
             : collect();
         $taskActionDescriptors = $job->relationLoaded('tasks')
             ? $job->tasks->mapWithKeys(function ($task) use ($workflowActions, $documentTaskIds): array {
+                // The bounded Workflow reader hydrates full file rows only
+                // for the visible phase. Other phases still need accurate
+                // descriptor/evidence flags; their indexed EXISTS aliases
+                // preserve parity without loading historical document rows.
                 $hasEvidence = $documentTaskIds->has((int) $task->id)
-                    || ($task->relationLoaded('links') && $task->links->isNotEmpty());
+                    || (bool) ($task->getAttributes()['documents_exists'] ?? false)
+                    || ($task->relationLoaded('links') && $task->links->isNotEmpty())
+                    || (bool) ($task->getAttributes()['links_exists'] ?? false);
                 return [(int) $task->id => $workflowActions->descriptor($task, $hasEvidence)];
             })->all()
             : [];
-        $taskActionModals = $job->relationLoaded('tasks')
-            ? $job->tasks->mapWithKeys(fn ($task) => [(int) $task->id => $workflowActions->modalCopy($task)])->all()
-            : [];
+        // The isolated Workflow child only needs modal copy for the task
+        // currently being opened. Null preserves the legacy all-tasks caller
+        // contract (including Order list actions); 0 means no modal is open.
+        $modalTasks = $job->relationLoaded('tasks')
+            ? ($modalTaskId === null
+                ? $job->tasks
+                : $job->tasks->filter(fn ($task): bool => (int) $task->id === $modalTaskId))
+            : collect();
+        $taskActionModals = $modalTasks
+            ->mapWithKeys(fn ($task) => [(int) $task->id => $workflowActions->modalCopy($task)])
+            ->all();
 
         $taskPermissions = $job->relationLoaded('tasks')
             ? $job->tasks->mapWithKeys(fn ($task) => [(int) $task->id => [
@@ -283,15 +310,8 @@ class OrderDetailViewService
             'shipmentUrgencyId' => OrderDetailPresenter::shipmentUrgencyId($job),
             'shipmentUrgencyName' => $shipmentUrgencyName,
             'shipmentUrgencyTone' => OrderDetailPresenter::urgencyTone($shipmentUrgencyName),
-            'remoteArea' => $remoteArea ? [
-                'id' => (int) $remoteArea->id,
-                'name' => trim((string) $remoteArea->name),
-                // Show the actual Order postal code that matched. UPS-style
-                // range rows intentionally do not populate legacy postal_code.
-                'postal_code' => $masterData->normalizePostalCode((string) $job->shipping_postal_code),
-                'location' => $remoteArea->remoteAreaLocationLabel(),
-                'extra_charge' => $remoteArea->remoteAreaExtraCharge(),
-            ] : null,
+            'remoteArea' => $remoteAreaResult['remoteArea'],
+            'remoteAreaResolutionStatus' => $remoteAreaResult['status'],
             'courierOptions' => $courierOptions
                 ->map(fn ($courier) => [
                     'value' => trim((string) ($courier->name ?? '')),

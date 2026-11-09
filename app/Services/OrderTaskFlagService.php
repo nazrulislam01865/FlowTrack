@@ -104,6 +104,16 @@ class OrderTaskFlagService
         $flagId = (int) data_get($statusRecord?->metadata, 'order_task_flag_id', 0);
         if ($flagId <= 0) return null;
 
+        // During protected Task Pack reconciliation the active flag catalogue
+        // is already loaded into a request-local snapshot. An indexed lookup
+        // replaces the extra SQL SELECT repeated for each generated task.
+        // Keep the exact legacy query when the batch switch is OFF.
+        if ((bool) config('flowtrack.workflow_maintenance_batch_enabled', false)) {
+            return $this->activeTaskFlags()->first(
+                fn (MasterRecord $record): bool => (int) $record->id === $flagId
+            );
+        }
+
         return MasterRecord::query()
             ->forWorkspace(app(MasterDataService::class)->workspaceId())
             ->ofType('order_task_flag')
@@ -201,7 +211,13 @@ class OrderTaskFlagService
         }
         if ($dirty) $task->update($updates);
 
-        $task = $task->refresh();
+        // syncPhaseTaskPack() already supplied a refreshed Task. The ORM
+        // update above keeps attributes current on this instance, so a second
+        // SELECT per task is redundant when parent scanning is deferred.
+        // All normal mutations retain their original refresh semantics.
+        if ($syncParent || ! (bool) config('flowtrack.workflow_maintenance_batch_enabled', false)) {
+            $task = $task->refresh();
+        }
 
         // Batch workflow synchronization updates many generated tasks in one
         // operation. Re-scanning and re-synchronizing the same parent Order
@@ -217,7 +233,7 @@ class OrderTaskFlagService
         return $task;
     }
 
-    public function syncJob(?FlowJob $job): ?FlowJob
+    public function syncJob(?FlowJob $job, ?Collection $prefetchedTasks = null, bool $returnFresh = true): ?FlowJob
     {
         if (!$job) return null;
 
@@ -237,14 +253,20 @@ class OrderTaskFlagService
                     'attention_at' => null,
                 ]);
             }
-            return $job->fresh();
+            return $returnFresh ? $job->fresh() : $job;
         }
 
-        $tasks = $job->tasks()
-            ->whereNull('deleted_at')
-            ->whereNull('completed_at')
-            ->with(['orderTaskFlag:id,type,name,color,status,sort_order,metadata'])
-            ->get();
+        // Full Task Pack reconciliation can share its final, authoritative
+        // Order task snapshot with status recalculation. Standalone callers
+        // retain the original scoped query and eager-loading behavior.
+        $tasks = $prefetchedTasks !== null
+            ? $prefetchedTasks->filter(fn (Task $task): bool => $task->deleted_at === null
+                && $task->completed_at === null)->values()
+            : $job->tasks()
+                ->whereNull('deleted_at')
+                ->whereNull('completed_at')
+                ->with(['orderTaskFlag:id,type,name,color,status,sort_order,metadata'])
+                ->get();
 
         $candidates = $tasks->map(function (Task $task): ?array {
             $flag = $this->effectiveTaskFlag($task);
@@ -270,7 +292,7 @@ class OrderTaskFlagService
             ]);
         }
 
-        return $job->fresh();
+        return $returnFresh ? $job->fresh() : $job;
     }
 
     public function syncDueTransitions(bool $force = false): int

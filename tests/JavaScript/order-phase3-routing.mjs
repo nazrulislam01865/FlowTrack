@@ -64,6 +64,23 @@ assert.deepEqual(calls.map((c) => c.component), [
 ]);
 reset();
 
+// Multiple model writes within one DB transaction retain the union of their
+// affected sections instead of dropping earlier subjects.
+assert.equal(routeOrderWorkspaceRefresh({ order_id: 77, reason: 'Task:updated|Document:created|Activity:created' }), true);
+assert.deepEqual(calls.map((c) => c.component), [
+    'jobs.index', 'jobs.order-workflow-section', 'jobs.order-attachments-section', 'jobs.order-activity-section',
+]);
+reset();
+
+assert.equal(routeOrderNotification({ job_id: 77, type: 'mention' }), true);
+assert.deepEqual(calls.map((c) => c.component), ['jobs.order-activity-section']);
+reset();
+assert.equal(routeOrderNotification({ job_id: 77, type: 'mention', task_id: 35 }), true);
+assert.deepEqual(calls.map((c) => c.component), [
+    'jobs.index', 'jobs.order-workflow-section', 'jobs.order-activity-section',
+]);
+reset();
+
 // Order membership can revoke access to any ready child. Every section
 // must reauthorize, rather than retaining stale data in a visible component.
 assert.equal(routeOrderWorkspaceRefresh({ order_id: 77, workspace_id: 1, reason: 'FlowJobMember:updated' }), true);

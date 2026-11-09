@@ -37,7 +37,7 @@ const refreshSections = (orderId, sections) => {
     return true;
 };
 
-const workspaceSections = (reason) => {
+const workspaceSectionsForSubject = (reason) => {
     const subject = String(reason ?? '').split(':', 1)[0];
     if (subject === 'Task' || subject === 'FlowJobPhaseHistory') {
         return ['summary', 'workflow', 'activity'];
@@ -51,6 +51,32 @@ const workspaceSections = (reason) => {
     if (subject === 'Invoice') return ['summary', 'activity'];
     if (subject === 'Activity') return ['activity'];
     // An Order's own changed fields can affect every detail card.
+    return allSections;
+};
+
+const workspaceSections = (reason) => {
+    // The server merges all model subjects written in a single transaction.
+    // Union their required children rather than ignoring an earlier Task or
+    // Document update when the final observer event happens to be Activity.
+    const subjects = String(reason ?? '').split('|').filter(Boolean);
+    if (!subjects.length) return allSections;
+    const required = new Set();
+    for (const subject of subjects) {
+        for (const section of workspaceSectionsForSubject(subject)) required.add(section);
+    }
+    return allSections.filter((section) => required.has(section));
+};
+
+const notificationSections = (payload) => {
+    const type = String(payload?.type ?? '').toLowerCase();
+    if (type === 'mention' || type === 'mention_admin') {
+        // Task comment mentions can activate conditional workflow evidence.
+        return Number(payload?.task_id) > 0
+            ? ['summary', 'workflow', 'activity']
+            : ['activity'];
+    }
+    // No reliable resource classification: assignments can change membership,
+    // and generic notifications can indicate financial or Order-wide changes.
     return allSections;
 };
 
@@ -73,7 +99,7 @@ export const routeOrderNotification = (payload = {}) => {
         return true;
     }
 
-    return refreshSections(current.orderId, allSections);
+    return refreshSections(current.orderId, notificationSections(payload));
 };
 
 /**

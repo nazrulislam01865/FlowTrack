@@ -25,6 +25,12 @@
                     </span>
                 </b>
             </div>
+        @elseif(($context['remoteAreaResolutionStatus'] ?? null) === 'unresolved'
+            && filled($job->shipping_postal_code))
+            <div class="info-row ft-order-info-row ft-order-remote-area-row">
+                <span>Remote area</span>
+                <b><span class="pill amber" title="Postal code matching is pending; invoice pricing requires verification.">Pending verification</span></b>
+            </div>
         @endif
         <div class="info-row ft-order-info-row ft-inline-edit-shell"
             x-data="window.FlowTrack.ui.inlineEdit({ key: @js('job-'.$job->id.'-delivery-date'), label: 'Hand Date', value: @js($job->delivery_date?->format('Y-m-d') ?? ''), display: @js($job->delivery_date?->format('M j, Y') ?? 'Not set') })">

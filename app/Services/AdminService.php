@@ -196,6 +196,8 @@ class AdminService
                 DB::table('task_pack_items')->where('default_assignee_id', $userId)->update(['default_assignee_id' => null]);
             }
             if (Schema::hasTable('tasks') && Schema::hasColumn('tasks', 'setup_assignee_id')) {
+                app(\App\Services\Orders\OrderWorkflowSnapshotService::class)
+                    ->invalidateForTaskColumn('setup_assignee_id', $userId);
                 DB::table('tasks')->where('setup_assignee_id', $userId)->update(['setup_assignee_id' => null]);
             }
             if (Schema::hasTable('sessions')) {
