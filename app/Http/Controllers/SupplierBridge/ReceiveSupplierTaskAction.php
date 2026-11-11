@@ -102,6 +102,8 @@ final class ReceiveSupplierTaskAction extends Controller
             'payload.qc_comments' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'payload.issue_category' => ['sometimes', 'string', 'max:100'],
             'payload.erp_reference' => ['sometimes', 'string', 'max:150'],
+            'payload.email_to' => ['sometimes', 'email', 'max:255'],
+            'payload.supplier_note' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'payload.carrier' => ['sometimes', 'string', 'max:150'],
             'payload.tracking_number' => ['sometimes', 'string', 'max:150'],
             'payload.client_name' => ['sometimes', 'string', 'max:255'],
@@ -188,11 +190,17 @@ final class ReceiveSupplierTaskAction extends Controller
                 SupplierWorkflowProjection::decisionsForStatus($key, (string) $task->status), true), 409);
             abort_unless($multipart === (count($files) > 0), 422);
             $isDocumentTask = in_array($key, SupplierWorkflowProjection::DOCUMENT_KEYS, true);
+            $isSample = $key === 'ART_SAMPLE_APPROVAL';
+            $sample = $isSample
+                ? app(\App\Services\Orders\SampleWorkflowService::class)->snapshot($job, $task) : [];
+            $sampleImage = $isSample && ($sample['kind'] ?? '') === 'images';
             abort_if($multipart && in_array($key, ['QC_CHECK', 'QC_ISSUE', 'QC_APPROVE_SHIPMENT'], true)
                 && ! $qcAttachment, 422);
             abort_unless(($isDocumentTask && $multipart && $decision === 'upload')
                 || ($qcAttachment && $multipart)
-                || (! $isDocumentTask && ! $qcAttachment && $decision !== 'upload' && $decision !== 'attach'), 422);
+                || ($isSample && $decision === 'sample_prepared' && $multipart === $sampleImage)
+                || (! $isDocumentTask && ! $qcAttachment && ! $isSample
+                    && ! $multipart && $decision !== 'upload' && $decision !== 'attach'), 422);
             $actor = User::query()->where('is_active', true)->findOrFail($assignment->assigned_by);
             $access = app(AccessControlService::class);
             abort_unless($access->canEditTask($actor, $task), 403);
@@ -200,11 +208,13 @@ final class ReceiveSupplierTaskAction extends Controller
             if ($multipart) {
                 abort_unless($access->can($actor, 'documents', 'create'), 403);
                 // Same document formats and limits as internal FlowTracker uploads.
-                $maxKb = in_array($key, ['ART_PREPARE_UPLOAD', 'ART_SAMPLE_APPROVAL'], true)
-                    ? AttachmentUpload::ARTWORK_MAX_KILOBYTES : AttachmentUpload::STANDARD_MAX_KILOBYTES;
+                $maxKb = $sampleImage ? 10240 : ($key === 'ART_PREPARE_UPLOAD'
+                    ? AttachmentUpload::ARTWORK_MAX_KILOBYTES : AttachmentUpload::STANDARD_MAX_KILOBYTES);
                 Validator::make(['files' => $files], [
-                    'files' => ['required', 'array', 'min:1', 'max:5'],
-                    'files.*' => AttachmentUpload::itemRules(AttachmentUpload::BUSINESS_DOCUMENTS, $maxKb),
+                    'files' => ['required', 'array', 'min:1', 'max:'.($sampleImage ? 1 : 5)],
+                    'files.*' => $sampleImage
+                        ? ['required', 'image', 'max:10240']
+                        : AttachmentUpload::itemRules(AttachmentUpload::BUSINESS_DOCUMENTS, $maxKb),
                 ])->validate();
                 $documentService = app(DocumentService::class);
                 $task->loadMissing(['job', 'documentCategory', 'setupTemplate.documentCategory']);
@@ -236,6 +246,25 @@ final class ReceiveSupplierTaskAction extends Controller
                 $storedPaths = $documents->pluck('path')->filter()->all();
             }
             $actionPayload = $validated['payload'] ?? [];
+            if ($isSample && $sampleImage) {
+                $image = $documents->last();
+                $actionPayload['image_name'] = (string) $image->name;
+                // An image-only sample really sends the attachment to the chosen
+                // email recipient; the HTML prototype's demo-only behavior is
+                // deliberately not carried into production.
+                $recipient = trim((string) ($actionPayload['email_to'] ?? ''));
+                abort_unless(filter_var($recipient, FILTER_VALIDATE_EMAIL), 422, 'A valid email recipient is required.');
+                $file = $files[0];
+                \Illuminate\Support\Facades\Mail::raw(
+                    'Sample images for order '.$job->displayOrderNumber().'.' . "\n\n" .
+                    trim((string) ($actionPayload['supplier_note'] ?? '')),
+                    function ($message) use ($recipient, $file, $job): void {
+                        $message->to($recipient)->subject('Sample images - '.$job->displayOrderNumber());
+                        $message->attachData(file_get_contents($file->getRealPath()),
+                            basename($file->getClientOriginalName()), ['mime' => $file->getMimeType()]);
+                    },
+                );
+            }
             if ($key === 'SHIP_PACKAGE') {
                 // Shipment date is the verified server-side dispatch date, not
                 // a value supplied by the supplier. The planned supplier ship
@@ -244,11 +273,13 @@ final class ReceiveSupplierTaskAction extends Controller
             }
             $changed = $qcAttachment
                 ? $task // Evidence only; QC status, progress and dependencies never change.
-                : ($isDocumentTask
-                    ? $this->completeUploadedTask($task, $actor)
-                    : app(OrderWorkflowActionService::class)->perform(
-                        $task, $actor, $decision, $validated['comment'] ?? '', $actionPayload,
-                    ));
+                : ($isSample
+                    ? $this->completeSupplierSample($task, $job, $actor, $decision, $actionPayload)
+                    : ($isDocumentTask
+                        ? $this->completeUploadedTask($task, $actor)
+                        : app(OrderWorkflowActionService::class)->perform(
+                            $task, $actor, $decision, $validated['comment'] ?? '', $actionPayload,
+                        )));
             // Immutable audit identifying the actual supplier principal (not the FlowTracker delegate).
             $job->activities()->create([
                 'user_id' => $actor->id, 'event' => 'supplier.workflow_task_action',
@@ -273,6 +304,13 @@ final class ReceiveSupplierTaskAction extends Controller
             }
             throw $exception;
         }
+    }
+
+    private function completeSupplierSample(Task $task, FlowJob $job, User $actor, string $decision, array $payload): Task
+    {
+        app(\App\Services\Orders\SampleWorkflowService::class)
+            ->advance($task, $job, $actor, $decision, $payload, true);
+        return $task->refresh();
     }
 
     private function completeUploadedTask(Task $task, User $actor): Task

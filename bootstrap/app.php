@@ -51,6 +51,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::post('/api/supplier-bridge/realtime-auth', \App\Http\Controllers\SupplierBridge\AuthorizeSupplierRealtime::class)
                 ->middleware('throttle:60,1');
 
+            Route::post('/api/supplier-bridge/purchase-orders', \App\Http\Controllers\SupplierBridge\ReceiveSupplierPurchaseOrder::class)
+                ->middleware('throttle:30,1');
+            Route::get('/api/supplier-bridge/purchase-order-file/{order}/{po}/{document}', \App\Http\Controllers\SupplierBridge\DownloadSupplierPurchaseOrder::class)
+                ->whereNumber('order')->whereNumber('po')->whereNumber('document')->middleware('throttle:60,1');
+
             Route::post('/api/supplier-bridge/price-proposals', \App\Http\Controllers\SupplierBridge\ReceiveSupplierPriceProposal::class)
                 ->middleware('throttle:30,1');
 

@@ -178,15 +178,39 @@ final class OrderWorkflowSnapshotService
 
         $order = FlowJob::query()->find($orderId);
         if (! $order || $order->completed_at
-            || in_array((string) $order->status, JobService::INACTIVE_STATUSES, true)
-            || ! app(OrderWorkflowSetupService::class)->isActiveOrderWorkflow((int) $order->workflow_id)) {
+            || in_array((string) $order->status, JobService::INACTIVE_STATUSES, true)) {
             return true;
         }
 
         $version = (int) $order->workflow_display_version;
         if ($expectedVersion !== null && $version !== $expectedVersion) return false;
 
-        $phases = app(OrderWorkflowBindingService::class)->publishedPhasesForRead((int) $order->workflow_id);
+        $isPublishedOrder = app(OrderWorkflowSetupService::class)
+            ->isActiveOrderWorkflow((int) $order->workflow_id);
+        if ($isPublishedOrder) {
+            $phases = app(OrderWorkflowBindingService::class)
+                ->publishedPhasesForRead((int) $order->workflow_id);
+        } else {
+            // For an opt-in Order definition snapshot, the copy is canonical
+            // for phase/task display; never read the now-editable source pack.
+            // With the flag off, retain exactly the original writer behavior.
+            if (! config('flowtrack.order_template_version_isolation_enabled', false)) {
+                return true;
+            }
+            $workflow = $order->workflow;
+            if (! $workflow || ! $workflow->is_snapshot
+                || (int) $workflow->source_workflow_id !== (int) ($order->source_workflow_id ?: 0)
+                || ! app(OrderWorkflowSetupService::class)
+                    ->isOrderWorkflow((int) $order->source_workflow_id)) {
+                return true;
+            }
+            $phases = $workflow->phases()->with([
+                'taskPack.items.defaultAssignee',
+                'taskPack.items.defaultDepartment',
+                'taskPack.items.priority',
+                'taskPack.items.documentCategory',
+            ])->get()->values();
+        }
         if ($phases->isEmpty() || ! $phases->contains('id', (int) $order->workflow_phase_id)) return true;
         $phaseIds = $phases->pluck('id')->map(fn ($id): int => (int) $id)->all();
         $itemsByPhase = $phases->mapWithKeys(static function ($phase): array {

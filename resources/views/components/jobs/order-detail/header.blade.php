@@ -202,9 +202,6 @@
                 </div>
 
                 <div class="ft-order-header-actions" aria-label="Order actions">
-                    @unless($isCancelled)
-                        <x-ui.button variant="secondary" size="sm" :href="route('orders.purchase-orders', ['order' => $job->id])" wire:navigate>Generate PO</x-ui.button>
-                    @endunless
                     @if($canInitiateRedo)
                         <button type="button" class="btn redo small" wire:click="openRedoModal" title="Create a controlled redo linked to this order.">↻ Initiate Redo</button>
                     @endif

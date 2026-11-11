@@ -68,6 +68,7 @@ class Index extends Component
     public string $productPriceTable = '';
     public string $productRemoteSurchargeTable = '';
     public string $productCustomerPriceTable = '';
+    public string $productCustomerPriceCurrency = 'USD';
     public array $productCustomerPricePreview = [];
     /** @var array<int,array{client_id:string,table:string,preview:array}> */
     public array $productClientPrices = [];

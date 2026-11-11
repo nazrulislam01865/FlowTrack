@@ -100,7 +100,9 @@
                 <div class="ft-sidebar-children">
                     @if($orderView)
                         <x-ui.nav-link route="jobs.index" label="Orders" icon="jobs" child :active="request()->routeIs('jobs.index') && !request()->boolean('create')" />
-                        <x-ui.nav-link route="orders.purchase-orders" label="Purchase Orders" icon="jobs" child />
+                        @if(config('flowtrack.supplier_po_creation_enabled', false))
+                            <x-ui.nav-link route="orders.purchase-orders" label="Purchase Orders" icon="jobs" child />
+                        @endif
                     @endif
                     @if($taskView)
                         <x-ui.nav-link route="my-work" label="My Tasks" icon="work" :badge="$myWork" child />

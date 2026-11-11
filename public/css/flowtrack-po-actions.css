@@ -92,3 +92,26 @@
     .ft-po-page .ft-po-editor-header-actions .ft-btn[data-ft-ui-component="button"],
     .ft-po-page .ft-po-page-header .ft-btn[data-ft-ui-component="button"] { flex: 1 1 auto; }
 }
+
+/* Reusable PO item editor: one set of controls for create and revise. */
+.ft-po-items-edit { margin: 14px 0; border: 1px solid var(--ft-border-color,#dce2e9); border-radius: 9px; padding: 14px; background: var(--ft-surface,#fff); }
+.ft-po-items-edit-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.ft-po-items-edit-head strong { font-weight: 700; }
+.ft-po-items-edit-head small { color: var(--ft-text-muted,#64748b); }
+.ft-po-items-edit-scroll { overflow-x: auto; }
+.ft-po-items-edit-table { width: 100%; min-width: 560px; border-collapse: collapse; }
+.ft-po-items-edit-table th { text-align: left; font-size: .76rem; font-weight: 600; padding: 8px 6px; border-bottom: 1px solid var(--ft-border-color,#dce2e9); }
+.ft-po-items-edit-table td { padding: 8px 6px; vertical-align: top; }
+.ft-po-items-edit-table td:nth-child(1) { width: 34%; }
+.ft-po-items-edit-table td:nth-child(2) { width: 24%; }
+.ft-po-items-edit-table td:nth-child(3) { width: 17%; }
+.ft-po-items-edit-table td:nth-child(4) { width: 25%; }
+.ft-po-items-edit-table input, .ft-po-edit-date input { box-sizing: border-box; display: block; width: 100%; min-height: 36px; padding: 7px 9px; border: 1px solid var(--ft-border-color,#cbd5e1); border-radius: 6px; background: var(--ft-surface,#fff); color: var(--ft-text-primary,#182330); font: inherit; }
+.ft-po-items-edit-table input:focus, .ft-po-edit-date input:focus { outline: 2px solid var(--ft-primary,#0f766e); outline-offset: 1px; }
+.ft-po-edit-date { display: flex; flex-direction: column; gap: 5px; max-width: 360px; margin: 10px 5px 0; }
+.ft-po-edit-date > span { font-weight: 600; }
+.ft-po-edit-date small { color: var(--ft-text-muted,#64748b); font-weight: 400; }
+.ft-po-items-edit .validation-error { color: var(--ft-danger,#b91c1c); display: block; margin-top: 4px; }
+.ft-po-edit-existing { margin: 12px 0; }
+.ft-po-edit-controls { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.ft-po-edit-controls > span { font-size: .82rem; color: var(--ft-text-muted,#64748b); margin-right: auto; }

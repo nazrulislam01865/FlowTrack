@@ -47,7 +47,7 @@
                     $activityAnchor = $isComment ? 'job-comment-'.$activity->id : null;
                     $isFocusedComment = $activityFocusKey !== null && $focusComment === $activityFocusKey;
                 @endphp
-                <div @if($activityAnchor) id="{{ $activityAnchor }}" @endif class="wide-activity {{ $isFocusedComment ? 'is-focused-comment' : '' }}" @if($isFocusedComment) x-data x-init="$nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'center' }))" @endif>
+                <div @if($activityAnchor) id="{{ $activityAnchor }}" @endif class="wide-activity {{ \App\Support\OrderActivityNotice::highlight((string) $activity->event) ? 'ft-order-event-highlight' : '' }} {{ \App\Support\OrderActivityNotice::redActivity((string) $activity->event, (array) ($activity->meta ?? []), (string) $activity->description) ? 'ft-order-event-critical' : '' }} {{ $isFocusedComment ? 'is-focused-comment' : '' }}" @if($isFocusedComment) x-data x-init="$nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'center' }))" @endif>
                     <div class="avatar">{{ $actorInitials ?: 'SP' }}</div>
                     <div>
                         <b>

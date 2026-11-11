@@ -5731,3 +5731,20 @@
 @media (max-width: 420px) {
     .ft-order-prototype-detail .ft-artwork-email-actions .ft-btn { flex: 1 1 0; min-width: 0; }
 }
+
+/* Conditional sample uses the existing action-dialog grid and global button controls. */
+.ft-order-prototype-detail .ft-sample-choice-grid .ft-sample-choice { position: relative; display: flex; flex-direction: column; gap: 7px; cursor: pointer; padding: 15px; border: 1px solid var(--ft-border, #dbe4ee); border-radius: 9px; }
+.ft-order-prototype-detail .ft-sample-choice-grid .ft-sample-choice:has(input:checked) { border-color: var(--ft-color-brand-primary); background: var(--ft-color-primary-50); }
+.ft-order-prototype-detail .ft-sample-choice-grid .ft-sample-choice:focus-within { outline: 2px solid var(--ft-color-primary-300); outline-offset: 2px; }
+.ft-order-prototype-detail .ft-sample-choice-grid .ft-sample-choice input { position: absolute; right: 12px; top: 12px; width: auto; }
+.ft-order-prototype-detail .ft-sample-choice-grid .ft-sample-choice strong { padding-right: 15px; }
+.ft-order-prototype-detail .ft-sample-modal-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 9px; margin-top: 19px; }
+
+.ft-order-prototype-detail .ft-sample-details dl { display: grid; grid-template-columns: 115px minmax(0,1fr); gap: 9px 13px; font-size: 12px; }
+.ft-order-prototype-detail .ft-sample-details dt { color: var(--ft-text-muted); }
+.ft-order-prototype-detail .ft-sample-details dd { margin: 0; overflow-wrap: anywhere; font-weight: 650; }
+.ft-order-prototype-detail .ft-sample-history { margin-top: 16px; border-top: 1px solid var(--ft-border); padding-top: 13px; }
+.ft-order-prototype-detail .ft-sample-history h3 { font-size: 13px; margin: 0 0 12px; }
+.ft-order-prototype-detail .ft-sample-history-entry { border-bottom: 1px solid var(--ft-border); padding: 8px 0; font-size: 12px; }
+.ft-order-prototype-detail .ft-sample-history-entry strong { display: block; font-weight: 600; }
+.ft-order-prototype-detail .ft-sample-history-entry small { display: block; color: var(--ft-text-muted); margin-top: 5px; }

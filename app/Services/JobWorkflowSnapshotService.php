@@ -10,6 +10,7 @@ use App\Models\TaskPackItem;
 use App\Models\TaskPackTask;
 use App\Models\Workflow;
 use App\Models\WorkflowPhase;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -21,9 +22,9 @@ class JobWorkflowSnapshotService
      * phases and Task Packs. Existing operational Tasks/history are remapped
      * when protecting an older Job.
      */
-    public function snapshot(FlowJob $job, ?int $sourceWorkflowId = null): FlowJob
+    public function snapshot(FlowJob $job, ?int $sourceWorkflowId = null, ?Collection $publishedOrderPhases = null): FlowJob
     {
-        return DB::transaction(function () use ($job, $sourceWorkflowId): FlowJob {
+        return DB::transaction(function () use ($job, $sourceWorkflowId, $publishedOrderPhases): FlowJob {
             $job = FlowJob::withTrashed()->findOrFail($job->id);
             $currentWorkflow = Workflow::query()->findOrFail($job->workflow_id);
 
@@ -32,14 +33,24 @@ class JobWorkflowSnapshotService
                 return $job->refresh();
             }
 
-            $sourceWorkflow = Workflow::query()
-                ->with([
+            $sourceQuery = Workflow::query();
+            if ($publishedOrderPhases === null) {
+                $sourceQuery->with([
                     'phases.taskPack.items.defaultAssignee',
                     'phases.taskPack.items.defaultDepartment',
                     'phases.taskPack.items.priority',
                     'phases.taskPack.items.documentCategory',
-                ])
-                ->findOrFail($sourceWorkflowId ?: $job->workflow_id);
+                ]);
+            }
+            $sourceWorkflow = $sourceQuery->findOrFail($sourceWorkflowId ?: $job->workflow_id);
+
+            // Published Order phases use workflow_template_id, not the old
+            // workflow_id compatibility relation (which can contain obsolete
+            // five-stage rows). Preserve the exact seven stages selected at
+            // Create Order; the existing legacy snapshot callers are unchanged.
+            if ($publishedOrderPhases !== null) {
+                $sourceWorkflow->setRelation('phases', $publishedOrderPhases->values());
+            }
 
             $sourceWorkflowIdentity = (int) ($sourceWorkflow->source_workflow_id ?: $sourceWorkflow->id);
             $currentSourcePhaseId = (int) ($job->source_workflow_phase_id ?: $job->workflow_phase_id);

@@ -2,40 +2,44 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Livewire\Dashboard\Concerns\ReceivesDashboardFilters;
 use App\Livewire\Concerns\RefreshesFromWorkspace;
 use App\Actions\Dashboard\MarkDashboardMentionsRead;
 use App\Queries\Dashboard\DashboardMentionsQuery;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Reactive;
 use Livewire\Component;
 
 class TaggedComments extends Component
 {
     use RefreshesFromWorkspace;
+    use ReceivesDashboardFilters;
     public string $filter = 'all';
 
-    #[Reactive]
     public int $rangeDays = 7;
 
-    #[Reactive]
     public string $clientFilter = '';
 
-    #[Reactive]
     public string $teamFilter = '';
 
-    #[Reactive]
     public string $search = '';
+
+    public int $filterGeneration = 0;
+
+    public bool $dashboardReady = false;
+
+    public function loadDashboardPanel(): void
+    {
+        if ($this->dashboardReady) {
+            $this->skipRender();
+            return;
+        }
+
+        $this->dashboardReady = true;
+    }
 
     public function placeholder(): string
     {
-        return <<<'HTML'
-            <section class="ft-panel">
-                <div class="ft-panel-head">
-                    <h2 class="ft-panel-title">Mentions for you</h2>
-                </div>
-                <div style="padding:24px">Loading comments...</div>
-            </section>
-        HTML;
+        return view('livewire.dashboard.mentions-placeholder')->render();
     }
 
     public function setFilter(string $filter): void
@@ -55,6 +59,13 @@ class TaggedComments extends Component
         );
     }
 
+    #[On('dashboard-scoped-refresh')]
+    public function refreshDashboardPanel(): void
+    {
+        // Livewire re-renders only this mounted, authorized panel; no global
+        // dashboard re-query and no mutation of local tab or pagination state.
+    }
+
     #[On('flowtrack-notification')]
     public function refreshRealtime(): void
     {
@@ -64,6 +75,7 @@ class TaggedComments extends Component
 
     public function render()
     {
+        if (! $this->dashboardReady) return view('livewire.dashboard.mentions-placeholder');
         $service = app(DashboardMentionsQuery::class);
         $clientId = max(0, (int) $this->clientFilter);
         $departmentId = max(0, (int) $this->teamFilter);

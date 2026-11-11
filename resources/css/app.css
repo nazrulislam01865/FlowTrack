@@ -8,3 +8,5 @@
 @import './utilities.css';
 @import './application/core.css';
 
+
+.ft-po-view-summary{margin:18px 0;border:1px solid #e1e8ee;border-radius:10px;overflow:hidden}.ft-po-view-summary-head{padding:13px 16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#f6fafb;color:#34475e;font-size:13px}.ft-po-view-summary-head strong{color:#0e786f}.ft-po-view-summary .ft-po-table-scroll{overflow-x:auto}.ft-po-view-summary .ft-po-table{width:100%}

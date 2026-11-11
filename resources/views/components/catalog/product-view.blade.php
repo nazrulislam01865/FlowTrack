@@ -87,7 +87,7 @@
         <x-catalog.product-section title="Supplier-based pricing">
             @foreach($supplierPricingTables as $supplierTable)
                 <div class="ft-product-price-preview-wrap ft-product-detail-price-wrap" style="margin-bottom:14px">
-                    <strong>{{ $supplierTable['name'] }}</strong>
+                    <strong>{{ $supplierTable['name'] }} · {{ $product->supplierPriceCurrency((int) ($supplierTable['supplier_id'] ?? 0)) }}</strong>
                     @if(count($supplierTable['rows']))
                         <table class="ft-product-price-preview">
                             <thead><tr><th>Quantity</th>
@@ -114,7 +114,7 @@
         <x-catalog.product-section title="Client-specific pricing">
             @foreach($clientPriceTables as $clientPrice)
                 <div class="ft-product-price-preview-wrap ft-product-detail-price-wrap" style="margin-bottom:14px">
-                    <strong>{{ $clientPrice->client?->name ?? ('Client #'.$clientPrice->client_id) }}{{ $clientPrice->client?->code ? ' · '.$clientPrice->client->code : '' }}</strong>
+                    <strong>{{ $clientPrice->client?->name ?? ('Client #'.$clientPrice->client_id) }}{{ $clientPrice->client?->code ? ' · '.$clientPrice->client->code : '' }} · {{ $product->clientPriceCurrency((int) $clientPrice->client_id) }}</strong>
                     <table class="ft-product-price-preview">
                         <thead><tr><th>Quantity</th>
                             @foreach((array) $clientPrice->price_breakpoints as $breakpoint)<th>{{ number_format((int) $breakpoint['quantity']) }}</th>@endforeach

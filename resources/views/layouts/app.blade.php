@@ -82,6 +82,9 @@
     @if(request()->routeIs('supplier-reminder.index'))
         <link rel="stylesheet" href="{{ asset('css/flowtrack-supplier-reminders.css') }}?v=7">
     @endif
+    @if(request()->routeIs('dashboard') && config('dashboard.progressive_loading_enabled', false))
+        <script src="{{ asset('js/flowtrack-dashboard-realtime.js') }}?v=1" defer></script>
+    @endif
     @livewireStyles
     {{-- Central dashboard-derived theme package. Keep after Livewire CSS so it is the final static typography/theme authority. --}}
     @vite('resources/theme/flowtrack/theme.css')

@@ -69,7 +69,7 @@ final class SupplierDefaultTaskAssigner
             // first eligible order creator/owner/coordinator for THIS task,
             // without a new user query for each task or bypassing permissions.
             $delegate = null;
-            if ($key !== null && ! $hasInternalOverride) {
+            if (($key !== null || OrderTaskRequirement::automationKey($task) === 'ART_SUPPLIER_PO_OPTIONAL') && ! $hasInternalOverride) {
                 foreach ($delegates as $candidate) {
                     if ($access->canEditTask($candidate, $task)
                         && (! in_array($key, SupplierWorkflowProjection::DOCUMENT_KEYS, true)
@@ -144,7 +144,7 @@ final class SupplierDefaultTaskAssigner
         app(\App\Services\Orders\OrderHoldService::class)->assertNotHeld((int) $job->id);
         $key = SupplierWorkflowProjection::actionKey(
             OrderTaskRequirement::automationKey($task), (int) ($task->phase?->sequence ?? 0));
-        abort_unless($key !== null, 422, 'This task cannot be delegated to a supplier.');
+        abort_unless($key !== null || OrderTaskRequirement::automationKey($task) === 'ART_SUPPLIER_PO_OPTIONAL', 422, 'This task cannot be delegated to a supplier.');
         if (in_array($key, SupplierWorkflowProjection::DOCUMENT_KEYS, true)) {
             abort_unless(app(AccessControlService::class)->can($actor, 'documents', 'create'), 403);
         }
@@ -170,6 +170,12 @@ final class SupplierDefaultTaskAssigner
         if (SupplierTaskAssignment::query()->where('task_id', $task->id)->delete()) {
             $this->queueOrder((int) $task->flow_job_id);
         }
+    }
+
+    /** Reuse the canonical eligibility check for one conditional sample handoff. */
+    public function uniqueSupplierForOrder(int $orderId): ?int
+    {
+        return self::uniqueSupplierId($this->orderSupplierIds($orderId));
     }
 
     /** @return list<int> */

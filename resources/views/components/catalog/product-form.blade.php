@@ -23,6 +23,7 @@
     'customerPricePreview' => [],
     'clientPriceRows' => [],
     'supplierPriceRows' => [],
+    'priceCurrencies' => collect(),
     'remoteSurchargePreview' => [],
     'productOptions' => [],
     'productOptionUploads' => [],
@@ -230,6 +231,15 @@
                 @forelse($supplierPriceRows as $supplierPriceIndex => $supplierPrice)
                     <div class="ft-product-client-price-entry" wire:key="product-supplier-price-{{ $supplierPrice['key'] ?? $supplierPriceIndex }}" style="margin-top:14px;padding:14px;border:1px solid var(--ft-border,#d1d5db)">
                         <strong>{{ $supplierPrice['supplier_name'] ?? ('Supplier #'.$supplierPrice['supplier_id']) }}</strong>
+                        <label class="ft-product-field" style="margin-top:12px;max-width:280px">
+                            <span>Supplier price currency</span>
+                            <select wire:model="productSupplierPrices.{{ $supplierPriceIndex }}.currency">
+                                @foreach($priceCurrencies as $currency)
+                                    <option value="{{ $currency['code'] }}">{{ $currency['code'] }} — {{ $currency['name'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('productSupplierPrices.'.$supplierPriceIndex.'.currency')<b class="validation-error">{{ $message }}</b>@enderror
+                        </label>
                         <label class="ft-product-field ft-product-price-table-field" style="margin-top:12px">
                             <span>Quantity / Supplier unit price</span>
                             <textarea wire:model.change="productSupplierPrices.{{ $supplierPriceIndex }}.table" rows="5" spellcheck="false" placeholder="Paste the Excel Quantity and Product price table here"></textarea>
@@ -270,6 +280,15 @@
                     @forelse($visibleClientPriceRows as $clientPriceIndex => $clientPrice)
                         <div class="ft-product-client-price-entry" wire:key="product-client-price-{{ $clientPrice['key'] ?? $clientPriceIndex }}" style="margin-top:14px;padding:14px;border:1px solid var(--ft-border,#d1d5db)">
                             <strong>{{ $clientLabelsById->get((int) ($clientPrice['client_id'] ?? 0)) ?: 'Client #'.($clientPrice['client_id'] ?? '') }}</strong>
+                            <label class="ft-product-field" style="margin-top:12px;max-width:280px">
+                                <span>Client price currency</span>
+                                <select wire:model="productClientPrices.{{ $clientPriceIndex }}.currency">
+                                    @foreach($priceCurrencies as $currency)
+                                        <option value="{{ $currency['code'] }}">{{ $currency['code'] }} — {{ $currency['name'] }}</option>
+                                    @endforeach
+                                </select>
+                                @error('productClientPrices.'.$clientPriceIndex.'.currency')<b class="validation-error">{{ $message }}</b>@enderror
+                            </label>
                             <label class="ft-product-field ft-product-price-table-field" style="margin-top:12px">
                                 <span>Quantity / Client unit price</span>
                                 <textarea wire:model.change="productClientPrices.{{ $clientPriceIndex }}.table" rows="5" spellcheck="false" placeholder="Paste the Excel Quantity and Product price table here"></textarea>
@@ -290,6 +309,15 @@
                 @else
                     <div class="ft-product-client-price-entry" wire:key="product-all-clients-price" style="margin-top:14px;padding:14px;border:1px solid var(--ft-border,#d1d5db)">
                         <strong>All clients</strong>
+                        <label class="ft-product-field" style="margin-top:12px;max-width:280px">
+                            <span>Client price currency</span>
+                            <select wire:model="productCustomerPriceCurrency">
+                                @foreach($priceCurrencies as $currency)
+                                    <option value="{{ $currency['code'] }}">{{ $currency['code'] }} — {{ $currency['name'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('productCustomerPriceCurrency')<b class="validation-error">{{ $message }}</b>@enderror
+                        </label>
                         <label class="ft-product-field ft-product-price-table-field" style="margin-top:12px">
                             <span>Quantity / Client unit price</span>
                             <textarea wire:model.change="productCustomerPriceTable" rows="5" spellcheck="false" placeholder="Paste the Excel Quantity and Product price table here"></textarea>

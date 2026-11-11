@@ -3678,3 +3678,51 @@
     min-width: 88px;
     margin-top: 0 !important;
 }
+
+/* Order/task action notifications and activity: quiet light-green distinction. */
+.attention-item.ft-order-event-highlight,
+.ft-friendly-activity .ft-activity-entry.ft-order-event-highlight,
+.ft-dashboard-prototype .ft-activity.ft-order-event-highlight {
+    background: #eaf8ef;
+    border: 1px solid #c8e9d2;
+    border-radius: 8px;
+}
+.ft-friendly-activity .ft-activity-entry.ft-order-event-highlight {
+    padding: 11px 9px;
+    margin: 3px 0;
+}
+.ft-dashboard-prototype .ft-activity.ft-order-event-highlight {
+    padding: 8px;
+    margin: 3px 0;
+}
+.attention-item.ft-order-event-highlight:hover {
+    background: #e0f3e7;
+}
+
+/* Order Details uses wide-activity rows, not the generic activity-entry list. */
+.ft-order-prototype-detail .wide-activity.ft-order-event-highlight {
+    background: #eaf8ef;
+    border: 1px solid #c8e9d2;
+    border-radius: 8px;
+    padding: 13px 12px;
+    margin: 3px 0;
+}
+
+/* Priority Order changes: only address, quantity, price, holds, delivery dates and service updates. */
+.attention-item.ft-order-event-critical,
+.ft-friendly-activity .ft-activity-entry.ft-order-event-critical,
+.ft-dashboard-prototype .ft-activity.ft-order-event-critical,
+.ft-order-prototype-detail .wide-activity.ft-order-event-critical {
+    background: #fff0f1;
+    border-color: #f1cdd1;
+}
+.attention-item.ft-order-event-critical:hover {
+    background: #ffe7e9;
+}
+.attention-item.ft-order-event-critical .item-title,
+.attention-item.ft-order-event-critical .item-meta,
+.ft-friendly-activity .ft-activity-entry.ft-order-event-critical .ft-activity-entry-content,
+.ft-order-prototype-detail .wide-activity.ft-order-event-critical > div:nth-child(2),
+.ft-dashboard-prototype .ft-activity.ft-order-event-critical .ft-activity-copy {
+    font-weight: 700;
+}

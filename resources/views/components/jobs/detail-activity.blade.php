@@ -42,7 +42,7 @@
                 $activityAnchor = $isComment ? 'job-comment-'.$activity->id : null;
                 $isFocusedComment = $activityFocusKey !== null && $focusComment === $activityFocusKey;
             @endphp
-            <article @if($activityAnchor) id="{{ $activityAnchor }}" @endif class="ft-activity-entry {{ $isComment ? 'is-comment' : 'is-history' }} {{ $isFocusedComment ? 'is-focused-comment' : '' }}" @if($isFocusedComment) x-data x-init="$nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'center' }))" @endif>
+            <article @if($activityAnchor) id="{{ $activityAnchor }}" @endif class="ft-activity-entry {{ $isComment ? 'is-comment' : 'is-history' }} {{ \App\Support\OrderActivityNotice::highlight((string) $activity->event) ? 'ft-order-event-highlight' : '' }} {{ \App\Support\OrderActivityNotice::redActivity((string) $activity->event, (array) ($activity->meta ?? []), (string) $activity->description) ? 'ft-order-event-critical' : '' }} {{ $isFocusedComment ? 'is-focused-comment' : '' }}" @if($isFocusedComment) x-data x-init="$nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'center' }))" @endif>
                 <div class="ft-activity-entry-avatar">
                     <x-ui.avatar :user="$activity->user" :name="$actorName" :size="32"/>
                     <span>{{ $isComment ? '💬' : '↻' }}</span>

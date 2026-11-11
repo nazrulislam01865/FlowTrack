@@ -624,6 +624,7 @@ trait BuildsMasterDataPageData
                 $override = $overrides->get($supplier->id);
                 return [
                     'name' => $supplier->name,
+                    'supplier_id' => (int) $supplier->id,
                     'rows' => $pricing->normalize($override !== null
                         ? (json_decode((string) $override, true) ?: [])
                         : $viewProduct->supplierPriceBreakpoints()),
@@ -773,6 +774,14 @@ trait BuildsMasterDataPageData
                 'products_by_supplier' => collect(),
             ];
 
+        $productPriceCurrencies = $this->group === 'product' && $this->showModal
+            ? $service->active('currency')->map(fn (MasterRecord $currency) => [
+                'code' => $service->currencyValue($currency),
+                'name' => $currency->name,
+            ])->filter(fn (array $option) => $option['code'] !== '')
+                ->unique('code')->values()
+            : collect();
+
         return view('livewire.master-data.index', [
             'labels' => MasterDataService::LABELS,
             'rows' => $rows,
@@ -785,6 +794,7 @@ trait BuildsMasterDataPageData
                 ? $service->list('product_category')
                 : collect(),
             'productFormCategories' => $productFormCategories,
+            'productPriceCurrencies' => $productPriceCurrencies,
             'productMainCategories' => $productMainCategories,
             'productMainCategoryFilterOptions' => $productMainCategoryFilterOptions,
             'productSubcategories' => $productSubcategories,

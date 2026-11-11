@@ -18,6 +18,11 @@
     $canLinkDocument = $documentLinkPermission && ! $orderOnHold;
     $canDeleteDocument = $documentDeletePermission && ! $orderOnHold;
     $canExportDocument = (bool) ($context['canExportDocument'] ?? false);
+    $deferredResourceDetails = (bool) ($context['taskResourceDetailsDeferred'] ?? false);
+    $visibleFileCount = max(0, (int) data_get($context, 'taskAttachmentCounts.'.(int) $task->id, 0));
+    $visibleLinkCount = max(0, (int) data_get($context, 'taskLinkCounts.'.(int) $task->id, 0));
+    $resourceDetailsOpen = (int) ($context['expandedResourceTaskId'] ?? 0) === (int) $task->id;
+
     $taskDocuments = (bool) config('flowtrack.workflow_display_query_enabled', false)
         ? (app(\App\Queries\Orders\OrderWorkflowDisplayQuery::class)->documentsForTask($job, (int) $task->id)
             ?? $job->documents->where('task_id', $task->id))
@@ -31,6 +36,13 @@
     $taskLinks = \App\Support\JobDetailPresenter::taskLinks($job, $task);
     $automationKey = app(\App\Services\OrderWorkflowActionService::class)->automationKey($task);
     $isArtworkUploadTask = $automationKey === 'ART_PREPARE_UPLOAD';
+    $samplePresentation = $automationKey === 'ART_SAMPLE_APPROVAL'
+        ? \App\Services\Orders\SampleWorkflowService::presentation($task) : null;
+    // The client has already made their decision. The required task remains
+    // technically open only to block Production while its sample is handled.
+    $clientSampleDecisionRecorded = $automationKey === 'ART_CLIENT_ERP_DECISION'
+        && strcasecmp(trim((string) $task->status), 'Waiting for Sample Approval') === 0;
+    $visualMode = $clientSampleDecisionRecorded ? 'done' : $mode;
     // Purchase Order upload tasks use the same document presentation style as
     // artwork uploads: show the uploaded file card with uploader, timestamp,
     // latest marker and document actions.
@@ -71,10 +83,19 @@
         : trim((string) ($task->status ?: ($mode === 'active' ? 'Ready' : 'Completed')));
     $statusLower = strtolower($status);
     $statusClass = $mode === 'done' ? 'done' : ($mode === 'active' ? ((str_contains($statusLower, 'wait') || str_contains($statusLower, 'issue') || str_contains($statusLower, 'pending')) ? 'wait' : 'active') : '');
-    $displayStatus = $isProductionEstimatedDeliveryTask && $mode === 'active' && ! $job->estimated_delivery_date
-        ? 'Required'
-        : $status;
+    $displayStatus = $samplePresentation && $mode !== 'locked'
+        ? $samplePresentation['status']
+        : ($isProductionEstimatedDeliveryTask && $mode === 'active' && ! $job->estimated_delivery_date
+            ? 'Required' : $status);
     if ($isProductionEstimatedDeliveryTask && $mode === 'active' && ! $job->estimated_delivery_date) $statusClass = 'wait';
+    if ($clientSampleDecisionRecorded) {
+        $displayStatus = 'Completed';
+        $statusClass = 'done';
+    }
+    if ($samplePresentation && $mode === 'active') {
+        $sampleStatus = strtolower($displayStatus);
+        $statusClass = str_contains($sampleStatus, 'waiting') || str_contains($sampleStatus, 'revision') ? 'wait' : 'active';
+    }
 
     // A normal optional task can be actionable in parallel with the next
     // required task. Present its untouched Not Started/Locked state as Ready
@@ -112,7 +133,7 @@
         $statusClass = 'active';
     }
     $documentCategoryName = (string) ($task->documentCategory?->name ?: $task->setupTemplate?->documentCategory?->name ?: '');
-    $requiresDocument = (bool) ($task->document_category_id || $task->setupTemplate?->document_category_id);
+    $requiresDocument = $automationKey !== 'ART_SAMPLE_APPROVAL' && (bool) ($task->document_category_id || $task->setupTemplate?->document_category_id);
     $requiredBeforeCompletion = (bool) ($task->setupTemplate?->document_required_before_completion ?? false);
     $workflowAction = data_get($context, 'taskActions.'.(int) $task->id, []);
     $workflowActionLabel = (string) ($workflowAction['label'] ?? 'Take action');
@@ -155,25 +176,29 @@
         ?: '#2563EB';
 @endphp
 <article id="order-task-{{ $task->id }}"
-    class="task ft-order-task-row {{ $mode }} {{ $isCancelled ? 'cancelled-task' : '' }} {{ $orderOnHold ? 'is-order-held' : '' }} {{ $isProductionEstimatedDeliveryTask ? 'ft-order-task-row--estimated-delivery' : '' }} {{ $showProductionMonitorInline ? 'ft-order-task-row--production-monitor' : '' }}"
+    class="task ft-order-task-row {{ $visualMode }} {{ $isCancelled ? 'cancelled-task' : '' }} {{ $orderOnHold ? 'is-order-held' : '' }} {{ $isProductionEstimatedDeliveryTask ? 'ft-order-task-row--estimated-delivery' : '' }} {{ $showProductionMonitorInline ? 'ft-order-task-row--production-monitor' : '' }}"
     style="{{ \App\Support\MasterColor::style($taskColor) }}border-left:4px solid var(--ft-master-color,#2563EB)"
     wire:key="order-task-row-{{ $task->id }}"
     @if($showProductionMonitorInline)
         x-data="{ productionSupplierDate: @js($productionMonitorInitialDate), productionIssueNote: '', initialSupplierDate: @js($productionMonitorInitialDate) }"
     @endif
 >
-    <div class="task-icon ft-order-task-icon">{{ $mode === 'done' ? '✓' : ($mode === 'active' ? '●' : '⌁') }}</div>
+    <div class="task-icon ft-order-task-icon">{{ $visualMode === 'done' ? '✓' : ($visualMode === 'active' ? '●' : '⌁') }}</div>
     <div class="task-copy ft-order-task-copy">
         <div class="task-code">TASK {{ $displayCode ?: ($task->task_number ?: str_pad((string) $task->id, 3, '0', STR_PAD_LEFT)) }}</div>
         <div class="task-title">
-            {{ $task->title }}
+            {{ $samplePresentation['title'] ?? $task->title }}
             @if($isProductionEstimatedDeliveryTask)
                 <span class="ft-order-required-task-badge">Required</span>
             @elseif($isRegularOptionalTask)
                 <span class="ft-order-optional-task-badge">Optional</span>
             @endif
         </div>
-        @if($task->description || $task->setupTemplate?->description)<div class="task-description">{{ \Illuminate\Support\Str::limit(strip_tags((string) ($task->description ?: $task->setupTemplate?->description)), 105) }}</div>@endif
+        @if($samplePresentation)
+            <div class="task-description">{{ $samplePresentation['description'] }}</div>
+        @elseif($task->description || $task->setupTemplate?->description)
+            <div class="task-description">{{ \Illuminate\Support\Str::limit(strip_tags((string) ($task->description ?: $task->setupTemplate?->description)), 105) }}</div>
+        @endif
     </div>
 
     <div class="ft-order-task-assignee-inline ft-inline-edit-shell"
@@ -208,7 +233,7 @@
         </div>
         @if($canAssignTask && !$isCancelled)
             <div x-cloak x-show="editing" class="ft-order-assignee-picker">
-                <x-ui.inline-remote-user :value="$supplierAssigned ? 'supplier' : ($task->assignee_id ?? '')" :selected-label="$assigneeName" parent-type="job" :parent-id="$job->id" variant="compact" :menu-width="300" :allow-supplier="\App\Services\SupplierBridge\SupplierWorkflowProjection::actionKey($automationKey, (int) ($task->phase?->sequence ?? 0)) !== null" external-trigger />
+                <x-ui.inline-remote-user :value="$supplierAssigned ? 'supplier' : ($task->assignee_id ?? '')" :selected-label="$assigneeName" parent-type="job" :parent-id="$job->id" variant="compact" :menu-width="300" :allow-supplier="($automationKey === 'ART_SUPPLIER_PO_OPTIONAL') || \App\Services\SupplierBridge\SupplierWorkflowProjection::actionKey($automationKey, (int) ($task->phase?->sequence ?? 0)) !== null" external-trigger />
             </div>
             <x-ui.inline-save-state compact />
         @endif
@@ -261,6 +286,8 @@
             <div class="card-sub">
                 📎 {{ $workflowInvoiceDisplayName }} · Latest
             </div>
+        @elseif($deferredResourceDetails)
+            <div class="card-sub">📎 {{ $visibleFileCount }} file{{ $visibleFileCount === 1 ? '' : 's' }}@if($visibleLinkCount > 0) · {{ $visibleLinkCount }} link{{ $visibleLinkCount === 1 ? '' : 's' }}@endif</div>
         @elseif($currentTaskDocuments->isNotEmpty())
             @php $latestTaskDocument = $isArtworkUploadTask ? $latestArtworkDocument : $currentTaskDocuments->first(); @endphp
             <div class="card-sub">
@@ -327,9 +354,14 @@
             @else
                 <button type="button" class="btn small" wire:click="viewTask({{ $task->id }})">View</button>
             @endif
+        @elseif($clientSampleDecisionRecorded)
+            <button type="button" class="btn small" wire:click="viewTask({{ $task->id }})">View decision</button>
         @elseif($mode === 'active' && $isCurrentPhase)
             @if($canEditTask)
-                @if(($workflowActionType === 'document' || ($requiresDocument && $requiredBeforeCompletion && $taskDocuments->isEmpty() && $taskLinks->isEmpty())) && ($canUploadDocument || $canLinkDocument))
+                @if($automationKey === 'ART_SUPPLIER_PO_OPTIONAL')
+                    <button type="button" class="btn small primary" wire:click="createOptionalSupplierPo({{ $task->id }})" wire:loading.attr="disabled" wire:target="createOptionalSupplierPo({{ $task->id }})">Create PO</button>
+                    <button type="button" class="btn small" wire:click="skipOptionalSupplierPo({{ $task->id }})" wire:loading.attr="disabled" wire:target="skipOptionalSupplierPo({{ $task->id }})">Skip PO</button>
+                @elseif(($workflowActionType === 'document' || ($requiresDocument && $requiredBeforeCompletion && $taskDocuments->isEmpty() && $taskLinks->isEmpty())) && ($canUploadDocument || $canLinkDocument))
                     <button type="button" class="btn small primary" wire:click="openOrderWorkflowAction({{ $task->id }})" wire:loading.attr="disabled" wire:target="openOrderWorkflowAction({{ $task->id }})">{{ $workflowActionLabel }}</button>
                 @else
                     <button type="button" class="btn small primary" wire:click="openOrderWorkflowAction({{ $task->id }})" wire:loading.attr="disabled" wire:target="openOrderWorkflowAction({{ $task->id }})">{{ $workflowActionLabel }}</button>
@@ -339,7 +371,9 @@
                 @endif
             @endif
         @elseif($mode === 'done')
-            @if($automationKey === 'NEW_UPLOAD_PO' && $canEditTask && ($canUploadDocument || $canLinkDocument))
+            @if($automationKey === 'ART_SAMPLE_APPROVAL' && $canEditTask)
+                <button type="button" class="btn small" wire:click="openOrderWorkflowAction({{ $task->id }})">View sample details</button>
+            @elseif($automationKey === 'NEW_UPLOAD_PO' && $canEditTask && ($canUploadDocument || $canLinkDocument))
                 <button type="button" class="btn small" wire:click="openOverviewTaskDocumentModal({{ $task->id }})">Add other documents</button>
             @elseif($isTrackedEmailTask && $canEditTask)
                 @if($emailCanResend)
@@ -371,6 +405,15 @@
     @endif
 </article>
 
+@if($deferredResourceDetails && ($visibleFileCount > 0 || $visibleLinkCount > 0))
+    <button type="button" class="btn small ft-order-task-resource-toggle"
+        wire:click="toggleTaskResources({{ (int) $task->id }})"
+        wire:loading.attr="disabled" wire:target="toggleTaskResources({{ (int) $task->id }})"
+        aria-expanded="{{ $resourceDetailsOpen ? 'true' : 'false' }}"
+        aria-controls="order-task-resources-{{ (int) $task->id }}"
+    >{{ $resourceDetailsOpen ? 'Hide files' : 'View files' }} ({{ $visibleFileCount + $visibleLinkCount }})</button>
+@endif
+
 @if((int) $overviewTaskLinkFormTaskId === (int) $task->id && $canEditTask)
     <form class="task-link-form ft-order-task-link-form" wire:submit.prevent="saveOverviewTaskLink({{ $task->id }})" wire:key="order-task-link-form-{{ $task->id }}">
         <input type="url" wire:model="overviewTaskLinkUrl" placeholder="Paste external document link..." autocomplete="url">
@@ -387,7 +430,7 @@
 @endforeach
 
 @if($workflowInvoiceId > 0 || $resourceDocuments->isNotEmpty() || $taskLinks->isNotEmpty())
-    <div class="task-resources ft-order-task-resources">
+    <div id="order-task-resources-{{ (int) $task->id }}" class="task-resources ft-order-task-resources">
         @if($workflowInvoiceId > 0)
             <div
                 wire:key="order-task-invoice-{{ $task->id }}-{{ $workflowInvoiceId }}"
@@ -417,6 +460,7 @@
                     <b>{{ $document->name }}</b>
                     <small>
                         {{ $document->uploader?->name ?? 'FlowTrack' }} · {{ \App\Support\UserLocalTime::format($document->created_at, 'M j, Y, g:i A') }}
+                        @if($deferredResourceDetails && filled($document->version)) · Version {{ $document->version }} @endif
                         @if($isArtworkUploadTask || $isPurchaseOrderUploadTask) · Latest version @endif
                     </small>
                 </span>

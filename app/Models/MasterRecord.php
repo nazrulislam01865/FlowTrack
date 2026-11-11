@@ -35,6 +35,20 @@ class MasterRecord extends Model
     public function parent(): BelongsTo { return $this->belongsTo(self::class, 'parent_id'); }
     public function creator(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
     public function clientPrices(): HasMany { return $this->hasMany(ProductClientPrice::class, 'product_id'); }
+
+    /** Supplier pricing currency: per-supplier selection, then product fallback (legacy USD). */
+    public function supplierPriceCurrency(?int $supplierId = null): string
+    {
+        $override = $supplierId ? data_get($this->metadata, 'supplier_price_currencies.'.$supplierId) : null;
+        return strtoupper(trim((string) ($override ?: data_get($this->metadata, 'supplier_price_currency', 'USD')))) ?: 'USD';
+    }
+
+    /** Client pricing currency: per-client selection, then shared selling-price currency. */
+    public function clientPriceCurrency(?int $clientId = null): string
+    {
+        $override = $clientId ? data_get($this->metadata, 'client_price_currencies.'.$clientId) : null;
+        return strtoupper(trim((string) ($override ?: data_get($this->metadata, 'customer_price_currency', 'USD')))) ?: 'USD';
+    }
     public function children(): HasMany { return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('name'); }
 
     public function scopeForWorkspace(Builder $query, int $workspaceId): Builder

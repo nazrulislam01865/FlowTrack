@@ -1130,6 +1130,19 @@ class LegacyJobService
         $isPublishedOrderWorkflow = ! $job->completed_at
             && ! in_array((string) $job->status, self::INACTIVE_STATUSES, true)
             && app(OrderWorkflowSetupService::class)->isActiveOrderWorkflow((int) $job->workflow_id);
+        // New Orders with an immutable per-Order definition still use the
+        // existing bounded task-card reader and Part 1 lazy resource loading.
+        // Ordinary Orders incur no additional lookup.
+        $isFrozenOrderWorkflow = (bool) config('flowtrack.order_template_version_isolation_enabled', false)
+            && ! $isPublishedOrderWorkflow
+            && (int) ($job->source_workflow_id ?: 0) > 0
+            && (int) $job->workflow_id !== (int) $job->source_workflow_id
+            && Workflow::query()->whereKey((int) $job->workflow_id)
+                ->where('is_snapshot', true)
+                ->where('source_workflow_id', (int) $job->source_workflow_id)
+                ->exists()
+            && app(OrderWorkflowSetupService::class)
+                ->isOrderWorkflow((int) $job->source_workflow_id);
 
         // Active Orders always replace legacy Workflow::phases with the exact
         // published WorkflowTemplate phases below. Loading the legacy phase/task
@@ -1143,7 +1156,7 @@ class LegacyJobService
         // Gate the new read-only phase/task projection. The complete legacy
         // graph remains the rollback path for historical and incomplete Orders.
         $useDisplayQuery = (bool) config('flowtrack.workflow_display_query_enabled', false)
-            && $isPublishedOrderWorkflow;
+            && ($isPublishedOrderWorkflow || $isFrozenOrderWorkflow);
 
         $relations = [
             $workflowRelation,
@@ -1224,8 +1237,6 @@ class LegacyJobService
                 // Reuse the published definition graph and exact task scope.
                 // The legacy reader remains available by disabling one flag.
                 $display = app(\App\Queries\Orders\OrderWorkflowDisplayQuery::class);
-                $display->loadForAuthorizedOrder($job, $user, $publishedPhases);
-
                 $preference = $display->displayPreference($job);
                 $selected = $publishedPhases->firstWhere('id', (int) $preference['phase']);
                 $current = $publishedPhases->firstWhere('id', (int) $job->workflow_phase_id);
@@ -1233,6 +1244,18 @@ class LegacyJobService
                     $selected = $current;
                 }
                 $displayPhaseId = (int) ($selected?->id ?: $job->workflow_phase_id);
+
+                // Keep modal, historical, and rollback paths unchanged. With
+                // three-level loading, hydrate the selected phase's complete
+                // task cards only; other stages use a compact summary reader.
+                $phaseScoped = (bool) config('flowtrack.order_three_level_loading_enabled', false)
+                    && ! $preference['fullDocuments']
+                    && (int) $preference['modalTaskId'] === 0;
+                $display->loadForAuthorizedOrder(
+                    $job, $user, $publishedPhases, null,
+                    $phaseScoped ? [$displayPhaseId] : null,
+                );
+
                 $displayTasks = $job->tasks
                     ->where('workflow_phase_id', $displayPhaseId)->values();
                 $displayTaskIds = $displayTasks->pluck('id')->map(fn ($id): int => (int) $id)->all();
@@ -1252,6 +1275,26 @@ class LegacyJobService
                     $displayTaskIds[] = (int) $modalTask->id;
                 }
 
+                // In three-level mode normal task file rows are loaded only
+                // after opening that task. Preserve full evidence for artwork,
+                // PO upload, shipment, and interactive workflow modals because
+                // revision/fulfilment presentation depends on complete history.
+                // This is a display-only change, never an action authorization.
+                $deferResourceRows = (bool) config('flowtrack.order_three_level_loading_enabled', false)
+                    && ! $fullDocuments
+                    && ! \App\Support\OrderShipmentPresenter::isShipmentPhase($selected, $displayTasks)
+                    && ! $displayTasks->contains(static function (Task $task): bool {
+                        $key = app(OrderWorkflowActionService::class)->automationKey($task);
+                        $title = strtolower(trim((string) $task->title));
+                        return in_array($key, ['ART_PREPARE_UPLOAD', 'NEW_UPLOAD_PO'], true)
+                            || (str_contains($title, 'artwork')
+                                && (str_contains($title, 'upload') || str_contains($title, 'prepare')));
+                    });
+                $display->setResourceDetailsDeferred($job, $deferResourceRows);
+                $resourceTaskId = (int) ($preference['resourceTaskId'] ?? 0);
+                $resourceTaskIds = $deferResourceRows && in_array($resourceTaskId, $displayTaskIds, true)
+                    ? [$resourceTaskId] : [];
+
                 // Exact displayed document cards require their full existing
                 // file metadata. Other phase documents wait until that phase
                 // is opened. A modal keeps the full legacy document scope so
@@ -1265,7 +1308,7 @@ class LegacyJobService
                     $job->load([
                         'documents' => fn ($documents) => $documents->where(
                             fn (Builder $scope) => $scope
-                                ->whereIn('task_id', $displayTaskIds)
+                                ->whereIn('task_id', $deferResourceRows ? $resourceTaskIds : $displayTaskIds)
                                 ->orWhere('category', \App\Models\Document::CATEGORY_ARTWORK_TRACKING_PDF),
                         ),
                         'documents.uploader:id,name,profile_image_path',
@@ -1301,7 +1344,8 @@ class LegacyJobService
                         }
                     }
                 }
-                $this->hydrateLoadedTaskLinks($job, $fullDocuments ? null : $displayTaskIds);
+                $this->hydrateLoadedTaskLinks($job, $fullDocuments
+                    ? null : ($deferResourceRows ? $resourceTaskIds : $displayTaskIds));
                 // Historical/manual artwork upload tasks may have a title
                 // recognized by artwork repair without a Task Pack automation
                 // key. Keep revision notes and accepted-file presentation for
@@ -1807,7 +1851,21 @@ class LegacyJobService
                 ->whereKey((int) $workflow->id)
                 ->exists();
 
-            if ($usesLiveOrderWorkflow) {
+            if ($usesLiveOrderWorkflow && config('flowtrack.order_template_version_isolation_enabled', false)) {
+                // The Order's runtime phases and Task Pack items are frozen at
+                // creation, in this SAME transaction as FlowJob and its Tasks.
+                // No published-definition sync can rewrite this Order later.
+                // Never clone the Workflow::phases compatibility graph: it can
+                // include obsolete stages, unlike the selected template graph.
+                $job = app(JobWorkflowSnapshotService::class)->snapshot(
+                    $job, (int) $workflow->id, $workflowTemplate->phases
+                );
+                $job->load(['workflow.phases.taskPack.items.defaultAssignee',
+                    'workflow.phases.taskPack.items.defaultDepartment',
+                    'workflow.phases.taskPack.items.priority',
+                    'workflow.phases.taskPack.items.documentCategory', 'phase']);
+                $operationalPhase = $job->phase;
+            } elseif ($usesLiveOrderWorkflow) {
                 $job->load(['workflow', 'phase']);
                 $job->workflow->setRelation('phases', $workflowTemplate->phases->values());
                 $job->setRelation('phase', $phase);
@@ -2028,7 +2086,7 @@ class LegacyJobService
             'event' => 'job.delivery_date_updated',
             'description' => $deliveryDate ? 'Delivery date changed to '.$deliveryDate : 'Delivery date cleared',
         ]);
-        app(NotificationService::class)->notifyJobParticipants($job->refresh(), 'Order delivery date updated', $job->displayOrderNumber().' · '.($deliveryDate ? 'Delivery '.$deliveryDate : 'Delivery date cleared'), 'update', $actor);
+        app(NotificationService::class)->notifyJobParticipants($job->refresh(), 'Order hand date updated', $job->displayOrderNumber().' · Hand date '.($deliveryDate ? 'updated' : 'cleared').'. Open the order for details.', 'order_activity', $actor);
         return $job->refresh();
     }
 
@@ -2486,9 +2544,10 @@ class LegacyJobService
             ]);
             $fresh = $job->refresh();
         }
+        $addressChanged = array_intersect(['shipping_address', 'shipping_postal_code'], array_keys($updates)) !== [];
         app(NotificationService::class)->notifyJobParticipants(
             $fresh,
-            'Order shipping details updated',
+            $addressChanged ? 'Order shipping address updated' : 'Order shipping details updated',
             $fresh->job_number.' · Shipping details changed',
             'update',
             $actor,
@@ -2684,7 +2743,8 @@ class LegacyJobService
         $notes = trim((string) ($data['notes'] ?? ''));
         abort_if(mb_strlen($notes) > 2000, 422, 'Product notes may not exceed 2000 characters.');
 
-        $updated = DB::transaction(function () use ($job, $item, $actor, $product, $categoryName, $supplierId, $quantity, $unitPrice, $supplierUnitPrice, $notes): FlowJobItem {
+        $productChangeLabel = null;
+        $updated = DB::transaction(function () use ($job, $item, $actor, $product, $categoryName, $supplierId, $quantity, $unitPrice, $supplierUnitPrice, $notes, &$productChangeLabel): FlowJobItem {
             $lockedJob = FlowJob::query()->whereKey($job->id)->lockForUpdate()->firstOrFail();
             $this->assertEditable($lockedJob, $actor);
             $lockedItem = FlowJobItem::query()
@@ -2705,7 +2765,7 @@ class LegacyJobService
                 ->exists();
             abort_if($duplicateExists, 422, 'This product is already added to the Order.');
 
-            $lockedItem->update([
+            $lockedItem->fill([
                 'catalog_product_id' => (int) $product->id,
                 'product_name' => (string) $product->name,
                 'category_name' => $categoryName,
@@ -2716,23 +2776,32 @@ class LegacyJobService
                 'notes' => $notes !== '' ? $notes : null,
                 'updated_by' => $actor->id,
             ]);
+
+            // Compare persisted fields, not all values submitted by the edit form.
+            // Automatic tier-price recalculation is not a separate user price edit.
+            $productChangeLabel = \App\Support\OrderActivityNotice::productChangeLabel(array_keys($lockedItem->getDirty()));
+            $lockedItem->save();
             $this->syncItemSummary($lockedJob);
-            $lockedJob->activities()->create([
-                'user_id' => $actor->id,
-                'event' => 'job.product_updated',
-                'description' => 'Product, supplier, quantity and price updated',
-            ]);
+            if ($productChangeLabel !== null) {
+                $lockedJob->activities()->create([
+                    'user_id' => $actor->id,
+                    'event' => 'job.product_updated',
+                    'description' => $productChangeLabel,
+                ]);
+            }
 
             return $lockedItem->refresh();
         }, 3);
 
-        app(NotificationService::class)->notifyJobParticipants(
-            $job->refresh(),
-            'Order product updated',
-            $job->displayOrderNumber().' · Product/supplier/quantity details updated',
-            'update',
-            $actor,
-        );
+        if ($productChangeLabel !== null) {
+            app(NotificationService::class)->notifyJobParticipants(
+                $job->refresh(),
+                $productChangeLabel,
+                $job->displayOrderNumber().' · '.$productChangeLabel.'. Open the order for details.',
+                'order_activity',
+                $actor,
+            );
+        }
 
         return $updated;
     }
@@ -2816,15 +2885,25 @@ class LegacyJobService
             app(NotificationService::class)->notifyJobParticipants(
                 $job->refresh(),
                 'Product added to Order',
-                $job->displayOrderNumber().' · '.$item->product_name.' · '.number_format($item->quantity).' units',
-                'update',
+                $job->displayOrderNumber().' · Product added. Open the order for details.',
+                'order_activity',
                 $actor,
             );
             return $item;
         }
 
-        $job->activities()->create(['user_id' => $actor->id, 'event' => 'job.product_updated', 'description' => 'Product and quantity details updated']);
-        app(NotificationService::class)->notifyJobParticipants($job->refresh(), 'Order product updated', $job->job_number.' · Product/category/quantity changed', 'update', $actor);
+        $productChangeLabel = \App\Support\OrderActivityNotice::label('job.product_updated', ['field' => $field]);
+        $job->activities()->create([
+            'user_id' => $actor->id,
+            'event' => 'job.product_updated',
+            'description' => $productChangeLabel,
+            'meta' => ['field' => $field, 'item_id' => (int) $item->id],
+        ]);
+        app(NotificationService::class)->notifyJobParticipants(
+            $job->refresh(), $productChangeLabel,
+            $job->displayOrderNumber().' · '.$productChangeLabel.'. Open the order for details.',
+            'order_activity', $actor,
+        );
         return $item;
     }
 
@@ -2893,7 +2972,7 @@ class LegacyJobService
         // is selected before recording the normal Product added notification.
         if ($product !== '') {
             $job->activities()->create(['user_id' => $actor->id, 'event' => 'job.product_added', 'description' => 'Product added to Order']);
-            app(NotificationService::class)->notifyJobParticipants($job->refresh(), 'Product added to Order', $job->displayOrderNumber().' · '.$item->product_name.' · '.number_format($item->quantity).' units', 'update', $actor);
+            app(NotificationService::class)->notifyJobParticipants($job->refresh(), 'Product added to Order', $job->displayOrderNumber().' · Product added. Open the order for details.', 'order_activity', $actor);
         }
 
         return $item->refresh();
@@ -2920,7 +2999,7 @@ class LegacyJobService
             $description = 'Product removed from active Order';
             if (filled($reason)) $description .= ': '.trim((string) $reason);
             $job->activities()->create(['user_id' => $actor->id, 'event' => 'job.product_removed', 'description' => $description]);
-            app(NotificationService::class)->notifyJobParticipants($job->refresh(), 'Product removed from Order', $job->job_number.' · Product retained in history', 'update', $actor);
+            app(NotificationService::class)->notifyJobParticipants($job->refresh(), 'Product removed from Order', $job->displayOrderNumber().' · Product removed from the active order.', 'order_activity', $actor);
         }
     }
 
@@ -2941,7 +3020,7 @@ class LegacyJobService
         $this->syncItemSummary($job);
 
         $job->activities()->create(['user_id' => $actor->id, 'event' => 'job.product_restored', 'description' => 'Product restored to active Order']);
-        app(NotificationService::class)->notifyJobParticipants($job->refresh(), 'Product restored to Order', $job->job_number.' · Product list updated', 'update', $actor);
+        app(NotificationService::class)->notifyJobParticipants($job->refresh(), 'Product restored to Order', $job->displayOrderNumber().' · Product restored to the active order.', 'order_activity', $actor);
 
         return $item->refresh();
     }
@@ -3351,6 +3430,17 @@ class LegacyJobService
         if (!$isDedicatedOrderWorkflow && !$isPrototypeOrderRuntime && !$job->phase?->auto_advance_on_ready) return $job;
 
         if (JobDetailPresenter::blockers($job)->isEmpty()) {
+            // A deliberate yes/no choice for the optional PO step must be
+            // possible after sample approval. Reuse the canonical loaded task
+            // graph; there is no additional SQL in the phase advance gate.
+            if (strcasecmp((string) ($job->phase?->name ?: ''), 'Artwork') === 0
+                && $job->tasks->contains(fn (Task $task) =>
+                    $workflowActions->automationKey($task) === 'ART_SUPPLIER_PO_OPTIONAL'
+                    && !\App\Support\OrderDetailPresenter::isCompletedTask($task)
+                    && !\App\Support\OrderDetailPresenter::isSkippedTask($task)
+                )) {
+                return $job;
+            }
             return $this->completePhase($job, $actor, true);
         }
 

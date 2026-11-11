@@ -14,4 +14,13 @@ final class DashboardAttentionQuery {
             'attentionInquiries'=>$this->dashboard->attentionInquiries($actor,$f->clientId,$f->departmentId,$f->rangeDays),
         ];
     }
+
+    /** Release B: the visible Needs attention panel has no task list. */
+    public function handleVisible(User $actor, DashboardFilterData $f): array {
+        abort_unless($this->access->can($actor, 'dashboard', 'view'), 403);
+        return [
+            'attentionOrders' => $this->dashboard->attentionOrders($actor, $f->clientId, $f->departmentId, $f->rangeDays),
+            'attentionInquiries' => $this->dashboard->attentionInquiries($actor, $f->clientId, $f->departmentId, $f->rangeDays),
+        ];
+    }
 }

@@ -51,12 +51,46 @@ final class DashboardReadModelCache
         $this->forgetUser($actor);
     }
 
+    /**
+     * The catalogue aggregates only Master Data product/category/supplier records.
+     * Task or Order activity must not invalidate these eight catalogue counts.
+     * Unknown subjects invalidate conservatively rather than risking stale data.
+     */
+    public function invalidateCatalogueForReason(string $reason): void
+    {
+        if (!config('dashboard.progressive_loading_enabled', false)) return;
+        foreach (explode('|', $reason) as $part) {
+            $subject = explode(':', $part, 2)[0];
+            if (in_array($subject, ['MasterRecord', 'MasterValue', 'role-access', 'Permission', 'Role', 'RoleModuleAccess', 'User', 'Workspace', 'WorkspaceMembership', 'data'], true)
+                || $subject === '' || !in_array($subject, [
+                    'Activity', 'FlowJob', 'FlowJobItem', 'FlowJobMember', 'FlowJobPhaseHistory',
+                    'Task', 'TaskLink', 'FlowTaskChecklistItem', 'FlowTaskComment',
+                    'Inquiry', 'InquiryTask', 'InquiryItem', 'InquiryTaskComment', 'InquiryTaskLink',
+                    'InquiryDocument', 'Invoice', 'InvoiceItem', 'Payment', 'OrderCollection',
+                    'CollectionUpdate', 'Client', 'ClientContact', 'ClientShippingAddress',
+                    'Document', 'Department', 'TaskPack', 'TaskPackTask', 'TaskPackItem',
+                    'Workflow', 'WorkflowPhase', 'WorkflowTemplate', 'NotificationRule',
+                ], true)) {
+                Cache::forever($this->catalogueVersionKey(), (string) now()->timestamp.'-'.bin2hex(random_bytes(5)));
+                return;
+            }
+        }
+    }
+
+    private function catalogueVersionKey(): string
+    {
+        return 'flowtrack:dashboard-catalogue-version:'. $this->workspaceRefresh->workspaceId();
+    }
+
     private function key(User $actor, string $section, array $identity): string
     {
         ksort($identity);
         $generation = (int) Cache::get($this->generationKey((int) $actor->id), 1);
-        $clientVersion = $this->clients->lifecycleVersion();
-        $workspaceVersion = $this->workspaceRefresh->version();
+        $isCatalogue = config('dashboard.progressive_loading_enabled', false) && $section === 'catalogue-readiness';
+        $clientVersion = $isCatalogue ? 'catalogue' : $this->clients->lifecycleVersion();
+        $workspaceVersion = $isCatalogue
+            ? 'catalogue-'.(string) Cache::get($this->catalogueVersionKey(), '1')
+            : $this->workspaceRefresh->version();
         $fingerprint = hash('sha256', json_encode($identity, JSON_THROW_ON_ERROR));
 
         return implode(':', [

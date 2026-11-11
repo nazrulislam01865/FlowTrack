@@ -128,6 +128,10 @@ class AppServiceProvider extends ServiceProvider
             $modelClass::observe(WorkspaceDataObserver::class);
         }
 
+        // Notify Order participants only for business events that have no
+        // existing explicit notification. No reads or task queries are added.
+        \App\Models\Activity::observe(\App\Observers\OrderActivityNotificationObserver::class);
+
         \App\Models\Workspace::observe(\App\Observers\SupplierWorkspaceBrandObserver::class);
         InquiryTask::observe(\App\Observers\SupplierInquiryTaskObserver::class);
 

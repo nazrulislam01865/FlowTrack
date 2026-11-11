@@ -1,0 +1,139 @@
+/* Release A/B/C: section-owned visual placeholders only.
+   No timers, polling, queries or changes to mounted Livewire components. */
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-dashboard-skeleton {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-line,
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-circle,
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-donut {
+    display: block;
+    flex-shrink: 0;
+    background: linear-gradient(100deg, #e9eff4 18%, #f8fafc 42%, #e9eff4 66%);
+    background-size: 220% 100%;
+    animation: ft-mgmt-skeleton-shimmer 1.55s ease-in-out infinite;
+}
+
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-line {
+    width: 100%;
+    height: 12px;
+    border-radius: 5px;
+}
+
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+}
+
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-overview .ft-order-workflow-stage-strip {
+    align-items: stretch;
+}
+
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-stage {
+    display: flex;
+    min-width: 0;
+    min-height: 92px;
+    flex-direction: column;
+    gap: 9px;
+    padding: 11px;
+    border: 1px solid var(--ft-theme-border-subtle, #dce6ef);
+    border-radius: 12px;
+    background: var(--ft-theme-surface, #fff);
+}
+
+.ft-mgmt-skeleton-stage .ft-mgmt-skeleton-kicker { width: 37%; height: 9px; }
+.ft-mgmt-skeleton-stage .ft-mgmt-skeleton-stage-title { width: 82%; height: 16px; }
+.ft-mgmt-skeleton-stage:nth-child(even) .ft-mgmt-skeleton-stage-title { width: 65%; }
+.ft-mgmt-skeleton-stage .ft-mgmt-skeleton-stage-count { display: flex; align-items: end; justify-content: space-between; gap: 10px; margin-top: auto; }
+.ft-mgmt-skeleton-stage .ft-mgmt-skeleton-short { width: 53%; height: 10px; }
+.ft-mgmt-skeleton-stage .ft-mgmt-skeleton-number { width: 25px; height: 22px; border-radius: 6px; }
+
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-body { padding: 14px 16px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-tabs { display: flex; align-items: center; gap: 13px; margin-left: auto; padding: 4px 0; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-tabs .ft-mgmt-skeleton-line { width: 50px; height: 13px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-tabs .ft-mgmt-skeleton-line:nth-child(2) { width: 56px; }
+
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-table { overflow: hidden; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-table-row {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr 1fr 1fr 1fr 1fr .75fr;
+    align-items: center;
+    gap: 16px;
+    min-height: 50px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--ft-theme-border-soft, #edf1f5);
+}
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-table-head { min-height: 37px; background: #f5f8fa; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-table-row .ft-mgmt-skeleton-line { max-width: 115px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-table-head .ft-mgmt-skeleton-line { height: 9px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-table-row:not(.ft-mgmt-skeleton-table-head):nth-child(2n) .ft-mgmt-skeleton-line { width: 70%; }
+
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-feed-row,
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-portfolio-row {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 14px;
+    min-height: 54px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--ft-theme-border-soft, #edf1f5);
+}
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-feed-row:last-child,
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-portfolio-row:last-child { border-bottom: 0; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-feed-copy { flex: 1; min-width: 0; display: grid; gap: 9px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-feed-copy .ft-mgmt-skeleton-line:first-child { width: 63%; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-feed-copy .ft-mgmt-skeleton-line:last-child { width: 82%; height: 10px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-time { width: 49px; height: 9px; }
+
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-team { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-person { display: grid; min-width: 0; gap: 13px; padding: 14px; border: 1px solid var(--ft-theme-border-subtle, #e1e9ef); border-radius: 10px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-person-head { display: flex; align-items: center; gap: 10px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-person-head .ft-mgmt-skeleton-line { flex: 1; width: auto; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-person > .ft-mgmt-skeleton-line:nth-child(3) { width: 68%; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-progress { height: 7px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-portfolio-row > .ft-mgmt-skeleton-line:nth-child(2) { flex: 1; width: 30%; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-portfolio-row > .ft-mgmt-skeleton-line:nth-child(3) { width: 46px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-portfolio-row > .ft-mgmt-skeleton-line:nth-child(4) { width: 25%; }
+
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-chart-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 34px; align-items: center; gap: 12px; min-height: 35px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-chart-row .ft-mgmt-skeleton-line:nth-child(2) { height: 10px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-chart-row:nth-child(3n) .ft-mgmt-skeleton-line:nth-child(2) { width: 64%; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-chart-row:nth-child(3n + 1) .ft-mgmt-skeleton-line:nth-child(2) { width: 82%; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-distribution { display: flex; align-items: center; gap: 22px; min-height: 215px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-donut { width: 124px; height: 124px; border-radius: 50%; position: relative; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-donut::after { content: ''; position: absolute; inset: 24px; border-radius: 50%; background: var(--ft-theme-surface, #fff); }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-legend { display: grid; flex: 1; gap: 18px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-legend .ft-mgmt-skeleton-line:nth-child(even) { width: 70%; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-catalogue-summary { display: flex; gap: 15px; padding: 8px 0 15px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-catalogue-summary .ft-mgmt-skeleton-line { flex: 1; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-mention-action { width: 85px; height: 12px; margin-top: 5px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-mention-tabs { display: flex; gap: 19px; padding: 13px 20px; border-bottom: 1px solid var(--ft-theme-border-soft, #edf1f5); }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-mention-tabs .ft-mgmt-skeleton-line { width: 59px; }
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-mention-list { padding: 0 20px 12px; }
+
+/* Each component returns either its loading view or its loaded view.
+   The same Livewire component root is morphed; CSS never hides stale siblings. */
+/* A mounted panel is revealed once; later Livewire morphs keep its root and state. */
+.ft-mgmt-dashboard[data-dashboard-progressive="1"] [data-dashboard-panel] { animation: ft-mgmt-skeleton-reveal .28s ease-out both; }
+@keyframes ft-mgmt-skeleton-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@keyframes ft-mgmt-skeleton-reveal { from { opacity: .55; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 900px) {
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-team { grid-template-columns: 1fr; }
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-table-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-table-row .ft-mgmt-skeleton-line:nth-child(n + 4) { display: none; }
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-portfolio-row > .ft-mgmt-skeleton-line:last-child { display: none; }
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-distribution { flex-direction: column; align-items: stretch; }
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-donut { align-self: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-line,
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-circle,
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] .ft-mgmt-skeleton-donut,
+    .ft-mgmt-dashboard[data-dashboard-progressive="1"] [data-dashboard-panel] { animation: none; }
+}

@@ -3,7 +3,7 @@
         <div>
             <div class="breadcrumbs">Order / Purchase Orders</div>
             <h1>Purchase Orders</h1>
-            <p>Generate, review and email supplier purchase orders for existing orders.</p>
+            <p>Review and edit purchase orders generated from the optional Artwork task.</p>
         </div>
         <x-ui.button variant="secondary" size="sm" :href="route('jobs.index')" wire:navigate>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
@@ -33,6 +33,14 @@
                     <p>{{ $selectedOrder->title }}</p>
                 </div>
                 <div class="ft-po-editor-header-actions">
+                    @if($canEditSelectedOrder && $poRows && strcasecmp((string) $selectedOrder->status, 'Cancelled') !== 0)
+                        @php $headerPo = collect($poRows)->firstWhere('id', (int) ($orderWorkflowActionPayload['supplier_po_selected_id'] ?? 0)) ?: $poRows[0]; @endphp
+                        @if((int) ($orderWorkflowActionPayload['supplier_po_editing_id'] ?? 0) === (int) $headerPo['id'])
+                            <x-ui.button variant="secondary" size="sm" wire:click="cancelSupplierPurchaseOrderEdit">Cancel edit</x-ui.button>
+                        @else
+                            <x-ui.button variant="primary" size="sm" wire:click="beginSupplierPurchaseOrderEdit({{ (int) $headerPo['id'] }})">Edit PO</x-ui.button>
+                        @endif
+                    @endif
                     <x-ui.button variant="secondary" size="sm" :href="route('jobs.index', ['open' => $selectedOrder->id])" wire:navigate>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M13 3h8v8M21 3l-10 10"/></svg>
                         Open order details
@@ -58,7 +66,7 @@
 
             <div class="ft-po-order-products">
                 <div class="ft-po-products-heading">
-                    <div><h3>Order products</h3><p>Confirm the products and supplier before generating the PO.</p></div>
+                    <div><h3>Order products</h3><p>Products are imported from the Order when the optional Artwork PO task is completed.</p></div>
                     <span class="ft-po-products-count">{{ count($products) }} {{ count($products) === 1 ? 'product' : 'products' }} <span aria-hidden="true">·</span> {{ number_format($units) }} units</span>
                 </div>
                 @if($products)
@@ -89,10 +97,23 @@
             </div>
 
             <div class="ft-po-workspace-heading">
-                <div><h3>{{ $poRows ? 'Generated purchase orders' : 'Create supplier purchase order' }}</h3><p>{{ $poRows ? 'Review, download or email the PDFs associated with this order.' : 'Choose a PO format and generate a PDF from the order products above.' }}</p></div>
+                <div><h3>{{ $poRows ? 'Generated purchase orders' : 'Purchase order not generated' }}</h3><p>{{ $poRows ? 'Review, edit, download or email the PDFs associated with this order.' : 'The Purchase Order can only be generated using Create PO in the optional Artwork task after the sample step.' }}</p></div>
                 @if($poRows)<span class="ft-po-status is-ready">{{ count($poRows) }} {{ count($poRows) === 1 ? 'PO' : 'POs' }} generated</span>@endif
             </div>
-            @if(!$canEditSelectedOrder || strcasecmp((string) $selectedOrder->status, 'Cancelled') === 0)
+            @if($poRows && (int) ($orderWorkflowActionPayload['supplier_po_editing_id'] ?? 0) === 0)
+                @php $detailPo = collect($poRows)->firstWhere('id', (int) ($orderWorkflowActionPayload['supplier_po_selected_id'] ?? 0)) ?: $poRows[0]; @endphp
+                <section class="ft-po-view-summary" aria-label="Purchase order details">
+                    <div class="ft-po-view-summary-head"><strong>{{ $detailPo['number'] }}</strong><span>Revision {{ $detailPo['revision'] }} · Delivery {{ $detailPo['delivery_date'] ?: 'Not set' }}</span></div>
+                    <div class="ft-po-table-scroll"><table class="ft-po-table"><thead><tr><th>Product</th><th>Model / SKU</th><th>Quantity</th><th>Supplier unit price</th></tr></thead><tbody>
+                        @foreach($detailPo['item_rows'] as $line)
+                            <tr><td>{{ $line['name'] }}</td><td>{{ $line['sku'] ?? '—' }}</td><td>{{ number_format((int) $line['quantity']) }}</td><td>{{ $line['supplier_unit_cost'] === null ? '—' : number_format((float) $line['supplier_unit_cost'], 2) }}</td></tr>
+                        @endforeach
+                    </tbody></table></div>
+                </section>
+            @endif
+            @if(!$poRows && !$create)
+                <p class="ft-po-readonly-note">No Purchase Order has been generated. Open the Artwork stage in Order Details to choose Create PO or Skip PO after the sample task.</p>
+            @elseif(!$canEditSelectedOrder || strcasecmp((string) $selectedOrder->status, 'Cancelled') === 0)
                 <p class="ft-po-readonly-note">You can view generated purchase orders for this order, but you don't have permission to create or send them.</p>
                 @foreach($poRows as $po)
                     <div class="ft-po-readonly-row">
@@ -102,9 +123,22 @@
                         @endif
                     </div>
                 @endforeach
+            @elseif($create && !$poRows && $canEditSelectedOrder)
+                <div class="ft-po-create-overlay" role="presentation">
+                    <section class="ft-po-create-popup" role="dialog" aria-modal="true" aria-label="Create Supplier Purchase Order">
+                        <header class="ft-po-create-popup-heading"><div><h2>Create Supplier Purchase Order</h2><p>Choose Single or Split PO. No PO is generated until you confirm.</p></div><button type="button" wire:click="cancelSupplierPoCreation" aria-label="Close Purchase Order popup">×</button></header>
+                        <x-jobs.order-detail.supplier-purchase-order-panel
+                            :standalone="true"
+                            :order-date="($selectedOrder->supplier_delivery_date ?: $selectedOrder->delivery_date)?->format('Y-m-d')"
+                            :payload="$orderWorkflowActionPayload"
+                            :preview="$orderWorkflowActionModalPreview['supplier_po'] ?? []"
+                        />
+                    </section>
+                </div>
             @else
                 <x-jobs.order-detail.supplier-purchase-order-panel
                     :standalone="true"
+                    :order-date="($selectedOrder->supplier_delivery_date ?: $selectedOrder->delivery_date)?->format('Y-m-d')"
                     :payload="$orderWorkflowActionPayload"
                     :preview="$orderWorkflowActionModalPreview['supplier_po'] ?? []"
                 />
@@ -113,7 +147,7 @@
     @else
         <section class="ft-po-list" aria-label="Orders available for purchase orders">
             <div class="ft-po-list-heading">
-                <div><h2>Order purchase orders</h2><p>Find the correct order, then generate or manage its supplier PO.</p></div>
+                <div><h2>Order purchase orders</h2><p>Find an order to review its supplier Purchase Orders. Generation is available only through the Artwork task.</p></div>
                 <span class="ft-po-list-hint">15 orders per page</span>
             </div>
             <div class="ft-po-filter-toolbar">
@@ -123,7 +157,7 @@
                 </label>
                 <div class="ft-po-filter-controls" role="group" aria-label="Filter by purchase order status">
                     <button type="button" @class(['ft-po-filter-chip', 'is-active' => $poFilter === 'all']) wire:click="setPoFilter('all')" aria-pressed="{{ $poFilter === 'all' ? 'true' : 'false' }}">All orders</button>
-                    <button type="button" @class(['ft-po-filter-chip', 'is-active' => $poFilter === 'pending']) wire:click="setPoFilter('pending')" aria-pressed="{{ $poFilter === 'pending' ? 'true' : 'false' }}">To generate</button>
+                    <button type="button" @class(['ft-po-filter-chip', 'is-active' => $poFilter === 'pending']) wire:click="setPoFilter('pending')" aria-pressed="{{ $poFilter === 'pending' ? 'true' : 'false' }}">Not generated</button>
                     <button type="button" @class(['ft-po-filter-chip', 'is-active' => $poFilter === 'generated']) wire:click="setPoFilter('generated')" aria-pressed="{{ $poFilter === 'generated' ? 'true' : 'false' }}">Generated</button>
                 </div>
                 @if(filled($search) || $poFilter !== 'all')
@@ -132,7 +166,7 @@
             </div>
             <div class="ft-po-table-summary">
                 <span><strong>{{ $orders->count() }}</strong> {{ $orders->count() === 1 ? 'order' : 'orders' }} on this page</span>
-                <span>{{ $poFilter === 'pending' ? 'Awaiting PO generation' : ($poFilter === 'generated' ? 'Generated supplier POs' : 'All PO statuses') }}</span>
+                <span>{{ $poFilter === 'pending' ? 'Not generated' : ($poFilter === 'generated' ? 'Generated supplier POs' : 'All PO statuses') }}</span>
             </div>
             <div class="ft-po-table-scroll" wire:loading.class="is-loading" wire:target="search,setPoFilter,gotoPage,previousPage,nextPage">
                 <table class="ft-po-table">

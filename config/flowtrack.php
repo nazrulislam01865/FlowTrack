@@ -4,6 +4,8 @@ return [
     // Public Order Tracking / QR is enabled by default; use the env switch to disable if needed.
     'order_tracking_enabled' => env('FLOWTRACK_ORDER_TRACKING_ENABLED', true),
     'workspace_id' => (int) env('FLOWTRACK_WORKSPACE_ID', 1),
+    // Supplier PO workspace is enabled; set the environment value to false to disable it again.
+    'supplier_po_creation_enabled' => (bool) env('FLOWTRACK_SUPPLIER_PO_CREATION_ENABLED', true),
     // Phase 3: keep legacy workspace-wide refresh routing available for immediate rollback.
     'order_targeted_events_enabled' => (bool) env('FLOWTRACK_ORDER_TARGETED_EVENTS_ENABLED', false),
     // Phase 4: bounded general Order documents, with the original full-history
@@ -24,6 +26,13 @@ return [
     // Independent writer/read controls: migrate and backfill before serving snapshots.
     'workflow_read_snapshot_writes_enabled' => (bool) env('FLOWTRACK_WORKFLOW_READ_SNAPSHOT_WRITES_ENABLED', false),
     'workflow_read_snapshot_enabled' => (bool) env('FLOWTRACK_WORKFLOW_READ_SNAPSHOT_ENABLED', false),
+    // Opt-in three-level Order Details read/presentation. OFF preserves the
+    // current progressive Workflow child and inline task resource listing.
+    'order_three_level_loading_enabled' => (bool) env('FLOWTRACK_ORDER_THREE_LEVEL_LOADING_ENABLED', false),
+
+    // Task 2: freeze workflow/phase/Task Pack definitions only for newly created
+    // Orders. Existing Orders and all Part 1 loading remain unchanged.
+    'order_template_version_isolation_enabled' => (bool) env('FLOWTRACK_ORDER_TEMPLATE_VERSION_ISOLATION_ENABLED', false),
 
     // Release B: conservative, one-query guard for a known incomplete required
     // current-phase task. Disabled until matched staging tests are signed off.

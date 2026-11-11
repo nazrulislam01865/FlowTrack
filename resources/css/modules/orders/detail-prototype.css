@@ -17,6 +17,7 @@
 @import './detail/invoice-email.css';
 
 @import './detail/responsive-task-cards.css';
+@import './detail/sample-workflow.css';
 
 /* Must remain last: deterministic task-grid placement guard. */
 @import './detail/permanent-task-grid.css';

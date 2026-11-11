@@ -9,13 +9,13 @@ class SupplierPurchaseOrder extends Model
 {
     protected $fillable = [
         'flow_job_id', 'task_id', 'supplier_id', 'document_id', 'created_by',
-        'po_number', 'batch_uuid', 'mode', 'items_snapshot', 'template_details', 'pdf_path', 'pdf_name',
+        'po_number', 'batch_uuid', 'mode', 'items_snapshot', 'template_details', 'po_delivery_date', 'revision', 'pdf_path', 'pdf_name',
         'email_status', 'recipient_emails', 'email_subject', 'email_error', 'email_tracking_id', 'sent_at', 'archived_at',
     ];
 
     protected function casts(): array
     {
-        return ['items_snapshot' => 'array', 'template_details' => 'array', 'recipient_emails' => 'array', 'sent_at' => 'datetime', 'archived_at' => 'datetime'];
+        return ['po_delivery_date' => 'date', 'revision' => 'integer', 'items_snapshot' => 'array', 'template_details' => 'array', 'recipient_emails' => 'array', 'sent_at' => 'datetime', 'archived_at' => 'datetime'];
     }
 
     public function job(): BelongsTo { return $this->belongsTo(FlowJob::class, 'flow_job_id'); }

@@ -21,6 +21,7 @@
     $inlineAppearance = $appearance === 'inline';
     $action = match ($mode) {
         'modal' => 'selectShipmentModalMethod',
+        'sample' => 'selectSampleShippingMethod',
         'inline' => 'selectInlineShipmentMethod',
         default => 'selectOrderShipmentMethod',
     };
@@ -98,7 +99,7 @@
         <template x-teleport="body">
             <div
                 x-ref="menu"
-                class="ft-ms-method__menu ft-ms-method-portal"
+                class="ft-ms-method__menu ft-ms-method-portal {{ $mode === 'sample' ? 'ft-ms-method-portal--sample' : '' }}"
                 x-cloak
                 x-show="open"
                 x-bind:style="menuStyle + (open ? ';display:block!important;' : ';display:none!important;')"
@@ -109,7 +110,7 @@
                     @php
                         $kind = $presenter::methodKind($method);
                         $label = $presenter::methodLabel($method);
-                        $actionArgs = in_array($mode, ['modal', 'inline'], true)
+                        $actionArgs = in_array($mode, ['modal', 'inline', 'sample'], true)
                             ? ((int) $method->id).', null'
                             : ((int) $taskId).', '.((int) $shipmentId).', '.((int) $method->id).', null';
                     @endphp
@@ -134,7 +135,7 @@
                         @php
                             $urgencyId = $urgency['id'];
                             $urgencyArg = $urgencyId === null ? 'null' : (string) ((int) $urgencyId);
-                            $actionArgs = in_array($mode, ['modal', 'inline'], true)
+                            $actionArgs = in_array($mode, ['modal', 'inline', 'sample'], true)
                                 ? ((int) $expressMethod->id).', '.$urgencyArg
                                 : ((int) $taskId).', '.((int) $shipmentId).', '.((int) $expressMethod->id).', '.$urgencyArg;
                         @endphp

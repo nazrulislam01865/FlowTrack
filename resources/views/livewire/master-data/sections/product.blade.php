@@ -34,6 +34,7 @@
                 :customer-price-preview="$productCustomerPricePreview"
                 :client-price-rows="$productClientPrices"
                 :supplier-price-rows="$productSupplierPrices"
+                :price-currencies="$productPriceCurrencies"
                 :remote-surcharge-preview="$productRemoteSurchargePreview"
                 :product-options="$productOptions"
                 :product-option-uploads="$productOptionUploads"

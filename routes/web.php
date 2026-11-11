@@ -194,8 +194,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-work', MyWorkController::class)->middleware('permission:tasks.view')->name('my-work');
     Route::get('/inquiries', InquiriesController::class)->middleware('permission:inquiries.view')->name('inquiries.index');
     Route::get('/inquiries/export', [ListExportController::class, 'inquiries'])->middleware(['permission:inquiries.view', 'permission:reports.export'])->name('inquiries.export');
-    Route::get('/orders/purchase-orders', fn () => view('pages.purchase-orders', ['title' => 'Purchase Orders']))
-        ->middleware('permission:jobs.view')->name('orders.purchase-orders');
+    Route::get('/orders/purchase-orders', function () {
+        abort_unless(config('flowtrack.supplier_po_creation_enabled', false), 404);
+
+        return view('pages.purchase-orders', ['title' => 'Purchase Orders']);
+    })->middleware('permission:jobs.view')->name('orders.purchase-orders');
     Route::get('/orders/bulk-import', [BulkOrderImportController::class, 'index'])->middleware('permission:jobs.create')->name('orders.bulk-import');
     Route::post('/orders/bulk-import/validate', [BulkOrderImportController::class, 'validateUpload'])->middleware('permission:jobs.create')->name('orders.bulk-import.validate');
     Route::post('/orders/bulk-import/revalidate', [BulkOrderImportController::class, 'revalidate'])->middleware('permission:jobs.create')->name('orders.bulk-import.revalidate');
@@ -223,6 +226,12 @@ Route::middleware('auth')->group(function () {
         ->name('orders.artwork-uploads.destroy');
 
     Route::get('/address-book', fn () => view('pages.artwork-address-book', ['title' => 'Address Book']))->name('artwork-address-book.index');
+    // Independent read-only prefetch: never hydrates or morphs the active
+    // workflow Livewire component, and never changes workflow/task state.
+    Route::get('/orders/{orderId}/workflow/stage-prefetch', \App\Http\Controllers\OrderStagePrefetchController::class)
+        ->middleware(['permission:jobs.view', 'throttle:90,1'])
+        ->whereNumber('orderId')
+        ->name('orders.workflow.stage-prefetch');
     Route::get('/orders', JobsController::class)->middleware('permission:jobs.view')->name('jobs.index');
     Route::get('/jobs', function (\Illuminate\Http\Request $request) {
         return redirect()->route('jobs.index', $request->query());

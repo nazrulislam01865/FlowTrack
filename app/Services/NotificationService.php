@@ -128,6 +128,28 @@ class NotificationService
         });
     }
 
+    /** A safe preview for Order/Task notifications without private content. */
+    public function safePreview(FlowNotification $notification): string
+    {
+        $hasOrderContext = $notification->flow_job_id !== null || $notification->flow_task_id !== null;
+        if (! $hasOrderContext) {
+            return app(MentionService::class)->displayText((string) $notification->message);
+        }
+        if (in_array((string) $notification->type, ['comment', 'mention', 'mention_admin'], true)) {
+            return 'A comment or mention was posted. Open the record to read it.';
+        }
+        if ((string) $notification->type === 'update') {
+            return 'Order or task details changed. Open the record to review.';
+        }
+        if ((string) $notification->type === 'assignment') {
+            return 'An assignment changed. Open the record to review.';
+        }
+        if ((string) $notification->type === 'risk') {
+            return 'Attention required. Open the record to review.';
+        }
+        return app(MentionService::class)->displayText((string) $notification->message);
+    }
+
     public function list(User $user)
     {
         return $this->visibleQuery($user)
@@ -255,8 +277,7 @@ class NotificationService
         array $excludeUserIds = [],
     ): void {
         $excluded = array_map('intval', $excludeUserIds);
-        $assignedUserId = (int) (($job->owner_id ?? null) ?: ($job->coordinator_id ?? 0));
-        $ids = collect($assignedUserId > 0 ? [$assignedUserId] : [])
+        $ids = collect([$job->owner_id ?? null, $job->coordinator_id ?? null])
             ->merge($extraUserIds)
             ->merge($this->administratorIds())
             ->filter()
@@ -764,7 +785,7 @@ class NotificationService
             'id' => $notification->id,
             'type' => $notification->type,
             'title' => $notification->title,
-            'message' => app(MentionService::class)->displayText($notification->message),
+            'message' => $this->safePreview($notification),
             'actor_id' => $actor?->id,
             'actor_name' => $actor?->name,
             'actor_avatar_url' => $actor?->profileImageUrl(),

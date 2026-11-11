@@ -1,0 +1,196 @@
+/* Artwork sample dialogs: scoped presentation, shared theme and button controls. */
+.ft-order-prototype-detail .ft-sample-workflow-modal {
+    width: min(620px, 100%);
+    max-height: min(90dvh, 780px);
+    color: var(--ft-text-primary, #172235);
+    font-family: var(--ft-font-family, inherit);
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-order-task-document-modal-head {
+    padding: 18px 22px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-order-task-document-modal-head h2 {
+    font-size: 1.18rem;
+    line-height: 1.3;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-order-task-document-modal-head p {
+    font-size: .78rem;
+    margin-top: 5px;
+    line-height: 1.5;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-prototype-action-body {
+    padding: 20px 22px 22px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-prototype-modal-copy {
+    font-size: .82rem;
+    line-height: 1.55;
+    margin-bottom: 15px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0 0 20px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-grid > .ft-sample-choice {
+    display: block;
+    position: relative;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 162px;
+    margin: 0;
+    padding: 16px 18px;
+    cursor: pointer;
+    border: 1px solid var(--ft-border-default, #dbe4ee);
+    border-radius: var(--ft-radius-lg, 10px);
+    background: var(--ft-bg-surface, #fff);
+    transition: background .15s, border-color .15s, box-shadow .15s;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-grid > .ft-sample-choice:hover {
+    border-color: var(--ft-color-brand-primary, #008576);
+    background: var(--ft-bg-surface-subtle, #f8fafc);
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-grid > .ft-sample-choice:has(input:checked) {
+    border-color: var(--ft-color-brand-primary, #008576);
+    background: var(--ft-color-brand-primary-soft, #e7f5f2);
+    box-shadow: inset 0 0 0 1px var(--ft-color-brand-primary, #008576);
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-grid > .ft-sample-choice:focus-within {
+    outline: 2px solid var(--ft-color-brand-primary, #008576);
+    outline-offset: 2px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-grid .ft-sample-choice input[type=radio] {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    accent-color: var(--ft-color-brand-primary, #008576);
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    padding-right: 5px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-content .ft-prototype-choice-icon {
+    display: grid;
+    place-items: center;
+    width: 37px;
+    height: 37px;
+    flex: 0 0 37px;
+    margin: 0 0 2px;
+    font-size: 1rem;
+    border-radius: 10px;
+    color: var(--ft-color-brand-primary, #008576);
+    background: var(--ft-color-brand-primary-soft, #e7f5f2);
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-content strong,
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-content small {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-content strong {
+    padding-right: 0;
+    color: var(--ft-text-primary, #172235);
+    font-size: .85rem;
+    line-height: 1.4;
+    font-weight: var(--ft-font-weight-bold, 700);
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-content small {
+    font-size: .75rem;
+    line-height: 1.5;
+    color: var(--ft-text-secondary, #64748b);
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-prototype-field {
+    margin: 0 0 14px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-prototype-field > span {
+    font-size: .76rem;
+    line-height: 1.4;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-prototype-field :is(input, textarea, select) {
+    font: inherit;
+    font-size: .83rem;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: var(--ft-radius-md, 8px);
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-prototype-field textarea {
+    min-height: 88px;
+    max-height: 220px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--ft-border-default, #dbe4ee);
+    margin-top: 18px;
+    padding-top: 16px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-modal-actions .ft-btn[data-ft-ui-component="button"] {
+    min-height: 38px;
+    font-family: var(--ft-font-family, inherit);
+    font-size: .8rem;
+    font-weight: var(--ft-font-weight-semibold, 600);
+    border-radius: var(--ft-radius-md, 8px);
+    padding: 9px 16px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-modal-actions .ft-btn--primary[data-ft-ui-component="button"] {
+    background: var(--ft-color-brand-primary, #008576);
+    border-color: var(--ft-color-brand-primary, #008576);
+    color: #fff;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-modal-actions .ft-btn--primary[data-ft-ui-component="button"] span {
+    color: inherit;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-modal-actions .ft-btn--primary[data-ft-ui-component="button"]:hover:not(:disabled) {
+    background: var(--ft-color-brand-primary-hover, #006d61);
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-history {
+    margin-top: 18px;
+}
+@media (max-width: 620px) {
+    .ft-order-prototype-detail .ft-sample-workflow-modal { width: min(100%, 560px); }
+    .ft-order-prototype-detail .ft-sample-workflow-modal .ft-prototype-action-body { padding: 16px; }
+    .ft-order-prototype-detail .ft-sample-workflow-modal .ft-order-task-document-modal-head { padding: 16px; }
+    .ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-grid { grid-template-columns: minmax(0, 1fr); }
+    .ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-choice-grid > .ft-sample-choice { min-height: 0; }
+    .ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-modal-actions .ft-btn { flex: 1 1 0; min-width: 0; }
+}
+
+/* Physical sample handoff: use the shared Master Data Shipment selector, but
+   size it for the sample modal instead of the dense Shipment table. */
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-shipping-method-field .ft-ms-method {
+    width: 100%;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-shipping-method-field .ft-ms-method__trigger {
+    min-height: var(--ft-form-control-height, 44px);
+    border: 1px solid var(--ft-form-control-border, #cbd5e1);
+    border-radius: var(--ft-form-control-radius, 8px);
+    padding: 9px 12px;
+    gap: 12px;
+    font-family: inherit;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-shipping-method-field .ft-ms-method__copy strong {
+    font-size: .84rem;
+    line-height: 1.4;
+    font-weight: var(--ft-font-weight-semibold, 600);
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-shipping-method-field .ft-ms-method__icon,
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-shipping-method-field .ft-ms-method__icon svg {
+    width: 23px;
+    height: 23px;
+    flex-basis: 23px;
+}
+.ft-order-prototype-detail .ft-sample-workflow-modal .ft-sample-shipping-method-field .ft-ms-method__chevron {
+    width: 19px;
+    height: 19px;
+}

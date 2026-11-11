@@ -1,4 +1,4 @@
-@props(['job', 'task', 'config' => [], 'step' => 'main', 'payload' => [], 'artworkRecipientEmails' => [0 => ''], 'artworkSavedRecipientSuggestions' => [], 'modalPreview' => [], 'attachment' => null, 'revisionComments' => [], 'revisionAttachments' => [], 'mentionUsers' => collect(), 'emailFallback' => false, 'emailFallbackMessage' => '', 'emailFallbackAttempts' => 0])
+@props(['job', 'task', 'config' => [], 'step' => 'main', 'payload' => [], 'artworkRecipientEmails' => [0 => ''], 'artworkSavedRecipientSuggestions' => [], 'modalPreview' => [], 'attachment' => null, 'revisionComments' => [], 'revisionAttachments' => [], 'mentionUsers' => collect(), 'shipmentMethods' => null, 'shipmentUrgencies' => null, 'emailFallback' => false, 'emailFallbackMessage' => '', 'emailFallbackAttempts' => 0])
 @php
     $variant = (string) ($config['variant'] ?? 'confirm');
     $title = (string) ($config['title'] ?? 'Task action');
@@ -243,6 +243,27 @@
     $usesStableFinanceValidation = $step === 'main'
         && in_array($variant, ['invoice_prepare', 'payment'], true);
     $modalWide = in_array($variant, ['courier_label', 'shipment_info', 'invoice_send'], true);
+    $sampleShipmentMethods = collect();
+    $sampleShipmentUrgencies = collect();
+    $sampleSelectedShipmentMethod = null;
+    if ($variant === 'sample_workflow'
+        && \App\Services\Orders\SampleWorkflowService::state($task) === 'flow_ship') {
+        // The Workflow workspace already loaded these collections. Order List's
+        // inline modal fetches them only while the shipping action is open.
+        $master = app(\App\Services\MasterDataService::class);
+        $sampleShipmentMethods = $shipmentMethods === null ? $master->active('shipment_method') : collect($shipmentMethods);
+        $sampleShipmentUrgencies = $shipmentUrgencies === null ? $master->active('shipment_urgency') : collect($shipmentUrgencies);
+        $selectedMethodId = (int) ($payload['shipping_method_id'] ?? 0);
+        $selectedUrgencyId = (int) ($payload['shipping_urgency_id'] ?? 0);
+        $sampleSelectedShipmentMethod = $selectedMethodId > 0
+            ? \App\Support\CreateOrderShippingMethodPresenter::selectedCard(
+                $sampleShipmentMethods,
+                $sampleShipmentUrgencies,
+                [$selectedMethodId],
+                $selectedUrgencyId > 0 ? [$selectedUrgencyId] : [],
+            )
+            : null;
+    }
     // Every artwork revision dialog uses the same compact prototype shell.
     // The copy/labels still vary by task, but layout and controls stay consistent.
     $isArtworkRevisionRequest = $step === 'revision';
@@ -270,7 +291,7 @@
      interactions close the invoice modal unexpectedly. --}}
 <div class="ft-order-task-document-modal-backdrop {{ in_array($variant, ['purchase_order_email', 'artwork_email'], true) ? 'ft-order-task-document-modal-backdrop--handoff' : '' }}" wire:key="order-workflow-action-modal-{{ $task->id }}-{{ $step }}" @if($emailPreviewPending) wire:init="loadOrderWorkflowActionEmailPreview" @endif>
     <section
-        class="ft-order-task-document-modal ft-order-workflow-action-modal {{ $isArtworkPreviewModal ? 'ft-order-workflow-action-modal--artwork-preview' : ($modalWide ? 'ft-order-workflow-action-modal--wide' : '') }} {{ $usesStableFinanceValidation ? 'ft-order-workflow-action-modal--stable-finance-validation' : '' }} {{ ($isArtworkRevisionRequest || $isArtworkCancellationRequest) ? 'ft-order-workflow-action-modal--artwork-revision-request' : '' }} {{ $isArtworkCancellationRequest ? 'ft-order-workflow-action-modal--artwork-cancellation-request' : '' }}"
+        class="ft-order-task-document-modal ft-order-workflow-action-modal {{ $isArtworkPreviewModal ? 'ft-order-workflow-action-modal--artwork-preview' : ($modalWide ? 'ft-order-workflow-action-modal--wide' : '') }} {{ $usesStableFinanceValidation ? 'ft-order-workflow-action-modal--stable-finance-validation' : '' }} {{ ($isArtworkRevisionRequest || $isArtworkCancellationRequest) ? 'ft-order-workflow-action-modal--artwork-revision-request' : '' }} {{ $isArtworkCancellationRequest ? 'ft-order-workflow-action-modal--artwork-cancellation-request' : '' }} {{ ($variant === 'sample_workflow' || $step === 'sample') ? 'ft-sample-workflow-modal' : '' }}"
         data-ft-feedback-scope="form"
         role="dialog"
         aria-modal="true"
@@ -286,15 +307,120 @@
                 <div class="ft-prototype-choice-grid">
                     <button type="button" wire:click="submitOrderWorkflowAction('sample_no')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">
                         <span class="ft-prototype-choice-icon">→</span>
-                        <strong>No</strong>
-                        <small>Go directly to Production</small>
+                        <strong>No Sample Required</strong>
+                        <small>Hide the conditional sample task and continue to Production.</small>
                     </button>
                     <button type="button" wire:click="submitOrderWorkflowAction('sample_yes')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">
                         <span class="ft-prototype-choice-icon">✓</span>
-                        <strong>Yes</strong>
-                        <small>Activate Sample Approval</small>
+                        <strong>Sample Required</strong>
+                        <small>Show the single conditional sample task before Production.</small>
                     </button>
                 </div>
+            @elseif($variant === 'sample_workflow')
+                @php
+                    $sample = (array) ($payload['sample'] ?? []);
+                    $sampleState = (string) ($sample['state'] ?? 'request');
+                    $samplePhysical = ($sample['kind'] ?? '') === 'physical';
+                @endphp
+                @if($sampleState === 'request')
+                    <p class="ft-prototype-modal-copy">1. Inform supplier to prepare sample</p>
+                    <div class="ft-prototype-choice-grid ft-sample-choice-grid" role="radiogroup" aria-label="Sample type">
+                        <label class="ft-sample-choice">
+                            <input type="radio" name="sample-kind-{{ $task->id }}" value="physical" wire:model="orderWorkflowActionPayload.sample_kind">
+                            <span class="ft-sample-choice-content">
+                                <span class="ft-prototype-choice-icon" aria-hidden="true">▣</span>
+                                <strong>Physical sample · needs to ship</strong>
+                                <small>Supplier prepares the sample. Receipt and onward shipping are handled in Main ERP.</small>
+                            </span>
+                        </label>
+                        <label class="ft-sample-choice">
+                            <input type="radio" name="sample-kind-{{ $task->id }}" value="images" wire:model="orderWorkflowActionPayload.sample_kind">
+                            <span class="ft-sample-choice-content">
+                                <span class="ft-prototype-choice-icon" aria-hidden="true">▧</span>
+                                <strong>Sample images · email only</strong>
+                                <small>Supplier sends sample pictures by email. No physical shipment is required.</small>
+                            </span>
+                        </label>
+                    </div>
+                    <label class="ft-prototype-field ft-prototype-field--top"><span>Instructions for supplier (optional)</span>
+                        <textarea wire:model="orderWorkflowActionPayload.sample_instructions" maxlength="1200" rows="3" placeholder="Example: Prepare a print-quality sample in the approved colour."></textarea>
+                    </label>
+                    @error('orderWorkflowActionPayload.sample_kind')<p class="validation-error">{{ $message }}</p>@enderror
+                    <p class="ft-prototype-modal-copy">Only the existing sample task is used. Its title, owner, status and action change after each handoff.</p>
+                    <div class="ft-sample-modal-actions"><x-ui.button variant="secondary" size="sm" wire:click="closeOrderWorkflowAction">Cancel</x-ui.button><x-ui.button variant="primary" size="sm" wire:click="submitOrderWorkflowAction('sample_request')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">Send preparation request</x-ui.button></div>
+                @elseif(in_array($sampleState, ['supplier_prepare', 'supplier_revision'], true))
+                    <p class="ft-prototype-modal-copy"><strong>{{ $samplePhysical ? 'Physical sample · shipment required' : 'Sample images · email only' }}</strong></p>
+                    <p class="ft-prototype-modal-copy">{{ $sampleState === 'supplier_revision' ? 'Supplier is preparing the revised sample.' : 'Waiting for the supplier to prepare the sample.' }}</p>
+                    @if(!empty($sample['request_notes'])) <p class="ft-prototype-modal-copy">Instructions: {{ $sample['request_notes'] }}</p> @endif
+                    @if($sampleState === 'supplier_revision') <p class="ft-prototype-modal-copy">Revision requested: {{ $sample['review_note'] ?? '' }}</p> @endif
+                    <div class="ft-sample-modal-actions"><x-ui.button variant="secondary" size="sm" wire:click="closeOrderWorkflowAction">Close</x-ui.button></div>
+                @elseif($sampleState === 'flow_receive')
+                    <p class="ft-prototype-modal-copy">Physical sample receipt · FlowTracker only. Confirm when the prepared sample reached the Order Team.</p>
+                    <label class="ft-prototype-field ft-prototype-field--top"><span>Date received</span><input type="date" wire:model="orderWorkflowActionPayload.received_on" required></label>
+                    @error('orderWorkflowActionPayload.received_on')<p class="validation-error">{{ $message }}</p>@enderror
+                    <label class="ft-prototype-field ft-prototype-field--top"><span>Receipt note (optional)</span><textarea wire:model="orderWorkflowActionPayload.receipt_note" maxlength="1000" rows="3" placeholder="Sample received and checked"></textarea></label>
+                    <p class="ft-prototype-modal-copy">After receipt, record approval or revision. If approved, Main ERP will record onward shipment.</p>
+                    <div class="ft-sample-modal-actions"><x-ui.button variant="secondary" size="sm" wire:click="closeOrderWorkflowAction">Cancel</x-ui.button><x-ui.button variant="primary" size="sm" wire:click="submitOrderWorkflowAction('sample_received')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">Confirm sample received</x-ui.button></div>
+                @elseif($sampleState === 'flow_decision' && $step !== 'sample_revision')
+                    <p class="ft-prototype-modal-copy">2. Inform supplier: approved or revision required. {{ $samplePhysical ? 'Physical sample received by FlowTracker.' : 'Sample images were recorded by email.' }}</p>
+                    <div class="ft-prototype-choice-grid">
+                        <button type="button" wire:click="submitOrderWorkflowAction('sample_approved')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction"><span class="ft-prototype-choice-icon">✓</span><strong>Sample Approved</strong><small>{{ $samplePhysical ? 'Notify supplier, then record onward shipment in Main ERP.' : 'Notify supplier and unlock Production.' }}</small></button>
+                        <button type="button" wire:click="$set('orderWorkflowActionStep','sample_revision')"><span class="ft-prototype-choice-icon">↺</span><strong>Revision Required</strong><small>Supplier prepares a revised sample in the same task.</small></button>
+                    </div>
+                @elseif($sampleState === 'flow_decision' && $step === 'sample_revision')
+                    <p class="ft-prototype-modal-copy">Revision Required · Notify supplier to prepare a new sample version in this same task.</p>
+                    <label class="ft-prototype-field ft-prototype-field--top"><span>Revision instructions (required)</span><textarea wire:model="orderWorkflowActionPayload.review_note" maxlength="1500" rows="3" placeholder="Describe the changes required"></textarea></label>
+                    @error('orderWorkflowActionPayload.review_note')<p class="validation-error">{{ $message }}</p>@enderror
+                    <div class="ft-sample-modal-actions"><x-ui.button variant="secondary" size="sm" wire:click="$set('orderWorkflowActionStep','main')">Back</x-ui.button><x-ui.button variant="primary" size="sm" wire:click="submitOrderWorkflowAction('sample_revise')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">Send sample decision</x-ui.button></div>
+                @elseif($sampleState === 'flow_ship')
+                    <p class="ft-prototype-modal-copy">3. Ship physical sample · FlowTracker Main ERP. The sample is already approved and the supplier has been notified.</p>
+                    <div class="ft-prototype-field ft-prototype-field--top ft-sample-shipping-method-field">
+                        <span>Shipping method <span aria-hidden="true">*</span></span>
+                        @if($sampleShipmentMethods->isNotEmpty())
+                            <x-jobs.order-detail.shipment.method-picker
+                                :selected="$sampleSelectedShipmentMethod"
+                                :methods="$sampleShipmentMethods"
+                                :urgencies="$sampleShipmentUrgencies"
+                                mode="sample"
+                            />
+                        @else
+                            <p class="ft-prototype-modal-copy">No active shipping methods are available in Master Data.</p>
+                        @endif
+                        @error('orderWorkflowActionPayload.shipping_method_id')<p class="validation-error">{{ $message }}</p>@enderror
+                        @error('orderWorkflowActionPayload.shipping_urgency_id')<p class="validation-error">{{ $message }}</p>@enderror
+                    </div>
+                    <label class="ft-prototype-field ft-prototype-field--top"><span>Shipping provider / carrier</span><input type="text" maxlength="120" wire:model="orderWorkflowActionPayload.shipping_carrier" placeholder="DHL, FedEx, local carrier…"></label>
+                    @error('orderWorkflowActionPayload.shipping_carrier')<p class="validation-error">{{ $message }}</p>@enderror
+                    <label class="ft-prototype-field ft-prototype-field--top"><span>Tracking ID / shipping number</span><input type="text" maxlength="150" wire:model="orderWorkflowActionPayload.shipping_tracking" placeholder="Enter tracking or shipment reference"></label>
+                    @error('orderWorkflowActionPayload.shipping_tracking')<p class="validation-error">{{ $message }}</p>@enderror
+                    <label class="ft-prototype-field ft-prototype-field--top"><span>Destination / recipient (optional)</span><input type="text" maxlength="200" wire:model="orderWorkflowActionPayload.shipping_destination" placeholder="Client / delivery destination"></label>
+                    <label class="ft-prototype-field ft-prototype-field--top"><span>Shipping note (optional)</span><textarea rows="2" maxlength="1000" wire:model="orderWorkflowActionPayload.shipping_note" placeholder="Dispatch details"></textarea></label>
+                    <div class="ft-sample-modal-actions"><x-ui.button variant="secondary" size="sm" wire:click="closeOrderWorkflowAction">Cancel</x-ui.button><x-ui.button variant="primary" size="sm" :disabled="$sampleShipmentMethods->isEmpty()" wire:click="submitOrderWorkflowAction('sample_shipped')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">Record sample shipment</x-ui.button></div>
+                @else
+                    <p class="ft-prototype-modal-copy">Sample approved · Supplier notified · Production can continue.</p>
+                    <div class="ft-sample-details">
+                        <dl>
+                            <dt>Sample type</dt><dd>{{ $samplePhysical ? 'Physical sample · shipment required' : 'Sample images · email only' }}</dd>
+                            <dt>Revision count</dt><dd>{{ (int) ($sample['revisions'] ?? 0) }}</dd>
+                            @if(!empty($sample['received_on']))<dt>Date received</dt><dd>{{ $sample['received_on'] }}</dd>@endif
+                            @if(!empty($sample['email_to']))<dt>Email recipient</dt><dd>{{ $sample['email_to'] }}</dd>@endif
+                            @if(!empty($sample['image_name']))<dt>Sample image</dt><dd>{{ $sample['image_name'] }}</dd>@endif
+                            @if(!empty($sample['shipping']))
+                                <dt>Shipment</dt><dd>{{ ($sample['shipping']['method'] ?? '') . ' · ' . ($sample['shipping']['carrier'] ?? '') }}</dd>
+                                <dt>Tracking ID</dt><dd>{{ $sample['shipping']['tracking'] ?? '' }}</dd>
+                                @if(!empty($sample['shipping']['destination']))<dt>Destination</dt><dd>{{ $sample['shipping']['destination'] }}</dd>@endif
+                            @endif
+                        </dl>
+                    </div>
+                    <div class="ft-sample-modal-actions"><x-ui.button variant="secondary" size="sm" wire:click="closeOrderWorkflowAction">Close</x-ui.button></div>
+                @endif
+                @if($sampleState !== 'request' && !empty($payload['sample_history']))
+                    <section class="ft-sample-history"><h3>Activity history</h3>
+                        @foreach($payload['sample_history'] as $history)
+                            <div class="ft-sample-history-entry"><strong>{{ $history['description'] ?? '' }}</strong><small>{{ $history['actor'] ?? '' }} · {{ $history['at'] ?? '' }}</small></div>
+                        @endforeach
+                    </section>
+                @endif
             @elseif($step === 'cancel_artwork')
                 <div class="ft-artwork-cancellation">
                     <section class="ft-artwork-cancellation-section">
@@ -932,6 +1058,8 @@
                     <button type="button" wire:click="submitOrderWorkflowAction('revise')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction"><span class="ft-prototype-choice-icon">↻</span><strong>Client Requested Revision</strong><small>Restart the artwork revision cycle</small></button>
                     <button type="button" wire:click="submitOrderWorkflowAction('approved')" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction"><span class="ft-prototype-choice-icon">✓</span><strong>Client Approved Artwork</strong><small>Continue to sample decision</small></button>
                 </div>
+            @elseif($variant === 'optional_supplier_po')
+                <p class="ft-prototype-modal-copy">The supplier Purchase Order is optional. Use Create PO or Skip PO on this Artwork task after the sample step. Creating a PO copies the Order product values without changing the original Order.</p>
             @elseif($variant === 'estimated_delivery')
                 <div class="ft-prototype-required-date-panel">
                     <div class="ft-prototype-required-date-icon">*</div>
@@ -1233,7 +1361,7 @@
                 </div>
             </footer>
         @endif
-        @unless($usesInlineWorkflowActions || $usesShipmentFooter || $step === 'sample')
+        @unless($usesInlineWorkflowActions || $usesShipmentFooter || $step === 'sample' || $variant === 'sample_workflow')
             <footer class="ft-order-task-document-modal-actions ft-order-workflow-action-buttons {{ $variant === 'artwork_email' && $step === 'main' ? 'ft-artwork-email-actions' : '' }}">
                 @if($variant === 'artwork_email' && $step === 'main')
                     <x-ui.button variant="secondary" size="sm" wire:click="closeOrderWorkflowAction" wire:loading.attr="disabled" wire:target="submitOrderWorkflowAction">Cancel</x-ui.button>

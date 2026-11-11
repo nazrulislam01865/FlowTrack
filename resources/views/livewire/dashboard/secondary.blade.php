@@ -150,9 +150,9 @@
             <div class="ft-panel-head"><div><h2 class="ft-panel-title">Recent activity</h2><div class="ft-panel-note">Latest order, task, inquiry, document and comment events</div></div><a class="ft-link" href="{{ route('notifications') }}" wire:navigate>All activity</a></div>
             <div class="ft-activity-list">
                 @forelse($recentActivity as $notification)
-                    <div class="ft-activity" wire:key="dashboard-activity-{{ $notification->id }}">
+                    <div class="ft-activity {{ ($notification->flow_job_id || $notification->flow_task_id) && in_array($notification->type, ['order_activity', 'update', 'comment', 'mention', 'mention_admin'], true) ? 'ft-order-event-highlight' : '' }} {{ ($notification->flow_job_id || $notification->flow_task_id) && \App\Support\OrderActivityNotice::redNotification((string) $notification->title) ? 'ft-order-event-critical' : '' }}" wire:key="dashboard-activity-{{ $notification->id }}">
                         <span class="ft-activity-icon">{{ in_array($notification->type, ['mention', 'mention_admin'], true) ? '@' : '✓' }}</span>
-                        <span><strong>{{ $orderTerminology($notification->title) }}</strong><span class="ft-activity-copy">{{ app(\App\Services\MentionService::class)->displayText($notification->message) }}</span></span>
+                        <span><strong>{{ $orderTerminology($notification->title) }}</strong><span class="ft-activity-copy">{{ app(\App\Services\NotificationService::class)->safePreview($notification) }}</span></span>
                         <time class="ft-activity-time">{{ $notification->created_at?->diffForHumans(short: true) }}</time>
                     </div>
                 @empty

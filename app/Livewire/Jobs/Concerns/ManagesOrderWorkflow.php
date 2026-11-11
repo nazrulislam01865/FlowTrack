@@ -69,6 +69,8 @@ trait ManagesOrderWorkflow
         $key = $workflowActions->automationKey($task);
         $editingCompletedShipmentInformation = $key === 'SHIP_CONFIRM_INFO'
             && \App\Support\OrderDetailPresenter::isCompletedTask($task);
+        $viewingCompletedSample = $key === 'ART_SAMPLE_APPROVAL'
+            && \App\Support\OrderDetailPresenter::isCompletedTask($task);
 
         // A slow Livewire request can be followed by a duplicate click from the
         // old DOM after the first request has already completed this task. When
@@ -77,13 +79,13 @@ trait ManagesOrderWorkflow
         // surface "This task is locked until its workflow stage is active."
         // Treat an already-completed action as an idempotent replay and simply
         // resync the component to the authoritative current phase.
-        if (! $editingCompletedShipmentInformation && $this->ignoreCompletedWorkflowReplay($task)) {
+        if (! $editingCompletedShipmentInformation && ! $viewingCompletedSample && $this->ignoreCompletedWorkflowReplay($task)) {
             return;
         }
 
         if ($editingCompletedShipmentInformation) {
             abort_if(strcasecmp((string) $task->job?->status, 'Cancelled') === 0, 422, 'Cancelled Orders cannot be edited.');
-        } else {
+        } elseif (! $viewingCompletedSample) {
             app(\App\Services\OrderTaskSequenceService::class)->assertStatusActionable($task);
         }
 
@@ -160,6 +162,18 @@ trait ManagesOrderWorkflow
         session()->flash('success', $key === 'NEW_SEND_PO_ARTWORK'
             ? 'Purchase Order handoff completed without email.'
             : 'Artwork handoff completed without email.');
+    }
+
+    /** Select an existing Master Data shipping option in the sample modal. */
+    public function selectSampleShippingMethod(int $methodId, ?int $urgencyId = null): void
+    {
+        abort_unless($this->showOrderWorkflowActionModal && $this->orderWorkflowActionTaskId, 422);
+        $this->orderWorkflowActionPayload['shipping_method_id'] = $methodId;
+        $this->orderWorkflowActionPayload['shipping_urgency_id'] = $urgencyId;
+        $this->resetValidation([
+            'orderWorkflowActionPayload.shipping_method_id',
+            'orderWorkflowActionPayload.shipping_urgency_id',
+        ]);
     }
 
     public function closeOrderWorkflowAction(): void
@@ -602,6 +616,32 @@ trait ManagesOrderWorkflow
         ]);
     }
 
+    /** Open the original Single / Split PO generator; never create a PO on navigation. */
+    public function createOptionalSupplierPo(int $taskId): void
+    {
+        abort_unless($this->selectedJobId && $this->detailTab === 'overview', 422);
+        $actor = auth()->user();
+        $task = app(\App\Services\TaskService::class)->visibleQuery($actor)
+            ->with('setupTemplate')->where('flow_job_id', $this->selectedJobId)->findOrFail($taskId);
+        abort_unless(app(\App\Services\OrderWorkflowActionService::class)->automationKey($task) === 'ART_SUPPLIER_PO_OPTIONAL', 403);
+        abort_unless(app(\App\Services\AccessControlService::class)->canEditTask($actor, $task), 403);
+        // The PO service validates workflow readiness again when the user submits the popup.
+        $this->redirect(route('orders.purchase-orders', ['order' => (int) $task->flow_job_id, 'create' => 1]), navigate: true);
+    }
+
+    /** Reuse the existing signed-in artwork action for the separate Skip PO button. */
+    public function skipOptionalSupplierPo(int $taskId): void
+    {
+        abort_unless($this->selectedJobId && $this->detailTab === 'overview', 422);
+        $task = app(\App\Services\TaskService::class)->visibleQuery(auth()->user())
+            ->with('setupTemplate')->where('flow_job_id', $this->selectedJobId)->findOrFail($taskId);
+        abort_unless(app(\App\Services\OrderWorkflowActionService::class)->automationKey($task) === 'ART_SUPPLIER_PO_OPTIONAL', 403);
+        $this->openOrderWorkflowAction($taskId);
+        if ($this->showOrderWorkflowActionModal) {
+            $this->submitOrderWorkflowAction('skip');
+        }
+    }
+
     public function submitOrderWorkflowAction(string $decision = 'confirm'): void
     {
         // A submit can arrive after the modal has already been closed by the
@@ -621,6 +661,7 @@ trait ManagesOrderWorkflow
 
         $workflowActions = app(\App\Services\OrderWorkflowActionService::class);
         $key = $workflowActions->automationKey($task);
+        if ($key === 'ART_SAMPLE_APPROVAL' && \App\Support\OrderDetailPresenter::isCompletedTask($task)) return;
 
         if ($key === 'SHIP_CONFIRM_INFO' && \App\Support\OrderDetailPresenter::isCompletedTask($task)) {
             try {

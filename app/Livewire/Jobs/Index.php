@@ -384,6 +384,19 @@ class Index extends Component
         // Re-render open Job/Task details when another permitted user updates them.
     }
 
+    #[On('flowtrack-refresh')]
+    public function refreshOrderShellFromWorkspace(?string $reason = null): void
+    {
+        // A coalesced workspace event can lose its Order ID when another
+        // subject has no parent identifier. The isolated Workflow child already
+        // handles this fallback; refresh the parent summary/header as well,
+        // but never perform a needless Orders-list reload.
+        if (! $this->selectedJobId || $this->selectedTaskId || $this->showCreate
+            || ($reason !== null && ! preg_match('/(?:^|\|)(?:Task|FlowJob|Document|FlowJobItem|FlowJobPhaseHistory):/', $reason))) {
+            $this->skipRender();
+        }
+    }
+
     #[On('order-runtime-refreshed')]
     public function refreshOrderRuntime(int $orderId): void
     {

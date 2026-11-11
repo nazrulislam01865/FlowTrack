@@ -15,6 +15,14 @@
             root-margin="120px 0px"
         />
     @else
+        @if((bool) config('flowtrack.workflow_display_query_enabled', false)
+            && (bool) config('flowtrack.order_three_level_loading_enabled', false))
+            <span hidden aria-hidden="true"
+                data-workflow-stage-prefetch
+                data-order-id="{{ $orderId }}"
+                data-prefetch-url="{{ route('orders.workflow.stage-prefetch', ['orderId' => $orderId]) }}"
+                data-active-phase="{{ (int) ($overviewPhaseId ?: $job->workflow_phase_id) }}"></span>
+        @endif
         <x-jobs.order-detail.workflow
             :job="$job"
             :overview-phase-id="$overviewPhaseId"
@@ -47,6 +55,8 @@
                     :config="$workflowActionModal"
                     :step="$orderWorkflowActionStep"
                     :payload="$orderWorkflowActionPayload"
+                    :shipment-methods="$context['shipmentMethods'] ?? collect()"
+                    :shipment-urgencies="$context['shipmentUrgencies'] ?? collect()"
                     :artwork-recipient-emails="$artworkRecipientEmails"
                     :artwork-saved-recipient-suggestions="$artworkSavedRecipientSuggestions"
                     :modal-preview="$orderWorkflowActionModalPreview"
@@ -79,3 +89,53 @@
         @endif
     @endif
 </div>
+
+{{-- This request is intentionally outside Livewire's request/update pipeline.
+     No background response can morph the active stage, reset form values, or
+     authorize an action. It starts only after the active stage has painted. --}}
+@script
+<script>
+(() => {
+    const root = $wire.$el;
+    const marker = root?.querySelector('[data-workflow-stage-prefetch]');
+    if (!marker || !window.fetch) return;
+
+    const orderId = Number(marker.dataset.orderId);
+    const activePhase = Number(marker.dataset.activePhase);
+    const endpoint = new URL(marker.dataset.prefetchUrl, window.location.origin);
+    endpoint.searchParams.set('active_phase_id', String(activePhase));
+    const controller = new AbortController();
+    let started = false;
+    const start = () => {
+        if (started || !root.isConnected || document.visibilityState === 'hidden') return;
+        started = true;
+        fetch(endpoint.toString(), {
+            method: 'GET',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json' },
+            signal: controller.signal,
+        }).then(response => response.ok ? response.json() : null)
+          .then(data => {
+              if (!data || !root.isConnected || Number(data.order_id) !== orderId) return;
+              // A passive, bounded read model. Interactive task rows always
+              // re-read authoritative records on phase selection/action.
+              root.__flowtrackPrefetchedStages = data.phases;
+              root.dispatchEvent(new CustomEvent('flowtrack-stages-prefetched', {
+                  detail: { orderId, phaseCount: data.phases.length },
+              }));
+          }).catch(() => { /* Prefetch failure cannot block current work. */ });
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(start, { timeout: 1700 });
+    } else {
+        window.setTimeout(start, 450);
+    }
+    document.addEventListener('visibilitychange', start, { once: true });
+    // A navigation destroys the old workspace: never retain task data from
+    // another order or render a response into a different Livewire instance.
+    root.addEventListener('livewire:navigating', () => controller.abort(), { once: true });
+})();
+</script>
+@endscript

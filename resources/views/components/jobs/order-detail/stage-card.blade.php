@@ -6,16 +6,30 @@
 ])
 @php
     $state = \App\Support\OrderDetailPresenter::phaseState($job, $phase);
-    $progress = \App\Support\OrderDetailPresenter::phaseProgress($job, $phase);
-    $phaseTasks = \App\Support\OrderDetailPresenter::phaseTasks($job, $phase)
-        ->sortBy(fn ($task) => [(int) ($task->setupTemplate?->sort_order ?? $task->template?->sequence ?? 999999), (int) $task->id])
-        ->values();
-    $ownerTask = $phaseTasks->first();
-    $ownerName = $ownerTask?->assignee?->name ?: \App\Support\OrderDetailPresenter::phaseOwnerName($job, $phase);
+    // In three-level mode non-selected phases carry only compact summary data;
+    // never attempt to hydrate their full task collections inside a card.
+    $phaseSummary = data_get($context, 'phaseSummaries.'.(int) $phase->id);
+    $progress = $phaseSummary !== null
+        ? (int) ($phaseSummary['progress'] ?? 0)
+        : \App\Support\OrderDetailPresenter::phaseProgress($job, $phase);
+    $ownerTask = $phaseSummary !== null
+        ? ($phaseSummary['ownerTask'] ?? null)
+        : \App\Support\OrderDetailPresenter::phaseTasks($job, $phase)
+            ->sortBy(fn ($task) => [(int) ($task->setupTemplate?->sort_order ?? $task->template?->sequence ?? 999999), (int) $task->id])
+            ->first();
+    $ownerName = $ownerTask?->assignee?->name ?: ($phaseSummary !== null
+        ? (string) ($phaseSummary['ownerName'] ?? 'Unassigned')
+        : \App\Support\OrderDetailPresenter::phaseOwnerName($job, $phase));
     $ownerInitials = \App\Support\OrderDetailPresenter::initials($ownerName);
     $canOpen = in_array($state, ['active', 'completed', 'cancelled'], true);
     $color = \App\Support\MasterColor::normalize((string) ($phase->color ?? '')) ?: '#94a3b8';
     $ownerPermissions = $ownerTask ? data_get($context, 'taskPermissions.'.(int) $ownerTask->id, []) : [];
+    if ($ownerTask && $phaseSummary !== null && $ownerPermissions === []) {
+        // Same assignment authorization as the regular task card, for a
+        // lightweight non-selected phase owner. Mutations still reauthorize.
+        $ownerPermissions['assign'] = app(\App\Services\AccessControlService::class)
+            ->canAssignVisibleTask(auth()->user(), $ownerTask, $job);
+    }
     $canAssignOwner = $ownerTask && (bool) data_get($ownerPermissions, 'assign', false)
         && strcasecmp((string) $job->status, 'Cancelled') !== 0;
 @endphp
@@ -35,7 +49,12 @@
     @if($state === 'completed')<span class="stage-check">✓</span>@endif
     <div class="stage-num">STAGE {{ (int) $phase->sequence }}</div>
     <div class="stage-name">{{ $phase->name }}</div>
-    <div class="stage-state">{{ \App\Support\OrderDetailPresenter::phaseStateLabel($job, $phase) }}</div>
+    <div class="stage-state">
+        {{ \App\Support\OrderDetailPresenter::phaseStateLabel($job, $phase) }}
+        @if($phaseSummary !== null)
+            · {{ (int) ($phaseSummary['completed'] ?? 0) }}/{{ (int) ($phaseSummary['total'] ?? 0) }} completed
+        @endif
+    </div>
     <div class="progress"><i style="width:{{ $progress }}%"></i></div>
 
     @if($ownerTask)

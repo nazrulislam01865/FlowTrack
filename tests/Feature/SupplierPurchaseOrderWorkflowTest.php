@@ -7,13 +7,14 @@ use Tests\TestCase;
 
 class SupplierPurchaseOrderWorkflowTest extends TestCase
 {
-    public function test_artwork_workflow_has_no_supplier_po_task_but_customer_po_upload_remains(): void
+    public function test_artwork_workflow_has_optional_supplier_po_task_and_customer_po_upload_remains(): void
     {
         $stages = OrderWorkflowSetupService::fixedStages();
         $artwork = collect($stages)->firstWhere('key', 'art');
         $this->assertNotNull($artwork);
         $keys = array_column($artwork['tasks'], 'automation_key');
         $this->assertNotContains('ART_CREATE_SUPPLIER_PO', $keys);
+        $this->assertContains('ART_SUPPLIER_PO_OPTIONAL', $keys);
         $this->assertContains('ART_INTERNAL_REVIEW', $keys);
         $this->assertContains('ART_SEND_ORDER_TEAM', $keys);
         $newOrder = collect($stages)->firstWhere('key', 'new');
@@ -33,7 +34,7 @@ class SupplierPurchaseOrderWorkflowTest extends TestCase
         $this->assertStringContainsString("name('orders.purchase-orders')", $routes);
         $this->assertStringContainsString("permission:jobs.view", $routes);
         $this->assertStringContainsString('route="orders.purchase-orders"', $sidebar);
-        $this->assertStringContainsString("route('orders.purchase-orders'", $detail);
+        $this->assertStringNotContainsString('>Generate PO</x-ui.button>', $detail);
         $this->assertSame(8, substr_count($list, "@include('components.orders.list.po-cell'"));
         $this->assertStringContainsString("\$headers[] = 'Purchase order';", $headers);
         $this->assertStringContainsString("'supplierPurchaseOrders as has_active_supplier_po'", $listHost);

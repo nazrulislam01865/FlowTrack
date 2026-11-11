@@ -1,4 +1,4 @@
-@props(['task' => null, 'payload' => [], 'preview' => [], 'standalone' => false])
+@props(['task' => null, 'payload' => [], 'preview' => [], 'standalone' => false, 'orderDate' => null])
 @php
     $poRows = (array) ($preview['rows'] ?? []);
     $poProducts = (array) ($preview['products'] ?? []);
@@ -49,6 +49,14 @@
                 @error('orderWorkflowActionPayload.supplier_po_item_ids')<p class="validation-error" role="alert">{{ $message }}</p>@enderror
             </section>
         @endif
+        <x-orders.po-items-editor
+            :items="$poProducts"
+            payload-key="supplier_po_items"
+            date-key="supplier_po_delivery_date"
+            :date-value="(string) ($payload['supplier_po_delivery_date'] ?? '')"
+            :order-date="$orderDate"
+        />
+        @error('orderWorkflowActionPayload.supplier_po_items')<p class="validation-error" role="alert">{{ $message }}</p>@enderror
         <details class="ft-supplier-po-extra">
             <summary><span><strong>Carton marks &amp; payment details</strong><small>Optional — leave anything unknown blank</small></span><span class="ft-supplier-po-chevron" aria-hidden="true">⌄</span></summary>
             <div class="ft-supplier-po-extra-body">
@@ -86,7 +94,7 @@
         @error('orderWorkflowActionPayload.supplier_po_mode')<p class="validation-error" role="alert">{{ $message }}</p>@enderror
         @error('orderWorkflowActionPayload')<p class="validation-error" role="alert">{{ $message }}</p>@enderror
         <footer class="ft-supplier-po-actions">
-            <x-ui.button variant="secondary" size="sm" wire:click="closeOrderWorkflowAction">Cancel</x-ui.button>
+            <x-ui.button variant="secondary" size="sm" wire:click="{{ $standalone ? 'cancelSupplierPoCreation' : 'closeOrderWorkflowAction' }}">Cancel</x-ui.button>
             <x-ui.button variant="primary" size="sm" wire:click="createSupplierPurchaseOrders" wire:loading.attr="disabled" wire:target="createSupplierPurchaseOrders" :disabled="$mode === 'split' && count($selectedItemIds) === 0">
                 <span wire:loading.remove wire:target="createSupplierPurchaseOrders">Generate {{ $mode === 'split' ? 'Split POs' : 'Single PO' }}</span>
                 <span wire:loading wire:target="createSupplierPurchaseOrders">Generating...</span>
@@ -105,6 +113,28 @@
             </nav>
         @endif
         @if($selectedPo)
+            @if((int) ($payload['supplier_po_editing_id'] ?? 0) === (int) $selectedPo['id'])
+                <div class="ft-po-edit-existing" wire:key="ft-po-existing-editor-{{ $selectedPo['id'] }}">
+                    <div class="ft-po-items-edit-head"><strong>Editing {{ $selectedPo['number'] }} · Revision {{ $selectedPo['revision'] }}</strong><small>A changed PO creates a revised PDF. Previously sent PDFs and document history are preserved.</small></div>
+                    <x-orders.po-items-editor
+                        :items="$selectedPo['item_rows']"
+                        payload-key="supplier_po_edit_items"
+                        date-key="supplier_po_edit_delivery_date"
+                        :date-value="(string) ($payload['supplier_po_edit_delivery_date'] ?? '')"
+                        :order-date="$orderDate"
+                    />
+                    @error('orderWorkflowActionPayload.supplier_po_edit')<p class="validation-error" role="alert">{{ $message }}</p>@enderror
+                    <div class="ft-po-edit-controls">
+                        <x-ui.button variant="secondary" size="sm" wire:click="cancelSupplierPurchaseOrderEdit">Cancel editing</x-ui.button>
+                        <x-ui.button variant="primary" size="sm" wire:click="saveSupplierPurchaseOrderEdit" wire:loading.attr="disabled" wire:target="saveSupplierPurchaseOrderEdit">Save updated PO</x-ui.button>
+                    </div>
+                </div>
+            @else
+                <div class="ft-po-edit-controls">
+                    <span>Revision {{ $selectedPo['revision'] }} · Delivery {{ $selectedPo['delivery_date'] ?: 'Not set' }}</span>
+                    <x-ui.button variant="secondary" size="sm" wire:click="beginSupplierPurchaseOrderEdit({{ $selectedPo['id'] }})" wire:loading.attr="disabled" wire:target="beginSupplierPurchaseOrderEdit">Edit Purchase Order</x-ui.button>
+                </div>
+            @endif
             <div class="ft-supplier-po-send" wire:key="supplier-po-email-{{ $selectedPo['id'] }}">
                 <div class="ft-supplier-po-document">
                     <div class="ft-supplier-po-pdf-preview"><span class="ft-supplier-po-pdf-badge">PDF</span><strong>{{ $selectedPo['pdf_name'] }}</strong><small>Purchase Order · {{ $selectedPo['number'] }}</small><span class="ft-supplier-po-pdf-caption">{{ $selectedPo['status'] === 'sent' ? 'Email sent with this PDF attached.' : 'This PDF is attached automatically if you choose Send.' }}</span></div>
@@ -118,7 +148,7 @@
                 <div class="ft-supplier-po-email-details">
                     <div class="ft-supplier-po-meta"><div><span>SUPPLIER</span><strong>{{ $selectedPo['supplier'] }}</strong></div><div><span>STATUS</span><strong class="{{ $selectedPo['status'] === 'sent' ? 'ft-supplier-po-sent-text' : '' }}">{{ $selectedPo['status'] === 'sent' ? 'Sent' : ($selectedPo['status'] === 'failed' ? 'Failed - retry' : 'Not sent') }}</strong></div></div>
                     <div class="ft-supplier-po-meta ft-supplier-po-items"><div><span>PRODUCTS</span><strong>{{ $selectedPo['items'] }}</strong></div></div>
-                    @if($selectedPo['status'] !== 'sent' && ($standalone || !$task->completed_at || $selectedPo['status'] === 'failed'))
+                    @if((int) ($payload['supplier_po_editing_id'] ?? 0) !== (int) $selectedPo['id'] && $selectedPo['status'] !== 'sent' && ($standalone || !$task->completed_at || $selectedPo['status'] === 'failed'))
                     <section class="ft-supplier-po-recipient-section" aria-label="Email recipients">
                         <strong>To <small>(optional)</small></strong>
                         @foreach((array) ($payload['supplier_po_recipients'][$selectedPo['id']] ?? ['']) as $recipientKey => $recipientEmail)
@@ -136,7 +166,7 @@
                         <p class="ft-supplier-po-delivered">This PO PDF is available above.</p>
                     @endif
                     <div class="ft-supplier-po-message"><span>SUBJECT</span><p>{{ $selectedPo['subject'] }}</p><span>EMAIL BODY</span><div class="ft-supplier-po-body">{{ $selectedPo['body'] }}</div></div>
-                    @if($selectedPo['status'] !== 'sent' && ($standalone || !$task->completed_at || $selectedPo['status'] === 'failed'))
+                    @if((int) ($payload['supplier_po_editing_id'] ?? 0) !== (int) $selectedPo['id'] && $selectedPo['status'] !== 'sent' && ($standalone || !$task->completed_at || $selectedPo['status'] === 'failed'))
                         <div class="ft-supplier-po-send-action">
                             <small>{{ $selectedPo['status'] === 'failed' ? 'Delivery failed. You can retry or finish without email.' : 'Add a recipient to send, or finish without email.' }}</small>
                             <x-ui.button variant="primary" wire:click="sendSupplierPurchaseOrder({{ $selectedPo['id'] }})" wire:loading.attr="disabled" wire:target="sendSupplierPurchaseOrder({{ $selectedPo['id'] }})">

@@ -246,6 +246,14 @@ final class JobDetailPresenter
                 $automationKey = $task ? app(\App\Services\OrderWorkflowActionService::class)->automationKey($task) : null;
                 if (in_array($automationKey, ['SHIP_LABEL', 'BILL_PREPARE'], true)) return false;
 
+                // A physical/image sample is approved through the existing
+                // supplier -> client decision -> (optional) shipment handoffs.
+                // TaskService verifies those steps before completing the sample
+                // task. Requiring another document here would keep Artwork
+                // blocked after that same task is already completed.
+                if ($automationKey === 'ART_SAMPLE_APPROVAL' && $task
+                    && \App\Support\OrderDetailPresenter::isCompletedTask($task)) return false;
+
                 if (! $task) return (bool) ($template?->is_required ?? true);
                 if (\App\Support\OrderTaskRequirement::isRequired($task)) return true;
 

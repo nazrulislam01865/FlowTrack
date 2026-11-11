@@ -13,7 +13,7 @@ final class SupplierOrderProjection
 {
     // Bump when the supplier-visible projection semantics change. Legacy outbox
     // rows are reconciled once; normal writes still deliver event-first.
-    public const FORMAT_VERSION = 9;
+    public const FORMAT_VERSION = 10;
 
     private const TASKS = [
         2 => [
@@ -52,7 +52,7 @@ final class SupplierOrderProjection
             ->where('s.type', 'supplier')->where('s.status', 'active')->whereNull('s.deleted_at')
             ->whereColumn('p.workspace_id', 's.workspace_id')
             ->orderBy('i.id')
-            ->get(['i.id', 'i.catalog_product_id', 'p.name as product_name', 'p.metadata',
+            ->get(['i.id', 'i.catalog_product_id', 'p.name as product_name', 'p.code as product_sku', 'p.metadata',
                 'i.quantity', 'i.notes', 'l.id as linked_id']);
 
         // Batch-select assigned supplier prices; never fall back to customer selling prices.
@@ -75,8 +75,10 @@ final class SupplierOrderProjection
             }
             $unitPrice = $supplierPrice !== null ? round($supplierPrice, 2) : null;
             $lines[] = [
+                'source_item_id' => (int) $item->id,
                 'product_name' => mb_substr((string) ($item->product_name ?: 'Product'), 0, 255),
                 'product_code' => 'PRD-'.str_pad((string) $item->catalog_product_id, 6, '0', STR_PAD_LEFT),
+                'sku' => mb_substr((string) ($item->product_sku ?? ''), 0, 100),
                 'quantity' => (int) $item->quantity,
                 // Supplier unit cost only. Never reveal the customer's order selling price.
                 'unit_price' => $unitPrice,
@@ -99,7 +101,7 @@ final class SupplierOrderProjection
         $taskRows = DB::table('tasks as t')
             ->join('task_pack_items as pack', 'pack.id', '=', 't.task_pack_task_id')
             ->where('t.flow_job_id', $orderId)->whereNull('t.deleted_at')
-            ->whereIn('pack.automation_key', array_keys($names))
+            ->whereIn('pack.automation_key', [...array_keys($names), 'ART_SUPPLIER_PO_OPTIONAL'])
             ->orderByDesc('t.id')->get(['t.id', 'pack.automation_key', 't.status',
                 't.completed_at', 't.created_at', 't.updated_at']);
         $byKey = $taskRows->unique('automation_key')->keyBy('automation_key');
@@ -140,6 +142,7 @@ final class SupplierOrderProjection
         $documents = $artworkConfirmed ? $approved->documents($orderId, $taskRows)
             ->map(static fn ($file): array => [
                 'id' => (int) $file->id,
+                'kind' => $file->category === \App\Models\Document::CATEGORY_ARTWORK_TRACKING_PDF ? 'tracking_pdf' : 'artwork',
                 'name' => mb_substr(basename(str_replace('\\', '/', (string) $file->name)), 0, 255),
                 'size' => (int) $file->size,
                 'version' => (int) $file->version,
@@ -151,7 +154,7 @@ final class SupplierOrderProjection
         if ($artworkConfirmed && $taskRows->isNotEmpty()) {
             $taskIds = $taskRows->pluck('id')->map(fn ($id) => (int) $id)->all();
             $titleById = [];
-            foreach ($taskRows as $task) $titleById[(int) $task->id] = $names[$task->automation_key];
+            foreach ($taskRows as $task) $titleById[(int) $task->id] = $names[$task->automation_key] ?? 'Supplier Purchase Order';
             $activities = DB::table('activities')
                 ->where('subject_type', FlowJob::class)->where('subject_id', $orderId)
                 ->whereIn('event', ['job.task_activity', 'phase.activated'])
@@ -255,6 +258,42 @@ final class SupplierOrderProjection
             }
         }
 
+        // Only supplier-owned POs are included. Never send a mixed-supplier
+        // document, another supplier's financial values, or customer price.
+        $purchaseOrders = DB::table('supplier_purchase_orders as po')
+            ->leftJoin('documents as doc', 'doc.id', '=', 'po.document_id')
+            ->where('po.flow_job_id', $orderId)->where('po.supplier_id', $supplierId)
+            ->whereNull('po.archived_at')->orderBy('po.id')->limit(100)
+            ->get(['po.id', 'po.po_number', 'po.items_snapshot', 'po.po_delivery_date',
+                'po.revision', 'po.document_id', 'po.pdf_name', 'po.email_status', 'doc.size'])
+            ->map(static function ($po): array {
+                $items = json_decode((string) $po->items_snapshot, true);
+                return [
+                    'id' => (int) $po->id, 'number' => (string) $po->po_number,
+                    'revision' => (int) $po->revision,
+                    'delivery_date' => $po->po_delivery_date ? substr((string) $po->po_delivery_date, 0, 10) : null,
+                    'status' => (string) $po->email_status,
+                    'items' => array_values(array_map(static fn (array $line): array => [
+                        'item_id' => (int) $line['item_id'],
+                        'name' => (string) $line['name'], 'sku' => (string) ($line['sku'] ?? ''),
+                        'quantity' => (int) $line['quantity'],
+                        'supplier_unit_cost' => $line['supplier_unit_cost'] === null ? null : (float) $line['supplier_unit_cost'],
+                    ], is_array($items) ? $items : [])),
+                    'document' => $po->document_id && $po->size > 0 ? [
+                        'id' => (int) $po->document_id,
+                        'name' => basename(str_replace('\\', '/', (string) $po->pdf_name)),
+                        'size' => (int) $po->size,
+                    ] : null,
+                ];
+            })->all();
+        $poTask = $byKey->get('ART_SUPPLIER_PO_OPTIONAL');
+        $canCreatePo = $sequence === 2 && ! $order->active_hold_exists
+            && $poTask && ! $poTask->completed_at
+            && ! in_array(strtolower((string) $poTask->status), ['skipped', 'completed'], true)
+            && $purchaseOrders === [] && $artworkConfirmed
+            && ($client = $byKey->get('ART_CLIENT_ERP_DECISION'))
+            && ($client->completed_at || strtolower((string) $client->status) === 'completed');
+
         return ['event_id' => $eventId, 'supplier_id' => $supplierId, 'order' => [
             'reference' => $order->displayOrderNumber(),
             'title' => mb_substr(trim((string) $order->title) ?: ('Order '.$order->displayOrderNumber()), 0, 255),
@@ -278,6 +317,7 @@ final class SupplierOrderProjection
             'supplier_instruction' => mb_substr((string) ($order->supplier_instruction ?? ''), 0, 2000),
             ...($redo !== null ? ['redo' => $redo] : []),
             'items' => $lines, 'stages' => $stages,
+            'purchase_orders' => $purchaseOrders, 'po_creation_available' => (bool) $canCreatePo,
             'workflow' => app(SupplierWorkflowProjection::class)->build($order, $supplierId), 'documents' => $documents,
             'recent_updates' => $recent,
         ]];

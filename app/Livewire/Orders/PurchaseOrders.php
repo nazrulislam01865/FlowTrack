@@ -13,7 +13,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/** Supplier PO workspace. This deliberately does not create or complete workflow Tasks. */
+/** Supplier PO workspace. The optional Artwork step only records a PO when the user explicitly generates it. */
 final class PurchaseOrders extends Component
 {
     use WithPagination;
@@ -27,8 +27,17 @@ final class PurchaseOrders extends Component
     #[Url(as: 'po', except: 'all')]
     public string $poFilter = 'all';
 
+    #[Url(as: 'create', except: false)]
+    public bool $create = false;
+
     public array $orderWorkflowActionPayload = [];
     public array $orderWorkflowActionModalPreview = [];
+
+    public function boot(): void
+    {
+        // Block both initial mounts and stale Livewire update requests while disabled.
+        abort_unless(config('flowtrack.supplier_po_creation_enabled', false), 404);
+    }
 
     public function mount(): void
     {
@@ -57,16 +66,28 @@ final class PurchaseOrders extends Component
     {
         $service = app(SupplierPurchaseOrderService::class);
         $rows = $service->rows($order);
+        $products = $service->products($order);
         $this->orderWorkflowActionModalPreview['supplier_po'] = [
             // Keep the Order's line items available for identification even
             // after PO generation; fetch once on selection, not on every render.
-            'products' => $service->products($order),
+            'products' => $products,
             'rows' => $rows,
         ];
         $this->orderWorkflowActionPayload = [
             'supplier_po_mode' => 'single',
             'supplier_po_item_ids' => [],
             'supplier_po_template' => [],
+            'supplier_po_delivery_date' => ($order->supplier_delivery_date ?: $order->delivery_date)?->format('Y-m-d') ?: '',
+            'supplier_po_items' => collect($products)->mapWithKeys(static fn (array $product): array => [
+                $product['id'] => [
+                    'name' => $product['name'], 'sku' => $product['sku'],
+                    'quantity' => $product['quantity'], 'supplier_unit_cost' => $product['supplier_unit_cost'],
+                ],
+            ])->all(),
+            'supplier_po_editing_id' => 0,
+            'supplier_po_edit_items' => [],
+            'supplier_po_edit_delivery_date' => '',
+            'supplier_po_edit_revision' => 0,
             'supplier_po_selected_id' => (int) ($rows[0]['id'] ?? 0),
             'supplier_po_recipients' => collect($rows)->mapWithKeys(static function (array $row): array {
                 $recipients = $row['recipients'] ?: array_filter([(string) $row['email']]);
@@ -78,12 +99,20 @@ final class PurchaseOrders extends Component
     public function selectOrder(int $orderId): void
     {
         $this->orderId = $orderId;
+        $this->create = false;
         $this->prepare($this->visibleOrder());
+        $this->resetValidation();
+    }
+
+    public function cancelSupplierPoCreation(): void
+    {
+        $this->create = false;
         $this->resetValidation();
     }
 
     public function closeOrderWorkflowAction(): void
     {
+        $this->create = false;
         $this->orderId = null;
         $this->orderWorkflowActionPayload = [];
         $this->orderWorkflowActionModalPreview = [];
@@ -121,6 +150,64 @@ final class PurchaseOrders extends Component
         $ids = array_column((array) data_get($this->orderWorkflowActionModalPreview, 'supplier_po.rows', []), 'id');
         abort_unless(in_array($poId, array_map('intval', $ids), true), 422);
         $this->orderWorkflowActionPayload['supplier_po_selected_id'] = $poId;
+        $this->cancelSupplierPurchaseOrderEdit();
+    }
+
+    public function beginSupplierPurchaseOrderEdit(int $poId): void
+    {
+        $this->editableOrder();
+        $this->selectSupplierPurchaseOrder($poId);
+        $row = collect((array) data_get($this->orderWorkflowActionModalPreview, 'supplier_po.rows', []))
+            ->firstWhere('id', $poId);
+        abort_unless($row, 404);
+        $this->orderWorkflowActionPayload['supplier_po_editing_id'] = $poId;
+        $this->orderWorkflowActionPayload['supplier_po_edit_revision'] = (int) $row['revision'];
+        $this->orderWorkflowActionPayload['supplier_po_edit_delivery_date'] = (string) ($row['delivery_date'] ?? '');
+        $this->orderWorkflowActionPayload['supplier_po_edit_items'] = collect($row['item_rows'])
+            ->mapWithKeys(static fn (array $item): array => [(int) $item['item_id'] => [
+                'name' => (string) $item['name'], 'sku' => (string) ($item['sku'] ?? ''),
+                'quantity' => (int) $item['quantity'], 'supplier_unit_cost' => $item['supplier_unit_cost'],
+            ]])->all();
+        $this->resetValidation();
+    }
+
+    public function cancelSupplierPurchaseOrderEdit(): void
+    {
+        $this->orderWorkflowActionPayload['supplier_po_editing_id'] = 0;
+        $this->orderWorkflowActionPayload['supplier_po_edit_items'] = [];
+        $this->orderWorkflowActionPayload['supplier_po_edit_delivery_date'] = '';
+        $this->orderWorkflowActionPayload['supplier_po_edit_revision'] = 0;
+        $this->resetValidation();
+    }
+
+    public function saveSupplierPurchaseOrderEdit(): void
+    {
+        $order = $this->editableOrder();
+        $poId = (int) ($this->orderWorkflowActionPayload['supplier_po_editing_id'] ?? 0);
+        abort_unless($poId > 0, 422, 'Select a Purchase Order to edit.');
+        $this->validate([
+            'orderWorkflowActionPayload.supplier_po_edit_items' => ['required', 'array', 'min:1'],
+            'orderWorkflowActionPayload.supplier_po_edit_items.*.name' => ['required', 'string', 'max:255'],
+            'orderWorkflowActionPayload.supplier_po_edit_items.*.sku' => ['nullable', 'string', 'max:100'],
+            'orderWorkflowActionPayload.supplier_po_edit_items.*.quantity' => ['required', 'integer', 'min:1', 'max:999999999'],
+            'orderWorkflowActionPayload.supplier_po_edit_items.*.supplier_unit_cost' => ['nullable', 'numeric', 'min:0', 'max:999999999.99', 'decimal:0,2'],
+            'orderWorkflowActionPayload.supplier_po_edit_delivery_date' => ['nullable', 'date_format:Y-m-d'],
+            'orderWorkflowActionPayload.supplier_po_edit_revision' => ['required', 'integer', 'min:1'],
+        ]);
+        try {
+            app(SupplierPurchaseOrderService::class)->update(
+                $order, $poId, auth()->user(),
+                (array) $this->orderWorkflowActionPayload['supplier_po_edit_items'],
+                (string) ($this->orderWorkflowActionPayload['supplier_po_edit_delivery_date'] ?? ''),
+                (int) $this->orderWorkflowActionPayload['supplier_po_edit_revision'],
+            );
+        } catch (ValidationException $exception) {
+            $this->showErrors($exception);
+            return;
+        }
+        $this->prepare($order);
+        $this->orderWorkflowActionPayload['supplier_po_selected_id'] = $poId;
+        session()->flash('success', 'Purchase Order saved. The updated PDF is ready; sending it is optional.');
     }
 
     public function addSupplierPoRecipient(int $poId): void
@@ -160,13 +247,22 @@ final class PurchaseOrders extends Component
 
     public function createSupplierPurchaseOrders(): void
     {
+        abort_unless($this->create && config('flowtrack.supplier_po_creation_enabled', false), 403,
+            'Use Create PO in the optional Artwork task.');
         $order = $this->editableOrder();
+        // Never trust a direct Livewire call or URL parameter as task authorization.
         $this->validate([
             'orderWorkflowActionPayload.supplier_po_mode' => ['required', 'in:single,split'],
             'orderWorkflowActionPayload.supplier_po_item_ids' => ['array'],
             'orderWorkflowActionPayload.supplier_po_item_ids.*' => ['integer', 'distinct'],
             'orderWorkflowActionPayload.supplier_po_template' => ['array'],
             'orderWorkflowActionPayload.supplier_po_template.*' => ['nullable', 'string', 'max:255'],
+            'orderWorkflowActionPayload.supplier_po_items' => ['required', 'array', 'min:1'],
+            'orderWorkflowActionPayload.supplier_po_items.*.name' => ['required', 'string', 'max:255'],
+            'orderWorkflowActionPayload.supplier_po_items.*.sku' => ['nullable', 'string', 'max:100'],
+            'orderWorkflowActionPayload.supplier_po_items.*.quantity' => ['required', 'integer', 'min:1', 'max:999999999'],
+            'orderWorkflowActionPayload.supplier_po_items.*.supplier_unit_cost' => ['nullable', 'numeric', 'min:0', 'max:999999999.99', 'decimal:0,2'],
+            'orderWorkflowActionPayload.supplier_po_delivery_date' => ['nullable', 'date_format:Y-m-d'],
         ]);
         try {
             app(SupplierPurchaseOrderService::class)->generate(
@@ -175,11 +271,15 @@ final class PurchaseOrders extends Component
                 (string) $this->orderWorkflowActionPayload['supplier_po_mode'],
                 (array) ($this->orderWorkflowActionPayload['supplier_po_item_ids'] ?? []),
                 (array) ($this->orderWorkflowActionPayload['supplier_po_template'] ?? []),
+                (array) ($this->orderWorkflowActionPayload['supplier_po_items'] ?? []),
+                ($this->orderWorkflowActionPayload['supplier_po_delivery_date'] ?? null) ?: null,
+                artworkTaskAction: true,
             );
         } catch (ValidationException $exception) {
             $this->showErrors($exception);
             return;
         }
+        $this->create = false;
         $this->prepare($order);
         session()->flash('success', 'Purchase Order PDFs generated. Email them now or finish without sending.');
     }

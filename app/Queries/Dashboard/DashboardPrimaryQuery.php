@@ -24,10 +24,19 @@ final class DashboardPrimaryQuery
     public function handle(User $actor, DashboardFilterData $filters): array
     {
         abort_unless($this->access->can($actor, 'dashboard', 'view'), 403);
+        return array_merge(
+            ['metrics' => $this->summary->handle($actor, $filters)],
+            $this->panels($actor, $filters),
+        );
+    }
+
+    /** Release A reuses the exact legacy section queries without re-reading KPI data. */
+    public function panels(User $actor, DashboardFilterData $filters): array
+    {
+        abort_unless($this->access->can($actor, 'dashboard', 'view'), 403);
         $period = $this->team->dashboardPeriod($actor, $filters->rangeDays);
 
         return array_merge(
-            ['metrics' => $this->summary->handle($actor, $filters)],
             $this->distribution->handle($actor, $filters),
             $this->attention->handle($actor, $filters),
             ['clientPortfolio' => $this->portfolio->handle($actor, $filters)],

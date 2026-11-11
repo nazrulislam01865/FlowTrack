@@ -42,10 +42,10 @@ class PurchaseOrderWorkspaceUxTest extends TestCase
         $this->assertStringContainsString('x-orders.po-action', $poList);
         $this->assertStringContainsString("route('orders.purchase-orders'", $shared);
         $this->assertStringContainsString('wire:click="selectOrder(', $shared);
-        $this->assertStringContainsString("\$generated ? 'secondary' : 'primary'", $shared);
+        $this->assertStringContainsString('variant="secondary"', $shared);
         $this->assertStringNotContainsString('showStatus', $shared);
         $this->assertStringContainsString('Purchase order', $ordersList);
-        $this->assertStringContainsString('Generate PO', $shared);
+        $this->assertStringNotContainsString('Generate PO', $shared);
         $this->assertStringContainsString('View POs', $shared);
 
         $layout = file_get_contents(resource_path('views/layouts/app.blade.php'));

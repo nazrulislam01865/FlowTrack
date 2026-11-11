@@ -14,4 +14,14 @@ final class DashboardPriorityWorkQuery {
             'priorityTasks'=>$this->dashboard->priorityTasks($actor,$f->clientId,$f->departmentId,$f->rangeDays),
         ];
     }
+
+    public function handleSelected(User $actor, DashboardFilterData $f, string $tab): \Illuminate\Support\Collection {
+        abort_unless($this->access->can($actor, 'dashboard', 'view'), 403);
+        return match ($tab) {
+            'orders' => $this->dashboard->priorityJobs($actor, $f->clientId, $f->departmentId, $f->rangeDays),
+            'inquiries' => $this->dashboard->priorityInquiries($actor, $f->clientId, $f->departmentId, $f->rangeDays),
+            'tasks' => $this->dashboard->priorityTasks($actor, $f->clientId, $f->departmentId, $f->rangeDays),
+            default => abort(422, 'Unsupported Priority work tab.'),
+        };
+    }
 }

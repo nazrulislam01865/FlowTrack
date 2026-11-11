@@ -1,4 +1,5 @@
-<section class="ft-mgmt-panel ft-mgmt-mentions-panel" id="mentions-for-you">
+<section class="ft-mgmt-panel ft-mgmt-mentions-panel" data-dashboard-panel="tagged-comments" id="mentions-for-you">
+    <div class="ft-mgmt-dashboard-panel-swap" style="display:contents" wire:replace wire:key="dashboard-tagged-comments-content">
     <div class="ft-mgmt-mentions-head">
         <div class="ft-mgmt-mentions-heading">
             <div class="ft-mgmt-mentions-title-line">
@@ -73,5 +74,6 @@
         @empty
             <div class="ft-mgmt-mentions-empty">No mentions in this view.</div>
         @endforelse
+    </div>
     </div>
 </section>

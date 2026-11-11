@@ -7,9 +7,9 @@
     @php
         $url = app(\App\Services\NotificationService::class)->urlFor($n);
     @endphp
-    <div class="attention-item" style="{{ $n->read_at?'opacity:.62':'' }}">
+    <div class="attention-item {{ ($n->flow_job_id || $n->flow_task_id) && in_array($n->type, ['order_activity', 'update', 'comment', 'mention', 'mention_admin'], true) ? 'ft-order-event-highlight' : '' }} {{ ($n->flow_job_id || $n->flow_task_id) && \App\Support\OrderActivityNotice::redNotification((string) $n->title) ? 'ft-order-event-critical' : '' }}" style="{{ $n->read_at?'opacity:.8':'' }}">
         <span class="signal {{ $n->type==='risk'?'red':($n->type==='assignment'?'purple':($n->type==='approval'?'amber':'purple')) }}"></span>
-        <div><div class="item-title">{{ $n->title }} @if(!$n->read_at)<span class="badge b-blue">New</span>@endif</div><div class="item-meta">{{ app(\App\Services\MentionService::class)->displayText($n->message) }} · {{ $n->created_at->diffForHumans() }}</div></div>
+        <div><div class="item-title">{{ $n->title }} @if(!$n->read_at)<span class="badge b-blue">New</span>@endif</div><div class="item-meta">{{ app(\App\Services\NotificationService::class)->safePreview($n) }} · {{ $n->created_at->diffForHumans() }}</div></div>
         <a class="mini-btn" href="{{ $url }}">Open</a>
     </div>
 @empty

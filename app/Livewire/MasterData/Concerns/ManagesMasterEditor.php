@@ -68,6 +68,7 @@ trait ManagesMasterEditor
             $table = $rows === [] ? '' : "Quantity\t".collect($rows)->pluck('quantity')->implode("\t")
                 ."\nProduct price\t".collect($rows)->pluck('price')->implode("\t");
             $updated[] = [
+                'currency' => ($product ?? ($savedProduct ?? null))?->supplierPriceCurrency((int) $id) ?? 'USD',
                 'key' => 'supplier-'.$id,
                 'supplier_id' => (string) $id,
                 'supplier_name' => $supplier->name,
@@ -128,7 +129,7 @@ trait ManagesMasterEditor
             if (! in_array($id, $existing, true)) {
                 $this->productClientPrices[] = [
                     'key' => 'client-'.$id, 'client_id' => (string) $id,
-                    'table' => '', 'preview' => [],
+                    'table' => '', 'preview' => [], 'currency' => $this->productCustomerPriceCurrency,
                 ];
                 $existing[] = $id;
             }
@@ -229,12 +230,14 @@ trait ManagesMasterEditor
             $canSeeSupplierCosts = app(\App\Services\Orders\SupplierCostVisibility::class)->allowed();
             $this->productPriceTable = $canSeeSupplierCosts ? trim((string) data_get($r->metadata, 'price_table_raw')) : '';
             $this->productCustomerPriceTable = trim((string) data_get($r->metadata, 'customer_price_table_raw'));
+            $this->productCustomerPriceCurrency = $r->clientPriceCurrency();
             $this->productCustomerPricePreview = $r->customerPriceBreakpoints();
             $this->productClientPrices = $this->group === 'product'
                 ? $r->clientPrices()->orderBy('client_id')->get(['client_id', 'price_table_raw', 'price_breakpoints'])
                     ->map(fn ($row) => [
                         'key' => 'client-'.$row->client_id,
                         'client_id' => (string) $row->client_id,
+                        'currency' => $r->clientPriceCurrency((int) $row->client_id),
                         'table' => trim((string) $row->price_table_raw) !== ''
                             ? (string) $row->price_table_raw
                             : ((array) $row->price_breakpoints === [] ? ''
@@ -395,6 +398,7 @@ Remote Area charge	".$remoteRow;
             $this->productPriceTable = '';
             $this->productRemoteSurchargeTable = '';
             $this->productCustomerPriceTable = '';
+            $this->productCustomerPriceCurrency = 'USD';
             $this->productCustomerPricePreview = [];
             $this->productClientPrices = [];
             $this->productPricePreview = [];
@@ -489,6 +493,12 @@ Remote Area charge	".$remoteRow;
             $this->name = $this->remoteAreaGeneratedName();
         }
 
+        $currencyCodes = $this->group === 'product'
+            ? $service->active('currency')->map(fn (MasterRecord $row) => $service->currencyValue($row))
+                ->filter()->unique()->values()->all()
+            : [];
+        $currencyRule = Rule::in($currencyCodes);
+
         $data = $this->validate([
             'code' => ['required', 'string', 'max:40'],
             'name' => $this->group === 'phone_country_code'
@@ -529,12 +539,15 @@ Remote Area charge	".$remoteRow;
             'productPriceTable' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
             'productRemoteSurchargeTable' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
             'productCustomerPriceTable' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
+            'productCustomerPriceCurrency' => $this->group === 'product' ? ['required', $currencyRule] : ['nullable'],
             'productClientPrices' => $this->group === 'product' ? ['array', 'max:100'] : ['array'],
             'productClientPrices.*.client_id' => $this->group === 'product' ? ['required', 'integer', 'distinct', Rule::exists('clients', 'id')->where(fn ($q) => $q->where('is_active', true)->whereNull('purged_at'))] : ['nullable'],
             'productClientPrices.*.table' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
+            'productClientPrices.*.currency' => $this->group === 'product' ? ['required', $currencyRule] : ['nullable'],
             'productSupplierPrices' => $this->group === 'product' ? ['array', 'max:100'] : ['array'],
             'productSupplierPrices.*.supplier_id' => $this->group === 'product' ? ['required', 'integer', 'distinct'] : ['nullable'],
             'productSupplierPrices.*.table' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
+            'productSupplierPrices.*.currency' => $this->group === 'product' ? ['required', $currencyRule] : ['nullable'],
             // Keep the server-loaded baseline in the validated payload. Without
             // these rules, validate() strips both fields, treats every populated
             // supplier table as changed and falsely rejects all edits as stale.
@@ -843,7 +856,25 @@ Remote Area charge	".$remoteRow;
             $metadata['supplier_ids'] = $linkedSupplierIds->unique()->values()->all();
             $metadata['main_category'] = trim((string) $data['productFormMainCategory']);
             $metadata['product_size'] = trim((string) $data['productSize']) ?: null;
-            if (! app(\App\Services\Orders\SupplierCostVisibility::class)->allowed()) {
+            $metadata['customer_price_currency'] = $data['productCustomerPriceCurrency'];
+            $clientCurrencies = (array) ($metadata['client_price_currencies'] ?? []);
+            foreach ($data['productClientPrices'] as $row) {
+                $clientId = (int) $row['client_id'];
+                if ($data['productClientAvailabilityMode'] !== 'specific'
+                    || ! in_array($clientId, array_map('intval', $data['productClientIds'] ?? []), true)) continue;
+                if ($row['currency'] === $data['productCustomerPriceCurrency']) {
+                    unset($clientCurrencies[$clientId]);
+                } else {
+                    $clientCurrencies[$clientId] = $row['currency'];
+                }
+            }
+            if ($clientCurrencies !== []) {
+                $metadata['client_price_currencies'] = $clientCurrencies;
+            } else {
+                unset($metadata['client_price_currencies']);
+            }
+            $canEditSupplierPrices = app(\App\Services\Orders\SupplierCostVisibility::class)->allowed();
+            if (! $canEditSupplierPrices) {
                 // Only the existing persisted source can populate confidential
                 // supplier metadata. Ignore/reject untrusted Livewire price state.
                 if (filled($data['productPriceTable']) || $data['productSupplierPrices'] !== []) {
@@ -852,17 +883,40 @@ Remote Area charge	".$remoteRow;
                 if ($this->editId) {
                     $persisted = MasterRecord::query()->forWorkspace($workspaceId)
                         ->ofType('product')->findOrFail($this->editId);
-                    foreach (['price_table_raw', 'price_breakpoints'] as $key) {
+                    foreach (['price_table_raw', 'price_breakpoints', 'supplier_price_currency', 'supplier_price_currencies'] as $key) {
                         if (array_key_exists($key, (array) $persisted->metadata)) {
                             $metadata[$key] = $persisted->metadata[$key];
+                        } else {
+                            unset($metadata[$key]);
                         }
                     }
+                } else {
+                    unset($metadata['supplier_price_currency'], $metadata['supplier_price_currencies']);
                 }
-            } elseif ($productPriceBreakpoints !== []) {
-                $metadata['price_table_raw'] = trim((string) $data['productPriceTable']);
-                $metadata['price_breakpoints'] = $productPriceBreakpoints;
-            } elseif (app(\App\Services\Orders\SupplierCostVisibility::class)->allowed()) {
-                unset($metadata['price_table_raw'], $metadata['price_breakpoints']);
+            } else {
+                $supplierCurrencies = (array) ($metadata['supplier_price_currencies'] ?? []);
+                $baseCurrency = strtoupper(trim((string) ($metadata['supplier_price_currency'] ?? 'USD'))) ?: 'USD';
+                foreach ($data['productSupplierPrices'] as $row) {
+                    $supplierId = (int) $row['supplier_id'];
+                    if ($row['currency'] === $baseCurrency) {
+                        unset($supplierCurrencies[$supplierId]);
+                    } else {
+                        $supplierCurrencies[$supplierId] = $row['currency'];
+                    }
+                }
+                if ($supplierCurrencies !== []) {
+                    $metadata['supplier_price_currencies'] = $supplierCurrencies;
+                } else {
+                    unset($metadata['supplier_price_currencies']);
+                }
+            }
+            if ($canEditSupplierPrices) {
+                if ($productPriceBreakpoints !== []) {
+                    $metadata['price_table_raw'] = trim((string) $data['productPriceTable']);
+                    $metadata['price_breakpoints'] = $productPriceBreakpoints;
+                } else {
+                    unset($metadata['price_table_raw'], $metadata['price_breakpoints']);
+                }
             }
             if ($productRemoteSurchargeBreakpoints !== []) {
                 $metadata['remote_surcharge_breakpoints'] = $productRemoteSurchargeBreakpoints;

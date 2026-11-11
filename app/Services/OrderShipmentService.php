@@ -445,6 +445,7 @@ final class OrderShipmentService
             }
 
             $locked->update($updates);
+            $changedFields = array_values(array_diff(array_keys($locked->getChanges()), ['updated_at', 'updated_by']));
 
             if ($locked->is_primary) {
                 $this->syncLegacyPrimaryAddress($job, $locked->refresh());
@@ -465,7 +466,8 @@ final class OrderShipmentService
             }
 
             $this->syncPlanFromShipments($job);
-            $this->record($job, $actor, 'job.shipment_updated', 'Shipment '.$locked->sequence.' updated.', $this->auditMeta($locked->refresh()));
+            $this->record($job, $actor, 'job.shipment_updated', 'Shipment '.$locked->sequence.' updated.',
+                array_merge($this->auditMeta($locked->refresh()), ['changed_fields' => $changedFields]));
 
             return $locked->refresh();
         }, 3);

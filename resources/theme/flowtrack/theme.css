@@ -5,6 +5,7 @@
 @import './core.css';
 @import './components/sidebar.css';
 @import './components/management-dashboard.css';
+@import './components/dashboard-skeletons.css';
 @import './components/async-feedback.css';
 @import './forms/index.css';
 @import '../../css/modules/reports/order-summary.css';

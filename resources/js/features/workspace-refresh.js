@@ -19,6 +19,7 @@ const state = {
 const workspaceChannelName = () => metaContent('flowtrack-reverb-workspace-channel') || null;
 const dispatchRefresh = (reason = null, payload = {}) => {
     if (routeOrderWorkspaceRefresh({ ...payload, reason })) return true;
+    if (window.FlowTrack?.dashboard?.routeWorkspace?.(reason, payload)) return true;
     window.Livewire?.dispatch?.(LIVEWIRE_EVENTS.WORKSPACE_REFRESH, { reason });
     return false;
 };

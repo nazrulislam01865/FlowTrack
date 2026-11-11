@@ -509,6 +509,18 @@ class Index extends Component
         $this->showOrderWorkflowActionModal = true;
     }
 
+    /** Select an existing Master Data shipping option in the sample modal. */
+    public function selectSampleShippingMethod(int $methodId, ?int $urgencyId = null): void
+    {
+        abort_unless($this->showOrderWorkflowActionModal && $this->orderWorkflowActionTaskId, 422);
+        $this->orderWorkflowActionPayload['shipping_method_id'] = $methodId;
+        $this->orderWorkflowActionPayload['shipping_urgency_id'] = $urgencyId;
+        $this->resetValidation([
+            'orderWorkflowActionPayload.shipping_method_id',
+            'orderWorkflowActionPayload.shipping_urgency_id',
+        ]);
+    }
+
     public function closeOrderWorkflowAction(): void
     {
         $this->showOrderWorkflowActionModal = false;

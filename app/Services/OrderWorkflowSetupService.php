@@ -75,6 +75,7 @@ class OrderWorkflowSetupService
                     self::task('ART_SEND_ORDER_TEAM', 'Send Artwork to Order Team', 'Artwork', 0),
                     self::task('ART_CLIENT_ERP_DECISION', 'Client ERP / Approval', 'Order Team', 1, true, 'Artwork Approval', false, true, 'Attach client approval evidence when available.'),
                     self::task('ART_SAMPLE_APPROVAL', 'Sample Approval (when required)', 'Order Team', 1, false, 'Sample Approval', true, true, 'Required only when the order uses the sample-approval path.'),
+                    self::task('ART_SUPPLIER_PO_OPTIONAL', 'Create Supplier Purchase Order (optional)', 'Order Team', 0, false, null, false, false, 'Create the supplier PO after artwork/sample approval, or skip this step.'),
                 ],
             ],
             [

@@ -77,6 +77,9 @@ class OrderWorkflowBindingService
             ->whereNull('deleted_at')
             ->whereNull('completed_at')
             ->whereNotIn('status', JobService::INACTIVE_STATUSES)
+            // A frozen Order has its own Workflow snapshot: an admin publish
+            // must never rebind its Tasks, evidence or seven cloned phases.
+            ->whereHas('workflow', fn ($q) => $q->where('is_snapshot', false))
             ->where(function ($query) use ($workflowId): void {
                 $query->where('source_workflow_id', $workflowId)
                     ->orWhere(function ($legacy) use ($workflowId): void {
@@ -117,6 +120,17 @@ class OrderWorkflowBindingService
                 'status',
             ]);
         if (! $job) return false;
+
+        // Healthy published Orders retain the original single read. Only a
+        // nonstandard workflow binding needs a second, indexed lookup to
+        // distinguish a frozen per-Order definition from a repairable legacy
+        // binding. Never silently rebind an immutable Order on page open.
+        if ((int) ($job->source_workflow_id ?: 0) > 0
+            && (int) $job->workflow_id !== (int) $job->source_workflow_id
+            && Workflow::query()->whereKey((int) $job->workflow_id)
+                ->where('is_snapshot', true)->exists()) {
+            return false;
+        }
 
         $workflowId = (int) ($job->source_workflow_id ?: $job->workflow_id);
         if (! $workflowId) return false;

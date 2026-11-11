@@ -19,6 +19,7 @@ const unreadFallbackIntervalMs = 60000;
 
 const dispatchNotificationRefresh = (payload = {}) => {
     if (routeOrderNotification(payload)) return;
+    if (window.FlowTrack?.dashboard?.routeNotification?.(payload)) return;
     // Other pages retain their original notification listener contract.
     window.Livewire?.dispatch?.(LIVEWIRE_EVENTS.NOTIFICATION);
 };

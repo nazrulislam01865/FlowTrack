@@ -76,6 +76,13 @@ class WorkspaceRefreshService
         $version = $this->newVersion();
         Cache::forever($this->versionKey(), $version);
 
+        // Release C: invalidate catalogue aggregates only when their Master
+        // Data or access scope changes; no extra SQL or per-user invalidation.
+        if (config('dashboard.progressive_loading_enabled', false)) {
+            app(\App\Services\Dashboard\DashboardReadModelCache::class)
+                ->invalidateCatalogueForReason($reason);
+        }
+
         $reverb = app(ReverbChannelService::class);
         if (! $reverb->enabled()) {
             return;
