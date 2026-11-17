@@ -46,6 +46,6 @@ final class ProductPriceCurrencySelectionTest extends TestCase
         $this->assertStringContainsString("$"."metadata['supplier_price_currencies']", $editor);
         $this->assertStringContainsString("$"."metadata['client_price_currencies']", $editor);
         $this->assertStringContainsString("$"."metadata['customer_price_currency']", $editor);
-        $this->assertStringContainsString('if ($parsed === $pricing->normalize($original)) continue;', $editor);
+        $this->assertStringContainsString('if (! $priceChanged && ! $chargesChanged) continue;', $editor);
     }
 }

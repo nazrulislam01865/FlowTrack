@@ -51,6 +51,7 @@ trait ManagesProductRecords
             ->ofType('product')
             ->findOrFail($id);
 
+        $this->closeSupplierCurrencyTable();
         $this->viewProductId = $id;
         $this->showProductView = true;
         $this->resetProductDetailProgressiveSections();
@@ -58,6 +59,7 @@ trait ManagesProductRecords
 
     public function closeProductView(): void
     {
+        $this->closeSupplierCurrencyTable();
         $this->showProductView = false;
         $this->viewProductId = null;
         $this->resetProductDetailProgressiveSections();

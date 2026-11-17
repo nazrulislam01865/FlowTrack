@@ -70,8 +70,8 @@ class ProductCustomerSupplierPricingTest extends TestCase
         $form = file_get_contents(resource_path('views/components/catalog/product-form.blade.php'));
         $editor = file_get_contents(app_path('Livewire/MasterData/Concerns/ManagesMasterEditor.php'));
 
-        $this->assertStringContainsString('wire:model.change="productPriceTable"', $form);
-        $this->assertStringContainsString('wire:model.change="productCustomerPriceTable"', $form);
+        $this->assertStringContainsString('wire:click="addSupplierPriceTier(', $form);
+        $this->assertStringContainsString('wire:model.blur="productCustomerPriceTiers.', $form);
         $this->assertStringContainsString("customer_price_breakpoints", $editor);
         $this->assertStringContainsString("'productCustomerPriceTable' =>", $editor);
     }

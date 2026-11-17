@@ -13,6 +13,38 @@ class MasterRecord extends Model
 {
     use SoftDeletes;
 
+    protected static function booted(): void
+    {
+        // Only a signed Supplier Portal product session receives this scope.
+        // Every regular FlowTracker user retains the original unmodified queries.
+        static::addGlobalScope('supplier_product_portal', function (Builder $query): void {
+            $user = auth()->user();
+            if (! $user) return;
+            $access = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+            $supplierId = $access->supplierId($user);
+            if (! $supplierId) return;
+            $query->where(function (Builder $scope) use ($supplierId): void {
+                $scope->whereNotIn('master_records.type', ['product', 'supplier'])
+                    ->orWhere(function (Builder $q) use ($supplierId): void {
+                        $q->where('master_records.type', 'supplier')->where('master_records.id', $supplierId);
+                    })
+                    ->orWhere(function (Builder $q) use ($supplierId): void {
+                        $q->where('master_records.type', 'product')
+                            ->where(function (Builder $links) use ($supplierId): void {
+                                $links->whereExists(function ($subquery) use ($supplierId): void {
+                                    $subquery->selectRaw('1')->from('product_supplier_links')
+                                        ->whereColumn('product_supplier_links.product_id', 'master_records.id')
+                                        ->whereColumn('product_supplier_links.workspace_id', 'master_records.workspace_id')
+                                        ->where('product_supplier_links.supplier_id', $supplierId);
+                                })->orWhere('master_records.metadata->supplier_id', $supplierId)
+                                  ->orWhereJsonContains('master_records.metadata->supplier_ids', $supplierId)
+                                  ->orWhereJsonContains('master_records.metadata->supplier_ids', (string) $supplierId);
+                            });
+                    });
+            });
+        });
+    }
+
     protected $fillable = [
         'workspace_id',
         'parent_id',

@@ -113,6 +113,8 @@ trait ManagesProductBulkActions
 
     public function openProductBulkPanel(string $panel): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'products', 'manage'), 403);
         abort_unless($this->group === 'product', 404);
         abort_unless(in_array($panel, ['clients', 'category'], true), 404);
         abort_unless(auth()->user()?->canModule('catalog_products', 'edit'), 403);
@@ -143,6 +145,8 @@ trait ManagesProductBulkActions
 
     public function toggleBulkProductClient(int $clientId): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'availability', 'edit'), 403);
         abort_unless(auth()->user()?->canModule('catalog_products', 'edit'), 403);
         abort_unless(Client::query()->whereKey($clientId)->where('is_active', true)->exists(), 404);
         $ids = collect($this->bulkProductClientIds)->map(fn ($value) => (int) $value);
@@ -155,6 +159,8 @@ trait ManagesProductBulkActions
 
     public function bulkSetProductStatus(string $status): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'products', 'manage'), 403);
         abort_unless(auth()->user()?->canModule('catalog_products', 'edit'), 403);
         abort_unless(in_array($status, ['active', 'inactive'], true), 422);
         $count = $this->productSelectionCount();
@@ -169,6 +175,8 @@ trait ManagesProductBulkActions
 
     public function applyBulkProductClients(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'availability', 'edit'), 403);
         abort_unless(auth()->user()?->canModule('catalog_products', 'edit'), 403);
         $this->validate([
             'bulkProductClientMode' => ['required', Rule::in(['all', 'specific'])],
@@ -269,6 +277,10 @@ trait ManagesProductBulkActions
 
     public function exportProducts()
     {
+        // The original spreadsheet includes more than the supplier's visible sections.
+        // Keep staff exports intact; delegated portal actors cannot use it.
+        abort_if(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->isPortalActor(auth()->user()), 403);
         abort_unless($this->group === 'product', 404);
         abort_unless(auth()->user()?->canModule('catalog_products', 'view'), 403);
 
@@ -277,6 +289,10 @@ trait ManagesProductBulkActions
 
     public function exportSelectedProducts()
     {
+        // The original spreadsheet includes more than the supplier's visible sections.
+        // Keep staff exports intact; delegated portal actors cannot use it.
+        abort_if(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->isPortalActor(auth()->user()), 403);
         abort_unless($this->group === 'product', 404);
         abort_unless(auth()->user()?->canModule('catalog_products', 'view'), 403);
         if ($this->productSelectionCount() < 1) return null;
@@ -299,6 +315,8 @@ trait ManagesProductBulkActions
 
     public function bulkDeleteProducts(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'products', 'manage'), 403);
         abort_unless(auth()->user()?->canModule('catalog_products', 'delete'), 403);
         $products = $this->selectedProductsQuery()->get(['id', 'name']);
         if ($products->isEmpty()) return;

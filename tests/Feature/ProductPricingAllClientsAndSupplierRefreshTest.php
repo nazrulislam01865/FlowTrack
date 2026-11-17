@@ -14,9 +14,9 @@ final class ProductPricingAllClientsAndSupplierRefreshTest extends TestCase
 
         $this->assertStringContainsString("$".'clientAvailabilityMode === \'specific\' ? $visibleClientPriceRows->count() : 1', $form);
         $this->assertStringContainsString('<strong>All clients</strong>', $form);
-        $this->assertStringContainsString('wire:model.change="productCustomerPriceTable"', $form);
-        $this->assertStringContainsString('@if(count($customerPricePreview))', $form);
-        $this->assertStringContainsString('wire:model.change="productClientPrices.', $form);
+        $this->assertStringContainsString('wire:model.blur="productCustomerPriceTiers.', $form);
+        $this->assertStringContainsString('wire:click="addCustomerPriceTier"', $form);
+        $this->assertStringContainsString('wire:model.blur="productClientPrices.', $form);
         $this->assertStringContainsString("$"."metadata['customer_price_table_raw']", $editor);
         $this->assertStringContainsString("$"."metadata['customer_price_breakpoints']", $editor);
     }

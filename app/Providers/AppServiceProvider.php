@@ -57,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(AccessControlService::class);
+        $this->app->scoped(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
         $this->app->scoped(MentionService::class);
         $this->app->scoped(MasterDataService::class);
         $this->app->scoped(OrderWorkflowSetupService::class);

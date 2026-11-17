@@ -21,6 +21,8 @@ trait ManagesProductAssetsAndOptions
 {
     public function updatedProductImage(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'documents', 'edit'), 403);
         abort_unless($this->group === 'product', 404);
         $this->removeProductImage = false;
         $this->validateOnly('productImage', [
@@ -30,6 +32,8 @@ trait ManagesProductAssetsAndOptions
 
     public function markProductImageForRemoval(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'documents', 'edit'), 403);
         abort_unless($this->group === 'product', 404);
         $this->removeProductImage = true;
         $this->productImage = null;
@@ -43,12 +47,16 @@ trait ManagesProductAssetsAndOptions
 
     public function updatedProductCertificateUpload(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'documents', 'edit'), 403);
         $this->removeProductCertificate = false;
         $this->validateOnly('productCertificateUpload', ['productCertificateUpload' => AttachmentUpload::nullableRules(AttachmentUpload::PRODUCT_SUPPORTING, 10240)]);
     }
 
     public function updatedProductTemplateUpload(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'documents', 'edit'), 403);
         $this->removeProductTemplate = false;
         $this->validateOnly('productTemplateUpload', ['productTemplateUpload' => AttachmentUpload::nullableRules(AttachmentUpload::PRODUCT_SUPPORTING, 10240)]);
     }
@@ -67,6 +75,8 @@ trait ManagesProductAssetsAndOptions
 
     public function removeProductCertificate(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'documents', 'edit'), 403);
         abort_unless($this->group === 'product' && $this->showModal, 404);
         $this->productCertificateUpload = null;
         $this->removeProductCertificate = true;
@@ -75,6 +85,8 @@ trait ManagesProductAssetsAndOptions
 
     public function removeProductTemplate(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'documents', 'edit'), 403);
         abort_unless($this->group === 'product' && $this->showModal, 404);
         $this->productTemplateUpload = null;
         $this->removeProductTemplate = true;
@@ -83,6 +95,8 @@ trait ManagesProductAssetsAndOptions
 
     public function addProductOption(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'options', 'edit'), 403);
         abort_unless($this->group === 'product' && $this->showModal, 404);
         if (count($this->productOptions) >= 30) {
             $this->addError('productOptions', 'A product can have up to 30 options.');
@@ -100,6 +114,8 @@ trait ManagesProductAssetsAndOptions
 
     public function removeProductOption(int $index): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'options', 'edit'), 403);
         abort_unless($this->group === 'product' && $this->showModal, 404);
         if (! array_key_exists($index, $this->productOptions)) return;
 
@@ -119,6 +135,8 @@ trait ManagesProductAssetsAndOptions
 
     public function openProductShipmentUrgencyPicker(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'shipment', 'edit'), 403);
         abort_unless($this->group === 'product' && $this->showModal, 404);
         if (count($this->productShipmentUrgencies) >= 20) {
             $this->addError('productShipmentUrgencies', 'A product can have up to 20 shipping urgencies.');
@@ -138,6 +156,8 @@ trait ManagesProductAssetsAndOptions
 
     public function toggleProductShipmentUrgencyPickerSelection(int $urgencyId): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'shipment', 'edit'), 403);
         abort_unless($this->group === 'product' && $this->showModal && $this->productShipmentUrgencyPickerOpen, 404);
 
         $workspaceId = app(MasterDataService::class)->workspaceId();
@@ -180,6 +200,8 @@ trait ManagesProductAssetsAndOptions
 
     public function confirmProductShipmentUrgencies(): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'shipment', 'edit'), 403);
         abort_unless($this->group === 'product' && $this->showModal && $this->productShipmentUrgencyPickerOpen, 404);
 
         $workspaceId = app(MasterDataService::class)->workspaceId();
@@ -219,6 +241,8 @@ trait ManagesProductAssetsAndOptions
 
     public function removeProductShipmentUrgency(int $index): void
     {
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'shipment', 'edit'), 403);
         abort_unless($this->group === 'product' && $this->showModal, 404);
         if (! array_key_exists($index, $this->productShipmentUrgencies)) return;
 

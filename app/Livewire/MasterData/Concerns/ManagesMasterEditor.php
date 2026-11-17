@@ -9,6 +9,7 @@ use App\Services\MasterDataService;
 use App\Services\ProductImageService;
 use App\Services\ProductOptionImageService;
 use App\Services\ProductPriceTableParser;
+use App\Services\ClientPriceMatrix;
 use App\Services\ProductCategoryDeletionService;
 use App\Support\MasterColor;
 use App\Support\AttachmentUpload;
@@ -32,6 +33,10 @@ trait ManagesMasterEditor
         $ids = collect($this->productSupplierIds)
             ->push($this->productSupplierId)
             ->map(fn ($id) => (int) $id)->filter()->unique()->take(100)->values();
+        $access = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+        if ($access->isPortalActor(auth()->user())) {
+            $ids = $ids->filter(fn ($id) => $id === $access->supplierId(auth()->user()))->values();
+        }
         $existing = collect($this->productSupplierPrices)->keyBy('supplier_id');
         $missing = $ids->reject(fn ($id) => $existing->has($id));
         $labels = $missing->isEmpty() ? collect() : MasterRecord::query()
@@ -40,9 +45,10 @@ trait ManagesMasterEditor
         $overrides = $this->editId && $missing->isNotEmpty()
             ? DB::table('supplier_product_prices')->where('workspace_id', app(MasterDataService::class)->workspaceId())
                 ->where('product_id', $this->editId)->whereIn('supplier_id', $missing->all())
-                ->pluck('price_breakpoints', 'supplier_id')
+                ->get(['supplier_id', 'price_breakpoints', 'additional_charges'])->keyBy('supplier_id')
             : collect();
         $pricing = app(\App\Services\SupplierBridge\SupplierPricing::class);
+        $matrix = app(\App\Services\SupplierBridge\SupplierPriceMatrix::class);
         // The optimistic-lock version must use the exact same fallback as
         // SupplierPricing::rows(), which is what the approval API compares.
         // A draft preview can differ from saved metadata, causing false conflicts.
@@ -53,6 +59,14 @@ trait ManagesMasterEditor
                 ->ofType('product')->findOrFail($this->editId);
             $fallback = $savedProduct->supplierPriceBreakpoints();
         }
+        $extraTables = collect();
+        if ($this->editId && $missing->isNotEmpty()) {
+            $sourceProduct = $product ?? ($savedProduct ?? null) ?? MasterRecord::query()
+                ->forWorkspace(app(MasterDataService::class)->workspaceId())
+                ->ofType('product')->findOrFail($this->editId);
+            $extraTables = collect(app(\App\Services\SupplierBridge\SupplierCurrencyPriceTables::class)
+                ->forProduct($sourceProduct, $missing->all()))->groupBy('supplier_id');
+        }
         $updated = [];
         foreach ($ids as $id) {
             if ($existing->has($id)) {
@@ -61,20 +75,27 @@ trait ManagesMasterEditor
             }
             $supplier = $labels->get($id);
             if (! $supplier) continue;
-            $raw = $overrides->get($id);
-            $rows = $pricing->normalize($raw !== null
-                ? (json_decode((string) $raw, true) ?: [])
+            $override = $overrides->get($id);
+            $rows = $pricing->normalize($override !== null
+                ? (json_decode((string) $override->price_breakpoints, true) ?: [])
                 : $fallback);
+            $charges = $matrix->normalizeCharges(json_decode((string) ($override->additional_charges ?? ''), true) ?: []);
             $table = $rows === [] ? '' : "Quantity\t".collect($rows)->pluck('quantity')->implode("\t")
                 ."\nProduct price\t".collect($rows)->pluck('price')->implode("\t");
+            $tiers = $matrix->editableTiers($rows, $charges);
+            foreach ($tiers as &$tier) $tier['key'] = (string) Str::uuid();
+            unset($tier);
             $updated[] = [
                 'currency' => ($product ?? ($savedProduct ?? null))?->supplierPriceCurrency((int) $id) ?? 'USD',
                 'key' => 'supplier-'.$id,
                 'supplier_id' => (string) $id,
                 'supplier_name' => $supplier->name,
+                'additional_tables' => $extraTables->get((int)$id, collect())->all(),
                 'table' => $table,
                 'original_table' => $table,
                 'original_version' => $pricing->version($rows),
+                'original_charges_version' => $matrix->chargesVersion($charges),
+                'tiers' => $tiers,
                 'preview' => $rows,
             ];
         }
@@ -103,15 +124,89 @@ trait ManagesMasterEditor
     public function updatedProductSupplierIds(): void { $this->syncProductSupplierPriceRows(); }
     public function updatedProductSupplierId(): void { $this->syncProductSupplierPriceRows(); }
 
-    public function updatedProductSupplierPrices(mixed $value, string $key): void
+    public function addSupplierPriceTier(int $index): void
     {
-        if ($this->group !== 'product' || ! preg_match('/^(\d+)\.table$/', $key, $match)) return;
-        abort_unless(app(\App\Services\Orders\SupplierCostVisibility::class)->allowed(), 403);
-        $index = (int) $match[1];
+        abort_unless($this->group === 'product' && $this->showModal
+            && app(\App\Services\Orders\SupplierCostVisibility::class)->allowed(), 403);
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'supplier_pricing', 'edit'), 403);
         if (! isset($this->productSupplierPrices[$index])) return;
-        $this->resetValidation('productSupplierPrices.'.$index.'.table');
-        $this->productSupplierPrices[$index]['preview'] = app(ProductPriceTableParser::class)
-            ->parseTable((string) $this->productSupplierPrices[$index]['table'])['price_breakpoints'];
+        if (count($this->productSupplierPrices[$index]['tiers'] ?? []) >= 100) return;
+        $tier = app(\App\Services\SupplierBridge\SupplierPriceMatrix::class)->blankTier();
+        $tier['key'] = (string) Str::uuid();
+        $this->productSupplierPrices[$index]['tiers'][] = $tier;
+    }
+
+    public function removeSupplierPriceTier(int $index, int $tierIndex): void
+    {
+        abort_unless($this->group === 'product' && $this->showModal
+            && app(\App\Services\Orders\SupplierCostVisibility::class)->allowed(), 403);
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'supplier_pricing', 'edit'), 403);
+        if (! isset($this->productSupplierPrices[$index]['tiers'][$tierIndex])) return;
+        array_splice($this->productSupplierPrices[$index]['tiers'], $tierIndex, 1);
+        if ($this->productSupplierPrices[$index]['tiers'] === []) {
+            $tier = app(\App\Services\SupplierBridge\SupplierPriceMatrix::class)->blankTier();
+            $tier['key'] = (string) Str::uuid();
+            $this->productSupplierPrices[$index]['tiers'][] = $tier;
+        }
+        $this->resetValidation('productSupplierPrices');
+    }
+
+    /** Keep client grids editable without changing the existing stored price-table schema. */
+    private function editableClientPriceTiers(array $breakpoints): array
+    {
+        $tiers = app(ClientPriceMatrix::class)->editableTiers($breakpoints);
+        foreach ($tiers as &$tier) $tier['key'] = (string) Str::uuid();
+        unset($tier);
+        return $tiers;
+    }
+
+    public function addCustomerPriceTier(): void
+    {
+        abort_unless($this->group === 'product' && $this->showModal, 403);
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'client_pricing', 'edit'), 403);
+        if (count($this->productCustomerPriceTiers) >= 100) return;
+        $this->productCustomerPriceTiers[] = array_merge(
+            app(ClientPriceMatrix::class)->blankTier(), ['key' => (string) Str::uuid()]);
+    }
+
+    public function removeCustomerPriceTier(int $tierIndex): void
+    {
+        abort_unless($this->group === 'product' && $this->showModal, 403);
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'client_pricing', 'edit'), 403);
+        if (! isset($this->productCustomerPriceTiers[$tierIndex])) return;
+        array_splice($this->productCustomerPriceTiers, $tierIndex, 1);
+        if ($this->productCustomerPriceTiers === []) {
+            $this->productCustomerPriceTiers = $this->editableClientPriceTiers([]);
+        }
+        $this->resetValidation('productCustomerPriceTiers');
+    }
+
+    public function addClientPriceTier(int $index): void
+    {
+        abort_unless($this->group === 'product' && $this->showModal, 403);
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'client_pricing', 'edit'), 403);
+        if (! isset($this->productClientPrices[$index])) return;
+        if (count($this->productClientPrices[$index]['tiers'] ?? []) >= 100) return;
+        $this->productClientPrices[$index]['tiers'][] = array_merge(
+            app(ClientPriceMatrix::class)->blankTier(), ['key' => (string) Str::uuid()]);
+    }
+
+    public function removeClientPriceTier(int $index, int $tierIndex): void
+    {
+        abort_unless($this->group === 'product' && $this->showModal, 403);
+        abort_unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+            ->permitsSection(auth()->user(), 'client_pricing', 'edit'), 403);
+        if (! isset($this->productClientPrices[$index]['tiers'][$tierIndex])) return;
+        array_splice($this->productClientPrices[$index]['tiers'], $tierIndex, 1);
+        if ($this->productClientPrices[$index]['tiers'] === []) {
+            $this->productClientPrices[$index]['tiers'] = $this->editableClientPriceTiers([]);
+        }
+        $this->resetValidation('productClientPrices.'.$index.'.tiers');
     }
 
     /** Tagging clients adds their price editors, preserving existing saved prices and unsaved text. */
@@ -129,7 +224,8 @@ trait ManagesMasterEditor
             if (! in_array($id, $existing, true)) {
                 $this->productClientPrices[] = [
                     'key' => 'client-'.$id, 'client_id' => (string) $id,
-                    'table' => '', 'preview' => [], 'currency' => $this->productCustomerPriceCurrency,
+                    'table' => '', 'preview' => [], 'tiers' => $this->editableClientPriceTiers([]),
+                    'currency' => $this->productCustomerPriceCurrency,
                 ];
                 $existing[] = $id;
             }
@@ -155,7 +251,8 @@ trait ManagesMasterEditor
         $action = $id ? 'edit' : 'create';
         $this->authorizeGroupAction($action);
         $service = app(MasterDataService::class);
-        if ($this->group === 'product' && $id) {
+        if ($this->group === 'product' && $id
+            && ! app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user())) {
             app(\App\Services\ProductTaxonomyService::class)->synchronizeLegacyTaxonomy();
         }
         // Product create/edit is a full-page editor. Do not hydrate the product
@@ -165,6 +262,7 @@ trait ManagesMasterEditor
         if ($this->group !== 'product') {
             $this->recordsReady = true;
         }
+        $this->closeSupplierCurrencyTable();
         $this->showModal = true;
         $this->editId = $id;
         // Existing products need their stored taxonomy/urgency values immediately.
@@ -228,23 +326,30 @@ trait ManagesMasterEditor
             $this->productFormMainCategory = $r->productMainCategory();
             $this->productSize = $r->productSize();
             $canSeeSupplierCosts = app(\App\Services\Orders\SupplierCostVisibility::class)->allowed();
+            $portalAccess = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+            $canSeeClientPrices = $portalAccess->permitsSection(auth()->user(), 'client_pricing', 'view');
             $this->productPriceTable = $canSeeSupplierCosts ? trim((string) data_get($r->metadata, 'price_table_raw')) : '';
-            $this->productCustomerPriceTable = trim((string) data_get($r->metadata, 'customer_price_table_raw'));
+            $this->productCustomerPriceTable = $canSeeClientPrices ? trim((string) data_get($r->metadata, 'customer_price_table_raw')) : '';
             $this->productCustomerPriceCurrency = $r->clientPriceCurrency();
-            $this->productCustomerPricePreview = $r->customerPriceBreakpoints();
-            $this->productClientPrices = $this->group === 'product'
+            $this->productCustomerPricePreview = $canSeeClientPrices ? $r->customerPriceBreakpoints() : [];
+            $this->productCustomerPriceTiers = $this->editableClientPriceTiers($this->productCustomerPricePreview);
+            $this->productClientPrices = $this->group === 'product' && $canSeeClientPrices
                 ? $r->clientPrices()->orderBy('client_id')->get(['client_id', 'price_table_raw', 'price_breakpoints'])
-                    ->map(fn ($row) => [
-                        'key' => 'client-'.$row->client_id,
-                        'client_id' => (string) $row->client_id,
-                        'currency' => $r->clientPriceCurrency((int) $row->client_id),
-                        'table' => trim((string) $row->price_table_raw) !== ''
-                            ? (string) $row->price_table_raw
-                            : ((array) $row->price_breakpoints === [] ? ''
-                                : "Quantity\t".collect($row->price_breakpoints)->pluck('quantity')->implode("\t")
-                                    ."\nProduct price\t".collect($row->price_breakpoints)->pluck('price')->implode("\t")),
-                        'preview' => (array) $row->price_breakpoints,
-                    ])->all()
+                    ->map(function ($row) use ($r) {
+                        $raw = trim((string) $row->price_table_raw);
+                        $breakpoints = (array) $row->price_breakpoints;
+                        if ($breakpoints === [] && $raw !== '') {
+                            $breakpoints = app(ProductPriceTableParser::class)->parseTable($raw)['price_breakpoints'];
+                        }
+                        return [
+                            'key' => 'client-'.$row->client_id,
+                            'client_id' => (string) $row->client_id,
+                            'currency' => $r->clientPriceCurrency((int) $row->client_id),
+                            'table' => $raw !== '' ? $raw : app(ClientPriceMatrix::class)->toLegacyTable($breakpoints),
+                            'preview' => $breakpoints,
+                            'tiers' => $this->editableClientPriceTiers($breakpoints),
+                        ];
+                    })->all()
                 : [];
             if ($this->productCustomerPriceTable === '' && $this->productCustomerPricePreview !== []) {
                 $quantities = collect($this->productCustomerPricePreview)->pluck('quantity')->implode("\t");
@@ -331,6 +436,15 @@ Remote Area charge	".$remoteRow;
             }
             $this->productClientIds = $storedClientIds;
             $this->syncProductClientPriceRowsForSelectedClients();
+            // A delegated supplier may view/edit only its own price card, never
+            // any other supplier's confidential pricing or metadata.
+            $access = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+            if ($this->group === 'product' && $access->isPortalActor(auth()->user())) {
+                $myId = $access->supplierId(auth()->user());
+                $this->productSupplierPrices = [];
+                $this->productSupplierIds = [$myId];
+                $this->productSupplierId = $myId;
+            }
             $this->syncProductSupplierPriceRows($r);
             $this->productTestCertificateNumber = trim((string) data_get($r->metadata, 'test_certificate_number'));
             $this->color = MasterColor::normalize($r->color) ?: MasterColor::defaultFor($this->group, $r->name);
@@ -381,6 +495,41 @@ Remote Area charge	".$remoteRow;
                 // A generic JSON state property must not leak confidential costs.
                 unset($metadata['price_table_raw'], $metadata['price_breakpoints']);
             }
+            if ($this->group === 'product') {
+                $access = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+                if ($access->isPortalActor(auth()->user())) {
+                    // metadataJson is public Livewire state. Never hydrate
+                    // restricted price information into the supplier browser.
+                    foreach (['price_table_raw', 'price_breakpoints', 'supplier_price_currency',
+                        'supplier_price_currencies', 'customer_price_table_raw',
+                        'customer_price_breakpoints', 'customer_price_currency',
+                        'client_price_currencies', 'product_image_path',
+                        'certificate_test_report_path', 'certificate_test_report',
+                        'template_doc_path', 'template_doc', 'template_doc_url', 'certificate_test_report_url'] as $sensitive) {
+                        unset($metadata[$sensitive]);
+                    }
+                    if (! $access->can(auth()->user(), 'options', 'view')) {
+                        unset($metadata['options'], $metadata['product_options']);
+                        $this->productOptions = [];
+                    }
+                    if (! $access->can(auth()->user(), 'shipment', 'view')) {
+                        unset($metadata['remote_surcharge_breakpoints'], $metadata['shipment_urgency_options']);
+                        $this->productShipmentUrgencies = [];
+                        $this->productRemoteSurchargeTable = '';
+                        $this->productRemoteSurchargePreview = [];
+                    }
+                    if (! $access->can(auth()->user(), 'availability', 'view')) {
+                        unset($metadata['client_availability'], $metadata['client_ids'],
+                            $metadata['client_availability_labels'], $metadata['client_codes']);
+                        $this->productClientIds = [];
+                        $this->productClientAvailabilityMode = 'all';
+                    }
+                    if (! $access->can(auth()->user(), 'documents', 'view')) {
+                        unset($metadata['test_certificate_number']);
+                        $this->productTestCertificateNumber = '';
+                    }
+                }
+            }
             $this->metadataJson = $metadata ? json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : '';
             return;
         }
@@ -400,6 +549,7 @@ Remote Area charge	".$remoteRow;
             $this->productCustomerPriceTable = '';
             $this->productCustomerPriceCurrency = 'USD';
             $this->productCustomerPricePreview = [];
+            $this->productCustomerPriceTiers = $this->editableClientPriceTiers([]);
             $this->productClientPrices = [];
             $this->productPricePreview = [];
             $this->productRemoteSurchargePreview = [];
@@ -477,8 +627,81 @@ Remote Area charge	".$remoteRow;
     }
     public function save(): void
     {
+        // A forged Livewire call cannot submit an editor the supplier may not open.
+        if (auth()->user() && app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user())) {
+            $this->authorizeGroupAction($this->editId ? 'edit' : 'create');
+        }
         $service = app(MasterDataService::class);
+        $portalAccess = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+        $portalActor = $this->group === 'product' && $portalAccess->isPortalActor(auth()->user());
+        $canEditClientPrices = ! $portalActor || $portalAccess->can(auth()->user(), 'client_pricing', 'edit');
+        $canEditSupplierPricesForPortal = ! $portalActor || $portalAccess->can(auth()->user(), 'supplier_pricing', 'edit');
+        if ($portalActor) {
+            $supplierId = $portalAccess->supplierId(auth()->user());
+            $this->productSupplierPrices = array_values(array_filter($this->productSupplierPrices,
+                static fn (array $row): bool => (int) ($row['supplier_id'] ?? 0) === $supplierId));
+            // The legacy base table applies to every supplier and may be edited
+            // only by FlowTracker staff; the portal uses its own supplier row.
+            $this->productPriceTable = '';
+            $this->productPricePreview = [];
+            if ($this->editId) {
+                $original = MasterRecord::query()->forWorkspace(app(MasterDataService::class)->workspaceId())
+                    ->ofType('product')->findOrFail($this->editId);
+                $portalAccess->assertProduct(auth()->user(), $original);
+                // Portal actors cannot change another supplier's assignment or
+                // remove links. Preserve the authoritative saved supplier set.
+                $this->productSupplierId = $original->productSupplierId();
+                $savedSupplierIds = collect($original->productSupplierIds());
+                if (Schema::hasTable('product_supplier_links')) {
+                    $savedSupplierIds = $savedSupplierIds->merge(DB::table('product_supplier_links')
+                        ->where('workspace_id', $original->workspace_id)
+                        ->where('product_id', $original->id)->pluck('supplier_id'));
+                }
+                $this->productSupplierIds = $savedSupplierIds->map(fn ($id) => (int) $id)
+                    ->filter()->unique()->values()->all();
+            } else {
+                // A supplier-created product is automatically linked only to that supplier.
+                $this->productSupplierId = $supplierId;
+                $this->productSupplierIds = [$supplierId];
+            }
+            if (! $canEditSupplierPricesForPortal) {
+                $this->productSupplierPrices = [];
+                $this->productPriceTable = '';
+                $this->productPricePreview = [];
+            }
+            if (! $canEditClientPrices) {
+                $this->productClientPrices = [];
+                $this->productCustomerPriceTable = '';
+                $this->productCustomerPricePreview = [];
+                $this->productCustomerPriceTiers = [['key' => 'blank', 'quantity' => '', 'price' => '']];
+            }
+            if (! $portalAccess->can(auth()->user(), 'documents', 'edit')) {
+                abort_if($this->productImage || $this->productCertificateUpload || $this->productTemplateUpload
+                    || $this->removeProductImage || $this->removeProductCertificate || $this->removeProductTemplate
+                    || array_filter($this->productOptionUploads), 403);
+            }
+        }
+
         $workspaceId = $service->workspaceId();
+        $portalOriginal = $portalActor && $this->editId
+            ? MasterRecord::query()->forWorkspace($workspaceId)->ofType('product')->findOrFail($this->editId)
+            : null;
+        if ($portalActor) {
+            // Suppress writes to sections not granted by FlowTracker. The
+            // authoritative values are copied back immediately before save.
+            if (! $portalAccess->can(auth()->user(), 'options', 'edit')) {
+                abort_if(array_filter($this->productOptionUploads), 403);
+                $this->productOptions = [];
+            }
+            if (! $portalAccess->can(auth()->user(), 'shipment', 'edit')) {
+                $this->productShipmentUrgencies = [];
+                $this->productRemoteSurchargeTable = '';
+            }
+            if (! $portalAccess->can(auth()->user(), 'availability', 'edit')) {
+                $this->productClientAvailabilityMode = 'all';
+                $this->productClientIds = [];
+            }
+        }
 
         // Product display codes are generated from the record id. The underlying
         // master-data code stays a unique internal key; the supplier/reference
@@ -539,20 +762,32 @@ Remote Area charge	".$remoteRow;
             'productPriceTable' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
             'productRemoteSurchargeTable' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
             'productCustomerPriceTable' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
+            'productCustomerPriceTiers' => $this->group === 'product' ? ['required', 'array', 'min:1', 'max:100'] : ['array'],
+            'productCustomerPriceTiers.*.quantity' => $this->group === 'product' ? ['nullable', 'integer', 'min:1', 'max:100000000'] : ['nullable'],
+            'productCustomerPriceTiers.*.price' => $this->group === 'product' ? ['nullable', 'numeric', 'min:0', 'max:999999999.99'] : ['nullable'],
             'productCustomerPriceCurrency' => $this->group === 'product' ? ['required', $currencyRule] : ['nullable'],
             'productClientPrices' => $this->group === 'product' ? ['array', 'max:100'] : ['array'],
             'productClientPrices.*.client_id' => $this->group === 'product' ? ['required', 'integer', 'distinct', Rule::exists('clients', 'id')->where(fn ($q) => $q->where('is_active', true)->whereNull('purged_at'))] : ['nullable'],
             'productClientPrices.*.table' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
+            'productClientPrices.*.tiers' => $this->group === 'product' ? ['required', 'array', 'min:1', 'max:100'] : ['array'],
+            'productClientPrices.*.tiers.*.quantity' => $this->group === 'product' ? ['nullable', 'integer', 'min:1', 'max:100000000'] : ['nullable'],
+            'productClientPrices.*.tiers.*.price' => $this->group === 'product' ? ['nullable', 'numeric', 'min:0', 'max:999999999.99'] : ['nullable'],
             'productClientPrices.*.currency' => $this->group === 'product' ? ['required', $currencyRule] : ['nullable'],
             'productSupplierPrices' => $this->group === 'product' ? ['array', 'max:100'] : ['array'],
             'productSupplierPrices.*.supplier_id' => $this->group === 'product' ? ['required', 'integer', 'distinct'] : ['nullable'],
-            'productSupplierPrices.*.table' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
+            'productSupplierPrices.*.tiers' => $this->group === 'product' ? ['required', 'array', 'min:1', 'max:100'] : ['array'],
+            'productSupplierPrices.*.tiers.*.quantity' => $this->group === 'product' ? ['nullable', 'integer', 'min:1', 'max:100000000'] : ['nullable'],
+            'productSupplierPrices.*.tiers.*.price' => $this->group === 'product' ? ['nullable', 'numeric', 'min:0', 'max:999999999.99'] : ['nullable'],
+            'productSupplierPrices.*.tiers.*.remote_surcharge' => $this->group === 'product' ? ['nullable', 'numeric', 'min:0', 'max:999999999.99'] : ['nullable'],
+            'productSupplierPrices.*.tiers.*.standard_shipment' => $this->group === 'product' ? ['nullable', 'numeric', 'min:0', 'max:999999999.99'] : ['nullable'],
+            'productSupplierPrices.*.tiers.*.urgent_shipment' => $this->group === 'product' ? ['nullable', 'numeric', 'min:0', 'max:999999999.99'] : ['nullable'],
             'productSupplierPrices.*.currency' => $this->group === 'product' ? ['required', $currencyRule] : ['nullable'],
             // Keep the server-loaded baseline in the validated payload. Without
             // these rules, validate() strips both fields, treats every populated
             // supplier table as changed and falsely rejects all edits as stale.
             'productSupplierPrices.*.original_table' => $this->group === 'product' ? ['nullable', 'string', 'max:50000'] : ['nullable'],
             'productSupplierPrices.*.original_version' => $this->group === 'product' ? ['required', 'regex:/\A[a-f0-9]{64}\z/'] : ['nullable'],
+            'productSupplierPrices.*.original_charges_version' => $this->group === 'product' ? ['required', 'regex:/\A[a-f0-9]{64}\z/'] : ['nullable'],
             'productOptions' => $this->group === 'product' ? ['array', 'max:30'] : ['array'],
             'productOptions.*.key' => $this->group === 'product' ? ['required', 'string', 'max:80'] : ['nullable'],
             'productOptions.*.label' => $this->group === 'product' ? ['required', 'string', 'max:120'] : ['nullable'],
@@ -700,30 +935,30 @@ Remote Area charge	".$remoteRow;
             }
         }
 
-        if ($this->group === 'product' && trim((string) $data['productCustomerPriceTable']) !== '') {
-            $productCustomerPriceBreakpoints = app(ProductPriceTableParser::class)
-                ->parseTable($data['productCustomerPriceTable'])['price_breakpoints'];
-            if ($productCustomerPriceBreakpoints === []) {
-                throw ValidationException::withMessages([
-                    'productCustomerPriceTable' => 'Paste a valid customer price table containing quantity and price values.',
-                ]);
-            }
-        }
-
+        // Convert only the client grids into the existing legacy table format.
+        // No new storage, pricing calculations or supplier-price behavior.
         $validatedClientPriceTables = [];
-        if ($this->group === 'product') {
+        if ($this->group === 'product' && $canEditClientPrices) {
+            $clientMatrix = app(ClientPriceMatrix::class);
+            try {
+                $productCustomerPriceBreakpoints = $clientMatrix->parseEditableTiers($data['productCustomerPriceTiers']);
+            } catch (\InvalidArgumentException $exception) {
+                throw ValidationException::withMessages(['productCustomerPriceTiers' => $exception->getMessage()]);
+            }
+            $data['productCustomerPriceTable'] = $clientMatrix->toLegacyTable($productCustomerPriceBreakpoints);
+
             foreach ($data['productClientPrices'] as $index => $row) {
-                $table = trim((string) ($row['table'] ?? ''));
-                if ($table === '') continue; // Show empty slots without inventing price data.
-                $breakpoints = app(ProductPriceTableParser::class)->parseTable($table)['price_breakpoints'];
-                if ($breakpoints === []) {
+                try {
+                    $breakpoints = $clientMatrix->parseEditableTiers($row['tiers'] ?? []);
+                } catch (\InvalidArgumentException $exception) {
                     throw ValidationException::withMessages([
-                        "productClientPrices.$index.table" => 'Paste a valid quantity and selling-price table.',
+                        "productClientPrices.$index.tiers" => $exception->getMessage(),
                     ]);
                 }
+                if ($breakpoints === []) continue; // Empty matrix is shown, not stored.
                 $validatedClientPriceTables[] = [
                     'client_id' => (int) $row['client_id'],
-                    'price_table_raw' => $table,
+                    'price_table_raw' => $clientMatrix->toLegacyTable($breakpoints),
                     'price_breakpoints' => json_encode($breakpoints, JSON_THROW_ON_ERROR),
                 ];
             }
@@ -731,11 +966,12 @@ Remote Area charge	".$remoteRow;
 
         // Only edited supplier tables are written. Unmodified approved prices remain authoritative.
         $supplierPriceEdits = [];
-        if ($this->group === 'product' && app(\App\Services\Orders\SupplierCostVisibility::class)->allowed()) {
+        if ($this->group === 'product' && $canEditSupplierPricesForPortal && app(\App\Services\Orders\SupplierCostVisibility::class)->allowed()) {
             $taggedSupplierIds = collect($data['productSupplierIds'] ?? [])
                 ->push($data['productSupplierId'] ?? null)
                 ->map(fn ($id) => (int) $id)->filter()->unique()->all();
             $pricing = app(\App\Services\SupplierBridge\SupplierPricing::class);
+            $matrix = app(\App\Services\SupplierBridge\SupplierPriceMatrix::class);
             foreach ($data['productSupplierPrices'] as $index => $row) {
                 $supplierId = (int) $row['supplier_id'];
                 if (! in_array($supplierId, $taggedSupplierIds, true)) {
@@ -743,17 +979,24 @@ Remote Area charge	".$remoteRow;
                 }
                 $original = app(ProductPriceTableParser::class)
                     ->parseTable((string) ($row['original_table'] ?? ''))['price_breakpoints'];
-                $table = trim((string) ($row['table'] ?? ''));
-                if ($table === '') continue; // Empty slots do not erase approved prices.
-                $parsed = app(ProductPriceTableParser::class)->parseTable($table)['price_breakpoints'];
-                if ($parsed === []) {
-                    throw ValidationException::withMessages(["productSupplierPrices.$index.table" => 'Paste a valid quantity and supplier cost table.']);
+                try {
+                    $edited = $matrix->parseEditableTiers($row['tiers'] ?? []);
+                } catch (ValidationException $exception) {
+                    throw ValidationException::withMessages(["productSupplierPrices.$index.tiers" =>
+                        $exception->errors()['productSupplierPrices'][0] ?? 'Invalid supplier pricing table.']);
                 }
-                $parsed = $pricing->normalize($parsed);
-                if ($parsed === $pricing->normalize($original)) continue;
+                if ($edited['rows'] === []) continue; // An untouched empty grid does not erase approved prices.
+                $parsed = $pricing->normalize($edited['rows']);
+                $priceChanged = $parsed !== $pricing->normalize($original);
+                // Charge data has its own baseline, independent of supplier approvals.
+                $chargesChanged = ! hash_equals((string) ($row['original_charges_version'] ?? ''),
+                    $matrix->chargesVersion($edited['charges']));
+                if (! $priceChanged && ! $chargesChanged) continue;
                 $supplierPriceEdits[] = [
-                    'supplier_id' => $supplierId, 'rows' => $parsed,
+                    'supplier_id' => $supplierId, 'rows' => $parsed, 'charges' => $edited['charges'],
+                    'price_changed' => $priceChanged, 'charges_changed' => $chargesChanged,
                     'base_version' => (string) ($row['original_version'] ?? ''),
+                    'charges_base_version' => (string) ($row['original_charges_version'] ?? ''),
                 ];
             }
         }
@@ -856,6 +1099,7 @@ Remote Area charge	".$remoteRow;
             $metadata['supplier_ids'] = $linkedSupplierIds->unique()->values()->all();
             $metadata['main_category'] = trim((string) $data['productFormMainCategory']);
             $metadata['product_size'] = trim((string) $data['productSize']) ?: null;
+            if ($canEditClientPrices) {
             $metadata['customer_price_currency'] = $data['productCustomerPriceCurrency'];
             $clientCurrencies = (array) ($metadata['client_price_currencies'] ?? []);
             foreach ($data['productClientPrices'] as $row) {
@@ -873,7 +1117,8 @@ Remote Area charge	".$remoteRow;
             } else {
                 unset($metadata['client_price_currencies']);
             }
-            $canEditSupplierPrices = app(\App\Services\Orders\SupplierCostVisibility::class)->allowed();
+            } // Client pricing remains unchanged when portal permission is absent.
+            $canEditSupplierPrices = $canEditSupplierPricesForPortal && app(\App\Services\Orders\SupplierCostVisibility::class)->allowed();
             if (! $canEditSupplierPrices) {
                 // Only the existing persisted source can populate confidential
                 // supplier metadata. Ignore/reject untrusted Livewire price state.
@@ -923,10 +1168,10 @@ Remote Area charge	".$remoteRow;
             } else {
                 unset($metadata['remote_surcharge_breakpoints']);
             }
-            if ($productCustomerPriceBreakpoints !== []) {
+            if ($canEditClientPrices && $productCustomerPriceBreakpoints !== []) {
                 $metadata['customer_price_table_raw'] = trim((string) $data['productCustomerPriceTable']);
                 $metadata['customer_price_breakpoints'] = $productCustomerPriceBreakpoints;
-            } else {
+            } elseif ($canEditClientPrices) {
                 unset($metadata['customer_price_table_raw'], $metadata['customer_price_breakpoints']);
             }
             $metadata['sub_category'] = trim((string) $data['productSubcategory']) ?: null;
@@ -972,6 +1217,48 @@ Remote Area charge	".$remoteRow;
             $metadata = array_filter($metadata, fn ($value, $key) => $key === 'reference_code' || ($value !== null && $value !== ''), ARRAY_FILTER_USE_BOTH);
         }
 
+        if ($portalActor) {
+            $originalMetadata = (array) ($portalOriginal?->metadata ?? []);
+            $restricted = [
+                'client_pricing' => ['customer_price_table_raw', 'customer_price_breakpoints',
+                    'customer_price_currency', 'client_price_currencies'],
+                // Supplier portals can edit their own supplier row, never the
+                // base fallback or another supplier's currency override.
+                'supplier_base' => ['price_table_raw', 'price_breakpoints', 'supplier_price_currency'],
+                'shipment' => ['remote_surcharge_breakpoints', 'shipment_urgency_options', 'shipping_options'],
+                'availability' => ['client_availability', 'client_ids', 'client_availability_labels', 'client_codes'],
+                'options' => ['options', 'product_options'],
+                'documents' => ['test_certificate_number', 'product_image_path',
+                    'certificate_test_report_path', 'certificate_test_report',
+                    'template_doc_path', 'template_doc', 'template_doc_url', 'certificate_test_report_url'],
+            ];
+            foreach ($restricted as $section => $fields) {
+                if ($section !== 'supplier_base' && $portalAccess->can(auth()->user(), $section, 'edit')) continue;
+                foreach ($fields as $field) {
+                    if (array_key_exists($field, $originalMetadata)) $metadata[$field] = $originalMetadata[$field];
+                    else unset($metadata[$field]);
+                }
+            }
+            if (! $portalAccess->can(auth()->user(), 'supplier_pricing', 'edit')) {
+                if (array_key_exists('supplier_price_currencies', $originalMetadata)) {
+                    $metadata['supplier_price_currencies'] = $originalMetadata['supplier_price_currencies'];
+                } else unset($metadata['supplier_price_currencies']);
+            } else {
+                // Preserve all other suppliers' currency selections.
+                $currencies = (array) ($originalMetadata['supplier_price_currencies'] ?? []);
+                $myId = (int) $portalAccess->supplierId(auth()->user());
+                foreach ($data['productSupplierPrices'] as $row) {
+                    if ((int) $row['supplier_id'] !== $myId) continue;
+                    $currency = $row['currency'];
+                    $default = strtoupper((string) ($originalMetadata['supplier_price_currency'] ?? 'USD'));
+                    if ($currency === $default) unset($currencies[$myId]);
+                    else $currencies[$myId] = $currency;
+                }
+                if ($currencies !== []) $metadata['supplier_price_currencies'] = $currencies;
+                else unset($metadata['supplier_price_currencies']);
+            }
+        }
+
         if ($this->group === 'product' && $this->editId) {
             $existing = MasterRecord::query()
                 ->forWorkspace($workspaceId)
@@ -994,7 +1281,7 @@ Remote Area charge	".$remoteRow;
             $previousSupplierIds = array_merge($previousSupplierIds, $existing->productSupplierIds());
         }
         $wasCreating = !$this->editId;
-        $saveRecord = function () use ($data, $metadata, $workspaceId, $validatedClientPriceTables, $supplierPriceEdits) {
+        $saveRecord = function () use ($data, $metadata, $workspaceId, $validatedClientPriceTables, $supplierPriceEdits, $canEditClientPrices) {
             $supplierEditsToApply = $supplierPriceEdits;
             if ($this->group === 'product' && $this->editId && $supplierPriceEdits !== []) {
                 // Lock and compare the SAVED record before writing product metadata.
@@ -1008,22 +1295,78 @@ Remote Area charge	".$remoteRow;
                     ->where('workspace_id', $workspaceId)
                     ->where('product_id', $savedProduct->id)
                     ->whereIn('supplier_id', array_column($supplierPriceEdits, 'supplier_id'))
-                    ->pluck('price_breakpoints', 'supplier_id');
+                    ->get(['supplier_id', 'price_breakpoints', 'additional_charges'])->keyBy('supplier_id');
                 $fallback = $savedProduct->supplierPriceBreakpoints();
+                $matrix = app(\App\Services\SupplierBridge\SupplierPriceMatrix::class);
                 foreach ($supplierPriceEdits as $index => $edit) {
-                    $raw = $currentTables->get($edit['supplier_id']);
-                    $rows = $pricing->normalize($raw !== null
-                        ? (json_decode((string) $raw, true) ?: []) : $fallback);
-                    if (! hash_equals($pricing->version($rows), $edit['base_version'])) {
+                    $override = $currentTables->get($edit['supplier_id']);
+                    $rows = $pricing->normalize($override !== null
+                        ? (json_decode((string) $override->price_breakpoints, true) ?: []) : $fallback);
+                    $charges = $matrix->normalizeCharges(json_decode((string) ($override->additional_charges ?? ''), true) ?: []);
+                    if ($edit['price_changed'] && ! hash_equals($pricing->version($rows), $edit['base_version'])) {
                         // The same price tiers may already have been approved or
                         // saved in another request. That is an idempotent no-op,
                         // not a conflicting change; do not write them again.
                         if ($rows === $edit['rows']) {
-                            unset($supplierEditsToApply[$index]);
-                            continue;
+                            $supplierEditsToApply[$index]['price_changed'] = false;
+                        } else {
+                            throw ValidationException::withMessages(['productSupplierPrices' =>
+                                'Supplier prices changed since this product was opened. Reload the supplier prices to review the latest approved costs before saving.']);
                         }
+                    }
+                    if (! $edit['price_changed'] && $edit['charges_changed']
+                        && ! hash_equals($pricing->version($rows), $edit['base_version'])) {
                         throw ValidationException::withMessages(['productSupplierPrices' =>
-                            'Supplier prices changed since this product was opened. Reload the supplier prices to review the latest approved costs before saving.']);
+                            'Supplier quantity tiers changed since this product was opened. Reload supplier prices before editing shipment charges.']);
+                    }
+                    if ($edit['charges_changed'] && ! hash_equals($matrix->chargesVersion($charges), $edit['charges_base_version'])) {
+                        if ($charges === $edit['charges']) {
+                            $supplierEditsToApply[$index]['charges_changed'] = false;
+                        } else {
+                            throw ValidationException::withMessages(['productSupplierPrices' =>
+                                'Supplier charges changed since this product was opened. Reload supplier prices before saving.']);
+                        }
+                    }
+                    if (! $supplierEditsToApply[$index]['price_changed'] && ! $supplierEditsToApply[$index]['charges_changed']) {
+                        unset($supplierEditsToApply[$index]);
+                        continue;
+                    }
+                    // A charge-only edit must never undo a newer approved unit price.
+                    if (! $supplierEditsToApply[$index]['price_changed']) {
+                        $supplierEditsToApply[$index]['rows'] = $rows;
+                    }
+                    if (! $supplierEditsToApply[$index]['charges_changed']) {
+                        $supplierEditsToApply[$index]['charges'] = $charges;
+                    }
+                }
+            }
+
+            // Currency-specific extra matrices must never collide with a newly
+            // selected primary currency. Existing order/pricing consumers rely on
+            // exactly one primary approved matrix per supplier.
+            if ($this->group === 'product' && $this->editId) {
+                $original = MasterRecord::query()->forWorkspace($workspaceId)
+                    ->ofType('product')->whereKey($this->editId)->firstOrFail();
+                $changes = [];
+                foreach ((array) ($metadata['supplier_ids'] ?? []) as $linkedSupplierId) {
+                    $linkedSupplierId = (int) $linkedSupplierId;
+                    $newCurrency = strtoupper((string) (
+                        data_get($metadata, 'supplier_price_currencies.'.$linkedSupplierId)
+                        ?: ($metadata['supplier_price_currency'] ?? 'USD')));
+                    if ($newCurrency !== $original->supplierPriceCurrency($linkedSupplierId)) {
+                        $changes[$linkedSupplierId] = $newCurrency;
+                    }
+                }
+                if ($changes !== []) {
+                    $overlaps = DB::table('supplier_product_currency_tables')
+                        ->where('workspace_id', $workspaceId)->where('product_id', $this->editId)
+                        ->whereIn('supplier_id', array_keys($changes))
+                        ->get(['supplier_id', 'currency']);
+                    foreach ($overlaps as $overlap) {
+                        if ($changes[(int)$overlap->supplier_id] === $overlap->currency) {
+                            throw ValidationException::withMessages(['productSupplierPrices' =>
+                                'An additional table already uses the selected primary currency. Remove that additional table first.']);
+                        }
                     }
                 }
             }
@@ -1062,8 +1405,10 @@ Remote Area charge	".$remoteRow;
                         'product_id' => (int) $record->id,
                         'supplier_id' => $id,
                         'price_breakpoints' => json_encode($edit['rows'], JSON_THROW_ON_ERROR),
+                        'additional_charges' => json_encode($edit['charges'], JSON_THROW_ON_ERROR),
                         'created_at' => now(), 'updated_at' => now(),
-                    ]], ['supplier_id', 'product_id'], ['price_breakpoints', 'updated_at']);
+                    ]], ['supplier_id', 'product_id'], ['price_breakpoints', 'additional_charges', 'updated_at']);
+                    if (! $edit['price_changed']) continue; // Charges must not stale pending supplier price proposals.
                     DB::table('supplier_price_proposals')->where('workspace_id', $workspaceId)
                         ->where('product_id', $record->id)->where('supplier_id', $id)
                         ->where('status', 'pending')->update([
@@ -1072,7 +1417,7 @@ Remote Area charge	".$remoteRow;
                         ]);
                 }
             }
-            if ($this->group === 'product') {
+            if ($this->group === 'product' && $canEditClientPrices) {
                 $clientIds = array_column($validatedClientPriceTables, 'client_id');
                 $query = DB::table('product_client_prices')->where('workspace_id', $workspaceId)->where('product_id', $record->id);
                 $clientIds === [] ? $query->delete() : $query->whereNotIn('client_id', $clientIds)->delete();
@@ -1122,7 +1467,8 @@ Remote Area charge	".$remoteRow;
             }
         }
 
-        if ($this->group === 'product') {
+        if ($this->group === 'product'
+            && (! $portalActor || $portalAccess->can(auth()->user(), 'options', 'edit'))) {
             try {
                 $record = app(ProductOptionImageService::class)->sync(
                     $record,
@@ -1137,7 +1483,8 @@ Remote Area charge	".$remoteRow;
             }
         }
 
-        if ($this->group === 'product') {
+        if ($this->group === 'product'
+            && (! $portalActor || $portalAccess->can(auth()->user(), 'documents', 'edit'))) {
             try {
                 $record = app(\App\Services\ProductDocumentService::class)->sync(
                     $record,
@@ -1197,12 +1544,18 @@ Remote Area charge	".$remoteRow;
 
     public function updateColor(int $id, string $color): void
     {
+        if (app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user())) {
+            $this->authorizeGroupAction('edit');
+        }
         $this->recordsReady = true;
         $record = $this->currentGroupRecord($id);
         app(\App\Actions\MasterData\UpdateMasterColorAction::class)->execute($record->id, $color);
     }
     public function toggle(int $id): void
     {
+        if (app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user())) {
+            $this->authorizeGroupAction('edit');
+        }
         $this->recordsReady = true;
         $record = $this->currentGroupRecord($id);
         app(\App\Actions\MasterData\ToggleMasterRecordAction::class)->execute($record->id);
@@ -1211,6 +1564,9 @@ Remote Area charge	".$remoteRow;
     }
     public function deleteRecord(int $id): void
     {
+        if (app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user())) {
+            $this->authorizeGroupAction('delete');
+        }
         $this->recordsReady = true;
         $record = $this->currentGroupRecord($id);
         try {

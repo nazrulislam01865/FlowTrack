@@ -13,6 +13,7 @@ trait ManagesProductSupplierAssignments
     public function openProductSupplierAssignment(): void
     {
         abort_unless($this->group === 'product', 404);
+        abort_if(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user()), 403);
         abort_unless(auth()->user()?->canModule('catalog_products', 'edit'), 403);
         abort_if($this->productSelectionCount() < 1, 422, 'Select at least one product.');
 
@@ -24,6 +25,7 @@ trait ManagesProductSupplierAssignments
     public function openProductSupplierAssignmentFor(int $productId): void
     {
         abort_unless($this->group === 'product', 404);
+        abort_if(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user()), 403);
         abort_unless(auth()->user()?->canModule('catalog_products', 'edit'), 403);
 
         $workspaceId = app(MasterDataService::class)->workspaceId();
@@ -58,6 +60,7 @@ trait ManagesProductSupplierAssignments
     public function applyBulkProductSupplier(): void
     {
         abort_unless($this->group === 'product', 404);
+        abort_if(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user()), 403);
         abort_unless(auth()->user()?->canModule('catalog_products', 'edit'), 403);
 
         $workspaceId = app(MasterDataService::class)->workspaceId();

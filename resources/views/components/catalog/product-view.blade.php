@@ -1,4 +1,11 @@
-@props(['product', 'suppliers' => collect(), 'supplierPricingTables' => collect(), 'canEdit' => false, 'canDelete' => false, 'displayTimezone' => 'UTC', 'detailSectionsReady' => []])
+@props(['product', 'suppliers' => collect(), 'supplierPricingTables' => collect(), 'canEdit' => false, 'canDelete' => false, 'displayTimezone' => 'UTC', 'detailSectionsReady' => [],
+    'editingSupplierCurrencyTable' => false,
+    'currencyTableSupplierId' => 0,
+    'currencyTableCurrency' => '',
+    'currencyTableOriginalCurrency' => '',
+    'currencyTableVersion' => '',
+    'currencyTableTiers' => []
+])
 @php
     $pricingReady = (bool) ($detailSectionsReady['pricing'] ?? false);
     $optionsReady = (bool) ($detailSectionsReady['options'] ?? false);
@@ -73,6 +80,7 @@
                 @if(!$loop->last)<span class="ft-product-classification-arrow">›</span>@endif
             @endforeach
         </div>
+        @if(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->permitsSection(auth()->user(), 'availability', 'view'))
         <div class="ft-product-availability-detail">
             <div><strong>Client availability</strong><span>{{ $product->hasSpecificProductAvailability() ? 'Selected clients' : 'All clients' }}</span><small>{{ $product->hasSpecificProductAvailability() ? 'Only these clients can find and use this product.' : 'All active clients can find and use this product.' }}</small></div>
             <div class="ft-product-client-badges">
@@ -80,51 +88,136 @@
                 @if($product->hasSpecificProductAvailability())<em>{{ count($product->productAvailabilityLabels()) }} clients</em>@endif
             </div>
         </div>
+        @endif
     </x-catalog.product-section>
 
     @if($pricingReady)
     @if(app(\App\Services\Orders\SupplierCostVisibility::class)->allowed() && $supplierPricingTables->isNotEmpty())
         <x-catalog.product-section title="Supplier-based pricing">
-            @foreach($supplierPricingTables as $supplierTable)
-                <div class="ft-product-price-preview-wrap ft-product-detail-price-wrap" style="margin-bottom:14px">
-                    <strong>{{ $supplierTable['name'] }} · {{ $product->supplierPriceCurrency((int) ($supplierTable['supplier_id'] ?? 0)) }}</strong>
-                    @if(count($supplierTable['rows']))
-                        <table class="ft-product-price-preview">
-                            <thead><tr><th>Quantity</th>
-                                @foreach($supplierTable['rows'] as $priceRow)
-                                    <th>{{ number_format((int) $priceRow['quantity']) }}</th>
-                                @endforeach
-                            </tr></thead><tbody><tr><th>Supplier price</th>
-                                @foreach($supplierTable['rows'] as $priceRow)
-                                    <td>{{ (float) $priceRow['price'] === 0.0 ? '0' : rtrim(rtrim(number_format((float) $priceRow['price'], 6, '.', ''), '0'), '.') }}</td>
-                                @endforeach
-                            </tr></tbody>
-                        </table>
-                    @else
-                        <small>No supplier prices entered.</small>
-                    @endif
-                </div>
-            @endforeach
+            <p class="ft-price-section-hint">Select a supplier to review its price tables. Each currency is kept separate; additional tables do not replace primary prices.</p>
+            <div class="ft-price-suppliers">
+                @foreach($supplierPricingTables as $supplierTable)
+                    @php
+                        $supplierId = (int) ($supplierTable['supplier_id'] ?? 0);
+                        $primaryCurrency = $product->supplierPriceCurrency($supplierId);
+                        $extraTables = $supplierTable['additional_tables'] ?? [];
+                        $primaryRows = $supplierTable['rows'] ?? [];
+                        $canManagePricing = $canEdit && app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)
+                            ->permitsSection(auth()->user(), 'supplier_pricing', 'edit');
+                        $supplierEditing = $editingSupplierCurrencyTable && $currencyTableSupplierId === $supplierId;
+                    @endphp
+                    <details class="ft-price-supplier" wire:key="product-pricing-supplier-{{ $supplierId }}"
+                        open>
+                        <summary class="ft-price-supplier-heading">
+                            <span class="ft-price-supplier-identity">
+                                <strong>{{ $supplierTable['name'] }}</strong>
+                                <small>{{ count($primaryRows) }} primary quantity {{ count($primaryRows) === 1 ? 'tier' : 'tiers' }}</small>
+                            </span>
+                            <span class="ft-price-supplier-meta">
+                                <span class="ft-price-badge">{{ $primaryCurrency }} · Primary</span>
+                                @if(count($extraTables))
+                                    <span class="ft-price-badge is-muted">+{{ count($extraTables) }} {{ count($extraTables) === 1 ? 'currency' : 'currencies' }}</span>
+                                @endif
+                                <span class="ft-price-chevron" aria-hidden="true"></span>
+                            </span>
+                        </summary>
+                        <div class="ft-price-supplier-body">
+                            @include('components.catalog.supplier-currency-matrix', [
+                                'currencyTable' => ['supplier_id' => $supplierId, 'currency' => $primaryCurrency,
+                                    'rows' => $primaryRows, 'charges' => $supplierTable['charges'] ?? []],
+                                'supplierName' => $supplierTable['name'], 'isPrimary' => true, 'expanded' => true,
+                                'allowEdit' => false,
+                            ])
+                            @foreach($extraTables as $extraTable)
+                                @include('components.catalog.supplier-currency-matrix', [
+                                    'currencyTable' => $extraTable,
+                                    'supplierName' => $supplierTable['name'], 'isPrimary' => false,
+                                    'expanded' => true,
+                                    'allowEdit' => $canManagePricing,
+                                ])
+                            @endforeach
+                            @if($canManagePricing)
+                                <div class="ft-price-supplier-toolbar">
+                                    <button type="button" class="ft-product-page-btn is-secondary"
+                                        wire:click="openSupplierCurrencyTable({{ $supplierId }})"
+                                        @disabled($supplierEditing)>
+                                        + Add currency table
+                                    </button>
+                                </div>
+                                @include('components.catalog.supplier-currency-editor', [
+                                    'supplierId' => $supplierId, 'product' => $product,
+                                    'editingSupplierCurrencyTable' => $editingSupplierCurrencyTable,
+                                    'currencyTableSupplierId' => $currencyTableSupplierId,
+                                    'currencyTableOriginalCurrency' => $currencyTableOriginalCurrency,
+                                    'currencyTableCurrency' => $currencyTableCurrency,
+                                    'currencyTableVersion' => $currencyTableVersion,
+                                    'currencyTableTiers' => $currencyTableTiers,
+                                ])
+                            @endif
+                        </div>
+                    </details>
+                @endforeach
+            </div>
         </x-catalog.product-section>
     @endif
     @unless(app(\App\Services\Orders\SupplierCostVisibility::class)->allowed())
         <x-catalog.product-section title="Supplier-based pricing"><small>Supplier costs are restricted. Ask an administrator for Supplier Prices → View permission.</small></x-catalog.product-section>
     @endunless
-    @if($clientPriceTables->isNotEmpty())
-        <x-catalog.product-section title="Client-specific pricing">
-            @foreach($clientPriceTables as $clientPrice)
-                <div class="ft-product-price-preview-wrap ft-product-detail-price-wrap" style="margin-bottom:14px">
-                    <strong>{{ $clientPrice->client?->name ?? ('Client #'.$clientPrice->client_id) }}{{ $clientPrice->client?->code ? ' · '.$clientPrice->client->code : '' }} · {{ $product->clientPriceCurrency((int) $clientPrice->client_id) }}</strong>
-                    <table class="ft-product-price-preview">
-                        <thead><tr><th>Quantity</th>
-                            @foreach((array) $clientPrice->price_breakpoints as $breakpoint)<th>{{ number_format((int) $breakpoint['quantity']) }}</th>@endforeach
-                        </tr></thead><tbody><tr><th>Client price</th>
-                            @foreach((array) $clientPrice->price_breakpoints as $breakpoint)<td>{{ (float) $breakpoint['price'] === 0.0 ? '0' : rtrim(rtrim(number_format((float) $breakpoint['price'], 6, '.', ''), '0'), '.') }}</td>@endforeach
-                        </tr></tbody>
-                    </table>
-                </div>
-            @endforeach
-        </x-catalog.product-section>
+    @if(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->permitsSection(auth()->user(), 'client_pricing', 'view'))
+    <x-catalog.product-section title="Client pricing">
+        @if(!$product->hasSpecificProductAvailability())
+            @php $sharedClientPrices = $product->customerPriceBreakpoints(); @endphp
+            <div class="ft-product-price-preview-wrap ft-product-detail-price-wrap" style="margin-bottom:14px">
+                <strong>All clients · {{ $product->clientPriceCurrency() }}</strong>
+                <table class="ft-product-price-preview ft-product-detail-matrix">
+                    <thead><tr><th scope="col">Quantity</th>
+                        @forelse($sharedClientPrices as $breakpoint)
+                            <th scope="col">{{ number_format((int) $breakpoint['quantity']) }}</th>
+                        @empty
+                            <th scope="col" class="ft-product-price-empty">&nbsp;</th>
+                        @endforelse
+                    </tr></thead>
+                    <tbody><tr><th scope="row">Client price</th>
+                        @forelse($sharedClientPrices as $breakpoint)
+                            <td>{{ (float) $breakpoint['price'] === 0.0 ? '0' : rtrim(rtrim(number_format((float) $breakpoint['price'], 6, '.', ''), '0'), '.') }}</td>
+                        @empty
+                            <td class="ft-product-price-empty">&nbsp;</td>
+                        @endforelse
+                    </tr></tbody>
+                </table>
+            </div>
+        @endif
+        @foreach($clientPriceTables as $clientPrice)
+            <div class="ft-product-price-preview-wrap ft-product-detail-price-wrap" style="margin-bottom:14px">
+                <strong>{{ $clientPrice->client?->name ?? ('Client #'.$clientPrice->client_id) }}{{ $clientPrice->client?->code ? ' · '.$clientPrice->client->code : '' }} · {{ $product->clientPriceCurrency((int) $clientPrice->client_id) }}</strong>
+                <table class="ft-product-price-preview ft-product-detail-matrix">
+                    <thead><tr><th scope="col">Quantity</th>
+                        @forelse((array) $clientPrice->price_breakpoints as $breakpoint)
+                            <th scope="col">{{ number_format((int) $breakpoint['quantity']) }}</th>
+                        @empty
+                            <th scope="col" class="ft-product-price-empty">&nbsp;</th>
+                        @endforelse
+                    </tr></thead>
+                    <tbody><tr><th scope="row">Client price</th>
+                        @forelse((array) $clientPrice->price_breakpoints as $breakpoint)
+                            <td>{{ (float) $breakpoint['price'] === 0.0 ? '0' : rtrim(rtrim(number_format((float) $breakpoint['price'], 6, '.', ''), '0'), '.') }}</td>
+                        @empty
+                            <td class="ft-product-price-empty">&nbsp;</td>
+                        @endforelse
+                    </tr></tbody>
+                </table>
+            </div>
+        @endforeach
+        @if($product->hasSpecificProductAvailability() && $clientPriceTables->isEmpty())
+            <div class="ft-product-price-preview-wrap ft-product-detail-price-wrap">
+                <strong>Selected clients · {{ $product->clientPriceCurrency() }}</strong>
+                <table class="ft-product-price-preview ft-product-detail-matrix">
+                    <thead><tr><th scope="col">Quantity</th><th scope="col" class="ft-product-price-empty">&nbsp;</th></tr></thead>
+                    <tbody><tr><th scope="row">Client price</th><td class="ft-product-price-empty">&nbsp;</td></tr></tbody>
+                </table>
+            </div>
+        @endif
+    </x-catalog.product-section>
     @endif
     @else
         <x-ui.progressive-section-loader section="pricing" method="loadProductDetailSection" key-prefix="product-detail" :rows="3" message="Loading product pricing when needed…" root-margin="360px 0px" />
@@ -133,7 +226,7 @@
     @if($optionsReady)
     @if($productOptions->isNotEmpty() || $shipmentUrgencyOptions->isNotEmpty())
         <div class="ft-product-options-shipping-grid">
-            @if($productOptions->isNotEmpty())
+            @if($productOptions->isNotEmpty() && app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->permitsSection(auth()->user(), 'options', 'view'))
                 <x-catalog.product-section title="Product options" class="ft-product-options-section ft-product-options-detail-section">
                     <div class="ft-product-option-detail-list">
                         @foreach($productOptions as $option)
@@ -152,7 +245,7 @@
                 </x-catalog.product-section>
             @endif
 
-            @if($shipmentUrgencyOptions->isNotEmpty())
+            @if($shipmentUrgencyOptions->isNotEmpty() && app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->permitsSection(auth()->user(), 'shipment', 'view'))
                 <x-catalog.product-section title="Shipping urgencies" class="ft-product-shipping-detail-section">
                     <div class="ft-product-shipping-detail-table-wrap">
                         <table class="ft-product-shipping-detail-table">
@@ -182,7 +275,7 @@
         <x-ui.progressive-section-loader section="options" method="loadProductDetailSection" key-prefix="product-detail" :rows="3" message="Loading product options and shipping data when needed…" root-margin="320px 0px" />
     @endif
 
-    @if($documentsReady)
+    @if($documentsReady && app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->permitsSection(auth()->user(), 'documents', 'view'))
     <x-catalog.product-section title="Certificates & documents" class="ft-product-documents-section">
         <div class="ft-product-documents-grid">
             <div class="ft-product-certificate-number"><small>Test certificate number</small><strong>{{ data_get($product->metadata, 'test_certificate_number') ?: '—' }}</strong></div>

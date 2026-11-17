@@ -606,9 +606,20 @@ trait BuildsMasterDataPageData
         $productSuppliersByProduct = $this->group === 'product' && $rows
             ? $supplierLookup->forProducts(collect($rows->items()), $workspaceId)
             : collect();
+        $access = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+        if ($access->isPortalActor(auth()->user())) {
+            $supplierId = $access->supplierId(auth()->user());
+            $productSuppliersByProduct = $productSuppliersByProduct->map(fn ($suppliers) =>
+                collect($suppliers)->filter(fn ($supplier) => (int) $supplier->id === $supplierId)->values());
+        }
         $viewProductSuppliers = $viewProduct
             ? $supplierLookup->forProducts(collect([$viewProduct]), $workspaceId)->get((int) $viewProduct->id, collect())
             : collect();
+        $portal = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+        if ($portal->isPortalActor(auth()->user())) {
+            $viewProductSuppliers = $viewProductSuppliers->filter(fn ($supplier): bool =>
+                (int) $supplier->id === $portal->supplierId(auth()->user()))->values();
+        }
 
         // Supplier-approved overrides are authoritative in the Product Details view.
         // Read them in one query, not one query per tagged supplier.
@@ -618,16 +629,22 @@ trait BuildsMasterDataPageData
             $overrides = DB::table('supplier_product_prices')
                 ->where('workspace_id', $workspaceId)->where('product_id', $viewProduct->id)
                 ->whereIn('supplier_id', $viewProductSuppliers->pluck('id'))
-                ->pluck('price_breakpoints', 'supplier_id');
+                ->get(['supplier_id', 'price_breakpoints', 'additional_charges'])->keyBy('supplier_id');
             $pricing = app(\App\Services\SupplierBridge\SupplierPricing::class);
-            $viewProductSupplierPricingTables = $viewProductSuppliers->map(function ($supplier) use ($overrides, $pricing, $viewProduct): array {
+            $matrix = app(\App\Services\SupplierBridge\SupplierPriceMatrix::class);
+            $extras = collect(app(\App\Services\SupplierBridge\SupplierCurrencyPriceTables::class)
+                ->forProduct($viewProduct, $viewProductSuppliers->pluck('id')->all()))->groupBy('supplier_id');
+            $viewProductSupplierPricingTables = $viewProductSuppliers->map(function ($supplier) use ($overrides, $pricing, $matrix, $viewProduct, $extras): array {
                 $override = $overrides->get($supplier->id);
+                $rows = $pricing->normalize($override !== null
+                    ? (json_decode((string) $override->price_breakpoints, true) ?: [])
+                    : $viewProduct->supplierPriceBreakpoints());
                 return [
                     'name' => $supplier->name,
                     'supplier_id' => (int) $supplier->id,
-                    'rows' => $pricing->normalize($override !== null
-                        ? (json_decode((string) $override, true) ?: [])
-                        : $viewProduct->supplierPriceBreakpoints()),
+                    'additional_tables' => $extras->get((int) $supplier->id, collect())->all(),
+                    'rows' => $rows,
+                    'charges' => $matrix->normalizeCharges(json_decode((string) ($override->additional_charges ?? ''), true) ?: []),
                 ];
             });
         }

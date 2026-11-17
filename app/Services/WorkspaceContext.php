@@ -31,6 +31,16 @@ final class WorkspaceContext
     {
         if ($this->resolvedWorkspaceId !== null) return $this->resolvedWorkspaceId;
 
+        // A supplier's delegated product session must be evaluated in the
+        // supplier's own FlowTracker workspace, not the configured default.
+        if ($actor && ($supplierId = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->supplierId($actor))) {
+            $supplierWorkspace = \Illuminate\Support\Facades\DB::table('master_records')
+                ->where('id', $supplierId)->where('type', 'supplier')
+                ->whereNull('deleted_at')->value('workspace_id');
+            abort_unless((int) $supplierWorkspace > 0, 403);
+            return $this->resolvedWorkspaceId = (int) $supplierWorkspace;
+        }
+
         $configured = (int) config('flowtrack.workspace_id', 1);
         $workspace = $configured > 0
             ? Workspace::query()->whereKey($configured)->where('is_active', true)->first()

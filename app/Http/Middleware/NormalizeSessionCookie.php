@@ -22,6 +22,16 @@ class NormalizeSessionCookie
     {
         $host = strtolower($request->getHost());
         $configuredDomain = $this->normalizeDomain(config('session.domain'));
+        // The delegated Product iframe has an independent browser cookie even
+        // on local 127.0.0.1, where different ports otherwise share cookies.
+        $productHost = strtolower((string) parse_url(
+            (string) config('supplier_bridge.product_module_url'), PHP_URL_HOST));
+        $staffHost = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+        if ($productHost !== '' && $productHost !== $staffHost && $host === $productHost) {
+            config()->set('session.cookie', 'flowtrack_supplier_product_session');
+            config()->set('session.domain', null);
+            $configuredDomain = null;
+        }
 
         // If FlowTrack is opened by an IP address or an alternate hostname,
         // do not emit a cookie for an unrelated SESSION_DOMAIN. A host-only

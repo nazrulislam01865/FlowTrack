@@ -157,7 +157,9 @@ trait ManagesProductCategorySelection
         $this->authorizeGroupAction('delete');
 
         $workspaceId = app(MasterDataService::class)->workspaceId();
-        app(\App\Services\ProductTaxonomyService::class)->synchronizeLegacyTaxonomy();
+        if (! app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user())) {
+            app(\App\Services\ProductTaxonomyService::class)->synchronizeLegacyTaxonomy();
+        }
 
         if ($level !== null && $id !== null) {
             $type = $this->categoryTypeForLevel($level);

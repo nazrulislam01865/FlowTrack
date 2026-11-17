@@ -4,6 +4,7 @@ namespace App\Livewire\MasterData;
 
 use App\Livewire\MasterData\Concerns\ManagesMasterNavigation;
 use App\Livewire\MasterData\Concerns\ManagesMasterEditor;
+use App\Livewire\MasterData\Concerns\ManagesSupplierCurrencyTables;
 use App\Livewire\MasterData\Concerns\ManagesProductTaxonomy;
 use App\Livewire\MasterData\Concerns\ManagesSupplierCreation;
 use App\Livewire\MasterData\Concerns\ManagesSupplierDetails;
@@ -36,6 +37,7 @@ class Index extends Component
 {
     use ManagesMasterNavigation;
     use ManagesMasterEditor;
+    use ManagesSupplierCurrencyTables;
     use ManagesProductTaxonomy;
     use ManagesProductCatalog;
     use ManagesSupplierCreation;
@@ -70,6 +72,8 @@ class Index extends Component
     public string $productCustomerPriceTable = '';
     public string $productCustomerPriceCurrency = 'USD';
     public array $productCustomerPricePreview = [];
+    /** The editable quantity/price columns for the shared all-clients table. */
+    public array $productCustomerPriceTiers = [];
     /** @var array<int,array{client_id:string,table:string,preview:array}> */
     public array $productClientPrices = [];
     /** Edited supplier costs, keyed by the supplier selected above (no shared editable cost table). */
@@ -187,6 +191,16 @@ class Index extends Component
     public string $categoryEditorDescription = '';
     public string $categoryEditorStatus = 'active';
     public bool $categoryEditorReadOnly = false;
+
+    /** Prevent a Livewire property update from switching a portal actor to another module. */
+    public function updatingGroup(string $value): void
+    {
+        $access = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+        if (! auth()->user() || ! $access->isPortalActor(auth()->user())) return;
+        abort_unless(in_array($value, ['product', 'product_category'], true), 403);
+        $target = $value === 'product' ? 'products' : 'categories';
+        abort_unless($access->can(auth()->user(), $target, 'view'), 403);
+    }
 
     public function mount(): void
     {

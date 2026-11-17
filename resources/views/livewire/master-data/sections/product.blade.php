@@ -7,6 +7,12 @@
                 :can-delete="$canDeleteMaster"
                 :display-timezone="$displayTimezone"
                 :detail-sections-ready="$productDetailSectionsReady ?? []"
+                :editing-supplier-currency-table="$editingSupplierCurrencyTable"
+                :currency-table-supplier-id="$currencyTableSupplierId"
+                :currency-table-currency="$currencyTableCurrency"
+                :currency-table-original-currency="$currencyTableOriginalCurrency"
+                :currency-table-version="$currencyTableVersion"
+                :currency-table-tiers="$currencyTableTiers"
             />
         @elseif($showModal)
             <x-catalog.product-form
@@ -32,8 +38,15 @@
                 :selected-subcategory="$productSubcategory"
                 :price-preview="$productPricePreview"
                 :customer-price-preview="$productCustomerPricePreview"
+                :customer-price-tiers="$productCustomerPriceTiers"
                 :client-price-rows="$productClientPrices"
                 :supplier-price-rows="$productSupplierPrices"
+                :editing-supplier-currency-table="$editingSupplierCurrencyTable"
+                :currency-table-supplier-id="$currencyTableSupplierId"
+                :currency-table-currency="$currencyTableCurrency"
+                :currency-table-original-currency="$currencyTableOriginalCurrency"
+                :currency-table-version="$currencyTableVersion"
+                :currency-table-tiers="$currencyTableTiers"
                 :price-currencies="$productPriceCurrencies"
                 :remote-surcharge-preview="$productRemoteSurchargePreview"
                 :product-options="$productOptions"
@@ -54,10 +67,14 @@
                 <p>Manage the product catalog, client availability and supporting documents.</p>
             </div>
             <div class="ft-product-list-head-actions">
-                <button type="button" class="ft-product-page-btn is-secondary ft-product-export-button" wire:click="exportProducts" wire:loading.attr="disabled" wire:target="exportProducts">Export Excel</button>
+                @unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user()))
+                    <button type="button" class="ft-product-page-btn is-secondary ft-product-export-button" wire:click="exportProducts" wire:loading.attr="disabled" wire:target="exportProducts">Export Excel</button>
+                @endunless
                 @if($canEditMaster)
+                    @unless(app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user()))
                     <button type="button" class="ft-product-page-btn is-secondary ft-product-supplier-filter-btn" wire:click="showProductsWithoutSupplier">Show products without supplier</button>
                     <button type="button" class="ft-product-page-btn is-primary ft-product-assign-supplier-btn" wire:click="openProductSupplierAssignment" @disabled($productSelectionCount < 1)>Assign supplier</button>
+                    @endunless
                 @endif
                 @if($canCreateMaster)
                     <button type="button" class="ft-product-add-button" wire:click="open">
@@ -234,7 +251,9 @@
                                     $updatedLabel = !$updatedAt
                                         ? '—'
                                         : ($updatedAt->isToday() ? $updatedAt->diffForHumans() : ($updatedAt->isYesterday() ? '1 day ago' : $updatedAt->diffForHumans()));
-                                    $documents = $r->productDocuments();
+                                    $portalProductAccess = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+                                    $documents = $portalProductAccess->permitsSection(auth()->user(), 'documents', 'view')
+                                        ? $r->productDocuments() : [];
                                     $classificationPath = $r->productClassificationPath();
                                     $isProductSelected = $selectAllMatchingProducts
                                         ? !$excludedProductIdSet->contains((int) $r->id)
@@ -278,7 +297,13 @@
                                         />
                                     </td>
                                     <td><x-catalog.product-size :value="$r->productSize()" /></td>
-                                    <td><x-catalog.availability :labels="$r->productAvailabilityLabels()" /></td>
+                                    <td>
+                                        @if($portalProductAccess->permitsSection(auth()->user(), 'availability', 'view'))
+                                            <x-catalog.availability :labels="$r->productAvailabilityLabels()" />
+                                        @else
+                                            <span>—</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         <div class="ft-product-documents">
                                             @if(count($documents))

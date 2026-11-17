@@ -8,6 +8,7 @@ use Illuminate\Session\TokenMismatchException;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsureSingleLoginSession;
+use App\Http\Middleware\EnforceSupplierProductModuleScope;
 use App\Http\Middleware\MonitorPerformance;
 use App\Http\Middleware\NormalizeSessionCookie;
 use App\Http\Middleware\PreventDynamicPageCaching;
@@ -56,6 +57,13 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/api/supplier-bridge/purchase-order-file/{order}/{po}/{document}', \App\Http\Controllers\SupplierBridge\DownloadSupplierPurchaseOrder::class)
                 ->whereNumber('order')->whereNumber('po')->whereNumber('document')->middleware('throttle:60,1');
 
+            Route::post('/api/supplier-bridge/product-module/issue', [\App\Http\Controllers\SupplierBridge\SupplierProductModuleSession::class, 'issue'])
+                ->middleware('throttle:20,1');
+            Route::post('/api/supplier-bridge/product-module/data', \App\Http\Controllers\SupplierBridge\SupplierNativeProductApi::class)
+                ->middleware('throttle:60,1');
+            Route::post('/api/supplier-bridge/product-module/revoke', [\App\Http\Controllers\SupplierBridge\SupplierProductModuleSession::class, 'revoke'])
+                ->middleware('throttle:30,1');
+
             Route::post('/api/supplier-bridge/price-proposals', \App\Http\Controllers\SupplierBridge\ReceiveSupplierPriceProposal::class)
                 ->middleware('throttle:30,1');
 
@@ -75,7 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // a fresh browser or alternate host to lose its session and hit 419.
         $middleware->web(
             prepend: [NormalizeSessionCookie::class],
-            append: [MonitorPerformance::class, EnsureSingleLoginSession::class, PreventDynamicPageCaching::class, SecurityHeaders::class],
+            append: [MonitorPerformance::class, EnsureSingleLoginSession::class, EnforceSupplierProductModuleScope::class, PreventDynamicPageCaching::class, SecurityHeaders::class],
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {

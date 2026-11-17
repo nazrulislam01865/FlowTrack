@@ -54,7 +54,7 @@ final class SyncSupplier
         // One read for all supplier-specific overrides; never query per product.
         $overrides = DB::table('supplier_product_prices')->where('workspace_id', $workspace)
             ->where('supplier_id', $id)->whereIn('product_id', $products->pluck('id'))
-            ->pluck('price_breakpoints', 'product_id');
+            ->get(['product_id', 'price_breakpoints', 'additional_charges'])->keyBy('product_id');
         $pricing = app(SupplierPricing::class);
         // Review outcomes travel with the next catalogue reconciliation, including rejections.
         $decisions = DB::table('supplier_price_proposals')->where('supplier_id', $id)
@@ -78,8 +78,9 @@ final class SyncSupplier
             'name' => (string) $supplier->name,
             'short_code' => $supplier->supplierShortCode(),
             'active' => $supplier->status === 'active',
-            'products' => $products->map(function ($product) use ($overrides, $pricing): array {
-                $raw = $overrides->get($product->id);
+            'products' => $products->map(function ($product) use ($overrides, $pricing, $id): array {
+                $override = $overrides->get($product->id);
+                $raw = $override?->price_breakpoints;
                 // Supplier-specific approved prices only. Never substitute the
                 // product-level/default table (or customer/client selling prices).
                 $rows = $raw !== null ? $pricing->normalize(json_decode((string) $raw, true) ?: []) : [];
@@ -89,6 +90,11 @@ final class SyncSupplier
                     'name' => (string) $product->name,
                     'active' => $product->status === 'active',
                     'supplier_prices' => $rows,
+                    // Supplier-specific approved charges only. The synced catalogue
+                    // contains no client selling prices or other supplier data.
+                    'supplier_charges' => app(SupplierPriceMatrix::class)->normalizeCharges(
+                        json_decode((string) ($override?->additional_charges ?? ''), true) ?: []),
+                    'supplier_price_currency' => $product->supplierPriceCurrency($id),
                     'price_version' => $pricing->version($rows),
                     // Only a stable fingerprint, never the protected source path or bytes.
                     'image_version' => ($path = trim((string) data_get($product->metadata, 'product_image_path'))) !== ''

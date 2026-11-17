@@ -15,8 +15,8 @@ final class ProductSupplierClientPriceTablesUxTest extends TestCase
         $detail = file_get_contents(resource_path('views/components/catalog/product-view.blade.php'));
 
         $this->assertStringContainsString("DB::table('supplier_product_prices')", $editor);
-        $this->assertStringContainsString("->pluck('price_breakpoints', 'supplier_id')", $editor);
-        $this->assertStringContainsString("->pluck('price_breakpoints', 'supplier_id')", $renderer);
+        $this->assertStringContainsString("->get(['supplier_id', 'price_breakpoints', 'additional_charges'])->keyBy('supplier_id')", $editor);
+        $this->assertStringContainsString("->get(['supplier_id', 'price_breakpoints', 'additional_charges'])->keyBy('supplier_id')", $renderer);
         $this->assertStringContainsString('productSupplierPrices.', $form);
         $this->assertStringContainsString('supplierPricingTables', $detail);
         $this->assertStringNotContainsString('Default Client price table', $form);
@@ -28,7 +28,7 @@ final class ProductSupplierClientPriceTablesUxTest extends TestCase
         $editor = file_get_contents(app_path('Livewire/MasterData/Concerns/ManagesMasterEditor.php'));
         $review = file_get_contents(app_path('Http/Controllers/SupplierBridge/SupplierPriceReviewController.php'));
 
-        $this->assertStringContainsString('if ($parsed === $pricing->normalize($original)) continue;', $editor);
+        $this->assertStringContainsString('if (! $priceChanged && ! $chargesChanged) continue;', $editor);
         $this->assertStringContainsString('hash_equals($pricing->version($rows), $edit[\'base_version\'])', $editor);
         $this->assertStringContainsString("->where('status', 'pending')->update([", $editor);
         $this->assertStringContainsString("DB::table('supplier_product_prices')->upsert", $review);

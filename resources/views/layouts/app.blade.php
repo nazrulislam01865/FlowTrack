@@ -1,3 +1,7 @@
+@php
+    $supplierProductEmbedded = auth()->check()
+        && app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class)->isPortalActor(auth()->user());
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_','-',app()->getLocale()) }}">
 <head>
@@ -5,14 +9,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="flowtrack-session-timeout" content="{{ (int) config('session.lifetime', 30) * 60 }}">
-    @auth
+    @if(auth()->check() && ! $supplierProductEmbedded)
         <meta name="flowtrack-session-status-url" content="{{ route('session.status') }}">
         <meta name="flowtrack-session-recover-url" content="{{ route('session.recover') }}">
         <meta name="flowtrack-logout-url" content="{{ route('logout') }}">
         <meta name="flowtrack-timezone-sync-url" content="{{ route('session.timezone') }}">
         <meta name="flowtrack-display-timezone" content="{{ app(\App\Services\WorkspaceSettingsService::class)->displayTimezone() }}">
         <meta name="flowtrack-rich-text-upload-url" content="{{ route('rich-text-images.store') }}">
-    @endauth
+    @endif
     <title>{{ ($title ?? null) ? $title.' — ' : '' }}STEP PROMO</title>
     <link rel="icon" href="{{ $branding['favicon_url'] ?? asset('images/step-promo/step-promo-icon.webp') }}">
     <script
@@ -20,10 +24,10 @@
         data-fallback-src="{{ asset('images/flowtrack-image-fallback.svg') }}"
     ></script>
     @vite('resources/css/application/prelude.css')
-    @auth
+    @if(auth()->check() && ! $supplierProductEmbedded)
         <meta name="flowtrack-notification-count-url" content="{{ route('notifications.unread-count') }}">
-    @endauth
-    @if(auth()->check() && app(\App\Services\ReverbChannelService::class)->enabled())
+    @endif
+    @if(auth()->check() && ! $supplierProductEmbedded && app(\App\Services\ReverbChannelService::class)->enabled())
         <meta name="flowtrack-reverb-key" content="{{ data_get(config('reverb'), 'apps.apps.0.key') }}">
         <meta name="flowtrack-reverb-host" content="{{ data_get(config('reverb'), 'apps.apps.0.options.host') }}">
         <meta name="flowtrack-reverb-port" content="{{ data_get(config('reverb'), 'apps.apps.0.options.port', 443) }}">
@@ -79,6 +83,12 @@
     @if(request()->routeIs('orders.purchase-orders'))
         <link rel="stylesheet" href="{{ asset('css/flowtrack-purchase-orders.css') }}?v=4">
     @endif
+    @if(request()->is('master-data'))
+        <link rel="stylesheet" href="{{ asset('css/flowtrack-product-pricing-ux.css') }}?v=1">
+    @endif
+    @if(request()->routeIs('settings.supplier-product-access'))
+        <link rel="stylesheet" href="{{ asset('css/flowtrack-supplier-product-settings.css') }}?v=1">
+    @endif
     @if(request()->routeIs('supplier-reminder.index'))
         <link rel="stylesheet" href="{{ asset('css/flowtrack-supplier-reminders.css') }}?v=7">
     @endif
@@ -111,8 +121,16 @@
         data-navigate-once
         defer
     ></script>
+    @if($supplierProductEmbedded)
+        <style>
+            body.ft-supplier-product-embedded { min-width: 0; }
+            body.ft-supplier-product-embedded .app { display:block; min-width:0; }
+            body.ft-supplier-product-embedded main.main { margin:0 !important; width:100% !important; min-width:0; max-width:none !important; }
+            body.ft-supplier-product-embedded main.main > .content { width:100%; max-width:none !important; margin:0; min-width:0; }
+        </style>
+    @endif
 </head>
-<body class="{{ request()->routeIs('dashboard', 'team-performance.report') ? 'ft-management-dashboard-page' : '' }}">
+<body class="{{ request()->routeIs('dashboard', 'team-performance.report') ? 'ft-management-dashboard-page' : '' }} {{ $supplierProductEmbedded ? 'ft-supplier-product-embedded' : '' }}">
 <div class="app">
     {{--
         The sidebar is part of the persistent application shell. Livewire
@@ -121,12 +139,16 @@
         Persisting it keeps the existing DOM, event listeners and scroll state
         in place while only the destination page is swapped.
     --}}
-    @persist('flowtrack-sidebar')
-        @include('layouts.partials.sidebar')
-    @endpersist
-    <div id="sidebarShade" class="mobile-sidebar-shade"></div>
+    @unless($supplierProductEmbedded)
+        @persist('flowtrack-sidebar')
+            @include('layouts.partials.sidebar')
+        @endpersist
+        <div id="sidebarShade" class="mobile-sidebar-shade"></div>
+    @endunless
     <main class="main">
-        @include('layouts.partials.topbar')
+        @unless($supplierProductEmbedded)
+            @include('layouts.partials.topbar')
+        @endunless
         <x-ui.async-feedback />
         <div class="content {{ request()->routeIs('dashboard', 'team-performance.report') ? 'ft-dashboard-content-shell' : '' }} {{ request()->routeIs('reports') ? 'ft-inquiry-intelligence-content-shell' : '' }}">
             @if(session('success') && !request()->routeIs('task-pack.setup','master-data','financial-master-data','profile','inquiries.*','company.setup'))<div class="flash">{{ session('success') }}</div>@endif
@@ -134,7 +156,9 @@
             @yield('content')
         </div>
     </main>
-    @include('layouts.partials.mobile-bottom')
+    @unless($supplierProductEmbedded)
+        @include('layouts.partials.mobile-bottom')
+    @endunless
 </div>
 @livewireScripts
 

@@ -1,5 +1,6 @@
 @props([
     'number' => null,
+    'readOnly' => false,
     'shipmentUrgencies' => collect(),
     'selectedUrgencies' => [],
     'pickerOpen' => false,
@@ -38,11 +39,11 @@
                             <strong>{{ $urgencyName }}</strong>
                             @if($urgencyCode)<small>{{ $urgencyCode }}</small>@endif
                         </div>
-                        <button type="button" class="ft-product-shipping-card-remove" wire:click="removeProductShipmentUrgency({{ $urgencyIndex }})" aria-label="Remove {{ $urgencyName }}">×</button>
+                        <button type="button" class="ft-product-shipping-card-remove" wire:click="removeProductShipmentUrgency({{ $urgencyIndex }})" aria-label="Remove {{ $urgencyName }}" @disabled($readOnly)>×</button>
                     </div>
                     <label class="ft-product-field ft-product-shipping-card-charge">
                         <span>Extra charge <em>Optional</em></span>
-                        <input type="number" min="0" step="0.01" inputmode="decimal" wire:model.blur="productShipmentUrgencies.{{ $urgencyIndex }}.extra_charge" placeholder="0.00">
+                        <input type="number" min="0" step="0.01" inputmode="decimal" wire:model.blur="productShipmentUrgencies.{{ $urgencyIndex }}.extra_charge" placeholder="0.00" @disabled($readOnly)>
                         @error('productShipmentUrgencies.'.$urgencyIndex.'.extra_charge')<b class="validation-error">{{ $message }}</b>@enderror
                     </label>
                     @error('productShipmentUrgencies.'.$urgencyIndex.'.shipment_urgency_id')<b class="validation-error">{{ $message }}</b>@enderror
@@ -64,7 +65,7 @@
             type="button"
             class="ft-product-shipping-add"
             wire:click="addProductShipmentUrgency"
-            @disabled($urgencies->isEmpty() || $selectedIds->count() >= 20)
+            @disabled($readOnly || $urgencies->isEmpty() || $selectedIds->count() >= 20)
         >
             <span>+</span> Add shipping urgency
         </button>
@@ -78,7 +79,7 @@
     @endif
     @error('productShipmentUrgencies')<b class="validation-error ft-product-shipping-error">{{ $message }}</b>@enderror
 
-    @if($pickerOpen)
+    @if($pickerOpen && !$readOnly)
         <div class="ft-product-shipping-picker-backdrop" wire:key="product-shipping-urgency-picker" wire:click.self="closeProductShipmentUrgencyPicker">
             <section class="ft-product-shipping-picker" role="dialog" aria-modal="true" aria-labelledby="product-shipping-urgency-picker-title" x-data="{ urgencySearch: '' }" x-on:keydown.escape.window="$wire.closeProductShipmentUrgencyPicker()">
                 <header class="ft-product-shipping-picker-head">

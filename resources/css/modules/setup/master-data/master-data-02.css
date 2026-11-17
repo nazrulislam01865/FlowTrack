@@ -2016,6 +2016,63 @@
     border-right: 0
 }
 
+/* Supplier pricing is an editable row/column grid instead of an Excel paste field. */
+.ft-product-matrix-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+.ft-product-matrix-toolbar small { color: #667085; max-width: 640px; line-height: 1.5; }
+.ft-product-matrix-add {
+    border: 1px solid #bcd2f5;
+    background: #f3f7ff;
+    color: #175cd3;
+    border-radius: 7px;
+    padding: 9px 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.ft-product-matrix-add:disabled { opacity: .5; cursor: not-allowed; }
+.ft-product-matrix-scroll { margin-top: 10px; }
+.ft-product-price-matrix { table-layout: auto; }
+.ft-product-price-matrix th:first-child { min-width: 165px; }
+.ft-product-price-matrix th, .ft-product-price-matrix td { min-width: 148px; padding: 8px; }
+.ft-product-price-matrix tbody th small { display: block; font-weight: 450; color: #98a2b3; }
+.ft-product-price-matrix input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    padding: 9px;
+    font: inherit;
+    font-size: .75rem;
+    color: #101828;
+    text-align: right;
+    background: #fff;
+}
+.ft-product-price-matrix input:focus { outline: 2px solid #a8c7ff; outline-offset: 0; border-color: #528ae8; }
+.ft-product-price-matrix input::placeholder { color: #98a2b3; }
+.ft-product-matrix-quantity { display: flex; gap: 5px; align-items: center; }
+.ft-product-matrix-quantity input { text-align: center; }
+.ft-product-matrix-remove {
+    background: #fff;
+    color: #9b3440;
+    border: 1px solid #f1c6c9;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.125rem;
+    min-width: 28px;
+    min-height: 34px;
+}
+.ft-product-detail-matrix th:first-child { min-width: 170px; }
+.ft-product-detail-matrix td, .ft-product-detail-matrix th:not(:first-child) { min-width: 110px; }
+.ft-product-price-empty { min-width: 110px; }
+
 @media(max-width:760px) {
     .ft-product-price-table-field textarea {
         min-height: 108px

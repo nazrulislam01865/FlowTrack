@@ -50,7 +50,7 @@
         ->mapWithKeys(fn ($type) => [$type => $masterLabels[$type]])
         ->all();
     $administrator = app(\App\Services\AccessControlService::class)->isAdministrator($user);
-    $settingsGroupActive = request()->routeIs('company.setup', 'administration');
+    $settingsGroupActive = request()->routeIs('company.setup', 'administration', 'settings.supplier-product-access');
     $reportView = $user->canAccess('reports.view');
     $reportGroupActive = request()->routeIs('reports', 'team-performance.report', 'order-summary.report');
 @endphp
@@ -304,6 +304,9 @@
                     <x-ui.nav-link route="administration" label="Roles & Access" icon="dot" child :active="request()->routeIs('administration') && !in_array((string) request()->query('tab'), ['settings','branding'], true)" />
                     <x-ui.nav-link route="administration" label="System Settings" icon="dot" child :params="['tab' => 'settings']" :active="request()->routeIs('administration') && request()->query('tab') === 'settings'" />
                     <x-ui.nav-link route="administration" label="Branding" icon="dot" child :params="['tab' => 'branding']" :active="request()->routeIs('administration') && request()->query('tab') === 'branding'" />
+                    @if($user->canModule('suppliers', 'manage'))
+                        <x-ui.nav-link route="settings.supplier-product-access" label="Supplier Product Access" icon="dot" child />
+                    @endif
                 </div>
             </details>
         @endif

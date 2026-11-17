@@ -56,6 +56,10 @@ Route::get('/artwork-handoff/overview-images/{filename}', \App\Http\Controllers\
     ->where('filename', '[A-Za-z0-9-]+\.(?:png|jpe?g|webp|gif)')
     ->name('artwork-handoff.overview-image');
 
+// The one-time product module ticket is consumed in FlowTracker's own web session.
+Route::get('/supplier-product/access/{ticket}', [\App\Http\Controllers\SupplierBridge\SupplierProductModuleSession::class, 'access'])
+    ->where('ticket', '[A-Za-z0-9]{64}')->middleware('throttle:20,1')->name('supplier-product.access');
+
 // Binary product assets are restricted to the signed, supplier-scoped bridge.
 Route::get('/api/supplier-bridge/product-image/{supplier}/{product}', \App\Http\Controllers\SupplierBridge\SupplierProductImage::class)
     ->whereNumber('supplier')->whereNumber('product')->middleware('throttle:120,1');
@@ -387,4 +391,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/master-data', MasterDataController::class)->name('master-data');
     Route::get('/company-setup', CompanySetupController::class)->middleware('super.admin')->name('company.setup');
     Route::get('/administration', AdministrationController::class)->middleware('super.admin')->name('administration');
+    Route::get('/settings/supplier-product-access', fn () => view('pages.supplier-product-access'))
+        ->middleware('super.admin')->name('settings.supplier-product-access');
 });

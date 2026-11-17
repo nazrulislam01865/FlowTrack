@@ -170,6 +170,9 @@ class AccessControlService
     public function can(User $user, string $module, string $action = 'view'): bool
     {
         if (!$user->is_active) return false;
+        // Supplier portal actors are authenticated ONLY for the Product module.
+        $portal = app(\App\Services\SupplierBridge\SupplierProductModuleAccess::class);
+        if ($portal->isPortalActor($user)) return $portal->canModule($user, $module, $action);
         if ($this->isAdministrator($user)) return true;
         if (!isset(self::MODULES[$module]) || !self::supportsAction($module, $action)) return false;
 
